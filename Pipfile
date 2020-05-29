@@ -10,6 +10,3 @@ setuptools = "*"
 wheel = "*"
 twine = "*"
 pretext = {editable = true,path = "."}
-
-[requires]
-python_version = "3.6"

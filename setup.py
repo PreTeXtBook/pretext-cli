@@ -11,6 +11,9 @@ setuptools.setup(
     description="A package for authoring and building PreTeXt documents.",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    install_requires=[
+       'lxml',
+    ],
     url="https://github.com/stevenclontz/pretext.py",
     packages=setuptools.find_packages(),
     classifiers=[
