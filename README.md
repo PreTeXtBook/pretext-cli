@@ -38,3 +38,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> import pretext
 b'<pretext><article><p>Hello PreTeXt World!</p></article></pretext>'
 ```
+
+## PreTeXt XSL
+
+Right now, we're developing against a frozen snapshot of PreTeXt:
+<https://github.com/rbeezer/mathbook/commit/cf93da622c6177bbc3eefc79a11cfdcc0b971c99>
