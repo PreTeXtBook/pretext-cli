@@ -39,7 +39,13 @@ Type "help", "copyright", "credits" or "license" for more information.
 b'<pretext><article><p>Hello PreTeXt World!</p></article></pretext>'
 ```
 
+Or use `pipenv shell` to enter the virtual environment directly.
+
+To add dependencies for the package, update `setup.py`. then run `pipenv update`.
+
+To add dependencies for the development environment, use `pipenv install [package]`.
+
 ## PreTeXt XSL
 
-Right now, we're developing against a frozen snapshot of PreTeXt:
+Right now, we're developing against this frozen snapshot of PreTeXt:
 <https://github.com/rbeezer/mathbook/commit/cf93da622c6177bbc3eefc79a11cfdcc0b971c99>

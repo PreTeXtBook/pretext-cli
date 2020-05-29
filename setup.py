@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     install_requires=[
        'lxml',
+       'python-slugify'
     ],
     url="https://github.com/stevenclontz/pretext.py",
     packages=setuptools.find_packages(),
