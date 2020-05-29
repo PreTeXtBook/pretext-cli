@@ -13,7 +13,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     install_requires=[
        'lxml',
-       'python-slugify'
+       'python-slugify',
+       'click'
     ],
     url="https://github.com/stevenclontz/pretext.py",
     packages=setuptools.find_packages(),
@@ -23,4 +24,9 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.4',
+    entry_points={
+        'console_scripts': [
+            'pretext = pretext:cli',
+        ],
+    }
 )
