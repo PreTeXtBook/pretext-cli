@@ -1,14 +1,7 @@
 from lxml import etree as ET
 from slugify import slugify
 from pathlib import Path
-import click
 
-#  Click command-line interface
-@click.group()
-def cli():
-    pass
-
-@cli.command()
 def new(book_title="My Great Book!"):
     '''
     Generates scaffolding for a PreTeXt book.

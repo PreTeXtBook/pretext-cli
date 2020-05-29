@@ -26,7 +26,7 @@ setuptools.setup(
     python_requires='>=3.4',
     entry_points={
         'console_scripts': [
-            'pretext = pretext:cli',
+            'pretext = pretext.cli:main',
         ],
     }
 )
