@@ -28,5 +28,8 @@ setuptools.setup(
         'console_scripts': [
             'pretext = pretext.cli:main',
         ],
-    }
+    },
+    package_data = {
+        'static': ['*'],
+    },
 )
