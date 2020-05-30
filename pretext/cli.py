@@ -3,9 +3,12 @@ import click
 #  Click command-line interface
 @click.group()
 def main():
-    pass
+    """
+    Command line tools for quickly creating, authoring, and building
+    PreTeXt documents.
+    """
 
-@click.command()
+@click.command(short_help="Provision a new PreTeXt document.")
 @click.argument('title', required=True)
 def new(title):
     """
