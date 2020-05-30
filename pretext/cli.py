@@ -1,4 +1,5 @@
 import click
+from slugify import slugify
 
 #  Click command-line interface
 @click.group()
@@ -18,6 +19,6 @@ def new(title):
     Example:
     pretext new "My Great Book!"
     """
-    from . import new
-    new(title)
+    from . import new_pretext_document, create_new_pretext_source 
+    create_new_pretext_source(new_pretext_document(title,"book"), slugify(title))
 main.add_command(new)
