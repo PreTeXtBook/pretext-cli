@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<pretext xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en-US">
+
+    <book>
+        <title>My Great Book!</title>
+        <p>Hello PreTeXt World!</p>
+    </book>
+
+</pretext>

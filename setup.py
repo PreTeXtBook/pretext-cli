@@ -14,7 +14,8 @@ setuptools.setup(
     install_requires=[
        'lxml',
        'python-slugify',
-       'click'
+       'click',
+       "importlib_resources ; python_version<'3.7'",
     ],
     url="https://github.com/stevenclontz/pretext.py",
     packages=setuptools.find_packages(),
@@ -30,6 +31,6 @@ setuptools.setup(
         ],
     },
     package_data = {
-        'static': ['*'],
+        'pretext': ['static/*'],
     },
 )
