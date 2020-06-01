@@ -30,27 +30,18 @@ def create_new_pretext_source(project_path,title,doc_type):
 
 def build_html(output):
     import os
-    from pathlib import Path
-    ptxfile = Path('source/main.ptx')
-    ptxfile = str(ptxfile.resolve())
+    # from pathlib import Path
+    ptxfile = os.path.abspath('source/main.ptx')
     # with pkg_resources.path(static, 'pretext-html.xsl') as p:
     #     xslfile = str(p.resolve())
-    xslfile = os.path.join(get_static_path(), "pretext-html.xsl")
+    xslfile = get_static_path('pretext-html.xsl')
+    # xslfile = os.path.join(get_static_path(), "pretext-html.xsl")
     print(xslfile)
-    Path(output).mkdir(parents=True, exist_ok=True)
+    ensure_directory(output)
     os.chdir(output)  # change to output dir.
-    try:
-        os.mkdir('knowl')
-    except OSError:
-        print("Creation of the directory %s failed" % 'knowl')
-    else:
-        print("Successfully created the directory %s " % 'knowl')
-    # Path('knowl').mkdir(exist_ok=True)
-    # if not os.path.exists('knowl'):
-    #     os.makedirs('knowl')
-    Path('images').mkdir(exist_ok=True)
-    # if not os.path.exists('images'):
-    #     os.makedirs('images')
+    ensure_directory('knowl')
+    ensure_directory('images')
+    # transform ptx using xsl:
     dom = ET.parse(ptxfile)
     dom.xinclude()
     xslt = ET.parse(xslfile)
@@ -61,17 +52,9 @@ def build_latex(output):
     import os
     ptxfile = os.path.abspath('source/main.ptx')
     xslfile = os.path.join(get_static_path(), "pretext-latex.xsl")
-    # Clean this up:
-    try: 
-        os.mkdirs(output)
-    except:
-        pass
+    #create output directory
+    ensure_directory(output)
     os.chdir(output)
-    try: 
-        os.mkdir('latex')
-    except:
-        pass
-    os.chdir('latex')
     # Do the xsltproc equivalent:
     dom = ET.parse(ptxfile)
     dom.xinclude()
@@ -84,22 +67,28 @@ def build_latex(output):
 
     
 def directory_exists(path):
-    from pathlib import Path
-    return Path(path).exists()
+    import os
+    return os.path.exists(path)
 
 def ensure_directory(path):
-    from pathlib import Path
-    Path(path).mkdir(exist_ok=True)
+    import os
+    # create directory at path if it doesn't exist:
+    try:
+        os.makedirs(path)
+    except FileExistsError:
+        pass
 
 
-# Adapted from mathbook's pretext.py.  This gets the path to the "static" files in our distribution.  Eventually, allow for specification of alternative (mathbook/dev) distribution.
-def get_static_path():
-    import os.path  # abspath(), split()
-    # full path to module itself
-    ptx_path = os.path.abspath(__file__)
-    print(ptx_path)
-    # get directory:
-    module_dir, _ = os.path.split(ptx_path)
-    print(module_dir)
-    static_dir = os.path.join(module_dir, "static")
-    return static_dir
+# This gets the path to the "static" files in our distribution.  Eventually, allow for specification of alternative (mathbook/dev) distribution.
+def get_static_path(file):
+    with pkg_resources.path(static, file) as p:
+        static_file = str(p.resolve())
+    # import os.path  # abspath(), split()
+    # # full path to module itself
+    # ptx_path = os.path.abspath(__file__)
+    # print(ptx_path)
+    # # get directory:
+    # module_dir, _ = os.path.split(ptx_path)
+    # print(module_dir)
+    # static_dir = os.path.join(module_dir, "static")
+    return static_file
