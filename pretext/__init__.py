@@ -32,11 +32,8 @@ def build_html(output):
     import os
     # from pathlib import Path
     ptxfile = os.path.abspath('source/main.ptx')
-    # with pkg_resources.path(static, 'pretext-html.xsl') as p:
-    #     xslfile = str(p.resolve())
     xslfile = get_static_path('pretext-html.xsl')
-    # xslfile = os.path.join(get_static_path(), "pretext-html.xsl")
-    print(xslfile)
+    # create output directories and move there.
     ensure_directory(output)
     os.chdir(output)  # change to output dir.
     ensure_directory('knowl')
@@ -51,7 +48,7 @@ def build_html(output):
 def build_latex(output):
     import os
     ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = os.path.join(get_static_path(), "pretext-latex.xsl")
+    xslfile = get_static_path('pretext-latex.xsl')
     #create output directory
     ensure_directory(output)
     os.chdir(output)
