@@ -12,6 +12,9 @@ def new_pretext_document(title,doc_type):
     doc.xpath('//book/title|article/title')[0].text = title
     return doc
 
+def new_pretext_publisher_file():
+    return ET.parse(pkg_resources.open_text(static, "publisher.ptx"))
+
 def create_new_pretext_source(project_path,title,doc_type):
     ensure_directory(project_path)
     ensure_directory(f"{project_path}/source")
@@ -21,6 +24,13 @@ def create_new_pretext_source(project_path,title,doc_type):
         xml_declaration=True,
         encoding="utf-8"
     )
+    new_pretext_publisher_file().write(
+        f"{project_path}/publisher.ptx",
+        pretty_print=True,
+        xml_declaration=True,
+        encoding="utf-8"
+    )
+    doc = ET.parse(pkg_resources.open_text(static, f"{doc_type}.ptx"))
     with open(f"{project_path}/.gitignore", mode='w') as gitignore:
         print("output", file=gitignore)
     with open(f"{project_path}/README.md", mode='w') as readme:
