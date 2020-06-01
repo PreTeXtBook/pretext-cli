@@ -1,5 +1,4 @@
 from lxml import etree as ET
-from pathlib import Path
 
 # To access static files
 try:
@@ -15,8 +14,8 @@ def new_pretext_document(doc_title="My Great Book!",doc_type="book"):
     return doc
 
 def create_new_pretext_source(doc,doc_path):
-    Path(doc_path).mkdir(exist_ok=True)
-    Path(doc_path+"/source").mkdir(exist_ok=True)
+    ensure_directory(doc_path)
+    ensure_directory(doc_path+"/source")
     doc.write(
         doc_path+"/source/main.ptx",
         pretty_print=True,
@@ -47,3 +46,12 @@ def build_html(output):
 
 def build_latex(output):
     pass 
+
+    
+def directory_exists(path):
+    from pathlib import Path
+    return Path(path).exists()
+
+def ensure_directory(path):
+    from pathlib import Path
+    Path(path).mkdir(exist_ok=True)
