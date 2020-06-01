@@ -39,28 +39,25 @@ def build_html(output):
     ensure_directory('knowl')
     ensure_directory('images')
     # transform ptx using xsl:
-    dom = ET.parse(ptxfile)
-    dom.xinclude()
-    xslt = ET.parse(xslfile)
-    transform = ET.XSLT(xslt)
-    transform(dom)
+    xsltproc(xslfile, ptxfile)
+    # dom = ET.parse(ptxfile)
+    # dom.xinclude()
+    # xslt = ET.parse(xslfile)
+    # transform = ET.XSLT(xslt)
+    # transform(dom)
 
 def build_latex(output):
     import os
+    # import sys
     ptxfile = os.path.abspath('source/main.ptx')
     xslfile = get_static_path('pretext-latex.xsl')
     #create output directory
     ensure_directory(output)
     os.chdir(output)
     # Do the xsltproc equivalent:
-    dom = ET.parse(ptxfile)
-    dom.xinclude()
-    xslt = ET.parse(xslfile)
-    transform = ET.XSLT(xslt)
-    newdom = transform(dom)
-    outfile = open("main.tex", 'w', newline='')
-    outfile.write(str(newdom))
-    outfile.close()
+    # params = {"latex.font.size": "'20pt'"}
+    params = {}
+    xsltproc(xslfile, ptxfile, stringparams=params, outfile='main.tex')
 
     
 def directory_exists(path):
@@ -89,3 +86,23 @@ def get_static_path(file):
     # print(module_dir)
     # static_dir = os.path.join(module_dir, "static")
     return static_file
+
+# This start of a utility function to replicate the tasks for xsltproc.
+# TODO: add string params.  Here stringparams defaults to an empty dictionary.
+def xsltproc(xslfile, xmlfile, stringparams={}, outfile=None):
+    dom = ET.parse(xmlfile)
+    try:
+        dom.xinclude()
+    except:
+        print('there was an error with xinclude')
+    print('Read in xsl file at', xslfile)
+    xslt = ET.parse(xslfile)
+    print('Load the transform')
+    transform = ET.XSLT(xslt)
+    print('Transform the source')
+    newdom = transform(dom, **stringparams)
+    print(transform.error_log)
+    if outfile:
+        print('writing output to file specified')
+        with open(outfile, "w") as fh:
+            fh.write(str(newdom))
