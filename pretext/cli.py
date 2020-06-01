@@ -1,5 +1,4 @@
 import click
-from slugify import slugify
 
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
@@ -15,7 +14,14 @@ def main():
 # pretext new
 @click.command(short_help="Provision a new PreTeXt document.")
 @click.argument('title', required=True)
-def new(title):
+@click.option(
+    '--book/--article', 
+    default=True,
+    help="""
+    Creates a PreTeXt book (default setting) or article.
+    """
+)
+def new(title,book):
     """
     Creates a subdirectory with the files needed to author a PreTeXt document.
     Requires choosing a TITLE.
@@ -23,10 +29,20 @@ def new(title):
     Example:
     pretext new "My Great Book!"
     """
-    from . import new_pretext_document, create_new_pretext_source 
-    create_new_pretext_source(new_pretext_document(title,"book"), slugify(title))
+    from . import create_new_pretext_source
+    from slugify import slugify
+    if book:
+        doc_type="book"
+    else:
+        doc_type="article"
+    create_new_pretext_source(
+        slugify(title),
+        title,
+        doc_type
+    )
 main.add_command(new)
 
+# pretext build
 @click.command(short_help="Build specified format target")
 # @click.option('-t', '--target-format', default="html", help='output format (latex/html/epub)')
 @click.option('-o', '--output', type=click.Path(), default='./output', help='output directory path')
