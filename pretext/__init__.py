@@ -9,7 +9,7 @@ from . import static
 
 def new_pretext_document(title,doc_type):
     doc = ET.parse(pkg_resources.open_text(static, f"{doc_type}.ptx"))
-    doc.xpath('//book|article/title')[0].text = title
+    doc.xpath('//book/title|article/title')[0].text = title
     return doc
 
 def create_new_pretext_source(project_path,title,doc_type):
