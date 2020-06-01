@@ -29,15 +29,23 @@ def create_new_pretext_source(project_path,title,doc_type):
         print("Authored with [PreTeXt](https://pretextbook.org).", file=readme)
 
 def build_html(output):
-    from os import chdir
+    import os
+    from pathlib import Path
     ptxfile = Path('source/main.ptx')
     ptxfile = str(ptxfile.resolve())
-    # xslfile = 'C:/Users/oscar.levin/Documents/GitHub/pretext.py/pretext/static/pretext-html.xsl'
-    with pkg_resources.path(static, 'pretext-html.xsl') as p:
-        xslfile = str(p.resolve())
+    # with pkg_resources.path(static, 'pretext-html.xsl') as p:
+    #     xslfile = str(p.resolve())
+    xslfile = os.path.join(get_static_path(), "pretext-html.xsl")
+    print(xslfile)
     Path(output).mkdir(parents=True, exist_ok=True)
-    chdir(output)  # change to output dir.
-    Path('knowl').mkdir(exist_ok=True)
+    os.chdir(output)  # change to output dir.
+    try:
+        os.mkdir('knowl')
+    except OSError:
+        print("Creation of the directory %s failed" % 'knowl')
+    else:
+        print("Successfully created the directory %s " % 'knowl')
+    # Path('knowl').mkdir(exist_ok=True)
     # if not os.path.exists('knowl'):
     #     os.makedirs('knowl')
     Path('images').mkdir(exist_ok=True)
@@ -50,7 +58,29 @@ def build_html(output):
     transform(dom)
 
 def build_latex(output):
-    pass 
+    import os
+    ptxfile = os.path.abspath('source/main.ptx')
+    xslfile = os.path.join(get_static_path(), "pretext-latex.xsl")
+    # Clean this up:
+    try: 
+        os.mkdirs(output)
+    except:
+        pass
+    os.chdir(output)
+    try: 
+        os.mkdir('latex')
+    except:
+        pass
+    os.chdir('latex')
+    # Do the xsltproc equivalent:
+    dom = ET.parse(ptxfile)
+    dom.xinclude()
+    xslt = ET.parse(xslfile)
+    transform = ET.XSLT(xslt)
+    newdom = transform(dom)
+    outfile = open("main.tex", 'w', newline='')
+    outfile.write(str(newdom))
+    outfile.close()
 
     
 def directory_exists(path):
@@ -60,3 +90,16 @@ def directory_exists(path):
 def ensure_directory(path):
     from pathlib import Path
     Path(path).mkdir(exist_ok=True)
+
+
+# Adapted from mathbook's pretext.py.  This gets the path to the "static" files in our distribution.  Eventually, allow for specification of alternative (mathbook/dev) distribution.
+def get_static_path():
+    import os.path  # abspath(), split()
+    # full path to module itself
+    ptx_path = os.path.abspath(__file__)
+    print(ptx_path)
+    # get directory:
+    module_dir, _ = os.path.split(ptx_path)
+    print(module_dir)
+    static_dir = os.path.join(module_dir, "static")
+    return static_dir
