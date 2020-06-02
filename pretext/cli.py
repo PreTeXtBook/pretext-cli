@@ -60,17 +60,17 @@ main.add_command(new)
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 # @click.option('-d', '--diagrams', is_flag=True, default=False, help='regenerate images using mbx script')
 def build(format, input, output, param):
-    """Process PreTeXt files into specified format.  Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex)."""
-    import os
-    ptxfile = os.path.abspath(input)
-    output = os.path.abspath(output)
+    """
+    Process PreTeXt files into specified format.
+    Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
+    """
     stringparams = dict([p.split("=") for p in param])
     if format=='html' or format=='all':
         from . import build_html
-        build_html(ptxfile,output,stringparams)
+        build_html(input,output,stringparams)
     if format=='latex' or format=='all':
         from . import build_latex
-        build_latex(ptxfile,output,stringparams)
+        build_latex(input,output,stringparams)
 main.add_command(build)
 
 
