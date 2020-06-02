@@ -65,12 +65,12 @@ def build(format, input, output, param):
     Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
     """
     stringparams = dict([p.split("=") for p in param])
+    from . import build
     if format=='html' or format=='all':
-        from . import build_html
-        build_html(input,output,stringparams)
+        build.html(input,output,stringparams)
     if format=='latex' or format=='all':
         from . import build_latex
-        build_latex(input,output,stringparams)
+        build.latex(input,output,stringparams)
 main.add_command(build)
 
 
