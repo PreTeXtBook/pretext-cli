@@ -1,11 +1,10 @@
 from lxml import etree as ET
 
-from . import static, document
-
+from . import static, document, utils
 
 def create_new_pretext_source(project_path,title,doc_type):
-    ensure_directory(project_path)
-    ensure_directory(f"{project_path}/source")
+    utils.ensure_directory(project_path)
+    utils.ensure_directory(f"{project_path}/source")
     document.new(title,doc_type).write(
         f"{project_path}/source/main.ptx",
         pretty_print=True,
@@ -32,10 +31,10 @@ def build_html(ptxfile,output,stringparams):
     xslfile = static.filepath('pretext-html.xsl')
     # create output directories and move there.
     # output = os.path.abspath(output)
-    ensure_directory(output)
+    utils.ensure_directory(output)
     os.chdir(output)  # change to output dir.
-    ensure_directory('knowl')
-    ensure_directory('images')
+    utils.ensure_directory('knowl')
+    utils.ensure_directory('images')
     # transform ptx using xsl:
     xsltproc(xslfile, ptxfile, stringparams)
 
@@ -47,24 +46,13 @@ def build_latex(ptxfile,output,stringparams):
     xslfile = static.filepath('pretext-latex.xsl')
     #create output directory
     # output = os.path.abspath(output)
-    ensure_directory(output)
+    utils.ensure_directory(output)
     os.chdir(output)
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
     xsltproc(xslfile, ptxfile, stringparams, outfile='main.tex')
 
 
-def directory_exists(path):
-    import os
-    return os.path.exists(path)
-
-def ensure_directory(path):
-    import os
-    # create directory at path if it doesn't exist:
-    try:
-        os.makedirs(path)
-    except FileExistsError:
-        pass
 
 
 # This start of a utility function to replicate the tasks for xsltproc.

@@ -11,6 +11,7 @@ def main():
     PreTeXt documents.
     """
 
+    
 # pretext new
 @click.command(short_help="Provision a new PreTeXt document.")
 @click.argument('title', required=True)
@@ -42,6 +43,7 @@ def new(title,book):
     )
 main.add_command(new)
 
+
 # pretext build
 @click.command(short_help="Build specified format target")
 # @click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
@@ -71,6 +73,7 @@ def build(format, input, output, param):
         build_latex(ptxfile,output,stringparams)
 main.add_command(build)
 
+
 # pretext view
 @click.command(short_help="Preview built PreTeXt documents in your browser.")
 @click.argument('directory', default="output")
@@ -95,8 +98,8 @@ def view(directory, public, port):
     """
     import os
     directory = os.path.abspath(directory)
-    from . import directory_exists
-    if not directory_exists(directory):
+    from . import utils
+    if not utils.directory_exists(directory):
         raise_cli_error(f"""
         The directory `{directory}` does not exist.
         Maybe try `pretext build` first?
