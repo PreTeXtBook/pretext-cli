@@ -2,11 +2,6 @@ from lxml import etree as ET
 
 from . import static, document
 
-# To access static files
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources #backported package
 
 def create_new_pretext_source(project_path,title,doc_type):
     ensure_directory(project_path)
@@ -34,7 +29,7 @@ def build_html(ptxfile,output,stringparams):
     import os
     # from pathlib import Path
     # ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = get_static_path('pretext-html.xsl')
+    xslfile = static.filepath('pretext-html.xsl')
     # create output directories and move there.
     # output = os.path.abspath(output)
     ensure_directory(output)
@@ -49,7 +44,7 @@ def build_latex(ptxfile,output,stringparams):
     import os
     # import sys
     # ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = get_static_path('pretext-latex.xsl')
+    xslfile = static.filepath('pretext-latex.xsl')
     #create output directory
     # output = os.path.abspath(output)
     ensure_directory(output)
@@ -58,7 +53,7 @@ def build_latex(ptxfile,output,stringparams):
     # params = {"latex.font.size": "'20pt'"}
     xsltproc(xslfile, ptxfile, stringparams, outfile='main.tex')
 
-    
+
 def directory_exists(path):
     import os
     return os.path.exists(path)
@@ -71,20 +66,6 @@ def ensure_directory(path):
     except FileExistsError:
         pass
 
-
-# This gets the path to the "static" files in our distribution.  Eventually, allow for specification of alternative (mathbook/dev) distribution.
-def get_static_path(file):
-    with pkg_resources.path(static, file) as p:
-        static_file = str(p.resolve())
-    # import os.path  # abspath(), split()
-    # # full path to module itself
-    # ptx_path = os.path.abspath(__file__)
-    # print(ptx_path)
-    # # get directory:
-    # module_dir, _ = os.path.split(ptx_path)
-    # print(module_dir)
-    # static_dir = os.path.join(module_dir, "static")
-    return static_file
 
 # This start of a utility function to replicate the tasks for xsltproc.
 # TODO: add string params.  Here stringparams defaults to an empty dictionary.
