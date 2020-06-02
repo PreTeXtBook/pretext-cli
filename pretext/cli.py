@@ -44,19 +44,21 @@ main.add_command(new)
 
 # pretext build
 @click.command(short_help="Build specified format target")
+@click.argument('format')
 # @click.option('-t', '--target-format', default="html", help='output format (latex/html/epub)')
 @click.option('-o', '--output', type=click.Path(), default='./output', help='output directory path')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 # @click.option('-d', '--diagrams', is_flag=True, default=False, help='regenerate images using mbx script')
-@click.argument('format')
-def build(format, output):
+@click.option('--param', multiple=True, help="Define a stringparam to use during processing.")
+def build(format, output, param):
     """Process PreTeXt files into specified format, either html or latex."""
+    stringparams = dict([p.split("=") for p in param])
     if format=='html':
         from . import build_html
-        build_html(output)
+        build_html(output,stringparams)
     elif format=='latex':
         from . import build_latex
-        build_latex(output)
+        build_latex(output,stringparams)
     else:
         click.echo('%s is not yet a supported build target' % format)
 main.add_command(build)

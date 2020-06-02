@@ -30,7 +30,7 @@ def create_new_pretext_source(project_path,title,doc_type):
         print("", file=readme)
         print("Authored with [PreTeXt](https://pretextbook.org).", file=readme)
 
-def build_html(output):
+def build_html(output,stringparams):
     import os
     # from pathlib import Path
     ptxfile = os.path.abspath('source/main.ptx')
@@ -41,14 +41,14 @@ def build_html(output):
     ensure_directory('knowl')
     ensure_directory('images')
     # transform ptx using xsl:
-    xsltproc(xslfile, ptxfile)
+    xsltproc(xslfile, ptxfile,stringparams)
     # dom = ET.parse(ptxfile)
     # dom.xinclude()
     # xslt = ET.parse(xslfile)
     # transform = ET.XSLT(xslt)
     # transform(dom)
 
-def build_latex(output):
+def build_latex(output,stringparams):
     import os
     # import sys
     ptxfile = os.path.abspath('source/main.ptx')
@@ -59,7 +59,7 @@ def build_latex(output):
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
     params = {}
-    xsltproc(xslfile, ptxfile, stringparams=params, outfile='main.tex')
+    xsltproc(xslfile, ptxfile, stringparams, outfile='main.tex')
 
     
 def directory_exists(path):
