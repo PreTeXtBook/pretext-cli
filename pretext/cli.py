@@ -15,6 +15,7 @@ def main():
 # pretext new
 @click.command(short_help="Provision a new PreTeXt document.")
 @click.argument('title', required=True)
+@click.argument('project_path', required=False)
 @click.option(
     '--book/--article', 
     default=True,
@@ -22,10 +23,11 @@ def main():
     Creates a PreTeXt book (default setting) or article.
     """
 )
-def new(title,book):
+def new(title,book,project_path):
     """
     Creates a subdirectory with the files needed to author a PreTeXt document.
-    Requires choosing a TITLE.
+    Requires choosing a TITLE. Optionally takes a PROJECT_PATH, otherwise
+    the project will be generated in a subfolder based upon the title.
 
     Example:
     pretext new "My Great Book!"
@@ -36,10 +38,16 @@ def new(title,book):
         doc_type="book"
     else:
         doc_type="article"
+    if not(project_path):
+        if slugify(title):
+            project_path = slugify(title)
+        else:
+            project_path = doc_type
+    click.echo(f"Generating new PreTeXt project in `{project_path}`.")
     project.new(
         title,
         doc_type,
-        slugify(title)
+        project_path
     )
 main.add_command(new)
 

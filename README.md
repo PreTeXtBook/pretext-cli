@@ -7,12 +7,21 @@ A package for authoring and building [PreTeXt](https://pretextbook.org) document
 - [Steven Clontz](https://clontz.org)
 - Oscar Levin
 
+## Installation
+
+TODO
+
+## Usage
+
+Run `pretext --help` and `pretext [CMD] --help`
+on the command line for usage details.
+
 ## Development
 
-From the "Clone or Download" button on GitHub, copy the `repo_url` into the below command to clone the project.
+From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below command to clone the project.
 
 ```bash
-git clone [repo_url]
+git clone [REPO_URL]
 cd pretext.py
 ```
 
@@ -28,15 +37,11 @@ Then all dependencies can be installed as a one-liner:
 pipenv install --three
 ```
 
-Then, use `pipenv run [foo]` to run individual scripts, e.g.:
+Then, use `pipenv run [CMD]` to run individual scripts, e.g.:
 
 ```
-$ pipenv run python
-Python 3.6.9 (default, Apr 18 2020, 01:56:04) 
-[GCC 8.4.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
->>> import pretext
-b'<pretext><article><p>Hello PreTeXt World!</p></article></pretext>'
+$ pipenv run pretext new "My Great Book"
+Generating new PreTeXt project in `my-great-book`.
 ```
 
 Or use `pipenv shell` to enter the virtual environment directly.
