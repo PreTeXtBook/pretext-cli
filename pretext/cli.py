@@ -44,25 +44,31 @@ main.add_command(new)
 
 # pretext build
 @click.command(short_help="Build specified format target")
-@click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
-@click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
+# @click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
+# @click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
 #@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
+@click.option('-i', '--input', type=click.Path(), default='source/main.ptx',
+              help='Path to main ptx file (defaults to `source/main.ptx`)')
 @click.option('-o', '--output', type=click.Path(), default='./output',
               help='Define output directory path (defaults to `output`)')
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
+@click.argument('format')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 # @click.option('-d', '--diagrams', is_flag=True, default=False, help='regenerate images using mbx script')
-def build(format, output, param):
-    """Process PreTeXt files into specified format, either html or latex."""
+def build(format, input, output, param):
+    """Process PreTeXt files into specified format.  Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex)."""
+    import os
+    ptxfile = os.path.abspath(input)
+    output = os.path.abspath(output)
     stringparams = dict([p.split("=") for p in param])
     if format=='html' or format=='all':
         from . import build_html
-        build_html(output,stringparams)
+        build_html(ptxfile,output,stringparams)
     if format=='latex' or format=='all':
         from . import build_latex
-        build_latex(output,stringparams)
+        build_latex(ptxfile,output,stringparams)
 main.add_command(build)
 
 # pretext view
@@ -87,6 +93,8 @@ def view(directory, public, port):
     Use DIRECTORY to designate the folder with your built documents (defaults
     to `output`).
     """
+    import os
+    directory = os.path.abspath(directory)
     from . import directory_exists
     if not directory_exists(directory):
         raise_cli_error(f"""
@@ -95,7 +103,6 @@ def view(directory, public, port):
         """)
     import http.server
     import socketserver
-    import os
     binding = "0.0.0.0" if public else "localhost"
     import socket
     if public:
