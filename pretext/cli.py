@@ -30,16 +30,16 @@ def new(title,book):
     Example:
     pretext new "My Great Book!"
     """
-    from . import create_new_pretext_source
+    from . import project
     from slugify import slugify
     if book:
         doc_type="book"
     else:
         doc_type="article"
-    create_new_pretext_source(
-        slugify(title),
+    project.new(
         title,
-        doc_type
+        doc_type,
+        slugify(title)
     )
 main.add_command(new)
 
