@@ -41,7 +41,7 @@ def build_html(output,stringparams):
     ensure_directory('knowl')
     ensure_directory('images')
     # transform ptx using xsl:
-    xsltproc(xslfile, ptxfile,stringparams)
+    xsltproc(xslfile, ptxfile, stringparams)
     # dom = ET.parse(ptxfile)
     # dom.xinclude()
     # xslt = ET.parse(xslfile)
@@ -58,7 +58,6 @@ def build_latex(output,stringparams):
     os.chdir(output)
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
-    params = {}
     xsltproc(xslfile, ptxfile, stringparams, outfile='main.tex')
 
     

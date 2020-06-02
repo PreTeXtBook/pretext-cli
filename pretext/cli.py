@@ -44,23 +44,25 @@ main.add_command(new)
 
 # pretext build
 @click.command(short_help="Build specified format target")
-@click.argument('format')
-# @click.option('-t', '--target-format', default="html", help='output format (latex/html/epub)')
-@click.option('-o', '--output', type=click.Path(), default='./output', help='output directory path')
+@click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
+@click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
+#@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
+@click.option('-o', '--output', type=click.Path(), default='./output',
+              help='Define output directory path (defaults to `output`)')
+@click.option('--param', multiple=True, help="""
+              Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
+""")
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 # @click.option('-d', '--diagrams', is_flag=True, default=False, help='regenerate images using mbx script')
-@click.option('--param', multiple=True, help="Define a stringparam to use during processing.")
 def build(format, output, param):
     """Process PreTeXt files into specified format, either html or latex."""
     stringparams = dict([p.split("=") for p in param])
-    if format=='html':
+    if format=='html' or format=='all':
         from . import build_html
         build_html(output,stringparams)
-    elif format=='latex':
+    if format=='latex' or format=='all':
         from . import build_latex
         build_latex(output,stringparams)
-    else:
-        click.echo('%s is not yet a supported build target' % format)
 main.add_command(build)
 
 # pretext view
