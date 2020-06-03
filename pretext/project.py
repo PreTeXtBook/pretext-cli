@@ -1,11 +1,11 @@
 from . import utils,document
 
-def new(title,doc_type,project_path):
-    import slugify
+def write(pretext,project_path):
+    title = pretext.xpath("/pretext/book/title")[0].text
     utils.ensure_directory(project_path)
     with utils.working_directory(project_path):
         utils.ensure_directory("source")
-        document.new(title,doc_type).write(
+        pretext.write(
             "source/main.ptx",
             pretty_print=True,
             xml_declaration=True,
