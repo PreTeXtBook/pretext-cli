@@ -15,7 +15,7 @@ def html(ptxfile,output,stringparams):
         utils.ensure_directory('knowl')
         utils.ensure_directory('images')
     # transform ptx using xsl:
-    xsltproc(xslfile, ptxfile, stringparams, outdir=output)
+    xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams)
 
 
 def latex(ptxfile,output,stringparams):
@@ -27,13 +27,13 @@ def latex(ptxfile,output,stringparams):
     utils.ensure_directory(output)
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
-    xsltproc(xslfile, ptxfile, stringparams, outfile='main.tex', outdir=output)
+    xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams)
 
 
 
 
 # This start of a utility function to replicate the tasks for xsltproc.
-def xsltproc(xslfile, xmlfile, stringparams={}, outfile=None, outdir="."):
+def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     dom = ET.parse(xmlfile)
     try:
         dom.xinclude()
