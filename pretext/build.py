@@ -15,7 +15,7 @@ def html(ptxfile,output,stringparams):
         utils.ensure_directory('knowl')
         utils.ensure_directory('images')
     # transform ptx using xsl:
-    xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams)
+    xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams=stringparams)
 
 
 def latex(ptxfile,output,stringparams):
@@ -27,7 +27,7 @@ def latex(ptxfile,output,stringparams):
     utils.ensure_directory(output)
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
-    xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams)
+    xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams=stringparams)
 
 
 
@@ -46,7 +46,10 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     print('Transform the source')
     with utils.working_directory(outdir):
         newdom = transform(dom, **stringparams)
+        logfile = xslfile[xslfile.find('pretext-'):].replace('pretext-','').replace('.xsl','')+'-build.log'
         print(transform.error_log)
+        with open(logfile,"w") as log:
+            log.write(str(transform.error_log))
         if outfile:
             print('writing output to file specified')
             with open(outfile, "w") as fh:

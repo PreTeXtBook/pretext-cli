@@ -74,7 +74,6 @@ def build(format, input, output, param):
     if format=='html' or format=='all':
         build.html(input,output,stringparams)
     if format=='latex' or format=='all':
-        from . import build_latex
         build.latex(input,output,stringparams)
 main.add_command(build)
 
