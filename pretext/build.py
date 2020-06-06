@@ -16,11 +16,12 @@ def html(ptxfile,output,stringparams):
     utils.ensure_directory(os.path.join(output,'images'))
     # Copy images from source/images
     src = os.path.join(os.path.dirname(os.path.abspath(ptxfile)), 'images')
-    src_files = os.listdir(src)
-    for file_name in src_files:
-        full_file_name = os.path.join(src, file_name)
-        if os.path.isfile(full_file_name):
-            shutil.copy(full_file_name, os.path.join(output,'images'))
+    if os.path.exists(src):
+        src_files = os.listdir(src)
+        for file_name in src_files:
+            full_file_name = os.path.join(src, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, os.path.join(output, 'images'))
     # transform ptx using xsl:
     xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams=stringparams)
 
@@ -38,11 +39,12 @@ def latex(ptxfile,output,stringparams):
     # Copy images from source/images
     # This is less than ideal.  The author is able to provide a path to the static images, but this assumes they are always src="images/foo.png"
     src = os.path.join(os.path.dirname(os.path.abspath(ptxfile)), 'images')
-    src_files = os.listdir(src)
-    for file_name in src_files:
-        full_file_name = os.path.join(src, file_name)
-        if os.path.isfile(full_file_name):
-            shutil.copy(full_file_name, os.path.join(output, 'images'))
+    if os.path.exists(src):
+        src_files = os.listdir(src)
+        for file_name in src_files:
+            full_file_name = os.path.join(src, file_name)
+            if os.path.isfile(full_file_name):
+                shutil.copy(full_file_name, os.path.join(output, 'images'))
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
     xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams=stringparams)
