@@ -53,4 +53,4 @@ To add dependencies for the development environment, use `pipenv install [packag
 ## PreTeXt XSL
 
 Right now, we're developing against this frozen snapshot of PreTeXt:
-<https://github.com/rbeezer/mathbook/commit/cf93da622c6177bbc3eefc79a11cfdcc0b971c99>
+<https://github.com/rbeezer/mathbook/commit/05339c6b7e29d629c9d8680d6b18985425a100d6>

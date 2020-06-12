@@ -64,379 +64,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <xsl:output method="html" indent="yes" encoding="UTF-8" doctype-system="about:legacy-compat" />
 
-<!-- ##################### -->
-<!-- HTML-Specific Options -->
-<!-- ##################### -->
-
-<!-- The $publication variable comes from -common and is the result -->
-<!-- of a command-line string parameter pointing to an XML file of  -->
-<!-- various options.                                               -->
-<!-- Elements and attributes of this file are meant to influence    -->
-<!-- decisions taken *after* an author is completed writing.  In    -->
-<!-- limited cases a command-line string parameter may be used to   -->
-<!-- override these settings (especially for testing purposes).     -->
-<!-- In other cases, deprecated string parameters may be consulted  -->
-<!-- secondarily, for a limited time.                               -->
-
-<!--                          -->
-<!-- HTML Index Page Redirect -->
-<!--                          -->
-
-<!-- A generic "index.html" page will be built to redirect to an     -->
-<!-- existing page from the HTML build/chunking.  The default is the -->
-<!-- "frontmatter" page, if possible, otherwise the root page.       -->
-<!-- The variable $html-index-page will be the full name (*.html)    -->
-<!-- of a page guaranteed to be built by the chunking routines.      -->
-
-<xsl:variable name="html-index-page">
-    <!-- needs to be realized as a *string*, not a node -->
-    <xsl:variable name="entered-ref" select="string($publication/html/index-page/@ref)"/>
-    <xsl:variable name="sanitized-ref">
-        <xsl:choose>
-            <!-- signal no choice with empty string-->
-            <xsl:when test="$entered-ref = ''">
-                <xsl:text/>
-            </xsl:when>
-            <!-- bad choice, set to empty string -->
-            <xsl:when test="not(id($entered-ref))">
-                <xsl:message>PTX:WARNING:   the requested HTML index page cannot be constructed since "<xsl:value-of select="$entered-ref"/>" is not an @xml:id anywhere in the document.  Defaults will be used instead</xsl:message>
-                <xsl:text/>
-            </xsl:when>
-            <!-- now we have a node, is it the top of a page? -->
-            <xsl:otherwise>
-                <!-- true/false values if node creates a web page -->
-                <xsl:variable name="is-intermediate">
-                    <xsl:apply-templates select="id($entered-ref)" mode="is-intermediate"/>
-                </xsl:variable>
-                <xsl:variable name="is-chunk">
-                    <xsl:apply-templates select="id($entered-ref)" mode="is-chunk"/>
-                </xsl:variable>
-                <xsl:choose>
-                    <!-- really is a web-page -->
-                    <xsl:when test="($is-intermediate = 'true') or ($is-chunk = 'true')">
-                        <xsl:value-of select="$entered-ref"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:message>PTX:WARNING:   the requested HTML index page cannot be constructed since "<xsl:value-of select="$entered-ref"/>" is not a complete web page at the current chunking level (level <xsl:value-of select="$chunk-level"/>).  Defaults will be used instead</xsl:message>
-                        <xsl:text/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:variable>
-    <!-- now have a good @xml:id for an extant webpage, or        -->
-    <!-- empty string signals we need to choose sensible defaults -->
-    <xsl:choose>
-        <!-- publisher's choice survives -->
-        <xsl:when test="not($sanitized-ref = '')">
-            <xsl:apply-templates select="id($sanitized-ref)" mode="containing-filename"/>
-        </xsl:when>
-        <!-- now need to create defaults                        -->
-        <!-- the level of the frontmatter is a bit conflicted   -->
-        <!-- but it is a chunk iff there is any chunking at all -->
-        <xsl:when test="$document-root/frontmatter and ($chunk-level &gt; 0)">
-            <xsl:apply-templates select="$document-root/frontmatter" mode="containing-filename"/>
-        </xsl:when>
-        <!-- absolute last option is $document-root, *always* a webpage -->
-        <xsl:otherwise>
-            <xsl:apply-templates select="$document-root" mode="containing-filename"/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!--                              -->
-<!-- HTML CSS Style Specification -->
-<!--                              -->
-
-<!-- Remain for testing purposes -->
-<xsl:param name="html.css.colorfile" select="''" />
-<xsl:param name="html.css.stylefile" select="''" />
-<!-- A temporary variable for testing -->
-<xsl:param name="debug.colors" select="''"/>
-<!-- A space-separated list of CSS URLs (points to servers or local files) -->
-<xsl:param name="html.css.extra"  select="''" />
-
-<xsl:variable name="html-css-colorfile">
-    <xsl:choose>
-        <!-- 2019-05-29: override with new files, no error-checking    -->
-        <!-- if not used, then previous scheme is employed identically -->
-        <!-- 2019-08-12: this is current scheme, so used first. -->
-        <!-- To be replaced with publisher file option.         -->
-        <xsl:when test="not($debug.colors = '')">
-            <xsl:text>colors_</xsl:text>
-            <xsl:value-of select="$debug.colors"/>
-            <xsl:text>.css</xsl:text>
-        </xsl:when>
-        <!-- 2019-12-5: use stringparam specified colorfile is present -->
-        <xsl:when test="not($html.css.colorfile = '')">
-            <xsl:value-of select="$html.css.colorfile"/>
-        </xsl:when>
-        <!-- 2019-12-5: if publisher.xml file has colors value, use it -->
-        <xsl:when test="$publication/html/css/@colors">
-            <xsl:text>colors_</xsl:text>
-            <xsl:value-of select="$publication/html/css/@colors"/>
-            <xsl:text>.css</xsl:text>
-        </xsl:when>
-        <!-- Otherwise use the new default.  -->
-        <xsl:otherwise>
-            <xsl:text>colors_default.css</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- 2019-11-24: this selects the style_default            -->
-<!-- unless there is a style specified in a publisher.xml  -->
-<!-- file or as a string-param. (OL)                       -->
-<xsl:variable name="html-css-stylefile">
-    <xsl:choose>
-        <!-- if string-param is set, use it (highest priority) -->
-        <xsl:when test="not($html.css.stylefile = '')">
-            <xsl:value-of select="$html.css.stylefile"/>
-        </xsl:when>
-        <!-- if publisher.xml file has style value, use it -->
-        <xsl:when test="$publication/html/css/@style">
-            <xsl:text>style_</xsl:text>
-            <xsl:value-of select="$publication/html/css/@style"/>
-            <xsl:text>.css</xsl:text>
-        </xsl:when>
-        <!-- otherwise use the dafault -->
-        <xsl:otherwise>
-            <xsl:text>style_default.css</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- 2019-12-5: Select pub-file specified css for knowls, -->
-<!-- TOC, and banner, or defaults                         -->
-
-<xsl:variable name="html-css-knowlfile">
-    <xsl:choose>
-        <!-- if publisher.xml file has style value, use it -->
-        <xsl:when test="$publication/html/css/@knowls">
-            <xsl:text>knowls_</xsl:text>
-            <xsl:value-of select="$publication/html/css/@knowls"/>
-            <xsl:text>.css</xsl:text>
-        </xsl:when>
-        <!-- otherwise use the dafault -->
-        <xsl:otherwise>
-            <xsl:text>knowls_default.css</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<xsl:variable name="html-css-tocfile">
-    <xsl:choose>
-        <!-- if publisher.xml file has style value, use it -->
-        <xsl:when test="$publication/html/css/@toc">
-            <xsl:text>toc_</xsl:text>
-            <xsl:value-of select="$publication/html/css/@toc"/>
-            <xsl:text>.css</xsl:text>
-        </xsl:when>
-        <!-- otherwise use the dafault -->
-        <xsl:otherwise>
-            <xsl:text>toc_default.css</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<xsl:variable name="html-css-bannerfile">
-    <xsl:choose>
-        <!-- if publisher.xml file has style value, use it -->
-        <xsl:when test="$publication/html/css/@banner">
-            <xsl:text>banner_</xsl:text>
-            <xsl:value-of select="$publication/html/css/@banner"/>
-            <xsl:text>.css</xsl:text>
-        </xsl:when>
-        <!-- otherwise use the dafault -->
-        <xsl:otherwise>
-            <xsl:text>banner_default.css</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!--                              -->
-<!-- HTML Analytics Configuration -->
-<!--                              -->
-
-<!-- String parameters are deprecated, so in -common -->
-<!-- file, and are only consulted secondarily here   -->
-
-<xsl:variable name="statcounter-project">
-    <xsl:choose>
-        <xsl:when test="$publication/html/analytics/@statcounter-project">
-            <xsl:value-of select="$publication/html/analytics/@statcounter-project"/>
-        </xsl:when>
-        <!-- obsolete, to deprecate -->
-        <xsl:when test="not($html.statcounter.project = '')">
-            <xsl:value-of select="$html.statcounter.project"/>
-        </xsl:when>
-        <!-- deprecated -->
-        <xsl:when test="$docinfo/analytics/statcounter/project">
-            <xsl:value-of select="$docinfo/analytics/statcounter/project"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<xsl:variable name="statcounter-security">
-    <xsl:choose>
-        <xsl:when test="$publication/html/analytics/@statcounter-security">
-            <xsl:value-of select="$publication/html/analytics/@statcounter-security"/>
-        </xsl:when>
-        <!-- obsolete, to deprecate -->
-        <xsl:when test="not($html.statcounter.security = '')">
-            <xsl:value-of select="$html.statcounter.security"/>
-        </xsl:when>
-        <!-- deprecated -->
-        <xsl:when test="$docinfo/analytics/statcounter/security">
-            <xsl:value-of select="$docinfo/analytics/statcounter/security"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- 2019-11-28 all settings used here are deprecated -->
-<xsl:variable name="google-classic-tracking">
-    <xsl:choose>
-        <xsl:when test="not($html.google-classic = '')">
-            <xsl:value-of select="$html.google-classic"/>
-        </xsl:when>
-        <xsl:when test="$docinfo/analytics/google">
-            <xsl:value-of select="$docinfo/analytics/google/tracking"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- 2019-11-28 all settings used here are deprecated -->
-<xsl:variable name="google-universal-tracking">
-    <xsl:choose>
-        <xsl:when test="not($html.google-universal = '')">
-            <xsl:value-of select="$html.google-universal"/>
-        </xsl:when>
-        <xsl:when test="$docinfo/analytics/google-universal">
-            <xsl:value-of select="$docinfo/analytics/google-universal/@tracking"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- This is the preferred Google method as of 2019-11-28 -->
-<xsl:variable name="google-gst-tracking">
-    <xsl:choose>
-        <xsl:when test="$publication/html/analytics/@google-gst">
-            <xsl:value-of select="$publication/html/analytics/@google-gst"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- And boolean variables for the presence of these services -->
-<!-- 2019-11-28 Two old Google services are deprecated        -->
-<xsl:variable name="b-statcounter" select="not($statcounter-project = '') and not($statcounter-security = '')" />
-<xsl:variable name="b-google-classic" select="not($google-classic-tracking = '')" />
-<xsl:variable name="b-google-universal" select="not($google-universal-tracking = '')" />
-<xsl:variable name="b-google-gst" select="not($google-gst-tracking = '')" />
-
-<!--                           -->
-<!-- HTML Search Configuration -->
-<!--                           -->
-
-<!-- Deprecated "docinfo" options are respected for now. -->
-<!-- String parameters are deprecated, so in -common     -->
-<!-- file, and are only consulted secondarily here       -->
-<xsl:variable name="google-search-cx">
-    <xsl:choose>
-        <xsl:when test="$publication/html/search/@google-cx">
-            <xsl:value-of select="$publication/html/search/@google-cx"/>
-        </xsl:when>
-        <xsl:when test="not($html.google-search = '')">
-            <xsl:value-of select="$html.google-search"/>
-        </xsl:when>
-        <xsl:when test="$docinfo/search/google/cx">
-            <xsl:value-of select="$docinfo/search/google/cx"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text/>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- And a boolean variable for the presence of this service -->
-<xsl:variable name="b-google-cse" select="not($google-search-cx = '')" />
-
-<!-- Add a boolean variable to toggle "enhanced privacy mode" -->
-<!-- This is an option for embedded YouTube videos            -->
-<!-- and possibly other platforms at a later date.            -->
-<!-- The default is for privacy (fewer tracking cookies)      -->
-<xsl:variable name="embedded-video-privacy">
-    <xsl:choose>
-        <xsl:when test="$publication/html/video/@privacy = 'yes'">
-            <xsl:value-of select="$publication/html/video/@privacy"/>
-        </xsl:when>
-        <xsl:when test="$publication/html/video/@privacy = 'no'">
-            <xsl:value-of select="$publication/html/video/@privacy"/>
-        </xsl:when>
-        <!-- set, but not correct, so inform and use default -->
-        <xsl:when test="$publication/html/video/@privacy">
-            <xsl:value-of select="$publication/html/video/@privacy"/>
-            <xsl:message>PTX WARNING:   HTML video/@privacy in publisher file should be "yes" (fewer cookies) or "no" (all cookies), not "<xsl:value-of select="$publication/html/video/@privacy"/>". Proceeding with default value: "yes" (disable cookies, if possible)</xsl:message>
-            <xsl:text>yes</xsl:text>
-        </xsl:when>
-        <!-- unset, so use default -->
-        <xsl:otherwise>
-            <xsl:text>yes</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<xsl:variable name="b-video-privacy" select="$embedded-video-privacy = 'yes'"/>
-
-<!--                       -->
-<!-- HTML Platform Options -->
-<!--                       -->
-
-<!-- 2019-12-17:  Under development, not documented -->
-
-<xsl:variable name="host-platform">
-    <xsl:choose>
-        <xsl:when test="$publication/html/platform/@host = 'web'">
-            <xsl:text>web</xsl:text>
-        </xsl:when>
-        <xsl:when test="$publication/html/platform/@host = 'runestone'">
-            <xsl:text>runestone</xsl:text>
-        </xsl:when>
-        <xsl:when test="$publication/html/platform/@host = 'aim'">
-            <xsl:text>aim</xsl:text>
-        </xsl:when>
-        <!-- not recognized, so warn and default -->
-        <xsl:when test="$publication/html/platform/@host">
-            <xsl:message >PTX:WARNING: HTML platform/@host in publisher file should be "web", "runestone", or "aim", not "<xsl:value-of select="$publication/html/platform/@host"/>".  Proceeding with default value: "web"</xsl:message>
-            <xsl:text>web</xsl:text>
-        </xsl:when>
-        <!-- the default is the "open web" -->
-        <xsl:otherwise>
-            <xsl:text>web</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<!-- Intent is for exactly one of these boolean to be true -->
-<!-- 'web' is the default, so we may not condition with it -->
-<!-- 2019-12-19: only 'web' vs. 'runestone' implemented    -->
-<xsl:variable name="b-host-web"       select="$host-platform = 'web'"/>
-<xsl:variable name="b-host-runestone" select="$host-platform = 'runestone'"/>
-<xsl:variable name="b-host-aim"       select="$host-platform = 'aim'"/>
+<!-- Not documented, for development use only -->
+<xsl:param name="runestone.dev" select="''"/>
+<xsl:variable name="runestone-dev" select="$runestone.dev = 'yes'"/>
 
 <!-- Temporary, undocumented, and experimental           -->
 <!-- Makes randomization buttons for inline WW probmlems -->
@@ -526,13 +156,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:param name="html.js.server" select="'https://pretextbook.org'" />
 <xsl:param name="html.js.version" select="'0.13'" />
 
-<!-- Calculator -->
-<!-- Possible values are geogebra-classic, geogebra-graphing -->
-<!-- geogebra-geometry, geogebra-3d                          -->
-<!-- Default is empty, meaning the calculator is not wanted. -->
-<xsl:param name="html.calculator" select="''" />
-<xsl:variable name="b-has-calculator" select="not($html.calculator = '')" />
-
 <!-- Annotation -->
 <xsl:param name="html.annotation" select="''" />
 <xsl:variable name="b-activate-hypothesis" select="boolean($html.annotation='hypothesis')" />
@@ -558,11 +181,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Variables that affect HTML creation -->
 <!-- More in the common file             -->
 
-<!-- We leave the global $latex-processing variable    -->
-<!-- set to its default value, which will manipulate   -->
-<!-- clause-ending punctuation immediately after       -->
-<!-- inline mathematics.  So we need to do half of the -->
-<!-- job here, absorbing punctuation into mathematics  -->
+<!-- Search for the "math.punctuation.include" -->
+<!-- global variable, which is discussed in    -->
+<!-- closer proximity to its application.      -->
 
 <!-- This is cribbed from the CSS "max-width"-->
 <!-- Design width, measured in pixels        -->
@@ -5301,6 +4922,16 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- differences which we need to accomodate via abstract -->
 <!-- templates.                                           -->
 
+<!-- See the -common stylesheet for manipulations of math elements      -->
+<!-- and subsequent text nodes that lead with punctuation.  Basically,  -->
+<!-- punctuation can migrate from the start of the text node and into   -->
+<!-- the math, wrapped in a \text{}.  We do this to display math as a   -->
+<!-- service to authors.  But for HTML/MathJax we avoid bad line-breaks -->
+<!-- if we do this routinely for inline math also.  If MathJax ever     -->
+<!-- gets better at this, then we can set this switch to 'display',     -->
+<!-- as for LaTeX.                                                      -->
+<xsl:variable name="math.punctuation.include" select="'all'"/>
+
 <!-- Inline Mathematics ("m") -->
 
 <!-- Never labeled, so not ever knowled,        -->
@@ -5318,11 +4949,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template name="end-inline-math">
     <xsl:text>\)</xsl:text>
 </xsl:template>
-
-<!-- The general modal template "get-clause-punctuation"      -->
-<!-- does exactly what we need here to fix up bad line-breaks -->
-<!-- in HTML/MathJax rendering, so there is no override       -->
-
 
 <!-- Displayed Single-Line Math ("me", "men") -->
 
@@ -8611,26 +8237,69 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!-- without switch, do not add *anything* -->
     <xsl:if test="$b-host-runestone">
         <!-- Runestone templating for customizing hosted books -->
-        <!-- Unclear if a concat() of five strings would be cleaner? -->
         <script type="text/javascript">
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>eBookConfig = {};&#xa;</xsl:text>
-        <xsl:text>eBookConfig.host = '';&#xa;</xsl:text>
-        <xsl:text>eBookConfig.useRunestoneServices = true;&#xa;</xsl:text>
-        <xsl:text>eBookConfig.app = eBookConfig.host + '/' + '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= request.application </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
-        <xsl:text>eBookConfig.course = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= course_name </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
-        <xsl:text>eBookConfig.basecourse = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= base_course </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
-        <xsl:text>eBookConfig.isLoggedIn = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_logged_in</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
-        <xsl:text>eBookConfig.email = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_email </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
-        <xsl:text>eBookConfig.isInstructor = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_instructor </xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
-        <xsl:text>eBookConfig.ajaxURL = eBookConfig.app + "/ajax/";&#xa;</xsl:text>
-        <xsl:text>eBookConfig.logLevel = 10;&#xa;</xsl:text>
-        <xsl:text>eBookConfig.username = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_id</xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
-        <xsl:text>eBookConfig.readings = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= readings</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
-        <xsl:text>eBookConfig.activities = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= XML(activity_info) </xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
-        <xsl:text>eBookConfig.downloadsEnabled = </xsl:text><xsl:value-of select="$rso"/><xsl:text>=downloads_enabled</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
-        <xsl:text>eBookConfig.allow_pairs = </xsl:text><xsl:value-of select="$rso"/><xsl:text>=allow_pairs</xsl:text><xsl:value-of select="$rsc"/><xsl:text>&#xa;</xsl:text>
-        <xsl:text>eBookConfig.enableScratchAC = false;&#xa;</xsl:text>
+            <!-- no Sphinx {% %} templating for build system at all,         -->
+            <!-- everything conditional on $runestone-dev                    -->
+            <!-- 'no'  - production, {{ }} templating replaced by $rso, $rsc -->
+            <!-- 'yes' - local viewing, dummy values                         -->
+        <xsl:choose>
+            <!-- Hosted, dynamic: $runestone-dev = 'no' -->
+            <xsl:when test="not($runestone-dev)">
+                <xsl:text>eBookConfig.useRunestoneServices = true;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.host = '';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.app = eBookConfig.host + '/' + '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= request.application </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.course = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= course_name </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.basecourse = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= base_course </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.isLoggedIn = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_logged_in</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.email = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_email </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.isInstructor = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_instructor </xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.ajaxURL = eBookConfig.app + "/ajax/";&#xa;</xsl:text>
+                <!-- no .loglevel -->
+                <xsl:text>eBookConfig.username = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_id</xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.readings = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= readings</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.activities = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= XML(activity_info) </xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.downloadsEnabled = </xsl:text><xsl:value-of select="$rso"/><xsl:text>=downloads_enabled</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.allow_pairs = </xsl:text><xsl:value-of select="$rso"/><xsl:text>=allow_pairs</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.enableScratchAC = true;&#xa;</xsl:text>
+                <!-- no .build_info -->
+                <!-- no .python3 -->
+                <!-- no .acDefaultLanguage -->
+                <!-- no .runestone_version -->
+                <!-- no .jobehost -->
+                <!-- no .proxyuri_runs -->
+                <!-- no .proxyuri_files -->
+                <!-- no .enable_chatcodes -->
+            </xsl:when>
+            <!-- Dev, testing: $runestone-dev = 'yes' -->
+            <xsl:otherwise>
+                <xsl:text>eBookConfig.useRunestoneServices = false;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.host = 'http://127.0.0.1:8000';&#xa;</xsl:text>
+                <!-- no .app -->
+                <xsl:text>eBookConfig.course = 'PTX Course: Title Here';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.basecourse = 'PTX Base Course';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.isLoggedIn = false;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.email = 'somebody@nobody.com';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.isInstructor = false;&#xa;</xsl:text>
+                <!-- no .ajaxURL since no .app -->
+                <xsl:text>eBookConfig.logLevel = 10;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.username = 'Somebody Nobody';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.readings = null;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.activities = null;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.downloadsEnabled = false;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.allow_pairs = false;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.enableScratchAC = false;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.build_info = "";&#xa;</xsl:text>
+                <xsl:text>eBookConfig.python3 = null;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.acDefaultLanguage = 'python';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.runestone_version = '5.0.1';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.jobehost = '';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.proxyuri_runs = '';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.proxyuri_files = '';&#xa;</xsl:text>
+                <xsl:text>eBookConfig.enable_chatcodes =  false;&#xa;</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
         </script>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -8643,7 +8312,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.parser.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.i18n/1.0.5/jquery.i18n.language.js"></script>
 
+        <script type="text/javascript" src="_static/jquery.idle-timer.js"></script>
         <script type="text/javascript" src="_static/runestone.js"></script>
+
         <style>
         <xsl:text>.dropdown {&#xa;</xsl:text>
         <xsl:text>    position: relative;&#xa;</xsl:text>
@@ -8733,7 +8404,11 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </chapter>
 </xsl:template>
 
-<xsl:template match="section|chapter/reading-questions" mode="runestone-manifest">
+<!-- Every division at PTX "section" level, -->
+<!-- potentially containing an "exercise",  -->
+<!-- e.g. "worksheet" but not "references", -->
+<!-- is a RS "subchapter"                   -->
+<xsl:template match="section|chapter/exercises|chapter/worksheet|chapter/reading-questions" mode="runestone-manifest">
     <subchapter>
         <id>
             <xsl:apply-templates select="." mode="html-id"/>
@@ -8741,15 +8416,18 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <title>
             <xsl:apply-templates select="." mode="title-full"/>
         </title>
-        <!-- nearly a dead end, recurse only into exercises -->
-        <!-- within this RS "subchapter" but at any depth   -->
+        <!-- nearly a dead end, recurse only into exercises      -->
+        <!-- within this RS "subchapter", but at *any* PTX depth -->
         <xsl:apply-templates select=".//exercise"  mode="runestone-manifest"/>
     </subchapter>
     <!-- dead end structurally, no more recursion, even if "subsection", etc. -->
 </xsl:template>
 
-<!-- Reading Questions (only) to the manifest -->
-<xsl:template match="reading-questions/exercise" mode="runestone-manifest">
+<!-- Exercises to the Runestone manifest -->
+<!--   - every "exercise" in a "reading-questions" division -->
+<!--   - every multiple choice "exercise"                   -->
+<!-- Note, 2020-05-29: multiple choice not yet merged, markup is speculative -->
+<xsl:template match="exercise[parent::reading-questions]|exercise[choices]" mode="runestone-manifest">
     <question>
         <xsl:apply-templates select="." mode="exercise-components"/>
     </question>
@@ -10418,7 +10096,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 </xsl:template>
 
 <xsl:template name="calculator">
-    <xsl:if test="contains($html.calculator,'geogebra')">
+    <xsl:if test="contains($html-calculator,'geogebra')">
         <div id="calculator-container" class="calculator-container" style="display: none; z-index:100;">
             <div id="geogebra-calculator"></div>
         </div>
@@ -10434,7 +10112,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 applet.showFullscreenButton(true);
             }; -->
             <xsl:text>var ggbApp = new GGBApplet({"appName": "</xsl:text>
-            <xsl:value-of select="substring-after($html.calculator,'-')"/>
+            <xsl:value-of select="substring-after($html-calculator,'-')"/>
             <xsl:text>",&#xa;</xsl:text>
             <!-- width and height are required parameters                   -->
             <!-- All the rest is customizing some things away from defaults -->
@@ -11004,7 +10682,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- GeoGebra -->
 <!-- The JS necessary to load the "App" for a generic calculator -->
 <xsl:template name="geogebra">
-    <xsl:if test="$b-has-calculator and contains($html.calculator,'geogebra')">
+    <xsl:if test="$b-has-calculator and contains($html-calculator,'geogebra')">
         <script src="https://cdn.geogebra.org/apps/deployggb.js"></script>
     </xsl:if>
 </xsl:template>

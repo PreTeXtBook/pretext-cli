@@ -46,6 +46,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     exclude-result-prefixes="mb"
 >
 
+<!-- Any serious conversion will import this file (-common) -->
+<!-- and the "publisher-variables" stylesheet will read a   -->
+<!-- publisher file and create many global variables,       -->
+<!-- which can be used to influence conversions             -->
+<!-- See  publisher-variables.xsl  for more detail          -->
+<xsl:import href="./publisher-variables.xsl"/>
+
 <!-- MathBook XML common templates                        -->
 <!-- Text creation/manipulation common to HTML, TeX, Sage -->
 
@@ -79,33 +86,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Output methods here are just pure text -->
 <xsl:output method="text" />
 
-<!-- ######################### -->
-<!-- Publisher Options Support -->
-<!-- ######################### -->
-
-<!-- Elements and attributes of a publisher file are meant to          -->
-<!-- influence decisions taken *after* an author is completed writing. -->
-<!-- In limited cases a command-line string parameter may be used to   -->
-<!-- override the settings (especially for testing purposes).          -->
-<!-- In other cases, deprecated string parameters may be consulted     -->
-<!-- secondarily, for a limited time.                                  -->
-
-<!-- A single command-line string parameter points to an XML file that      -->
-<!-- is structured to carry various options that a *publisher* might set.   -->
-<!-- Generally, these affect the *look* of the output, rather than the      -->
-<!-- actual *content* that appears on the page, i.e. the actual characters. -->
-<!-- We initialize with an empty node-set, then if not used, there is no    -->
-<!-- loading of the entire source all over again (which seems to be the     -->
-<!-- case with an empty string).  When set on the command-line, a string    -->
-<!-- value will be interpreted correctly. -->
-<xsl:param name="publisher" select="/.."/>
-
-<!-- NB: the second argument is simply a node, it causes $publisher -->
-<!-- to be interpreted relative to the location of the *current XML -->
-<!-- file* rather than the location of the *stylesheet*. The actual -->
-<!-- node does not seem so critical.                                -->
-<xsl:variable name="publication" select="document($publisher, .)/publication"/>
-
 <!-- Parameters to pass via xsltproc "stringparam" on command-line            -->
 <!-- Or make a thin customization layer and use 'select' to provide overrides -->
 <!-- These here are independent of the output format as well                  -->
@@ -113,30 +93,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Depth to which a document is broken into smaller files/chunks -->
 <!-- Sentinel indicates no choice made                             -->
 <xsl:param name="chunk.level" select="''" />
-
-<!-- ######################### -->
-<!-- String Parameter Bad Bank -->
-<!-- ######################### -->
-
-<!-- Conversion specific parameters that die, will     -->
-<!-- live on in warnings, which we consolidate in this -->
-<!-- file, so we need to declare them here as well     -->
-
-<!-- DO NOT USE -->
-<!-- HTML-specific deprecated 2015-06, but still functional -->
-<xsl:param name="html.chunk.level" select="''" />
-<!-- html.knowl.sidebyside is deprecated 2017-07  -->
-<!-- null value necessary for deprecation message -->
-<xsl:param name="html.knowl.sidebyside" select="''" />
-<!-- Analytics deprecated 2019-11-28               -->
-<!-- null values necessary for deprecation message -->
-<xsl:param name="html.statcounter.project" select="''"/>
-<xsl:param name="html.statcounter.security" select="''"/>
-<xsl:param name="html.google-classic" select="''"/>
-<xsl:param name="html.google-universal" select="''"/>
-<!-- Google search via string parameter deprecated 2019-11-29 -->
-<xsl:param name="html.google-search" select="''"/>
-<!-- DO NOT USE -->
 
 <!-- An exercise has a statement, and may have hints,      -->
 <!-- answers and solutions.  An answer is just the         -->
@@ -191,13 +147,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Otherwise ('yes'), todo's show in red paragraphs, -->
 <!-- provisional cross-references show in red          -->
 <xsl:param name="author.tools" select="''" />
-<!-- The dashed version is deprecated 2019-02-10,      -->
-<!-- but we still recognize it.  Move to variable bad  -->
-<!-- bank once killed.                                 -->
-<xsl:param name="author-tools" select="''" />
-<!-- The autoname parameter is deprecated (2017-07-25) -->
-<!-- Replace with docinfo/cross-references/@text       -->
-<xsl:param name="autoname" select="''" />
 <!-- How many levels to table of contents  -->
 <!-- Not peculiar to HTML or LaTeX or etc. -->
 <!-- Sentinel indicates no choice made     -->
@@ -305,19 +254,27 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Variables -->
 <!-- ######### -->
 
-<!-- The latex processing model is overridden in       -->
-<!-- imported files, per output format. Any stylesheet -->
-<!-- importing this one, should define this            -->
-<!-- The purpose is to identify variations in how      -->
-<!-- text nodes are manipulated, such as clause-ending -->
-<!-- punctuation that has migrated into inline math    -->
-<!-- Values are: 'native' and 'mathjax'                -->
-<!-- We set the default to 'mathjax' (assistive), and  -->
-<!-- then override just in the LaTeX conversion        -->
-<!-- Note: this device might be abandoned if browsers  -->
-<!-- and MathJax ever cooperate on placing line breaks -->
-<!-- TODO: could rename as "inline-math-punctation-absorption" -->
-<xsl:variable name="latex-processing" select="'mathjax'" />
+<!-- The single quote character cannot be directly     -->
+<!-- used in a string in XSLT functions, not even as   -->
+<!-- &apos;. But if it is stored as a variable, then   -->
+<!-- XSLT 1.0 will be OK with using $apos.             -->
+<!-- Use like "contat('L',$apos,'Hospital')"           -->
+<xsl:variable name="apos">'</xsl:variable>
+
+<!-- Here we perform manipulations of math elements and subsequent  -->
+<!-- text nodes that lead with punctuation.  Basically, punctuation -->
+<!-- can migrate from the start of the text node and into the math, -->
+<!-- wrapped in a \text{}.  We generally do this to display math as -->
+<!-- a service to authors.  MathJax needs help for inline math.     -->
+<!-- Braille and audio do not do so well with this manipulation.    -->
+<!-- These variables are meant to be set by other stylesheets in    -->
+<!-- various situations and there should be no cause for authors to -->
+<!-- change them (this no elaborate error-checking, etc.)           -->
+<xsl:variable name="math.punctuation.include" select="'none'"/>
+<xsl:variable name="b-include-inline"
+    select="($math.punctuation.include = 'inline')  or ($math.punctuation.include = 'all')"/>
+<xsl:variable name="b-include-display"
+    select="($math.punctuation.include = 'display') or ($math.punctuation.include = 'all')"/>
 
 <!-- We set this variable a bit differently -->
 <!-- for different conversions, so this is  -->
@@ -1411,59 +1368,6 @@ $inline-hint-back    |$divisional-hint-back    |$worksheet-hint-back    |$readin
 $inline-answer-back  |$divisional-answer-back  |$worksheet-answer-back  |$reading-answer-back  |$project-answer-back|
 $inline-solution-back|$divisional-solution-back|$worksheet-solution-back|$reading-solution-back|$project-solution-back"/>
 
-<!-- ################# -->
-<!-- Variable Bad Bank -->
-<!-- ################# -->
-
-<!-- DO NOT USE THESE; THEY ARE TOTALLY DEPRECATED -->
-
-<!-- Some string parameters have been deprecated without any      -->
-<!-- sort of replacement, fallback, or upgrade.  But for a        -->
-<!-- deprecation message to be effective, they need to exist.     -->
-<!-- If you add something here, make a note by the deprecation    -->
-<!-- message.  These definitions expain why it is *always* best   -->
-<!-- to define a user variable as empty, and then supply defaults -->
-<!-- to an internal variable.                                     -->
-
-<xsl:variable name="html.css.file" select="''"/>
-<xsl:variable name="html.permalink" select="''"/>
-
-<!-- The old (incomplete) methods for duplicating components of -->
-<!-- exercises have been deprecated as of 2018-11-07.  We keep  -->
-<!-- these here as we have tried to preserve their intent, and  -->
-<!-- we are generating warnings if they are ever set.           -->
-<xsl:param name="exercise.text.statement" select="''" />
-<xsl:param name="exercise.text.hint" select="''" />
-<xsl:param name="exercise.text.answer" select="''" />
-<xsl:param name="exercise.text.solution" select="''" />
-<xsl:param name="exercise.backmatter.statement" select="''" />
-<xsl:param name="exercise.backmatter.hint" select="''" />
-<xsl:param name="exercise.backmatter.answer" select="''" />
-<xsl:param name="exercise.backmatter.solution" select="''" />
-<xsl:param name="project.text.hint" select="''" />
-<xsl:param name="project.text.answer" select="''" />
-<xsl:param name="project.text.solution" select="''" />
-<xsl:param name="task.text.hint" select="''" />
-<xsl:param name="task.text.answer" select="''" />
-<xsl:param name="task.text.solution" select="''" />
-
-<!-- These are deprecated in favor of watermark.text and watermark.scale -->
-<!-- which are now managed in common. These still "work" for now.        -->
-<!-- The default scaling factor of 2.0 is historical.                    -->
-<xsl:param name="latex.watermark" select="''"/>
-<xsl:variable name="b-latex-watermark" select="not($latex.watermark = '')" />
-<xsl:param name="latex.watermark.scale" select="''"/>
-<xsl:variable name="latex-watermark-scale">
-    <xsl:choose>
-        <xsl:when test="not($latex.watermark.scale = '')">
-            <xsl:value-of select="$latex.watermark.scale"/>
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text>2.0</xsl:text>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
 <!-- ############## -->
 <!-- Entry Template -->
 <!-- ############## -->
@@ -1684,6 +1588,7 @@ Book (with parts), "section" at level 3
 <!--       Look at next node, and if a text node,        -->
 <!--       then look for leading punctuation, and        -->
 <!--       bring into math with \text() wrapper          -->
+<!--       when  $math.punctuation.include  indicates    -->
 
 <xsl:template match="m">
     <!-- Build a textual version of the latex,  -->
@@ -3270,6 +3175,38 @@ Book (with parts), "section" at level 3
     <xsl:value-of select="."/>
 </xsl:template>
 
+<!-- ################# -->
+<!-- String Utilities -->
+<!-- ################# -->
+
+<!-- Find a delimiter: find a character that can be wrapped around a string -->
+<!-- Take a string as one input and a list of characters as another input   -->
+<!-- Return the first character from the list that is not in the string     -->
+<xsl:template name="find-unused-character">
+    <xsl:param name="string" select="''"/>
+    <!-- set of characters passed in the original call -->
+    <xsl:param name="charset" select="concat($apos,'&quot;|/!?=~')"/>
+    <!-- reduced set of characters still in play during a recursive iteration  -->
+    <xsl:param name="characters" select="$charset"/>
+    <xsl:choose>
+        <xsl:when test="$characters = ''">
+            <xsl:message>PTX:FATAL:   Unable to find an unused character in:&#xa;<xsl:value-of select="$string" />&#xa;using characters from: <xsl:value-of select="$charset" /></xsl:message>
+            <xsl:apply-templates select="." mode="location-report" />
+            <xsl:message terminate="yes">             That's fatal.  Sorry.  Quitting...</xsl:message>
+        </xsl:when>
+        <xsl:when test="not(contains($string,substring($characters,1,1)))">
+            <xsl:value-of select="substring($characters,1,1)"/>
+        </xsl:when>
+        <xsl:otherwise>
+            <xsl:call-template name="find-unused-character">
+                <xsl:with-param name="string" select="$string"/>
+                <xsl:with-param name="charset" select="$charset"/>
+                <xsl:with-param name="characters" select="substring($characters,2)"/>
+            </xsl:call-template>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
 <!-- ############### -->
 <!-- Token Utilities -->
 <!-- ############### -->
@@ -3304,19 +3241,22 @@ Book (with parts), "section" at level 3
 <!-- We look for an immediately adjacent/subsequent text -->
 <!-- node and if we get any punctuation, we wrap it for  -->
 <!-- inclusion in the final throes of the math part      -->
-<!-- See compensating code below for general text        -->
+<!-- A corresponding event happens with the following    -->
+<!-- text() node: the punctuation will get scrubbed      -->
+<!-- from there iff the punctuation migrates in this     -->
 <xsl:template match="m|me|men|md|mdn" mode="get-clause-punctuation">
-    <xsl:variable name="trailing-text" select="following-sibling::node()[1]/self::text()" />
-    <xsl:variable name="punctuation">
-        <xsl:call-template name="leading-clause-punctuation">
-            <xsl:with-param name="text" select="$trailing-text" />
-        </xsl:call-template>
-    </xsl:variable>
-    <!-- unclear why  test="$punctuation"  tests true always here -->
-    <xsl:if test="not($punctuation='')">
-        <xsl:text>\text{</xsl:text>
-        <xsl:value-of select="$punctuation" />
-        <xsl:text>}</xsl:text>
+    <xsl:if test="(self::m and $b-include-inline) or ((self::me|self::men|self::md|self::mdn) and $b-include-display)">
+        <xsl:variable name="trailing-text" select="following-sibling::node()[1]/self::text()" />
+        <xsl:variable name="punctuation">
+            <xsl:call-template name="leading-clause-punctuation">
+                <xsl:with-param name="text" select="$trailing-text" />
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:if test="not($punctuation = '')">
+            <xsl:text>\text{</xsl:text>
+            <xsl:value-of select="$punctuation" />
+            <xsl:text>}</xsl:text>
+        </xsl:if>
     </xsl:if>
 </xsl:template>
 
@@ -3357,12 +3297,11 @@ Book (with parts), "section" at level 3
     <!-- It migrates and is absorbed in math templates elsewhere -->
     <!-- Side-effect: resulting leading whitespace is scrubbed   -->
     <!-- for displayed mathematics (only) as it is irrelevant    -->
-    <!-- Inline math only adjusted for MathJax processing        -->
     <xsl:variable name="first-char" select="substring(., 1, 1)" />
     <xsl:variable name="math-punctuation">
         <xsl:choose>
-            <!-- always adjust display math punctuation -->
-            <xsl:when test="contains($clause-ending-marks, $first-char) and preceding-sibling::node()[1][self::me|self::men|self::md|self::mdn]">
+            <!-- drop punctuation after display math, if moving to math -->
+            <xsl:when test="$b-include-display and contains($clause-ending-marks, $first-char) and preceding-sibling::node()[1][self::me|self::men|self::md|self::mdn]">
                 <xsl:call-template name="strip-leading-whitespace">
                     <xsl:with-param name="text">
                         <xsl:call-template name="drop-clause-punctuation">
@@ -3371,8 +3310,8 @@ Book (with parts), "section" at level 3
                     </xsl:with-param>
                 </xsl:call-template>
             </xsl:when>
-            <!-- adjust inline math, except for real LaTeX -->
-            <xsl:when test="contains($clause-ending-marks, $first-char) and preceding-sibling::node()[1][self::m] and not($latex-processing='native')">
+            <!-- drop punctuation after inline math, if moving to math -->
+            <xsl:when test="$b-include-inline and contains($clause-ending-marks, $first-char) and preceding-sibling::node()[1][self::m]">
                 <xsl:call-template name="drop-clause-punctuation">
                     <xsl:with-param name="text" select="." />
                 </xsl:call-template>
@@ -4000,8 +3939,7 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
         <xsl:apply-templates select="." mode="title-simple"/>
     </xsl:variable>
     <xsl:variable name="letter-only-title">
-        <xsl:value-of select="translate($raw-title, translate($raw-title,
-        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ', ''), '')" />
+        <xsl:value-of select="translate($raw-title, translate($raw-title, concat(&SIMPLECHAR;,' '), ''), '')" />
     </xsl:variable>
     <xsl:value-of select="translate($letter-only-title, ' ', '_')" />
 </xsl:template>
@@ -4580,9 +4518,11 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- Keyboard Keys -->
 <!-- ############# -->
 
-<!-- Comments are Unicode names, from fileformat.info            -->
-<!-- @latex values are macros in the menukeys package specifying -->
-<!-- keyboard keys that are typically labeled with graphics      -->
+<!-- Comments are Unicode names, from fileformat.info             -->
+<!-- @latex values are macros in the menukeys package specifying  -->
+<!-- keyboard keys that are typically labeled with graphics,      -->
+<!-- or "textcomp Text-mode Math Symbols" from "The Comprehensive -->
+<!-- LaTeX Symbol List", or constructions combining them          -->
 <xsl:variable name="kbdkey-rtf">
     <kbdkeyinfo name="left"
                 latex="\arrowkeyleft"
@@ -4639,6 +4579,34 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
     <kbdkeyinfo name="underscore"
                 latex='\textunderscore'
                 unicode="&#x005F;"/> <!-- LOW LINE -->
+    <kbdkeyinfo name="plus"
+                latex='+'
+                unicode="&#x002B;"/> <!-- PLUS SIGN -->
+    <!-- MINUS SIGN is U+2212, but not in all fonts? -->
+    <kbdkeyinfo name="minus"
+                latex='\textminus'
+                unicode="&#x002D;"/> <!-- HYPHEN-MINUS -->
+    <kbdkeyinfo name="times"
+                latex='\texttimes'
+                unicode="&#x00D7;"/> <!-- MULTIPLICATION SIGN -->
+    <kbdkeyinfo name="solidus"
+                latex='\textfractionsolidus'
+                unicode="&#x002F;"/> <!-- SOLIDUS -->
+    <kbdkeyinfo name="obelus"
+                latex='\textdiv'
+                unicode="&#x00F7;"/> <!-- DIVISION SIGN -->
+    <kbdkeyinfo name="squared"
+                latex='x\textasciicircum{}2'
+                unicode="x&#x005E;2"/> <!--  -->
+    <kbdkeyinfo name="inverse"
+                latex='x\textasciicircum{-1}'
+                unicode="x&#x005E;-1"/> <!--  -->
+    <kbdkeyinfo name="left-paren"
+                latex='('
+                unicode="&#x0028;"/> <!-- LEFT PARENTHESIS -->
+    <kbdkeyinfo name="right-paren"
+                latex=')'
+                unicode="&#x0029;"/> <!-- RIGHT PARENTHESIS -->
 </xsl:variable>
 
 <!-- If read from a file via "document()" then   -->
@@ -8294,9 +8262,6 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <xsl:template match="xref[@ref and not(contains(normalize-space(@ref), ' ')) and  not(contains(normalize-space(@ref), ','))]">
     <!-- sanitize, check, and resolve the reference -->
     <xsl:variable name="ref" select="normalize-space(@ref)" />
-    <xsl:apply-templates select="." mode="check-ref">
-        <xsl:with-param name="ref" select="$ref" />
-    </xsl:apply-templates>
     <xsl:variable name="target" select="id($ref)" />
     <!-- Determine style of visible text in link -->
     <xsl:variable name="text-style">
@@ -8370,14 +8335,8 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <xsl:template match="xref[@first and @last]">
     <!-- sanitize, check, and resolve the two references -->
     <xsl:variable name="ref-one" select="normalize-space(@first)" />
-    <xsl:apply-templates select="." mode="check-ref">
-        <xsl:with-param name="ref" select="$ref-one" />
-    </xsl:apply-templates>
     <xsl:variable name="target-one" select="id($ref-one)" />
     <xsl:variable name="ref-two" select="normalize-space(@last)" />
-    <xsl:apply-templates select="." mode="check-ref">
-        <xsl:with-param name="ref" select="$ref-two" />
-    </xsl:apply-templates>
     <xsl:variable name="target-two" select="id($ref-two)" />
     <!-- Determine style of visible text in link -->
     <xsl:variable name="text-style-one">
@@ -8497,10 +8456,6 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
     <xsl:variable name="ref" select="substring-before($ref-list, ' ')" />
     <xsl:variable name="trailing" select="substring-after($ref-list, ' ')" />
     <!-- now work with one $ref and the configured $text-style -->
-    <!-- first, error-check and resolve                        -->
-    <xsl:apply-templates select="." mode="check-ref">
-        <xsl:with-param name="ref" select="$ref" />
-    </xsl:apply-templates>
     <!-- get the target as a node -->
     <xsl:variable name="target" select="id($ref)" />
     <!-- bibiographic targets are special -->
@@ -8565,6 +8520,9 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- Provisional cross-references -->
 <!-- A convenience for authors in early stages of writing -->
 <!-- Appear both inline and moreso in author tools        -->
+<!-- N.B. (2020-06-07) The "assembly" phase will *replace*-->
+<!-- these, and so this template may never be hit         -->
+<!-- (or only rarely?)                                    -->
 <xsl:template match="xref[@provisional]">
     <xsl:variable name="inline-warning">
         <xsl:value-of select="@provisional" />
@@ -8599,41 +8557,6 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- ######################### -->
 <!-- Cross-Reference Utilities -->
 <!-- ######################### -->
-
-<!-- Any cross-reference can be checked to see if     -->
-<!-- it points to something legitimate, since this is -->
-<!-- a common mistake and often hard to detect/locate -->
-<!-- http://www.stylusstudio.com/xsllist/200412/post20720.html -->
-<xsl:template match="xref" mode="check-ref">
-    <xsl:param name="ref"/>
-
-    <!-- Grab the template-context "xref" for the location report, -->
-    <!-- *before* a context switch into the (enhanced) source      -->
-    <xsl:variable name="the-xref" select="."/>
-    <!-- Switch context for "id()" search to what could be enhanced -->
-    <!-- source that would include "biblio" from an external file.  -->
-    <xsl:for-each select="$document-root">
-        <xsl:variable name="target" select="id($ref)"/>
-        <xsl:if test="not(exsl:node-set($target))">
-            <xsl:message>MBX:WARNING: unresolved &lt;xref&gt; due to unknown reference "<xsl:value-of select="$ref"/>"</xsl:message>
-            <xsl:apply-templates select="$the-xref" mode="location-report"/>
-            <xsl:variable name="inline-warning">
-                <xsl:text>Unresolved xref, reference "</xsl:text>
-                <xsl:value-of select="$ref"/>
-                <xsl:text>"; check spelling or use "provisional" attribute</xsl:text>
-            </xsl:variable>
-            <xsl:variable name="margin-warning">
-                <xsl:text>Unresolved xref</xsl:text>
-            </xsl:variable>
-            <xsl:call-template name="inline-warning">
-                <xsl:with-param name="warning" select="$inline-warning"/>
-            </xsl:call-template>
-            <xsl:call-template name="margin-warning">
-                <xsl:with-param name="warning" select="$margin-warning"/>
-            </xsl:call-template>
-        </xsl:if>
-    </xsl:for-each>
-</xsl:template>
 
 <!-- Parse, analyze switches, attributes -->
 <!--   global:      5.2                  -->
@@ -10233,8 +10156,9 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
 <!-- Generic deprecation message for uniformity    -->
 <!-- occurrences is a node-list of "problem" nodes -->
 <!-- A message string like "'foo'" cannot contain  -->
-<!-- a single quote, even if entered as &apos;.  A -->
-<!-- &#xa; can be used if necessary, but only      -->
+<!-- a single quote, even if entered as &apos;.    -->
+<!-- If despearate, concatentate with $apos.       -->
+<!-- A &#xa; can be used if necessary, but only    -->
 <!-- rarely do we bother.                          -->
 <xsl:template name="deprecation-message">
     <xsl:param name="occurrences" />
@@ -10269,8 +10193,9 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
 <!-- may need to move variables from specific      -->
 <!-- conversion and into -common file              -->
 <!-- A message string like "'foo'" cannot contain  -->
-<!-- a single quote, even if entered as &apos;.  A -->
-<!-- &#xa; can be used if necessary, but only      -->
+<!-- a single quote, even if entered as &apos;.    -->
+<!-- If despearate, concatentate with $apos.       -->
+<!-- A &#xa; can be used if necessary, but only    -->
 <!-- rarely do we bother.                          -->
 <xsl:template name="parameter-deprecation-message">
     <xsl:param name="incorrect-use" select="false()" />
@@ -10890,6 +10815,13 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
         <xsl:with-param name="date-string" select="'2020-05-10'" />
         <xsl:with-param name="message" select="'the  html.permalink  parameter is now obsolete and will be ignored as this is now controlled by Javascript'" />
         <xsl:with-param name="incorrect-use" select="($html.permalink != '')" />
+    </xsl:call-template>
+    <!--  -->
+    <!-- 2020-05-29  HTML calculator model controlled by publisher file -->
+    <xsl:call-template name="parameter-deprecation-message">
+        <xsl:with-param name="date-string" select="'2020-05-29'" />
+        <xsl:with-param name="message" select="'the  html.calculator  parameter has been replaced by the  html/calculator/@model  entry in the publisher file.  We will attempt to honor your selection.  But please switch to using the Publishers File for configuration, as documented in the PreTeXt Guide.'" />
+        <xsl:with-param name="incorrect-use" select="($html.calculator != '')" />
     </xsl:call-template>
 </xsl:template>
 

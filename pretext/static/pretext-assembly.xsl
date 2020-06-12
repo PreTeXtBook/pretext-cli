@@ -22,8 +22,10 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:stylesheet
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+    xmlns:pi="http://pretextbook.org/2020/pretext/internal"
     xmlns:exsl="http://exslt.org/common"
-    extension-element-prefixes="exsl"
+    xmlns:str="http://exslt.org/strings"
+    extension-element-prefixes="exsl str"
 >
 
 <!-- This is the once-mythical pre-processor, though we prefer     -->
@@ -80,6 +82,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- fragment and then we convert it into real XML nodes. It   -->
 <!-- has a root element as part of the node-set() manufacture. -->
 <xsl:variable name="duplicate-rtf">
+    <xsl:call-template name="assembly-warnings"/>
     <xsl:apply-templates select="/" mode="assembly"/>
 </xsl:variable>
 <xsl:variable name="duplicate" select="exsl:node-set($duplicate-rtf)"/>
@@ -122,6 +125,40 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:copy>
 </xsl:template>
 
+<!-- ################# -->
+<!-- Private Solutions -->
+<!-- ################# -->
+
+<!-- "solutions" here refers generically to "hint", "answer",  -->
+<!-- and "solution" elements of an "exercise".  An author may  -->
+<!-- wish to provide limited distribution of some solutions to -->
+<!-- exercises, which we deem "private" here.  If a            -->
+<!-- "solutions.file" is provided, it will be mined for these  -->
+<!-- private solutions.                                        -->
+
+<xsl:param name="solutions.file" select="''"/>
+<xsl:variable name="b-private-solutions" select="not($solutions.file = '')"/>
+
+<xsl:variable name="n-hint"     select="document($solutions.file, /pretext)/pi:privatesolutions/hint"/>
+<xsl:variable name="n-answer"   select="document($solutions.file, /pretext)/pi:privatesolutions/answer"/>
+<xsl:variable name="n-solution" select="document($solutions.file, /pretext)/pi:privatesolutions/solution"/>
+
+<xsl:template match="exercise" mode="assembly">
+    <!-- <xsl:message>FOO:<xsl:value-of select="count($n-solution)"/></xsl:message> -->
+    <xsl:variable name="the-id" select="@xml:id"/>
+    <xsl:copy>
+        <!-- attributes, then all elements that are not solutions -->
+        <xsl:apply-templates select="*[not(self::hint or self::answer or self::solution)]|@*" mode="assembly"/>
+        <!-- hints, answers, solutions; first regular, second private -->
+        <xsl:apply-templates select="hint" mode="assembly"/>
+        <xsl:apply-templates select="$n-hint[@ref=$the-id]" mode="assembly"/>
+        <xsl:apply-templates select="answer" mode="assembly"/>
+        <xsl:apply-templates select="$n-answer[@ref=$the-id]" mode="assembly"/>
+        <xsl:apply-templates select="solution" mode="assembly"/>
+        <xsl:apply-templates select="$n-solution[@ref=$the-id]" mode="assembly"/>
+    </xsl:copy>
+</xsl:template>
+
 <!-- ############# -->
 <!-- Source Repair -->
 <!-- ############# -->
@@ -135,6 +172,112 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <pretext>
         <xsl:apply-templates select="node()|@*" mode="assembly"/>
     </pretext>
+</xsl:template>
+
+<!-- ############### -->
+<!-- Source Warnings -->
+<!-- ############### -->
+
+<!-- A mistyped xref/@ref, or a replacement @xml:id, makes -->
+<!-- for a broken cross-reference.  So we warn at run-time -->
+<!-- and leave behind placeholder text.                    -->
+
+<!-- TODO: move in @first/@last compatibility and order checks -->
+<!-- TODO: perhaps parts of the following should be placed     -->
+<!-- in -common so the "author tools" stylesheet could use it, -->
+<!-- in addition to a more general source-checker stylesheet   -->
+
+<xsl:template match="xref[not(@provisional)]" mode="assembly">
+    <!-- commas to blanks, normalize spaces, -->
+    <!-- add trailing space for final split  -->
+    <xsl:variable name="normalized-ref-list">
+        <xsl:choose>
+            <xsl:when test="@ref">
+                <xsl:value-of select="concat(normalize-space(str:replace(@ref,',', ' ')), ' ')"/>
+            </xsl:when>
+            <!-- put @first and @last into a normalized two-part list -->
+            <xsl:when test="@first">
+                <xsl:value-of select="concat(normalize-space(@first), ' ', normalize-space(@last), ' ')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:message>PTX:ERROR:   an "xref" lacks a @ref, @first, and @provisional; check your source or report as a potential bug</xsl:message>
+                <xsl:apply-templates select="." mode="location-report"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    <!-- variable will contain comma-separated list  -->
+    <!-- of @ref values that have no target, so if   -->
+    <!-- empty that is success                       -->
+    <xsl:variable name="bad-xrefs-in-list">
+        <xsl:apply-templates select="." mode="check-ref-list">
+            <xsl:with-param name="ref-list" select="$normalized-ref-list"/>
+        </xsl:apply-templates>
+    </xsl:variable>
+    <xsl:choose>
+        <!-- let assembly procede, do "xref" literally  -->
+        <xsl:when test="$bad-xrefs-in-list = ''">
+            <xsl:copy>
+                <xsl:apply-templates select="node()|@*" mode="assembly"/>
+            </xsl:copy>
+        </xsl:when>
+        <!-- error condition, so warn and leave  -->
+        <!-- placeholder text in enhanced source -->
+        <xsl:otherwise>
+            <xsl:variable name="error-list" select="substring($bad-xrefs-in-list, 1, string-length($bad-xrefs-in-list) - 2)"/>
+            <xsl:message>PTX:ERROR:   a cross-reference ("xref") uses references [<xsl:value-of select="$error-list"/>] that do not point to any target.  Maybe you typed an @xml:id value wrong, maybe the target of the @xml:id is nonexistent, or maybe you temporarily removed the target from your source.  Your output will contain some placeholder text that you will not want to distribute to your readers.</xsl:message>
+            <xsl:apply-templates select="." mode="location-report"/>
+            <!-- placeholder text -->
+            <c>
+                <xsl:text>[cross-reference to target(s) "</xsl:text>
+                <xsl:value-of select="$error-list"/>
+                <xsl:text>" missing]</xsl:text>
+            </c>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<xsl:template match="xref" mode="check-ref-list">
+    <xsl:param name="ref-list"/>
+    <xsl:choose>
+        <!-- no more to test, stop recursing -->
+        <xsl:when test="$ref-list = ''"/>
+        <!-- test/check initial ref of the list -->
+        <xsl:otherwise>
+            <xsl:variable name="initial" select="substring-before($ref-list, ' ')" />
+            <xsl:if test="not(exsl:node-set(id($initial)))">
+                <!-- drop the failed lookup, plus a separator.  A nonempty -->
+                <!-- result for this template is indicative of a failure   -->
+                <!-- and the list can be reported in the error message     -->
+                <xsl:value-of select="$initial"/>
+                <xsl:text>, </xsl:text>
+            </xsl:if>
+            <xsl:apply-templates select="." mode="check-ref-list">
+                <xsl:with-param name="ref-list" select="substring-after($ref-list, ' ')"/>
+            </xsl:apply-templates>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- An xref/@provisional is a tool for authors so we just -->
+<!-- drop a reminder of some planned (forward) reference   -->
+<xsl:template match="xref[@provisional]" mode="assembly">
+    <c>
+        <xsl:text>[provisional cross-reference: </xsl:text>
+        <xsl:value-of select="@provisional"/>
+        <xsl:text>]</xsl:text>
+    </c>
+</xsl:template>
+
+<!-- ######## -->
+<!-- Warnings -->
+<!-- ######## -->
+
+<xsl:template name="assembly-warnings">
+    <xsl:if test="$b-private-solutions">
+        <xsl:call-template name="banner-warning">
+            <xsl:with-param name="warning">Use of a private solutions file is experimental and not supported.  Markup,&#xa;string parameters, and procedures are all subject to change.  (2020-06-06)</xsl:with-param>
+        </xsl:call-template>
+    </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>

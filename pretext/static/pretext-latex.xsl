@@ -117,12 +117,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- early or late                          -->
 <xsl:param name="latex.preamble.early" select="''" />
 <xsl:param name="latex.preamble.late" select="''" />
-<!--  -->
-<!-- DEPRECATED: 2017-12-18, do not use, any value -->
-<!-- besides an empty string will raise a warning  -->
-<xsl:param name="latex.console.macro-char" select="''" />
-<xsl:param name="latex.console.begin-char" select="''" />
-<xsl:param name="latex.console.end-char" select="''" />
 
 
 <!-- ############### -->
@@ -157,11 +151,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Variables that affect LaTeX creation -->
 <!-- More in the -common file             -->
 
-<!-- LaTeX is handled natively, so we flip a  -->
-<!-- switch here to signal the general text() -->
-<!-- handler in xsl/pretext-common.xsl to    -->
-<!-- not dress-up clause-ending punctuation   -->
-<xsl:variable name="latex-processing" select="'native'" />
+<!-- Search for the "math.punctuation.include" -->
+<!-- global variable, which is discussed in    -->
+<!-- closer proximity to its application.      -->
 
 <!-- Not a parameter, a variable to override deliberately within a conversion -->
 <xsl:variable name="b-latex-hardcode-numbers" select="false()"/>
@@ -6704,19 +6696,19 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- differences which we need to accomodate via abstract -->
 <!-- templates.                                           -->
 
+<!-- See the -common stylesheet for manipulations of math elements     -->
+<!-- and subsequent text nodes that lead with punctuation.  Basically, -->
+<!-- punctuation can migrate from the start of the text node and into  -->
+<!-- the math, wrapped in a \text{}.  We do this to display math as a  -->
+<!-- service to authors.  But LaTeX handles this situation carefully   -->
+<!-- for inline math.                                                  -->
+<xsl:variable name="math.punctuation.include" select="'display'"/>
+
 <!-- Inline Mathematics ("m") -->
 <!-- We use the asymmetric LaTeX delimiters \( and \).     -->
 <!-- For LaTeX these are not "robust", hence break moving  -->
 <!-- items (titles, index), so use the "fixltx2e" package, -->
 <!-- which declares \MakeRobust\( and \MakeRobust\)        -->
-<!-- Note: LaTeX, unlike HTML, needs no help with          -->
-<!-- clause-ending punctuation trailing inline math,       -->
-<!-- it always does the right thing.  So when the general  -->
-<!-- template for text nodes in -common goes to drop this  -->
-<!-- punctuation, it also checks the $latex-processing     -->
-<!-- global variable                                       -->
-<!-- NB: we should be able to use templates to make this   -->
-<!-- happen without the global variable                    -->
 
 <!-- These two templates provide the delimiters for -->
 <!-- inline math, implementing abstract templates.  -->
@@ -6727,12 +6719,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template name="end-inline-math">
     <xsl:text>\)</xsl:text>
 </xsl:template>
-
-<!-- This is the override for LaTeX processing,        -->
-<!-- since punctuation following inline math is        -->
-<!-- not a problem for traditional TeX's line-breaking -->
-<xsl:template match="m" mode="get-clause-punctuation" />
-
 
 <!-- Displayed Single-Line Math ("me", "men") -->
 
