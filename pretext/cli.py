@@ -63,8 +63,8 @@ main.add_command(new)
 """)
 @click.argument('format')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
-# @click.option('-d', '--diagrams', is_flag=True, default=False, help='regenerate images using mbx script')
-def build(format, input, output, param):
+@click.option('-d', '--diagrams', is_flag=True, help='regenerate images using pretext script')
+def build(format, input, output, param, diagrams):
     """
     Process PreTeXt files into specified format.
     Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
@@ -72,6 +72,8 @@ def build(format, input, output, param):
     stringparams = dict([p.split("=") for p in param])
     from . import build
     if format=='html' or format=='all':
+        if diagrams:
+            build.diagrams(input,output)
         build.html(input,output,stringparams)
     if format=='latex' or format=='all':
         build.latex(input,output,stringparams)

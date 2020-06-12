@@ -31,6 +31,6 @@ setuptools.setup(
         ],
     },
     package_data = {
-        'pretext': ['static/*','static/*/*'],
+        'pretext': ['static/*','static/*/*','static/*/*/*'],
     },
 )

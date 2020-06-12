@@ -8,7 +8,7 @@ def html(ptxfile,output,stringparams):
     import os, shutil
     # from pathlib import Path
     # ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = static.filepath('pretext-html.xsl')
+    xslfile = os.path.join(static.filepath('xsl'), 'pretext-html.xsl')
     # create output directories and move there.
     # output = os.path.abspath(output)
     utils.ensure_directory(output)
@@ -31,7 +31,7 @@ def latex(ptxfile,output,stringparams):
     import shutil
     # import sys
     # ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = static.filepath('pretext-latex.xsl')
+    xslfile = os.path.join(static.filepath('xsl'), 'pretext-latex.xsl')
     #create output directory
     # output = os.path.abspath(output)
     utils.ensure_directory(output)
@@ -48,6 +48,19 @@ def latex(ptxfile,output,stringparams):
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
     xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams=stringparams)
+
+
+# Function to build diagrams/images contained in source.
+def diagrams(ptxfile, output):
+    import os
+    import subprocess
+    ptx_script = os.path.join(static.filepath('pretext'), 'pretext')
+    image_output = os.path.join(output, "images")
+    utils.ensure_directory(image_output)
+    subprocess.check_output(
+        ['python', ptx_script, "-c", "latex-image", "-f", "svg", "-d", image_output, ptxfile]
+    )
+
 
 
 
