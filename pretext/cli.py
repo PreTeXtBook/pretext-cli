@@ -54,7 +54,7 @@ main.add_command(new)
 # @click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
 # @click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
 #@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
-@click.option('-i', '--input', type=click.Path(), default='source/main.ptx',
+@click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx',
               help='Path to main ptx file (defaults to `source/main.ptx`)')
 @click.option('-o', '--output', type=click.Path(), default='./output',
               help='Define output directory path (defaults to `output`)')
@@ -64,19 +64,22 @@ main.add_command(new)
 @click.argument('format')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 @click.option('-d', '--diagrams', is_flag=True, help='regenerate images using pretext script')
-def build(format, input, output, param, diagrams):
+def build(format, source, output, param, diagrams):
     """
     Process PreTeXt files into specified format.
     Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
     """
+    import os
     stringparams = dict([p.split("=") for p in param])
+    source = os.path.abspath(source)
+    output = os.path.abspath(output)
     from . import build
     if format=='html' or format=='all':
         if diagrams:
-            build.diagrams(input,output)
-        build.html(input,output,stringparams)
+            build.diagrams(source,output,stringparams)
+        build.html(source,output,stringparams)
     if format=='latex' or format=='all':
-        build.latex(input,output,stringparams)
+        build.latex(source,output,stringparams)
 main.add_command(build)
 
 

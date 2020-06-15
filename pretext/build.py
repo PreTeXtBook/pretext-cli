@@ -38,7 +38,7 @@ def latex(ptxfile,output,stringparams):
     utils.ensure_directory(os.path.join(output, 'images'))
     # Copy images from source/images
     # This is less than ideal.  The author is able to provide a path to the static images, but this assumes they are always src="images/foo.png"
-    src = os.path.join(os.path.dirname(os.path.abspath(ptxfile)), 'images')
+    src = os.path.join(os.path.dirname(ptxfile), 'images')
     if os.path.exists(src):
         src_files = os.listdir(src)
         for file_name in src_files:
@@ -51,17 +51,16 @@ def latex(ptxfile,output,stringparams):
 
 
 # Function to build diagrams/images contained in source.
-def diagrams(ptxfile, output):
+def diagrams(ptxfile, output, params):
     import os
-    import subprocess
-    ptx_script = os.path.join(static.filepath('pretext'), 'pretext')
-    image_output = os.path.join(output, "images")
+    from .static.pretext import pretext as ptxcore
+    # We assume passed paths are absolute.
+    # set images directory
+    image_output = os.path.join(output, 'images')
     utils.ensure_directory(image_output)
-    subprocess.check_output(
-        ['python', ptx_script, "-c", "latex-image", "-f", "svg", "-d", image_output, ptxfile]
-    )
-
-
+    # call pretext-core's latex image module:
+    ptxcore.latex_image_conversion(
+        xml_source=ptxfile, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat="svg")
 
 
 
