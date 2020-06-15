@@ -1,15 +1,18 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+with open("README.md", "r") as readme_file:
+    LONG_DESCRIPTION = readme_file.read()
+
+with open("pretext/static/VERSION", "r") as version_file:
+    VERSION = version_file.read().strip()
 
 setuptools.setup(
     name="pretext", # Replace with your own username
-    version="0.0.1",
+    version=VERSION,
     author="Steven Clontz",
     author_email="steven.clontz@gmail.com",
     description="A package for authoring and building PreTeXt documents.",
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     install_requires=[
        'lxml',

@@ -1,10 +1,8 @@
 import click
 
-
-
-
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
+
 
 #  Click command-line interface
 @click.group()
@@ -14,9 +12,16 @@ def main():
     PreTeXt documents.
     """
 
-    
+
 # pretext new
-@click.command(short_help="Provision a new PreTeXt document.")
+@main.command(short_help="Display version.")
+def version():
+    from . import version
+    click.echo(version())
+
+
+# pretext new
+@main.command(short_help="Provision a new PreTeXt document.")
 @click.argument('title', required=True)
 @click.argument('project_path', required=False)
 @click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
@@ -49,16 +54,15 @@ def new(title,project_path,chapter):
         document.add_chapter(pretext,c)
     click.echo(f"Generating new PreTeXt project in `{project_path}`.")
     project.write(pretext, project_path)
-main.add_command(new)
 
 
 # pretext build
-@click.command(short_help="Build specified format target")
+@main.command(short_help="Build specified format target")
 # @click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
 # @click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
 #@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx',
-              help='Path to main ptx file (defaults to `source/main.ptx`)')
+              help='Path to click ptx file (defaults to `source/main.ptx`)')
 @click.option('-o', '--output', type=click.Path(),
               help='Define output directory path (defaults to `output`)')
 @click.option('--param', multiple=True, help="""
@@ -94,11 +98,10 @@ def build(format, source, output, param, diagrams):
         build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
         build.latex(source,latex_output,stringparams)
-main.add_command(build)
 
 
 # pretext view
-@click.command(short_help="Preview built PreTeXt documents in your browser.")
+@main.command(short_help="Preview built PreTeXt documents in your browser.")
 @click.argument('directory', default="output")
 @click.option(
     '--public/--private',
@@ -141,4 +144,3 @@ def view(directory, public, port):
         click.echo(f"Your documents may be previewed at {url}")
         click.echo("Use [Ctrl]+[C] to halt the server.")
         httpd.serve_forever()
-main.add_command(view)

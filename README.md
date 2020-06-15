@@ -93,6 +93,16 @@ To add dependencies for the package, update `setup.py`. then run `pipenv update`
 
 To add dependencies for the development environment, use `pipenv install [package]`.
 
+## Packaging
+
+See <https://packaging.python.org/tutorials/packaging-projects/>.
+
+```
+python setup.py sdist bdist_wheel
+python -m twine upload --repository testpypi dist/* # to test
+python -m twine upload dist/* # for real
+```
+
 ## PreTeXt XSL
 
 Right now, we're developing against this frozen snapshot of PreTeXt:
