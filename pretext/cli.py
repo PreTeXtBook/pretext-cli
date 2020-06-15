@@ -1,5 +1,8 @@
 import click
 
+
+
+
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
 
@@ -56,7 +59,7 @@ main.add_command(new)
 #@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx',
               help='Path to main ptx file (defaults to `source/main.ptx`)')
-@click.option('-o', '--output', type=click.Path(), default='./output',
+@click.option('-o', '--output', type=click.Path(),
               help='Define output directory path (defaults to `output`)')
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
@@ -70,16 +73,27 @@ def build(format, source, output, param, diagrams):
     Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
     """
     import os
+    # set up stringparams as dictionary:
     stringparams = dict([p.split("=") for p in param])
+    # if user supplied output path, respect it:
+    # otherwise, use defaults.  TODO: move this to a config file
+    latex_output = 'output/latex'
+    html_output = 'output/html'
+    if output:
+        latex_output = output
+        html_output = output
+    # set up source (input) and output as absolute paths
     source = os.path.abspath(source)
-    output = os.path.abspath(output)
+    latex_output = os.path.abspath(latex_output)
+    html_output = os.path.abspath(html_output)
+    #build targets:
     from . import build
     if format=='html' or format=='all':
         if diagrams:
-            build.diagrams(source,output,stringparams)
-        build.html(source,output,stringparams)
+            build.diagrams(source,html_output,stringparams)
+        build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
-        build.latex(source,output,stringparams)
+        build.latex(source,latex_output,stringparams)
 main.add_command(build)
 
 
