@@ -3,7 +3,6 @@ from lxml import etree as ET
 from . import static, document, utils
 
 
-
 def html(ptxfile,output,stringparams):
     import os, shutil
     # from pathlib import Path
@@ -54,6 +53,8 @@ def latex(ptxfile,output,stringparams):
 def diagrams(ptxfile, output, params):
     import os
     from .static.pretext import pretext as ptxcore
+    # Pass verbosity level to ptxcore sripts:
+    ptxcore.set_verbosity(utils._verbosity)
     # We assume passed paths are absolute.
     # set images directory
     image_output = os.path.join(output, 'images')
@@ -71,11 +72,11 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
         dom.xinclude()
     except:
         print('there was an error with xinclude')
-    print('Read in xsl file at', xslfile)
+    utils._verbose('Read in xsl file at ' + xslfile)
     xslt = ET.parse(xslfile)
-    print('Load the transform')
+    utils._verbose('Loading the transform')
     transform = ET.XSLT(xslt)
-    print('Transform the source')
+    utils._verbose('Transforming the source')
     with utils.working_directory(outdir):
         newdom = transform(dom, **stringparams)
         #grab the format from xslfile and use it to name logfile:
@@ -86,6 +87,6 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
         print(transform.error_log)
         # Write output if not done by exsl:document:
         if outfile:
-            print('writing output to file specified')
+            utils._verbose('Writing output to file specified')
             with open(outfile, "w") as fh:
                 fh.write(str(newdom))

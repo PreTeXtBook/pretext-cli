@@ -1,4 +1,5 @@
 import click
+from . import utils
 
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
@@ -6,11 +7,15 @@ def raise_cli_error(message):
 
 #  Click command-line interface
 @click.group()
-def main():
+# Allow a verbosity command:
+@click.option('-v', '--verbose', count=True, help="-v for basic feedback; -vv for debug info")
+def main(verbose):
     """
     Command line tools for quickly creating, authoring, and building
     PreTeXt documents.
     """
+    # set verbosity:
+    utils.set_verbosity(verbose)
 
 
 # pretext new
