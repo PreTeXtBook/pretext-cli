@@ -7,10 +7,10 @@ with open("pretext/static/VERSION", "r") as version_file:
     VERSION = version_file.read().strip()
 
 setuptools.setup(
-    name="pretext", # Replace with your own username
+    name="pretextbook",
     version=VERSION,
-    author="Steven Clontz",
-    author_email="steven.clontz@gmail.com",
+    author="PreTeXtBook.org",
+    author_email="steven.clontz+PreTeXt@gmail.com",
     description="A package for authoring and building PreTeXt documents.",
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
