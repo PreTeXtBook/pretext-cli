@@ -68,11 +68,19 @@ def diagrams(ptxfile, output, params):
 # This start of a utility function to replicate the tasks for xsltproc.
 def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     dom = ET.parse(xmlfile)
+
+    utils._verbose('XSL conversion of {} by {}'.format(xmlfile, xslfile))
+    debug_string = 'XSL conversion via {} of {} to {} and/or into directory {} with parameters {}'
+    utils._debug(debug_string.format(xslfile, xmlfile, outfile, outdir, stringparams))
+    # string parameters arrive in a "plain" string:string dictionary
+    # but the values need to be prepped for lxml use, always
+    stringparams = {key: ET.XSLT.strparam(value) for (
+        key, value) in stringparams.items()}
+    # xinclude:
     try:
         dom.xinclude()
     except:
         print('there was an error with xinclude')
-    utils._verbose('Read in xsl file at ' + xslfile)
     xslt = ET.parse(xslfile)
     utils._verbose('Loading the transform')
     transform = ET.XSLT(xslt)

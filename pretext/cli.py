@@ -73,10 +73,11 @@ def new(title,project_path,chapter):
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
+@click.option('-p', '--publisher', type=click.Path(), default=None, help="publisher file name, with path relative to main pretext source file.")
 @click.argument('format')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 @click.option('-d', '--diagrams', is_flag=True, help='regenerate images using pretext script')
-def build(format, source, output, param, diagrams):
+def build(format, source, output, param, diagrams, publisher):
     """
     Process PreTeXt files into specified format.
     Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
@@ -84,6 +85,9 @@ def build(format, source, output, param, diagrams):
     import os
     # set up stringparams as dictionary:
     stringparams = dict([p.split("=") for p in param])
+    # TODO: Move to config file
+    if publisher:
+        stringparams['publisher'] = publisher
     # if user supplied output path, respect it:
     # otherwise, use defaults.  TODO: move this to a config file
     latex_output = 'output/latex'
