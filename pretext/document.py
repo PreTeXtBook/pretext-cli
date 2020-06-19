@@ -5,6 +5,11 @@ XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
 
 def new(title_string):
     pretext = ET.Element("pretext")
+    docinfo = ET.SubElement(pretext,"docinfo")
+    macros = ET.SubElement(docinfo,"macros")
+    macros.text = "\\newcommand{\\foo}{bar}"
+    lip = ET.SubElement(docinfo,"latex-image-preamble")
+    lip.text = "\\usepackage{tikz}"
     doc = ET.SubElement(pretext, "book")
     doc.set(XML_ID,slugify(title_string))
     title = ET.SubElement(doc,"title")
