@@ -44,7 +44,7 @@ Once you've confirmed that you're using Python 3.4+,
 just run (replacing `python` with `python3` if necessary):
 
 ```
-python -m pip install pretext
+python -m pip install pretextbook
 ```
 
 ## Usage
