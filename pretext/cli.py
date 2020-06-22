@@ -67,7 +67,7 @@ def new(title,project_path,chapter):
 # @click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
 #@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx',
-              help='Path to click ptx file (defaults to `source/main.ptx`)')
+              help='Path to main *.ptx file (defaults to `source/main.ptx`)')
 @click.option('-o', '--output', type=click.Path(),
               help='Define output directory path (defaults to `output`)')
 @click.option('--param', multiple=True, help="""
