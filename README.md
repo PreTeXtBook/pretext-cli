@@ -103,6 +103,10 @@ python -m twine upload --repository testpypi dist/* # to test
 python -m twine upload dist/* # for real
 ```
 
+## Versioning
+
+See [VERSIONING.md](VERSIONING.md).
+
 ## PreTeXt XSL
 
 Right now, we're developing against this frozen snapshot of PreTeXt:
