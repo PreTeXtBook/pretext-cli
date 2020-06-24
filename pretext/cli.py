@@ -63,18 +63,18 @@ def new(title,project_path,chapter):
 
 # pretext build
 @main.command(short_help="Build specified format target")
-# @click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
-# @click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
-#@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
+@click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
+@click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
+@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx',
               help='Path to main *.ptx file (defaults to `source/main.ptx`)')
 @click.option('-o', '--output', type=click.Path(),
-              help='Define output directory path (defaults to `output`)')
+              help='Define output directory path (defaults to `output/FORMAT`)')
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="publisher file name, with path relative to main pretext source file.")
-@click.argument('format')
+#@click.argument('format')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 @click.option('-d', '--diagrams', is_flag=True, help='regenerate images using pretext script')
 def build(format, source, output, param, diagrams, publisher):
