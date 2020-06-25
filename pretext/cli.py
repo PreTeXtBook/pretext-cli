@@ -18,7 +18,7 @@ def main(verbose):
     utils.set_verbosity(verbose)
 
 
-# pretext new
+# pretext version
 @main.command(short_help="Display version.")
 def version():
     from . import version
@@ -46,6 +46,7 @@ def new(title,project_path,chapter):
             project_path = slugify(title)
         else:
             project_path = 'my-book'
+    click.echo(f"Generating new PreTeXt project in `{project_path}`.")
     pretext = document.new(title)
     chapter = list(chapter)
     if not(chapter):
@@ -57,7 +58,6 @@ def new(title,project_path,chapter):
             current_chapter += 1
     for c in chapter:
         document.add_chapter(pretext,c)
-    click.echo(f"Generating new PreTeXt project in `{project_path}`.")
     project.write(pretext, project_path)
 
 
@@ -112,7 +112,8 @@ def build(format, source, output, param, diagrams, publisher):
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
-@click.argument('directory', default="output")
+@click.option('--directory', type=click.Path(), default="output", show_default=True,
+             help="Directory containing built PreTeXt documents.")
 @click.option(
     '--public/--private',
     default=False,
@@ -123,14 +124,13 @@ def build(format, source, output, param, diagrams, publisher):
 @click.option(
     '--port',
     default=8000,
+    show_default=True,
     help="""
-    Choose which port to use for the local server. Defaults to 8000.
+    Choose which port to use for the local server.
     """)
 def view(directory, public, port):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
-    Use DIRECTORY to designate the folder with your built documents (defaults
-    to `output`).
     """
     import os
     directory = os.path.abspath(directory)
