@@ -63,24 +63,25 @@ def new(title,project_path,chapter):
 
 # pretext build
 @main.command(short_help="Build specified format target")
-@click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
-@click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
-@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
-@click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx',
-              help='Path to main *.ptx file (defaults to `source/main.ptx`)')
+#@click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
+#@click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
+#@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
+@click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
+              help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(),
-              help='Define output directory path (defaults to `output/FORMAT`)')
+              help='Define output directory path [default output/FORMAT]')
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
-@click.option('-p', '--publisher', type=click.Path(), default=None, help="publisher file name, with path relative to main pretext source file.")
+@click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
 #@click.argument('format')
+@click.option('--format', default='html', show_default=True, help="Sets which format to build",
+              type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
-@click.option('-d', '--diagrams', is_flag=True, help='regenerate images using pretext script')
+@click.option('-d', '--diagrams', is_flag=True, help='Regenerate images using pretext script')
 def build(format, source, output, param, diagrams, publisher):
     """
     Process PreTeXt files into specified format.
-    Current supported choices for FORMAT are `html`, `latex`, or `all` (for both html and latex).
     """
     import os
     # set up stringparams as dictionary:
