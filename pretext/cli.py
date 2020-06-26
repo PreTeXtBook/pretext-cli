@@ -1,5 +1,6 @@
 import click
 from . import utils
+from . import version as cli_version
 
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
@@ -9,6 +10,7 @@ def raise_cli_error(message):
 @click.group()
 # Allow a verbosity command:
 @click.option('-v', '--verbose', count=True, help="-v for basic feedback; -vv for debug info")
+@click.version_option(cli_version(),message=cli_version())
 def main(verbose):
     """
     Command line tools for quickly creating, authoring, and building
@@ -18,17 +20,10 @@ def main(verbose):
     utils.set_verbosity(verbose)
 
 
-# pretext version
-@main.command(short_help="Display version.")
-def version():
-    from . import version
-    click.echo(version())
-
-
 # pretext new
 @main.command(short_help="Provision a new PreTeXt document.")
-@click.argument('title', required=True)
-@click.argument('project_path', required=False)
+@click.argument('title', default="My Great Book!")
+@click.option('--project_path')
 @click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
 def new(title,project_path,chapter):
     """
@@ -63,9 +58,8 @@ def new(title,project_path,chapter):
 
 # pretext build
 @main.command(short_help="Build specified format target")
-#@click.option('--html', 'format', flag_value='html',default=True, help="Build document to HTML (default)")
-#@click.option('--latex', 'format', flag_value='latex', help="Build document to LaTeX")
-#@click.option('-a', '--all', 'format', flag_value='all', help="Build all main document formats (HTML,LaTeX)")
+@click.argument('format', default='html',
+              type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(),
@@ -74,11 +68,8 @@ def new(title,project_path,chapter):
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
-#@click.argument('format')
-@click.option('--format', default='html', show_default=True, help="Sets which format to build",
-              type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
-# @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images using pretext script')
+# @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 def build(format, source, output, param, diagrams, publisher):
     """
     Process PreTeXt files into specified format.
