@@ -20,7 +20,7 @@ setuptools.setup(
        'click',
        "importlib_resources ; python_version<'3.7'",
     ],
-    url="https://github.com/stevenclontz/pretext.py",
+    url="https://github.com/PreTeXtBook/pretext-cli",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
