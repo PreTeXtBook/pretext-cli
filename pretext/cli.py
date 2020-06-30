@@ -68,11 +68,13 @@ def new(title,project_path,chapter):
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
-@click.option('-d', '--diagrams', is_flag=True, help='Regenerate images using pretext script')
+@click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 def build(format, source, output, param, diagrams, publisher):
     """
     Process PreTeXt files into specified format.
+
+    For html, images coded in source (latex-image, etc) are only processed using the --diagrams option.
     """
     import os
     # set up stringparams as dictionary:
