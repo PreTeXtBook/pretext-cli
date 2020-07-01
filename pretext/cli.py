@@ -108,11 +108,14 @@ def build(format, source, output, param, diagrams, publisher):
 @click.option('--directory', type=click.Path(), default="output", show_default=True,
              help="Directory containing built PreTeXt documents.")
 @click.option(
-    '--public/--private',
-    default=False,
+    '--access',
+    type=click.Choice(['public', 'private', 'cocalc'], case_sensitive=False),
+    default='private',
+    show_default=True,
     help="""
-    Choose whether to allow other computers on your local network
-    to access your documents using your IP address. Defaults to private.
+    Choose whether or not to allow other computers on your local network
+    to access your documents using your IP address, with special option
+    to support CoCalc.com users.
     """)
 @click.option(
     '--port',
@@ -121,7 +124,7 @@ def build(format, source, output, param, diagrams, publisher):
     help="""
     Choose which port to use for the local server.
     """)
-def view(directory, public, port):
+def view(directory,access,port):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
@@ -133,15 +136,17 @@ def view(directory, public, port):
         The directory `{directory}` does not exist.
         Maybe try `pretext build` first?
         """)
-    import http.server
-    import socketserver
-    binding = "0.0.0.0" if public else "localhost"
-    import socket
-    if public:
+    import http.server, socketserver, socket
+    binding = "localhost" if (access=='private') else "0.0.0.0"
+    Handler = http.server.SimpleHTTPRequestHandler
+    if access=='cocalc':
+        import json
+        project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
+        url = f"https://cocalc.com/{project_id}/server/{port}/"
+    elif access=='public':
         url = f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
         url = f"http://{binding}:{port}"
-    Handler = http.server.SimpleHTTPRequestHandler
     with socketserver.TCPServer((binding, port), Handler) as httpd:
         os.chdir(directory)
         click.echo(f"Your documents may be previewed at {url}")
