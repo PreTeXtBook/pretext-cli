@@ -6,6 +6,9 @@ with open("README.md", "r") as readme_file:
 with open("pretext/static/VERSION", "r") as version_file:
     VERSION = version_file.read().strip()
 
+with open("pretext/static/MINIMUM_PYTHON_VERSION", "r") as mpv_file:
+    MINIMUM_PYTHON_VERSION = mpv_file.read().strip()
+
 setuptools.setup(
     name="pretextbook",
     version=VERSION,
@@ -27,7 +30,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.4',
+    python_requires=f">={MININUM_PYTHON_VERSION}",
     entry_points={
         'console_scripts': [
             'pretext = pretext.cli:main',

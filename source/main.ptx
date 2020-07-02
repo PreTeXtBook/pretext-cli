@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<pretext>
+<pretext xmlns:xi="http://www.w3.org/2001/XInclude" xml:lang="en-US">
   <docinfo>
     <macros>\newcommand{\foo}{bar}</macros>
     <latex-image-preamble>\usepackage{tikz}</latex-image-preamble>
@@ -9,7 +9,11 @@
     <chapter xml:id="about">
       <title>About</title>
       <p>Eventually, we'll document the project in PreTeXt.</p>
-      <p>Another paragraph to instigate a GhPages build.</p>
+      <p>
+        Requires Python version
+        <xi:include href="../pretext/static/MINIMUM_PYTHON_VERSION" parse="text"/>
+        or better.
+      </p>
     </chapter>
   </book>
 </pretext>
