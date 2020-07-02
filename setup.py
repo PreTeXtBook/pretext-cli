@@ -17,7 +17,7 @@ setuptools.setup(
     install_requires=[
        'lxml',
        'python-slugify',
-       'click',
+       'click>=7.0',
        "importlib_resources ; python_version<'3.7'",
     ],
     url="https://github.com/PreTeXtBook/pretext-cli",
