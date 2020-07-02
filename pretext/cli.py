@@ -152,3 +152,31 @@ def view(directory,access,port):
         click.echo(f"Your documents may be previewed at {url}")
         click.echo("Use [Ctrl]+[C] to halt the server.")
         httpd.serve_forever()
+
+
+# pretext publish
+@main.command(short_help="Prepares project for publishing on GitHub Pages.")
+def publish():
+    """
+    Prepares the project locally for HTML publication on GitHub Pages to make
+    the built document available to the general public.
+    Only supports the default `output/html` build directory.
+    Requires Git and a GitHub account.
+    """
+    from . import utils
+    if not utils.directory_exists("output/html"):
+        raise_cli_error(f"""
+        The directory `output/html` does not exist.
+        Maybe try `pretext build` first?
+        """)
+    import shutil
+    shutil.rmtree("docs",ignore_errors=True)
+    shutil.copytree("output/html","docs")
+    click.echo("Use these instructions if your project isn't already set up with Git and GitHub:")
+    click.echo("https://docs.github.com/en/github/importing-your-projects-to-github/adding-an-existing-project-to-github-using-the-command-line")
+    click.echo("")
+    click.echo("Be sure your repo on GitHub is set to publish from the `docs` subdirectory:")
+    click.echo("https://docs.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site")
+    click.echo("")
+    click.echo("Once all the above is satisifed, run the following command to update your repository and publish your built HTML on the internet:")
+    click.echo("git add docs; git commit -m 'publish updated HTML'; git push")

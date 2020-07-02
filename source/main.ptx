@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pretext>
+  <docinfo>
+    <macros>\newcommand{\foo}{bar}</macros>
+    <latex-image-preamble>\usepackage{tikz}</latex-image-preamble>
+  </docinfo>
+  <book xml:id="pretext-cli-documentation">
+    <title>PreTeXt-CLI Documentation</title>
+    <chapter xml:id="about">
+      <title>About</title>
+      <p>Eventually, we'll document the project in PreTeXt.</p>
+    </chapter>
+  </book>
+</pretext>

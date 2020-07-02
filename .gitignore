@@ -139,3 +139,5 @@ cython_debug/
 
 # Hide PyPI token
 .pypitoken
+# Hide PreTeXt build output
+output
