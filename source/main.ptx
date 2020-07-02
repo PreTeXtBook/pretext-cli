@@ -9,6 +9,7 @@
     <chapter xml:id="about">
       <title>About</title>
       <p>Eventually, we'll document the project in PreTeXt.</p>
+      <p>Another paragraph to instigate a GhPages build.</p>
     </chapter>
   </book>
 </pretext>
