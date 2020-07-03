@@ -54,6 +54,7 @@
         <ul>
           <li>
             <url>https://www.python.org/downloads/</url>
+              <ul><li>Windows warning: Be sure to select to add</li></ul>
           </li>
           <li>
           <url>https://github.com/pyenv/pyenv#installation</url> (Mac/Linux) or 
@@ -74,16 +75,29 @@
         <p>(It's possible you may get an error like 
         <c>error: invalid command 'bdist_wheel'</c>
         <mdash /> good news, you can ignore it!)</p>
-        <p>After installation, try to run:</p>
+        <p>After installation, if you didn't see an error like
+        <q>WARNING:
+        The script pretext is installed in
+        '[file_path]' which is not on PATH.</q>, then try to run:</p>
         <cd>pretext --help</cd>
-        <p>If it works, great! Otherwise, it means that Python packages aren't
-        available on your 
-        <q>PATH</q>.</p>
-        <p>To fix this, run the following commands:</p>
+        <p>If that works, great! Otherwise, it likely means that Python packages aren't
+        available on your <q>PATH</q>.</p>
+        <ul>
+            <li>
+        <p>To fix this on Linux/Mac, run the following commands:</p>
         <cd>
-<![CDATA[echo "export PATH=\"`python3 -m site --user-base`/bin:$PATH\"" >> ~/.bash_profile
-echo "export PATH=\"`python3 -m site --user-base`/bin:$PATH\"" >> ~/.zprofile]]>
+<![CDATA[echo "export PATH=\"`python -m site --user-base`/bin:$PATH\"" >> ~/.bash_profile
+echo "export PATH=\"`python -m site --user-base`/bin:$PATH\"" >> ~/.zprofile]]>
         </cd>
+            </li>
+            <li>
+        <p>To fix this on Windows, open your Windows Control Panel, search for <q>environment</q>,
+        and select <q>Edit environment variables for your account</q></p>
+        <p>Then edit your PATH variable and add the following line (replacing <c>3x</c> with the
+        version of Python you installed, e.g. <c>38</c> for version <c>3.8</c>):</p>
+        <cd>%USERPROFILE%\AppData\Roaming\Python\Python3x\Scripts</cd>
+            </li>
+          </ul>
         <p>Then close and reopen your command line and try 
         <c>pretext --help</c>again.</p>
       </subsection>
