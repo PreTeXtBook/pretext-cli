@@ -9,7 +9,7 @@
 <html lang="en-US">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>PreTeXt-CLI Documentation</title>
+<title>Installation</title>
 <meta name="Keywords" content="Authored in PreTeXt">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script type="text/x-mathjax-config">
@@ -67,10 +67,10 @@ MathJax.Hub.Config({
 </div></div>
 <nav id="primary-navbar" class="navbar"><div class="container">
 <div class="navbar-top-buttons">
-<button class="sidebar-left-toggle-button button active" aria-label="Show or hide table of contents sidebar">Contents</button><div class="tree-nav toolbar toolbar-divisor-3"><span class="threebuttons"><span id="previousbutton" class="previous-button button toolbar-item disabled">Prev</span><span id="upbutton" class="up-button button disabled toolbar-item">Up</span><a id="nextbutton" class="next-button button toolbar-item" href="about.html" title="Next">Next</a></span></div>
+<button class="sidebar-left-toggle-button button active" aria-label="Show or hide table of contents sidebar">Contents</button><div class="tree-nav toolbar toolbar-divisor-3"><span class="threebuttons"><a id="previousbutton" class="previous-button toolbar-item button" href="about.html" title="Previous">Prev</a><a id="upbutton" class="up-button button toolbar-item" href="pretext-cli-documentation.html" title="Up">Up</a><a id="nextbutton" class="next-button button toolbar-item" href="usage.html" title="Next">Next</a></span></div>
 </div>
 <div class="navbar-bottom-buttons toolbar toolbar-divisor-4">
-<button class="sidebar-left-toggle-button button toolbar-item active">Contents</button><span class="previous-button button toolbar-item disabled">Prev</span><span class="up-button button disabled toolbar-item">Up</span><a class="next-button button toolbar-item" href="about.html" title="Next">Next</a>
+<button class="sidebar-left-toggle-button button toolbar-item active">Contents</button><a class="previous-button toolbar-item button" href="about.html" title="Previous">Prev</a><a class="up-button button toolbar-item" href="pretext-cli-documentation.html" title="Up">Up</a><a class="next-button button toolbar-item" href="usage.html" title="Next">Next</a>
 </div>
 </div></nav></header><div class="page">
 <div id="sidebar-left" class="sidebar" role="navigation"><div class="sidebar-content">
@@ -81,7 +81,7 @@ MathJax.Hub.Config({
 <li><a href="about.html#subsection-2" data-scroll="subsection-2">About PreTeXt</a></li>
 </ul>
 </li>
-<li class="link">
+<li class="link active">
 <a href="installation.html" data-scroll="installation"><span class="codenumber">2</span> <span class="title">Installation</span></a><ul>
 <li><a href="installation.html#subsection-3" data-scroll="subsection-3">Python</a></li>
 <li><a href="installation.html#subsection-4" data-scroll="subsection-4">Other Dependencies</a></li>
@@ -91,11 +91,40 @@ MathJax.Hub.Config({
 <li class="link"><a href="usage.html" data-scroll="usage"><span class="codenumber">3</span> <span class="title">Usage</span></a></li>
 </ul></nav><div class="extras"><nav><a class="mathbook-link" href="https://pretextbook.org">Authored in PreTeXt</a><a href="https://www.mathjax.org"><img title="Powered by MathJax" src="https://www.mathjax.org/badge/badge.gif" alt="Powered by MathJax"></a></nav></div>
 </div></div>
-<main class="main"><div id="content" class="pretext-content"><section class="article" id="pretext-cli-documentation"><nav class="summary-links"><ul>
-<li><a href="about.html"><span class="codenumber">1</span> <span class="title">About</span></a></li>
-<li><a href="installation.html"><span class="codenumber">2</span> <span class="title">Installation</span></a></li>
-<li><a href="usage.html"><span class="codenumber">3</span> <span class="title">Usage</span></a></li>
-</ul></nav></section></div></main>
+<main class="main"><div id="content" class="pretext-content"><section class="section" id="installation"><h2 class="heading hide-type">
+<span class="type">Section</span> <span class="codenumber">2</span> <span class="title">Installation</span>
+</h2>
+<section class="subsection" id="subsection-3"><h3 class="heading hide-type">
+<span class="type">Subsection</span> <span class="codenumber">2.1</span> <span class="title">Python</span>
+</h3>
+<p id="p-3">PreTeXt-CLI requires Python version 3.6 or better.</p>
+<p id="p-4">To check your version, type this into your terminal or command prompt:</p>
+<pre class="code-block tex2jax_ignore">python -V</pre>
+<p id="p-5">If your version is 2.x, try this instead (and if so, either replace all future references to `python` in these instructions with `python3`, or try <a class="external" href="https://askubuntu.com/a/321000" target="_blank">this</a>).</p>
+<pre class="code-block tex2jax_ignore">python3 -V</pre>
+<p id="p-6">If you don't have a compatible Python available, try one of these:</p>
+<ul class="disc">
+<li id="li-3"><a class="external" href="" target="_blank">https://www.python.org/downloads/</a></li>
+<li id="li-4">
+<a class="external" href="" target="_blank">https://github.com/pyenv/pyenv#installation</a> (Mac/Linux) or <a class="external" href="" target="_blank">https://github.com/pyenv-win/pyenv-win#installation</a> (Windows)</li>
+</ul></section><section class="subsection" id="subsection-4"><h3 class="heading hide-type">
+<span class="type">Subsection</span> <span class="codenumber">2.2</span> <span class="title">Other Dependencies</span>
+</h3>
+<p id="p-7">Some features of PreTeXt rely on some non-Python applications. TODO: Document these.</p></section><section class="subsection" id="subsection-5"><h3 class="heading hide-type">
+<span class="type">Subsection</span> <span class="codenumber">2.3</span> <span class="title">PreTeXt-CLI</span>
+</h3>
+<p id="p-8">Once you've confirmed that you're using a valid version of Python, just run (replacing `python` with `python3` if necessary):</p>
+<pre class="code-block tex2jax_ignore">python -m pip install --user pretextbook</pre>
+<p id="p-9">(It's possible you may get an error like <code class="code-inline tex2jax_ignore">error: invalid command 'bdist_wheel'</code> — good news, you can ignore it!)</p>
+<p id="p-10">After installation, try to run:</p>
+<pre class="code-block tex2jax_ignore">pretext --help</pre>
+<p id="p-11">If it works, great! Otherwise, it means that Python packages aren't available on your “PATH”.</p>
+<p id="p-12">To fix this, run the following commands:</p>
+<pre class="code-block tex2jax_ignore">
+echo "export PATH=\"`python3 -m site --user-base`/bin:$PATH\"" &gt;&gt; ~/.bash_profile
+echo "export PATH=\"`python3 -m site --user-base`/bin:$PATH\"" &gt;&gt; ~/.zprofile
+        </pre>
+<p id="p-13">Then close and reopen your command line and try <code class="code-inline tex2jax_ignore">pretext --help</code>again.</p></section></section></div></main>
 </div>
 </body>
 </html>
