@@ -54,7 +54,7 @@
         <ul>
           <li>
             <url>https://www.python.org/downloads/</url>
-              <ul><li>Windows warning: Be sure to select to add</li></ul>
+              <ul><li>Windows warning: Be sure to select the option adding Python to your Path.</li></ul>
           </li>
           <li>
           <url>https://github.com/pyenv/pyenv#installation</url> (Mac/Linux) or 
