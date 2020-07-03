@@ -87,6 +87,18 @@ echo "export PATH=\"`python3 -m site --user-base`/bin:$PATH\"" >> ~/.zprofile]]>
         <p>Then close and reopen your command line and try 
         <c>pretext --help</c>again.</p>
       </subsection>
+        <subsection>
+            <title>Upgrading</title>
+            <p>
+The most recent version of PreTeXt-CLI is
+<xi:include href="../pretext/static/VERSION" parse="text" />.
+Use <c>pretext --version</c> to see the version you're running.
+            </p>
+            <p>
+To upgrade your version, run the following:
+            </p>
+        <cd>python -m pip install --user pretextbook --upgrade</cd>
+        </subsection>
     </section>
     <section xml:id="usage">
       <title>Usage</title>
