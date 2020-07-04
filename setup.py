@@ -22,6 +22,7 @@ setuptools.setup(
        'python-slugify',
        'click>=7.0',
        "importlib_resources ; python_version<'3.7'",
+       "pdfCropMargins",
     ],
     url="https://github.com/PreTeXtBook/pretext-cli",
     packages=setuptools.find_packages(),
@@ -30,7 +31,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=f">={MININUM_PYTHON_VERSION}",
+    python_requires=f">={MINIMUM_PYTHON_VERSION}",
     entry_points={
         'console_scripts': [
             'pretext = pretext.cli:main',
