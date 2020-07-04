@@ -64,5 +64,7 @@ See [VERSIONING.md](VERSIONING.md).
 
 ## PreTeXt XSL
 
-Right now, we're developing against this frozen snapshot of PreTeXt:
-<https://github.com/rbeezer/mathbook/commit/a770b95e5ac1c5ec39406ec111fa493e1fa90d86>
+Right now, we're mirroring resources from
+<https://github.com/rbeezer/mathbook/> using the commit
+found in `pretext/static/CORE_COMMIT`.
+(TODO: pull/build these without mirroring)
