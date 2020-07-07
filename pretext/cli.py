@@ -69,8 +69,8 @@ def new(title,project_path,chapter):
               type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
               help='Path to main *.ptx file')
-@click.option('-o', '--output', type=click.Path(),
-              help='Define output directory path [default output/FORMAT]')
+@click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
+              help='Path to main output directory')
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
 """)
@@ -96,11 +96,9 @@ def build(format, source, output, param, diagrams, publisher):
         stringparams['publisher'] = publisher
     # if user supplied output path, respect it:
     # otherwise, use defaults.  TODO: move this to a config file
-    latex_output = 'output/latex'
-    html_output = 'output/html'
-    if output:
-        latex_output = output
-        html_output = output
+    output = os.path.abspath(output)
+    latex_output = os.path.join(output, "latex")
+    html_output = os.path.join(output, "html")
     # set up source (input) and output as absolute paths
     source = os.path.abspath(source)
     latex_output = os.path.abspath(latex_output)
