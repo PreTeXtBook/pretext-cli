@@ -1,6 +1,9 @@
 import click
+import click_config_file
 from . import utils
 from . import version as cli_version
+
+config_file = '.ptxconfig'
 
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
@@ -11,6 +14,7 @@ def raise_cli_error(message):
 # Allow a verbosity command:
 @click.option('-v', '--verbose', count=True, help="-v for basic feedback; -vv for debug info")
 @click.version_option(cli_version(),message=cli_version())
+# @click_config_file.configuration_option()
 def main(verbose):
     """
     Command line tools for quickly creating, authoring, and building
@@ -25,6 +29,7 @@ def main(verbose):
 @click.argument('title', default="My Great Book!")
 @click.option('--project_path')
 @click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
+@click_config_file.configuration_option(implicit="False", default=config_file)
 def new(title,project_path,chapter):
     """
     Creates a subdirectory with the files needed to author a PreTeXt document.
@@ -54,7 +59,9 @@ def new(title,project_path,chapter):
     for c in chapter:
         document.add_chapter(pretext,c)
     project.write(pretext, project_path)
-
+    # TODO: Set options in local configfile:
+    # utils.write_config(config_file, source=source,
+    #                    output=output, param=param, publisher=publisher)
 
 # pretext build
 @main.command(short_help="Build specified format target")
@@ -69,6 +76,7 @@ def new(title,project_path,chapter):
 """)
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
+@click_config_file.configuration_option(implicit="False", default=config_file)
 # @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
 def build(format, source, output, param, diagrams, publisher):
     """
@@ -77,10 +85,14 @@ def build(format, source, output, param, diagrams, publisher):
     For html, images coded in source (latex-image, etc) are only processed using the --diagrams option.
     """
     import os
+    # Remember options in local configfile:
+    utils.write_config(config_file, source=source, output=output, param=param, publisher=publisher)
+    # from . import utils
     # set up stringparams as dictionary:
+    # TODO: exit gracefully if string params were not entered in correct format.
     stringparams = dict([p.split("=") for p in param])
-    # TODO: Move to config file
     if publisher:
+        # publisher = os.path.abspath(publisher)
         stringparams['publisher'] = publisher
     # if user supplied output path, respect it:
     # otherwise, use defaults.  TODO: move this to a config file
@@ -124,13 +136,17 @@ def build(format, source, output, param, diagrams, publisher):
     help="""
     Choose which port to use for the local server.
     """)
+@click_config_file.configuration_option(implicit="False", default=config_file)
 def view(directory,access,port):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
     import os
-    directory = os.path.abspath(directory)
     from . import utils
+    # Remember options in local configfile:
+    utils.write_config(config_file, directory=directory, 
+                        access=access, port=port)
+    directory = os.path.abspath(directory)
     if not utils.directory_exists(directory):
         raise_cli_error(f"""
         The directory `{directory}` does not exist.
@@ -152,7 +168,6 @@ def view(directory,access,port):
         click.echo(f"Your documents may be previewed at {url}")
         click.echo("Use [Ctrl]+[C] to halt the server.")
         httpd.serve_forever()
-
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")

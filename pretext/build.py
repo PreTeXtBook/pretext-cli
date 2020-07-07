@@ -88,7 +88,8 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     with utils.working_directory(outdir):
         newdom = transform(dom, **stringparams)
         #grab the format from xslfile and use it to name logfile:
-        logfile = xslfile[xslfile.find('pretext-'):].replace('pretext-','').replace('.xsl','')+'-build.log'
+        # logfile = xslfile[xslfile.find('pretext-'):].replace('pretext-','').replace('.xsl','')+'-build.log'
+        logfile = "build.log"
         with open(logfile,"w") as log:
             log.write(str(transform.error_log))
         # also print error_log to console.

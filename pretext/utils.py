@@ -1,5 +1,6 @@
 import os
 from contextlib import contextmanager
+import configobj
 
 @contextmanager
 def working_directory(path):
@@ -34,6 +35,18 @@ def directory_exists(path):
     Checks if the directory exists.
     """
     return os.path.exists(path)
+
+# Write config file
+def write_config(configfile, **kwargs):
+    config = configobj.ConfigObj(configfile, unrepr=True)
+    # config.filename = configfile
+    # config["source"] = source
+    # config["output"] = output
+    # etc:
+    for key, value in kwargs.items():
+        config[key] = value
+    config.write()
+
 
 # Taken from Rob's pretext-core:
 # These are consistent with pretext-core. 
