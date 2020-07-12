@@ -117,10 +117,12 @@ To upgrade your version, run the following:
     <section xml:id="usage">
       <title>Usage</title>
       <p>For your convenience, documentation on using all features of the command-line interface may
-      be found by using the 
+      be viewed below, or displayed on the command line by using the 
       <c>--help</c> option. Use 
       <c>pretext --help</c> to see what commands are available, and (for example)
       <c>pretext new --help</c> to learn how to use each command.</p>
+      <cd><xi:include href="../pretext/static/help.txt"
+                    parse="text" /></cd>
     </section>
   </article>
 </pretext>

@@ -1,0 +1,7 @@
+source = 'source/main.ptx'
+output = 'output'
+param = ()
+publisher = None
+directory = 'output'
+access = 'cocalc'
+port = 8000
