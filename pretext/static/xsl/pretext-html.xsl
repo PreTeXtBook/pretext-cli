@@ -151,6 +151,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- fine and will not need changes on initial or casual use -->
 <!-- Files with name colors_*.css set the colors.            -->
 <!-- colors_default is similar to the old mathbook-3.css     -->
+<!-- N.B.: if the CSS has a version bump, then be sure to    -->
+<!-- visit the "css" directory and make an update there      -->
+<!-- for the benefit of offline formats                      -->
 <xsl:param name="html.css.server" select="'https://pretextbook.org'" />
 <xsl:param name="html.css.version" select="'0.31'" />
 <xsl:param name="html.js.server" select="'https://pretextbook.org'" />
@@ -1158,11 +1161,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Index Creation -->
 <!-- ############## -->
 
+<!-- Used at the end of the next template to group index       -->
+<!-- entries by letter for eventual output organized by letter -->
+<xsl:key name="index-entry-by-letter" match="index" use="@letter"/>
+
 <!-- "index-list":                                           -->
 <!--     build a sorted list of every "index" in text        -->
-<!-- "group-by-letter":                                      -->
-<!--     accumulate common first-letter entries,             -->
-<!--     send to their own div for spacing, "jump to" device -->
+<!--     use Muenchian Method to group by letter and process -->
 <!-- "group-by-heading":                                     -->
 <!--     consolidate/accumulate entries with common heading  -->
 <!-- "knowl-list":                                           -->
@@ -1201,6 +1206,31 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:variable name="index-items">
         <xsl:for-each select="$document-root//idx[not(@start) and (not(ancestor::commentary) or $b-commentary)] | //index[not(index-list) and not(@start) and (not(ancestor::commentary) or $b-commentary)]">
             <index>
+                <!-- identify content of primary sort key      -->
+                <!-- this follows the logic of creating key[1] -->
+                <!-- TODO: this may be too ad-hoc, study       -->
+                <!--       closely on a refactor               -->
+                <xsl:variable name="letter-content">
+                    <xsl:choose>
+                        <xsl:when test="@sortby">
+                            <xsl:value-of select="@sortby" />
+                        </xsl:when>
+                        <xsl:when test="not(main) and not(h)">
+                            <xsl:apply-templates/>
+                        </xsl:when>
+                        <xsl:when test="(main or h) and (main/@sortby or h[1]/@sortby)">
+                            <xsl:apply-templates select="main/@sortby|h[1]/@sortby"/>
+                        </xsl:when>
+                        <xsl:when test="main or h">
+                            <xsl:apply-templates select="main|h[1]"/>
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:variable>
+                <!-- lowercase first letter of primary sort key    -->
+                <!-- used later to group items by letter in output -->
+                <xsl:attribute name="letter">
+                    <xsl:value-of select="translate(substring($letter-content,1,1), &UPPERCASE;, &LOWERCASE;)"/>
+                </xsl:attribute>
                 <xsl:choose>
                     <!-- simple mixed-content first, no structure -->
                     <!-- one text-key pair, two more empty        -->
@@ -1336,60 +1366,39 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:copy-of select="." />
         </xsl:for-each>
     </xsl:variable>
-    <!-- ship start of a node-set to be grouped by letter   -->
-    <!-- conversion to node-set is necessary for subsequent -->
-    <xsl:apply-templates select="exsl:node-set($sorted-index)/index[1]" mode="group-by-letter">
-        <xsl:with-param name="letter-group" select="/.." />
-    </xsl:apply-templates>
-</xsl:template>
-
-<!-- Accumulate index entries with a common first letter    -->
-<!-- in first heading, based on key[1], into $letter-group. -->
-<!-- When a look-ahead sees the initial letter changing,    -->
-<!-- send the group off to be formatted as a letter-group   -->
-<!-- and further organize by heading.                       -->
-<xsl:template match="index" mode="group-by-letter">
-    <!-- Empty node list from parent of root node -->
-    <xsl:param name="letter-group"/>
-
-    <!-- look ahead at next index entry -->
-    <xsl:variable name="next-index" select="following-sibling::index[1]"/>
-    <!-- check if we have run out all of the index entries -->
-    <xsl:if test=".">
-        <!-- always accumulate context node in node-list (first, or $next-index inspected) -->
-        <xsl:variable name="new-letter-group" select="$letter-group|."/>
-        <xsl:choose>
-            <!-- next index item has same lead letter, so iterate -->
-            <xsl:when test="substring($next-index/key[1], 1, 1) = substring(key[1], 1,1)">
-                <xsl:apply-templates select="$next-index" mode="group-by-letter">
-                    <xsl:with-param name="letter-group" select="$new-letter-group" />
-                </xsl:apply-templates>
-            </xsl:when>
-            <!-- next index item has different lead letter      -->
-            <!-- wrap the letter-group in a div with correct id -->
-            <!-- and course through to group by headings        -->
-            <xsl:otherwise>
-                <xsl:variable name="lead" select="substring(key[1], 1, 1)" />
-                <div class="indexletter" id="indexletter-{$lead}">
-                    <!-- send to group headings, pass letter-group through -->
-                    <xsl:apply-templates select="$new-letter-group[1]" mode="group-by-heading">
-                        <xsl:with-param name="heading-group" select="/.." />
-                        <xsl:with-param name="letter-group" select="$new-letter-group" />
-                    </xsl:apply-templates>
-                </div>
-                <!-- restart letter grouping with node having new letter -->
-                <xsl:apply-templates select="$next-index" mode="group-by-letter">
-                    <xsl:with-param name="letter-group" select="/.." />
-                </xsl:apply-templates>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:if>
+    <!-- Group by Letter -->
+    <!-- A careful exposition of the Muenchian Method, named after Steve Muench  -->
+    <!-- of Oracle.  This is an well-known, but complicated, XSLT 1.0 technique. -->
+    <!-- (This is much easier in XSLT 2.0 with certain instructions).  We follow -->
+    <!-- the XSLT Cookbook 2.0, Recipe 6.2, modulo one critical typo, and also   -->
+    <!-- Jeni Tennison's instructive  "Grouping Using the Muenchian Method" at   -->
+    <!-- http://www.jenitennison.com/xslt/grouping/muenchian.html.               -->
+    <!--                                                                         -->
+    <!-- Initial "for-each" sieves out a single (the first) representative of    -->
+    <!-- each group of "index" that have a common initial letter for their sort  -->
+    <!-- criteria.  Each becomes the context node for the remainder.             -->
+    <xsl:for-each select="exsl:node-set($sorted-index)/index[count(.|key('index-entry-by-letter', @letter)[1]) = 1]">
+        <!-- save the key to use again in selecting the group -->
+        <xsl:variable name="current-letter" select="@letter"/>
+        <!-- collect all the "index" with the same initial letter as representative    -->
+        <!-- this key is still perusing the nodes of $sorted-index as context document -->
+        <xsl:variable name="letter-group" select="key('index-entry-by-letter', $current-letter)"/>
+        <!-- wrap the group in a div, which will be used for presentation -->
+        <div class="indexletter" id="indexletter-{$current-letter}">
+            <!-- send to group-by-headings, which is vestigal -->
+            <xsl:apply-templates select="$letter-group[1]" mode="group-by-heading">
+                <xsl:with-param name="heading-group" select="/.." />
+                <xsl:with-param name="letter-group" select="$letter-group" />
+            </xsl:apply-templates>
+        </div>
+    </xsl:for-each>
 </xsl:template>
 
 <!-- Accumulate index entries with identical headings - their    -->
 <!-- exact text, not anything related to the keys.  Quit         -->
 <!-- accumulating when look-ahead shows next entry differs.      -->
 <!-- Output the (3-part) heading and locators before restarting. -->
+<!-- TODO: investigate reworking this via Muenchian Method       -->
 <xsl:template match="index" mode="group-by-heading">
     <!-- Empty node list from parent of root node -->
     <xsl:param name="heading-group"/>
@@ -3654,50 +3663,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:choose>
 </xsl:template>
 
-<!-- For solutions divisions, we mimic and reuse some of the above -->
-<xsl:template match="exercise" mode="solutions">
-    <xsl:param name="b-has-statement" />
-    <xsl:param name="b-has-hint" />
-    <xsl:param name="b-has-answer" />
-    <xsl:param name="b-has-solution" />
-
-    <!-- we check for content, subject to selection of switches          -->
-    <!-- if there is no content, then we will not output anything at all -->
-     <xsl:variable name="dry-run">
-        <xsl:apply-templates select="." mode="dry-run">
-            <xsl:with-param name="b-has-statement" select="$b-has-statement" />
-            <xsl:with-param name="b-has-hint" select="$b-has-hint" />
-            <xsl:with-param name="b-has-answer" select="$b-has-answer" />
-            <xsl:with-param name="b-has-solution" select="$b-has-solution" />
-        </xsl:apply-templates>
-    </xsl:variable>
-
-    <xsl:if test="not($dry-run = '')">
-        <article class="exercise-like">
-            <xsl:choose>
-                <!-- inline can go with generic, which is switched on inline/divisional -->
-                <xsl:when test="boolean(&INLINE-EXERCISE-FILTER;)">
-                    <xsl:apply-templates select="." mode="heading-birth" />
-                </xsl:when>
-                <!-- with full number just for solution list -->
-                <xsl:otherwise>
-                    <xsl:apply-templates select="." mode="heading-divisional-exercise" />
-                </xsl:otherwise>
-            </xsl:choose>
-            <!-- TODO: dry-run is not letting these through, no matter what -->
-            <!-- webwork case -->
-            <!-- MyOpenMath case -->
-            <xsl:apply-templates select="."  mode="exercise-components">
-                <xsl:with-param name="b-original"     select="false()" />
-                <xsl:with-param name="b-has-statement" select="$b-has-statement" />
-                <xsl:with-param name="b-has-hint"      select="$b-has-hint" />
-                <xsl:with-param name="b-has-answer"    select="$b-has-answer" />
-                <xsl:with-param name="b-has-solution"  select="$b-has-solution" />
-            </xsl:apply-templates>
-        </article>
-    </xsl:if>
-</xsl:template>
-
 <!-- Project-LIKE -->
 <!-- A complex block, possibly structured with task -->
 
@@ -3763,7 +3728,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 </xsl:template>
 
 <!-- For solutions divisions, we mimic and reuse some of the above -->
-<xsl:template match="&PROJECT-LIKE;" mode="solutions">
+<xsl:template match="exercise|&PROJECT-LIKE;" mode="solutions">
     <xsl:param name="b-has-statement" />
     <xsl:param name="b-has-hint" />
     <xsl:param name="b-has-answer" />
@@ -3781,9 +3746,35 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:variable>
 
     <xsl:if test="not($dry-run = '')">
-        <article class="project-like">
-            <xsl:apply-templates select="." mode="heading-birth" />
-
+        <!-- incongruities here are historical, -->
+        <!-- keeping the diff low-impact        -->
+        <xsl:element name="article">
+            <xsl:attribute name="class">
+                <xsl:choose>
+                    <xsl:when test="self::exercise">
+                        <xsl:text>exercise-like</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>project-like</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:attribute>
+            <!-- A variety of headings -->
+            <xsl:choose>
+                <!-- inline can go with generic, which is switched on inline/divisional -->
+                <xsl:when test="boolean(&INLINE-EXERCISE-FILTER;)">
+                    <xsl:apply-templates select="." mode="heading-birth" />
+                </xsl:when>
+                <!-- with full number just for solution list -->
+                <!-- "exercise" must be divisional now -->
+                <xsl:when test="self::exercise">
+                    <xsl:apply-templates select="." mode="heading-divisional-exercise" />
+                </xsl:when>
+                <!-- now PROJECT-LIKE -->
+                <xsl:otherwise>
+                    <xsl:apply-templates select="." mode="heading-birth" />
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:choose>
                 <!-- structured version              -->
                 <xsl:when test="task">
@@ -3815,7 +3806,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                     </xsl:apply-templates>
                 </xsl:otherwise>
             </xsl:choose>
-        </article>
+        </xsl:element>
     </xsl:if>
 </xsl:template>
 
@@ -6052,6 +6043,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:call-template name="google-universal"/>
                 <xsl:call-template name="google-gst"/>
                 <!-- <xsl:call-template name="pytutor-footer" /> -->
+                <xsl:call-template name="extra-js-footer"/>
             </body>
         </html>
     </exsl:document>
@@ -8255,6 +8247,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:text>eBookConfig.isLoggedIn = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_logged_in</xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
                 <xsl:text>eBookConfig.email = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_email </xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
                 <xsl:text>eBookConfig.isInstructor = </xsl:text><xsl:value-of select="$rso"/><xsl:text>= is_instructor </xsl:text><xsl:value-of select="$rsc"/><xsl:text>;&#xa;</xsl:text>
+                <xsl:text>eBookConfig.logLevel = 10;&#xa;</xsl:text>
                 <xsl:text>eBookConfig.ajaxURL = eBookConfig.app + "/ajax/";&#xa;</xsl:text>
                 <!-- no .loglevel -->
                 <xsl:text>eBookConfig.username = '</xsl:text><xsl:value-of select="$rso"/><xsl:text>= user_id</xsl:text><xsl:value-of select="$rsc"/><xsl:text>';&#xa;</xsl:text>
@@ -8314,6 +8307,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
         <script type="text/javascript" src="_static/jquery.idle-timer.js"></script>
         <script type="text/javascript" src="_static/runestone.js"></script>
+        <script type="text/javascript" src="https://www.youtube.com/player_api"></script>
 
         <style>
         <xsl:text>.dropdown {&#xa;</xsl:text>
@@ -8370,13 +8364,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- Conditional run-in -->
 <xsl:template name="runestone-manifest">
-    <xsl:if test="$b-host-runestone and $b-is-book">
+    <xsl:if test="$b-host-runestone and ($b-is-book or $b-is-article)">
         <!-- $document-root *will* be a book -->
         <xsl:apply-templates select="$document-root" mode="runestone-manifest"/>
     </xsl:if>
 </xsl:template>
 
-<xsl:template match="book" mode="runestone-manifest">
+<xsl:template match="book|article" mode="runestone-manifest">
     <exsl:document href="runestone-manifest.xml" method="xml" indent="yes" encoding="UTF-8">
         <manifest>
             <!-- LaTeX packages and macros first -->
@@ -8385,8 +8379,25 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 <xsl:value-of select="$latex-packages-mathjax"/>
                 <xsl:value-of select="$latex-macros"/>
             </latex-macros>
-            <!-- Now recurse into chapters   -->
-            <xsl:apply-templates select="*" mode="runestone-manifest"/>
+            <xsl:choose>
+                <xsl:when test="self::book">
+                    <!-- Now recurse into chapters, appendix -->
+                    <xsl:apply-templates select="*" mode="runestone-manifest"/>
+                </xsl:when>
+                <xsl:when test="self::article">
+                    <!-- Now recurse into sections, appendix  -->
+                    <!-- with a faux chapter, using "article" -->
+                    <chapter>
+                        <id>
+                            <xsl:apply-templates select="." mode="html-id"/>
+                        </id>
+                        <title>
+                            <xsl:apply-templates select="." mode="title-full"/>
+                        </title>
+                        <xsl:apply-templates select="*" mode="runestone-manifest"/>
+                    </chapter>
+                </xsl:when>
+            </xsl:choose>
         </manifest>
     </exsl:document>
 </xsl:template>
@@ -9355,6 +9366,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:call-template name="google-gst"/>
             <xsl:call-template name="pytutor-footer" />
             <xsl:call-template name="aim-login-footer" />
+            <xsl:call-template name="extra-js-footer"/>
         </body>
     </html>
     </exsl:document>
@@ -9403,6 +9415,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:call-template name="google-classic"/>
             <xsl:call-template name="google-universal"/>
             <xsl:call-template name="google-gst"/>
+            <xsl:call-template name="extra-js-footer"/>
         </body>
     </html>
     </exsl:document>
@@ -10728,6 +10741,15 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template name="font-awesome">
     <xsl:if test="$b-has-icon">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous"/>
+    </xsl:if>
+</xsl:template>
+
+<!-- A place to put *one* Javascript file at the *end* of an  -->
+<!-- HTML page/file.  Not present in *every* page implemented -->
+<!-- in this file, such as knowls.                            -->
+<xsl:template name="extra-js-footer">
+    <xsl:if test="not($html.js.extra = '')">
+        <script src="{$html.js.extra}"></script>
     </xsl:if>
 </xsl:template>
 

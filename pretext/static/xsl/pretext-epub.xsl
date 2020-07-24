@@ -25,9 +25,9 @@
 
 <!-- Trade on HTML markup, numbering, chunking, etc. -->
 <!-- Override as pecularities of EPUB conversion arise -->
-<xsl:import href="./mathbook-common.xsl" />
+<xsl:import href="./pretext-common.xsl" />
 <xsl:import href="./pretext-assembly.xsl" />
-<xsl:import href="./mathbook-html.xsl" />
+<xsl:import href="./pretext-html.xsl" />
 
 <!-- TODO: free chunking level -->
 <!-- TODO: liberate GeoGebra, videos -->
@@ -35,7 +35,6 @@
 
 <!-- Knowls do not function in an ePub,       -->
 <!-- so no content should be born hidden      -->
-<!-- TODO: enable turning off xrefs as knowls -->
 <xsl:param name="html.knowl.theorem" select="'no'" />
 <xsl:param name="html.knowl.proof" select="'no'" />
 <xsl:param name="html.knowl.definition" select="'no'" />
@@ -52,9 +51,6 @@
 <xsl:param name="html.knowl.exercise.inline" select="'no'" />
 <xsl:param name="html.knowl.exercise.sectional" select="'no'" />
 <xsl:param name="html.knowl.exercise.worksheet" select="'no'" />
-
-<!-- We turn off permalinks on divisions, etc. -->
-<xsl:param name="html.permalink"  select="'none'" />
 
 <!-- Output as well-formed xhtml -->
 <!-- This may have no practical effect -->
@@ -114,7 +110,9 @@
 <xsl:param name="mathfile"/>
 <xsl:variable name="math-repr"  select="document($mathfile)/pi:math-representations"/>
 
-<!-- One of 'svg", 'mml', or 'speech', always -->
+<!-- One of 'svg", 'mml', 'kindle', or 'speech', always     -->
+<!-- Also 'kindle' dictates MathML output, but is primarily -->
+<!-- responsible for integrating PNG images in place of SVG -->
 <xsl:param name="math.format"/>
 
 
@@ -168,7 +166,7 @@
     <!-- Any XML declaration seems to get scrubbed by the MathJax processing   -->
     <!-- (converted to a comment), so we explicitly suppress it here, and in   -->
     <!-- other exsl:document uses.                                             -->
-    <exsl:document href="{$file}" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
+    <exsl:document href="{$file}" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no">
         <html>
             <head>
                 <xsl:text>&#xa;</xsl:text> <!-- a little formatting help -->
@@ -180,7 +178,7 @@
                 <xsl:call-template name="mathjax-css"/>
             </head>
             <!-- use class to repurpose HTML CSS work -->
-            <body class="pretext-content">
+            <body class="pretext-content epub">
                 <xsl:copy-of select="$content" />
                 <!-- Copy MathJax's font information to the bottom -->
                 <xsl:copy-of select="document($mathfile)/pi:math-representations/svg:svg[@id='font-data']"/>
@@ -239,7 +237,7 @@
     <!-- Do not use "doctype-system" here                            -->
     <!-- Automatically writes XML header at version 1.0, no encoding -->
     <!-- Points to OPF metadata file (in two variables)              -->
-    <exsl:document href="META-INF/container.xml" method="xml" omit-xml-declaration="yes" indent="yes">
+    <exsl:document href="META-INF/container.xml" method="xml" omit-xml-declaration="yes" indent="no">
         <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
           <rootfiles>
             <rootfile full-path="{$content-dir}/{$package-file}" media-type="application/oebps-package+xml" />
@@ -257,7 +255,7 @@
     <!-- Must be XML, UTF-8/16            -->
     <!-- Required on package: version, id -->
     <!-- Trying with no encoding, Gitden rejects? -->
-    <exsl:document href="{$content-dir}/{$package-file}" method="xml" omit-xml-declaration="yes" indent="yes">
+    <exsl:document href="{$content-dir}/{$package-file}" method="xml" omit-xml-declaration="yes" indent="no">
         <package xmlns="http://www.idpf.org/2007/opf"
                  unique-identifier="{$uid-string}" version="3.0">
             <xsl:call-template name="package-metadata" />
@@ -542,7 +540,7 @@ width: 100%
 <!-- ############# -->
 
 <xsl:template match="frontmatter" mode="epub">
-    <exsl:document href="{$content-dir}/{$xhtml-dir}/cover-page.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
+    <exsl:document href="{$content-dir}/{$xhtml-dir}/cover-page.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no">
         <html>
             <!-- head element should not be empty -->
             <head>
@@ -552,7 +550,7 @@ width: 100%
                 </title>
                 <xsl:call-template name="mathjax-css"/>
             </head>
-            <body>
+            <body class="pretext-content epub">
                 <!-- https://www.opticalauthoring.com/inside-the-epub-format-the-cover-image/   -->
                 <!-- says the "figure" is necessary, and does not seem to hurt (CSS could style)-->
                 <figure>
@@ -561,7 +559,7 @@ width: 100%
             </body>
         </html>
     </exsl:document>
-    <exsl:document href="{$content-dir}/{$xhtml-dir}/table-contents.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="yes">
+    <exsl:document href="{$content-dir}/{$xhtml-dir}/table-contents.xhtml" method="xml" omit-xml-declaration="yes" encoding="UTF-8" indent="no">
         <html xmlns:epub="http://www.idpf.org/2007/ops">
             <head>
                 <meta charset="utf-8"/>
@@ -571,7 +569,7 @@ width: 100%
                 <link href="../{$css-dir}/setcolors.css"         rel="stylesheet" type="text/css"/>
                 <xsl:call-template name="mathjax-css"/>
             </head>
-            <body epub:type="frontmatter">
+            <body class="pretext-content epub" epub:type="frontmatter">
                 <nav epub:type="toc" id="toc">
                     <h1>Table of Contents</h1>
                     <ol>
@@ -668,17 +666,31 @@ width: 100%
                     <xsl:with-param name="filename" select="@source" />
                 </xsl:call-template>
             </xsl:variable>
-            <!-- PDF LaTeX, SVG HTML, if not indicated -->
+            <!-- PDF LaTeX, SVG HTML, PNG Kindle if not indicated -->
             <xsl:apply-templates select="@source" />
             <xsl:if test="$extension=''">
-                <xsl:text>.svg</xsl:text>
+                <xsl:choose>
+                    <xsl:when test="$math.format = 'kindle'">
+                        <xsl:text>.png</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>.svg</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:if>
         </xsl:when>
         <xsl:when test="latex-image|latex-image-code|sageplot|asymptote">
             <xsl:value-of select="$directory.images" />
             <xsl:text>/</xsl:text>
             <xsl:apply-templates select="." mode="visible-id" />
-            <xsl:text>.svg</xsl:text>
+            <xsl:choose>
+                <xsl:when test="$math.format = 'kindle'">
+                    <xsl:text>.png</xsl:text>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:text>.svg</xsl:text>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:when>
         <xsl:otherwise>
             <xsl:message>MBX:BUG:     image filename not determined in EPUB conversion</xsl:message>
@@ -756,6 +768,30 @@ width: 100%
 <!-- ######### -->
 <!-- OverRides -->
 <!-- ######### -->
+
+<!-- Knowls -->
+<!-- Nothing should be knowled, since we do not have Javascript for it -->
+<xsl:template match="*" mode="xref-as-knowl">
+    <xsl:value-of select="false()" />
+</xsl:template>
+
+<!-- Asides -->
+<!-- EPUB has a semi-natural mechanism for this, though -->
+<!-- the text we drop could use some work.              -->
+<xsl:template match="aside">
+    <xsl:variable name="hid">
+        <xsl:apply-templates select="." mode="html-id" />
+    </xsl:variable>
+    <p>
+        <a class="url" epub:type="noteref" href="#{$hid}">
+            <xsl:text>Aside: </xsl:text>
+            <xsl:apply-templates select="." mode="title-full"/>
+        </a>
+    </p>
+    <aside epub:type="footnote" id="{$hid}">
+        <xsl:apply-templates select="." mode="wrapped-content"/>
+    </aside>
+</xsl:template>
 
 <!-- Footnotes -->
 <!-- Use "EPUB 3 Structural Semantics Vocabulary" -->
@@ -836,6 +872,10 @@ width: 100%
                 <xsl:apply-templates select="$math/svg:svg" mode="svg-edit"/>
             </xsl:when>
             <xsl:when test="$math.format = 'mml'">
+                <xsl:copy-of select="$math/math:math"/>
+            </xsl:when>
+            <!-- Kindle does best with MathML format -->
+            <xsl:when test="$math.format = 'kindle'">
                 <xsl:copy-of select="$math/math:math"/>
             </xsl:when>
             <xsl:when test="$math.format = 'speech'">
