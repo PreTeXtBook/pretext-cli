@@ -125,6 +125,34 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:copy>
 </xsl:template>
 
+<!-- ################### -->
+<!-- WeBWorK Manufacture -->
+<!-- ################### -->
+
+<!-- Prevents repeated access attempts to non-existent file    -->
+<!-- Also use for overall warning about inability to create WW -->
+<!-- $webwork-representations-file is from publisher file      -->
+<xsl:variable name="b-doing-webwork-assembly" select="not($webwork-representations-file = '')"/>
+
+<!-- Don't match on simple WeBWorK logo       -->
+<!-- Seed and possibly source attributes      -->
+<!-- Then authored?, pg?, and static children -->
+<xsl:template match="webwork[node()|@*]" mode="assembly">
+    <xsl:variable name="ww-id">
+        <xsl:apply-templates select="." mode="visible-id" />
+    </xsl:variable>
+    <xsl:choose>
+        <xsl:when test="$b-doing-webwork-assembly">
+            <xsl:copy-of select="document($webwork-representations-file, /pretext)/webwork-representations/webwork-reps[@ww-id=$ww-id]" />
+        </xsl:when>
+        <xsl:otherwise>
+            <statement>
+                <p>The WeBWorK problem with ID <q><xsl:value-of select="$ww-id"/></q> will appear here if you provide the file of problems that have been processed by a WeBWorK server (<c>webwork-representations.ptx</c>).</p>
+            </statement>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
 <!-- ################# -->
 <!-- Private Solutions -->
 <!-- ################# -->
@@ -133,21 +161,35 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- and "solution" elements of an "exercise".  An author may  -->
 <!-- wish to provide limited distribution of some solutions to -->
 <!-- exercises, which we deem "private" here.  If a            -->
-<!-- "solutions.file" is provided, it will be mined for these  -->
-<!-- private solutions.                                        -->
+<!-- "private-solutions-file" is provided, it will be mined    -->
+<!-- for these private solutions.                              -->
 
-<xsl:param name="solutions.file" select="''"/>
-<xsl:variable name="b-private-solutions" select="not($solutions.file = '')"/>
+<xsl:variable name="b-private-solutions" select="not($private-solutions-file = '')"/>
 
-<xsl:variable name="n-hint"     select="document($solutions.file, /pretext)/pi:privatesolutions/hint"/>
-<xsl:variable name="n-answer"   select="document($solutions.file, /pretext)/pi:privatesolutions/answer"/>
-<xsl:variable name="n-solution" select="document($solutions.file, /pretext)/pi:privatesolutions/solution"/>
+<!-- Note: there may be (nested) "pi:privatesolutionsdivision"  -->
+<!-- elements in this file.  They are largely meaningless, but  -->
+<!-- are necessary if an author wants to modularize their       -->
+<!-- collection across multiple files.  Then each file can be a -->
+<!-- single overall element.  (We expect/require no additional  -->
+<!-- structure in this file.)  The conseqience is the "//" in   -->
+<!-- each expression below.                                     -->
+<xsl:variable name="n-hint"     select="document($private-solutions-file, /pretext)/pi:privatesolutions//hint"/>
+<xsl:variable name="n-answer"   select="document($private-solutions-file, /pretext)/pi:privatesolutions//answer"/>
+<xsl:variable name="n-solution" select="document($private-solutions-file, /pretext)/pi:privatesolutions//solution"/>
 
-<xsl:template match="exercise" mode="assembly">
-    <!-- <xsl:message>FOO:<xsl:value-of select="count($n-solution)"/></xsl:message> -->
+<xsl:template match="exercise|task" mode="assembly">
     <xsl:variable name="the-id" select="@xml:id"/>
     <xsl:copy>
-        <!-- attributes, then all elements that are not solutions -->
+        <!-- attributes, then all elements that are not solutions                               -->
+        <!--   unstructured exercise:  "p" etc, then solutions OK even if schema violation?     -->
+        <!--   structured exercise: copy statement, then interleave solutions                   -->
+        <!--   non-terminal Task: introduction, task, conclusion                                -->
+        <!--   terminal unstructured task: "p" etc, then solutions OK even if schema violation? -->
+        <!--   terminal structured task: copy statement, then interleave solutions              -->
+        <!-- TODO: defend against non-terminal task, unstructured cases      -->
+        <!-- (identify proper structure + non-empty union of three additions -->
+        <!-- Fix unstructured cases by inserting "statement",                -->
+        <!-- warn about non-terminal task case and drop additions (error)    -->
         <xsl:apply-templates select="*[not(self::hint or self::answer or self::solution)]|@*" mode="assembly"/>
         <!-- hints, answers, solutions; first regular, second private -->
         <xsl:apply-templates select="hint" mode="assembly"/>
@@ -272,11 +314,11 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Warnings -->
 <!-- ######## -->
 
+<!-- A place for warnings about missing files, etc -->
+<!-- and/or temporary/experimental features        -->
 <xsl:template name="assembly-warnings">
-    <xsl:if test="$b-private-solutions">
-        <xsl:call-template name="banner-warning">
-            <xsl:with-param name="warning">Use of a private solutions file is experimental and not supported.  Markup,&#xa;string parameters, and procedures are all subject to change.  (2020-06-06)</xsl:with-param>
-        </xsl:call-template>
+    <xsl:if test="$original/*[not(self::docinfo)]//webwork and not($b-doing-webwork-assembly)">
+        <xsl:message>PTX:WARNING: Your document has WeBworK exercises, but&#xa;your publisher file does not indicate the file of problem representations&#xa;created by a WeBWorK server.  Exercises will have a small&#xa;informative message instead of the intended content.</xsl:message>
     </xsl:if>
 </xsl:template>
 

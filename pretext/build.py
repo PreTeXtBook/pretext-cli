@@ -64,6 +64,20 @@ def diagrams(ptxfile, output, params):
         xml_source=ptxfile, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat="svg")
 
 
+def webwork(ptxfile, dest_dir, params):
+    import os, shutil
+    from .static.pretext import pretext as ptxcore
+    # Pass verbosity level to ptxcore scripts:
+    ptxcore.set_verbosity(utils._verbosity)
+    # Assume passed paths are absolute.
+    # Set directory for WW representations.
+    # dest_dir = os.path.join(dest_dir, outfile)
+    utils.ensure_directory(dest_dir)
+    # call the webwork-to-xml routine from core
+    # the second argument seems to be for debugging on the ptx core side
+    # the third argument has to do with ww server config; here just use
+    # the default/recommended config in PreTeXt Guide.
+    ptxcore.webwork_to_xml(ptxfile, True, params, dest_dir)
 
 # This start of a utility function to replicate the tasks for xsltproc.
 def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):

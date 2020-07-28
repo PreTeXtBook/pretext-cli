@@ -6932,9 +6932,9 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- Exercise Utilities -->
 <!-- ################## -->
 
-<!-- Exercises and projects generally have "statement", "hint",    -->
-<!-- "answer", and "solution".  Switches control appearance in     -->
-<!-- the main matter and in solution lists.                        -->
+<!-- Exercises, projects and tasks, generally have "statement",    -->
+<!-- "hint", "answer", and "solution".  Switches control           -->
+<!-- appearance in the main matter and in solution lists.          -->
 <!--                                                               -->
 <!-- But they are surrounded by infrastructure:  number and title, -->
 <!-- exercise group with introduction and conclusion, division     -->
@@ -6943,8 +6943,8 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
 <!-- superfluous.  So we provide a hierarchy of templates to       -->
 <!-- determine if structure and content yield output.              -->
 
-<!-- authored exercise, terminal (leaf) tasks, webwork stage -->
-<xsl:template match="exercise|task[not(task)]|stage" mode="dry-run">
+<!-- terminal (leaf) tasks, webwork stage -->
+<xsl:template match="task[not(task)]|stage" mode="dry-run">
     <xsl:param name="b-has-statement" />
     <xsl:param name="b-has-hint" />
     <xsl:param name="b-has-answer" />
@@ -7023,7 +7023,8 @@ Neither: A structural node that is simply a (visual) subdivision of a chunk
     </xsl:apply-templates>
 </xsl:template>
 
-<xsl:template match="&PROJECT-LIKE;" mode="dry-run">
+<!-- authored exercise, project -->
+<xsl:template match="exercise|&PROJECT-LIKE;" mode="dry-run">
     <xsl:param name="b-has-statement" />
     <xsl:param name="b-has-hint" />
     <xsl:param name="b-has-answer" />
@@ -10853,16 +10854,18 @@ http://andrewmccarthy.ie/2014/11/06/swung-dash-in-latex/
 <xsl:template name="converter-blurb">
     <xsl:param name="lead-in" />
     <xsl:param name="lead-out" />
-    <xsl:copy-of select="$lead-in" /><xsl:text>**************************************</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
-    <xsl:copy-of select="$lead-in" /><xsl:text>*    Generated from PreTeXt source   *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>********************************************</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>*       Generated from PreTeXt source      *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
     <xsl:if test="$b-debug-datedfiles">
-    <xsl:copy-of select="$lead-in" /><xsl:text>*    on </xsl:text>  <xsl:value-of select="date:date-time()" />
-                                                                      <xsl:text>    *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>*       on </xsl:text>  <xsl:value-of select="date:date-time()" />
+                                                                      <xsl:text>       *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>*   A recent stable commit (2020-07-07):   *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>* 1771dacf84bfb1789139598d8379414b560b8f17 *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
     </xsl:if>
-    <xsl:copy-of select="$lead-in" /><xsl:text>*                                    *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
-    <xsl:copy-of select="$lead-in" /><xsl:text>*      https://pretextbook.org       *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
-    <xsl:copy-of select="$lead-in" /><xsl:text>*                                    *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
-    <xsl:copy-of select="$lead-in" /><xsl:text>**************************************</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>*                                          *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>*         https://pretextbook.org          *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>*                                          *</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
+    <xsl:copy-of select="$lead-in" /><xsl:text>********************************************</xsl:text><xsl:copy-of select="$lead-out" /><xsl:text>&#xa;</xsl:text>
 </xsl:template>
 
 <!-- We issue specialized blurbs with appropriate comment lines -->

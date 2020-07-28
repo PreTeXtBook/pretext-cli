@@ -77,8 +77,10 @@ def new(title,project_path,chapter):
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
 @click_config_file.configuration_option(implicit="False", default=config_file)
-# @click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
-def build(format, source, output, param, diagrams, publisher):
+@click.option('--format', default='html', show_default=True, help="Sets which format to build",
+              type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
+@click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
+def build(format, source, output, param, publisher, webwork, diagrams):
     """
     Process PreTeXt files into specified format.
 
@@ -103,15 +105,27 @@ def build(format, source, output, param, diagrams, publisher):
     source = os.path.abspath(source)
     latex_output = os.path.abspath(latex_output)
     html_output = os.path.abspath(html_output)
+    # put webwork-representations.ptx in same dir as source main file
+    webwork_output = os.path.dirname(source)
     #build targets:
     from . import build
+    if webwork:
+        # prepare params; for now assume only server is passed
+        # see documentation of pretext core webwork_to_xml
+        # handle this exactly as in webwork_to_xml (should this
+        # be exported in the pretext core module?)
+        try:
+            params = (stringparams['server'])
+        except Exception as e:
+            root_cause = str(e)
+            print("No server name, {}".format(root_cause))
+        build.webwork(source, webwork_output, params)
     if format=='html' or format=='all':
         if diagrams:
             build.diagrams(source,html_output,stringparams)
         build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
         build.latex(source,latex_output,stringparams)
-
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
@@ -142,7 +156,7 @@ def view(directory,access,port):
     import os
     from . import utils
     # Remember options in local configfile:
-    utils.write_config(config_file, directory=directory, 
+    utils.write_config(config_file, directory=directory,
                         access=access, port=port)
     directory = os.path.abspath(directory)
     if not utils.directory_exists(directory):
