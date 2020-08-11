@@ -34,6 +34,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:stylesheet
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0"
     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+    xmlns:svg="http://www.w3.org/2000/svg"
     xmlns:b64="https://github.com/ilyakharlamov/xslt_base64"
     xmlns:exsl="http://exslt.org/common"
     xmlns:date="http://exslt.org/dates-and-times"
@@ -68,11 +69,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:param name="runestone.dev" select="''"/>
 <xsl:variable name="runestone-dev" select="$runestone.dev = 'yes'"/>
 
-<!-- Temporary, undocumented, and experimental           -->
-<!-- Makes randomization buttons for inline WW probmlems -->
-<xsl:param name="debug.webwork.inline.randomize" select="''"/>
-<xsl:variable name="b-webwork-inline-randomize" select="$debug.webwork.inline.randomize = 'yes'"/>
-
 <!-- ################################################ -->
 <!-- Following is slated to migrate above, 2019-07-10 -->
 <!-- ################################################ -->
@@ -81,29 +77,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Parameters to pass via xsltproc "stringparam" on command-line            -->
 <!-- Or make a thin customization layer and use 'select' to provide overrides -->
 <!-- See more generally applicable parameters in pretext-common.xsl file     -->
-
-<!-- WeBWorK exercise may be rendered static="yes"    -->
-<!-- TODO: implement middle option static="preview"   -->
-<!-- Or static="no" makes an interactive problem      -->
-<!-- Also in play here are params from -common:       -->
-<!-- exercise.text.statement, exercise.text.hint, exercise.text.solution -->
-<!-- For a divisional exercise, when static="no", that is an intentional -->
-<!-- decision to show the live problem, which means the statement will   -->
-<!-- be shown, regardless of exercise.text.statement. If the problem was -->
-<!-- authored in PTX source, we can respect the values for               -->
-<!-- exercise.text.hint and exercise.text.solution. If the problem       -->
-<!-- source is on the webwork server, then hints and solutions will show -->
-<!-- no matter what.                                                     -->
-<!-- For a divisional exercise, when static="yes", each of the three     -->
-<!-- -common params will be respected. Effectively the content is        -->
-<!-- handled like a non-webwork exercise.                                -->
-<!-- For an inline exercise (webwork or otherwise) statements, hints,    -->
-<!-- and solutions are always shown. The -common params mentioned above  -->
-<!-- do not apply. Whether static is "yes" or "no" doesn't matter.       -->
-<xsl:param name="webwork.inline.static" select="'no'" />
-<xsl:param name="webwork.divisional.static" select="'yes'" />
-<xsl:param name="webwork.reading.static" select="'yes'" />
-<xsl:param name="webwork.worksheet.static" select="'yes'" />
 
 <!-- Content as Knowls -->
 <!-- These parameters control if content is      -->
@@ -210,21 +183,11 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:when test="$root/book">2</xsl:when>
         <xsl:when test="$root/article/section">1</xsl:when>
         <xsl:when test="$root/article">0</xsl:when>
+        <xsl:when test="$root/slideshow">0</xsl:when>
         <xsl:when test="$root/letter">0</xsl:when>
         <xsl:when test="$root/memo">0</xsl:when>
         <xsl:otherwise>
             <xsl:message>MBX:ERROR: HTML chunk level not determined</xsl:message>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:variable>
-
-<xsl:variable name="webwork-server">
-    <xsl:choose>
-        <xsl:when test="$document-root//webwork-reps/server-url">
-            <xsl:value-of select="substring-before($document-root//webwork-reps/server-url[1], '/webwork2')" />
-        </xsl:when>
-        <xsl:otherwise>
-            <xsl:text>https://webwork-ptx.aimath.org</xsl:text>
         </xsl:otherwise>
     </xsl:choose>
 </xsl:variable>
@@ -358,6 +321,47 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Here we assume there is at most one                      -->
 <!-- (The old style of specifying an index is deprecated)     -->
 <xsl:variable name="the-index"          select="($document-root//index-part|$document-root//index[index-list])[1]"/>
+
+<!-- ######## -->
+<!-- WeBWorK  -->
+<!-- ######## -->
+
+<!-- WeBWorK exercise may be rendered static="yes" or static="no" makes  -->
+<!-- an interactive problem. Also in play here are params from -common:  -->
+<!-- exercise.text.statement, exercise.text.hint, exercise.text.solution -->
+<!-- For a divisional exercise, when static="no", that is an intentional -->
+<!-- decision to show the live problem, which means the statement will   -->
+<!-- be shown, regardless of exercise.text.statement. For webwork-reps   -->
+<!-- version 2 (WW 2.16 and later), we respect the values for            -->
+<!-- exercise.text.hint, exercise.text.answer, exercise.text.solution.   -->
+<!-- For version 1, if the problem was authored in PTX source, we can    -->
+<!-- respect the values for exercise.text.hint, exercise.text.solution.  -->
+<!-- When the problem is static, we can respect exercise.text.answer.    -->
+<!-- When the problem is live, we cannot stop the user from seeing the   -->
+<!-- answers. And if the problem source is on the webwork server, then   -->
+<!-- hints and solutions will show  no matter what.                      -->
+<xsl:param name="webwork.inline.static" select="'no'" />
+<xsl:param name="webwork.divisional.static" select="'yes'" />
+<xsl:param name="webwork.reading.static" select="'yes'" />
+<xsl:param name="webwork.worksheet.static" select="'yes'" />
+
+<xsl:variable name="webwork-reps-version" select="$document-root//webwork-reps[1]/@version"/>
+
+<xsl:variable name="webwork-domain">
+    <xsl:choose>
+        <xsl:when test="$webwork-reps-version = 1">
+            <xsl:value-of select="$document-root//webwork-reps[1]/server-url[1]/@domain" />
+        </xsl:when>
+        <xsl:when test="$webwork-reps-version = 2">
+            <xsl:value-of select="$document-root//webwork-reps[1]/server-data/@domain" />
+        </xsl:when>
+    </xsl:choose>
+</xsl:variable>
+
+<!-- Temporary, undocumented, and experimental           -->
+<!-- Makes randomization buttons for inline WW probmlems -->
+<xsl:param name="debug.webwork.inline.randomize" select="''"/>
+<xsl:variable name="b-webwork-inline-randomize" select="$debug.webwork.inline.randomize = 'yes'"/>
 
 
 <!-- ############## -->
@@ -2531,19 +2535,18 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:element name="a">
         <!-- empty, indicates content *not* in a file -->
         <xsl:attribute name="data-knowl" />
-        <!-- id-ref class means content is in div referenced by id -->
+        <!-- id-ref class: content is in div referenced by id       -->
+        <!-- (element-name)-knowl: specific element used in content -->
+        <!-- original: born hidden knowl, not xref                  -->
+        <!-- Similar to "duplicate-hidden-knowl-link", id-ref extra -->
         <xsl:attribute name="class">
             <xsl:text>id-ref</xsl:text>
-            <xsl:choose>
-                <!-- Exceptional: for styling purposes -->
-                <xsl:when test="self::fn">
-                    <xsl:text> fn-knowl</xsl:text>
-                </xsl:when>
-                <!-- original content, for styling purposes -->
-                <xsl:otherwise>
-                    <xsl:text> original</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <!--  -->
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="local-name(.)"/>
+            <xsl:text>-knowl</xsl:text>
+            <!--  -->
+            <xsl:text> original</xsl:text>
         </xsl:attribute>
         <!-- and the id via a template for consistency -->
         <xsl:attribute name="data-refid">
@@ -2586,17 +2589,14 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- The link for a duplicate hidden knowl -->
 <xsl:template match="*" mode="duplicate-hidden-knowl-link">
     <xsl:element name="a">
+        <!-- (element-name)-knowl: specific element used in content -->
+        <!-- original: born hidden knowl, not xref                  -->
+        <!-- Similar to "hidden-knowl-link", no id-ref              -->
         <xsl:attribute name="class">
-            <xsl:choose>
-                <!-- Exceptional: for styling purposes -->
-                <xsl:when test="self::fn">
-                    <xsl:text>fn-knowl</xsl:text>
-                </xsl:when>
-                <!-- original content, for styling purposes -->
-                <xsl:otherwise>
-                    <xsl:text>original</xsl:text>
-                </xsl:otherwise>
-            </xsl:choose>
+            <xsl:value-of select="local-name(.)"/>
+            <xsl:text>-knowl</xsl:text>
+            <!--  -->
+            <xsl:text> original</xsl:text>
         </xsl:attribute>
         <xsl:attribute name="data-knowl">
             <xsl:apply-templates select="." mode="hidden-knowl-filename" />
@@ -3993,8 +3993,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:choose>
         <!-- intercept a reading question, when hosted on Runestone -->
         <xsl:when test="ancestor::reading-questions and $b-host-runestone">
-            <div class="runestone">
-                <div data-component="shortanswer" class="journal alert alert-success" data-optional="" data-mathjax="">
+            <div class="runestone outer-exercise-wrapper">
+                <div data-component="shortanswer" class="journal alert alert-success exercise-wrapper" data-optional="" data-mathjax="">
                     <xsl:attribute name="id">
                         <xsl:apply-templates select="." mode="html-id"/>
                     </xsl:attribute>
@@ -5420,42 +5420,71 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- Asymptote graphics language -->
 <xsl:template match="image[asymptote]" mode="image-inclusion">
+    <!-- base-pathname needed later for archive link production -->
     <xsl:variable name="base-pathname">
         <xsl:value-of select="$directory.images" />
         <xsl:text>/</xsl:text>
         <xsl:apply-templates select="." mode="visible-id" />
     </xsl:variable>
-    <xsl:variable name="svg-filename" select="concat($base-pathname, '.svg')" />
     <xsl:variable name="html-filename" select="concat($base-pathname, '.html')" />
 
-    <object data="{$html-filename}">
-        <xsl:attribute name="id">
-            <xsl:apply-templates select="." mode="visible-id" />
-        </xsl:attribute>
-        <xsl:attribute name="width">
-            <xsl:apply-templates select="." mode="get-width-pixels" />
-        </xsl:attribute>
-        <xsl:attribute name="height">
-            <xsl:apply-templates select="." mode="get-height-pixels">
-                <xsl:with-param name="default-aspect" select="'1:1'" />
-            </xsl:apply-templates>
-        </xsl:attribute>
-        <!-- fallback to SVG -->
-        <xsl:element name="embed">
-            <!-- source file attribute for img element, the SVG image -->
-            <xsl:attribute name="src">
-                <xsl:value-of select="$svg-filename" />
-            </xsl:attribute>
-            <!-- replace with a CSS class -->
-            <xsl:attribute name="style">
-                <xsl:text>width: 100%; height: auto;</xsl:text>
-            </xsl:attribute>
-            <!-- alt attribute for accessibility -->
-            <xsl:attribute name="alt">
-                <xsl:apply-templates select="description" />
-            </xsl:attribute>
-        </xsl:element>
-    </object>
+    <!-- Assumes filename is relative to primary source file, -->
+    <!-- which must be specified with the original version,   -->
+    <!-- not the pre-processed, "assembled" version           -->
+    <xsl:variable name="image-xml" select="document($html-filename, $original)"/>
+    <!-- width first -->
+    <xsl:variable name="width">
+        <xsl:choose>
+            <!-- 2-D diagram -->
+            <!-- note necessity of namespace for "svg" element -->
+            <xsl:when test="$image-xml/html/body/svg:svg">
+                <xsl:variable name="wpt" select="$image-xml/html/body/svg:svg/@width"/>
+                <!-- Strip "pt" suffix -->
+                <xsl:value-of select="substring($wpt, 1, string-length($wpt) - 2)"/>
+            </xsl:when>
+            <!-- 3-D diagram -->
+            <xsl:when test="$image-xml/html/body/canvas">
+                <xsl:value-of select="$image-xml/html/body/canvas/@width"/>
+            </xsl:when>
+            <!-- failure -->
+            <xsl:otherwise>
+                <xsl:message>PTX:ERROR:   the Asympote diagram produced in "<xsl:value-of select="$html-filename"/>" needs to be available relative to the primary source file, or if available it is perhaps ill-formed and its width cannot be determined (which you might report as a bug).  We might be able to procede as if the diagram is square, but results can be unpredictable.</xsl:message>
+                <!-- reasonable guess at points/pixels -->
+                <xsl:text>400</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    <!-- now height, similarly -->
+    <xsl:variable name="height">
+        <xsl:choose>
+            <!-- 2-D diagram -->
+            <!-- note necessity of namespace for "svg" element -->
+            <xsl:when test="$image-xml/html/body/svg:svg">
+                <xsl:variable name="hpt" select="$image-xml/html/body/svg:svg/@height"/>
+                <!-- Strip "pt" suffix -->
+                <xsl:value-of select="substring($hpt, 1, string-length($hpt) - 2)"/>
+            </xsl:when>
+            <!-- 3-D diagram -->
+            <xsl:when test="$image-xml/html/body/canvas">
+                <xsl:value-of select="$image-xml/html/body/canvas/@height"/>
+            </xsl:when>
+            <!-- failure -->
+            <xsl:otherwise>
+                <xsl:message>PTX:ERROR:   the Asympote diagram produced in "<xsl:value-of select="$html-filename"/>" needs to be available relative to the primary source file, or if available it is perhaps ill-formed and its height cannot be determined (which you might report as a bug).  We might be able to procede as if the diagram is square, but results can be unpredictable.</xsl:message>
+                <!-- reasonable guess at points/pixels -->
+                <xsl:text>400</xsl:text>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
+    <!-- All that was to get an aspect-ratio for a responsive iframe embedding -->
+    <xsl:variable name="aspect-percent" select="($height div $width) * 100"/>
+
+    <!-- Surrounding/constraining "image", or "sidebyside" panel, or ...    -->
+    <!-- will provide an overall width.  The "padding-top" property is what -->
+    <!-- makes the right shape.  CSS provides some constant properties.     -->
+    <div class="asymptote-box" style="padding-top: {$aspect-percent}%">
+        <iframe src="{$html-filename}" class="asymptote"/>
+    </div>
     <!-- possibly annotate with archive links -->
     <xsl:apply-templates select="." mode="archive">
         <xsl:with-param name="base-pathname" select="$base-pathname" />
@@ -5478,7 +5507,14 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:attribute name="src">
             <xsl:value-of select="$svg-filename" />
         </xsl:attribute>
-        <!-- replace with a CSS class -->
+        <!-- For accessibility use an ARIA role, e.g so screen  -->
+        <!-- readers do not try to read the elements of the SVG -->
+        <!-- NB: if we write SVG into the page, put this        -->
+        <!-- attribute onto the "svg" element                   -->
+        <xsl:attribute name="role">
+            <xsl:text>img</xsl:text>
+        </xsl:attribute>
+        <!-- replace with a CSS class                           -->
         <xsl:attribute name="style">
             <xsl:text>width: 100%; height: auto;</xsl:text>
         </xsl:attribute>
@@ -5808,116 +5844,125 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- ################################## -->
 
 
-<!-- ##### -->
-<!-- Video -->
-<!-- ##### -->
+<!-- ############# -->
+<!-- Audio & Video -->
+<!-- ############# -->
 
-<!-- We begin with a general construction of various   -->
-<!-- options for embedding, pop-out, and previews.     -->
-<!-- An abstract modal method "video-embed" constructs -->
-<!-- an HTML object of the correct size and with the   -->
-<!-- right autoplay characteristic.                    -->
-<!-- Note: autoplay option is internal, not author-set -->
+<!-- Audio and video are similar enough that we share    -->
+<!-- some routines under the general heading of "media", -->
+<!-- or else we present them here alongside, due to the  -->
+<!-- similarities.                                       -->
 
-<!-- Two types of video: HTML5, YouTube                   -->
-<!-- Three previews: default, generic, author-constructed -->
-<!-- Three embeddings: embed, popout, select              -->
-
-<xsl:template match="audio|video">
-    <!-- collect and process size information from author -->
-    <xsl:variable name="width">
-        <xsl:apply-templates select="." mode="get-width-pixels" />
-    </xsl:variable>
-    <xsl:variable name="height">
-        <xsl:apply-templates select="." mode="get-height-pixels">
-            <xsl:with-param name="default-aspect" select="'16:9'" />
+<xsl:template match="video">
+    <!-- This is an RTF of the object, it is important that it returns -->
+    <!-- 100% width as default, so when the object is in an enclosing  -->
+    <!-- "sidebyside" only the @aspect is on the object and hence a    -->
+    <!-- $layout/height is computed properly.                          -->
+    <xsl:variable name="rtf-layout">
+        <xsl:apply-templates select="." mode="layout-parameters">
+            <xsl:with-param name="default-aspect" select="'16:9'"/>
         </xsl:apply-templates>
     </xsl:variable>
-
+    <xsl:variable name="layout" select="exsl:node-set($rtf-layout)" />
+    <!-- div is constraint/positioning for contained video   -->
+    <!-- Use of "padding-top" for responsive iframes is from -->
+    <!-- https://davidwalsh.name/responsive-iframes          -->
+    <div class="video-box">
+        <xsl:attribute name="style">
+            <xsl:text>width: </xsl:text>
+            <xsl:value-of select="$layout/width"/>
+            <xsl:text>%;</xsl:text>
+            <!-- surrogate for height -->
+            <xsl:text>padding-top: </xsl:text>
+            <xsl:value-of select="$layout/height"/>
+            <xsl:text>%;</xsl:text>
+            <xsl:text> margin-left: </xsl:text>
+            <xsl:value-of select="$layout/left-margin"/>
+            <xsl:text>%;</xsl:text>
+            <xsl:text> margin-right: </xsl:text>
+            <xsl:value-of select="$layout/right-margin"/>
+            <xsl:text>%;</xsl:text>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="media-embed"/>
+    </div>
     <!-- Always build a standalone page, PDF links to these -->
-    <xsl:apply-templates select="." mode="video-standalone-page" />
+    <xsl:apply-templates select="." mode="media-standalone-page" />
+</xsl:template>
 
-    <!-- standalone page name uses visible-id of the video -->
-    <xsl:variable name="int-id">
-        <xsl:apply-templates select="." mode="visible-id" />
+<xsl:template match="audio">
+    <!-- This is an RTF of the object, it is important that it returns -->
+    <!-- 100% width as default, so when the object is in an enclosing  -->
+    <!-- "sidebyside" it fills the panel.                              -->
+    <!-- Note: we may want to support images as posters, so we may  -->
+    <!-- want to support an aspect-ratio, or perhaps the image will -->
+    <!-- define the size?                                           -->
+    <xsl:variable name="rtf-layout">
+        <xsl:apply-templates select="." mode="layout-parameters"/>
     </xsl:variable>
-    <xsl:choose>
-        <xsl:when test="@play-at = 'popout'">
-            <a href="{$int-id}.html" target="_blank">
-            <!-- place a thumbnail as clickable for page already extant -->
-                <xsl:choose>
-                    <!-- generic requested -->
-                    <xsl:when test="@preview = 'generic'">
-                        <xsl:call-template name="generic-preview-svg">
-                            <xsl:with-param name="width" select="$width" />
-                            <xsl:with-param name="height" select="$height" />
-                        </xsl:call-template>
-                    </xsl:when>
-                    <!-- author-provided -->
-                    <xsl:when test="@preview and not(@preview = 'default')">
-                        <img src="{@preview}" width="{$width}" height="{$height}" alt="Video cover image"/>
-                    </xsl:when>
-                    <!-- this id-device should be replaced by graceful failure  -->
-                    <!-- to the generic preview with a console warning          -->
-                    <xsl:when test="(@preview = 'default') or not(@preview)">
-                        <xsl:variable name="thumbnail-image">
-                            <xsl:text>images/</xsl:text>
-                            <xsl:value-of select="$int-id" />
-                            <xsl:text>.jpg</xsl:text>
-                        </xsl:variable>
-                        <img src="{$thumbnail-image}" width="{$width}" height="{$height}" alt="Video cover image"/>
-                    </xsl:when>
-                </xsl:choose>
-            </a>
-            <!-- until we get an overlay, explain popout -->
-            <div style="text-align: center;">
-                <xsl:text>Click Above to Play</xsl:text>
-            </div>
-        </xsl:when>
-        <xsl:when test="(@play-at = 'select') or (@play-at = 'embed') or not(@play-at)">
-            <xsl:apply-templates select="." mode="video-embed">
-                <xsl:with-param name="width"  select="$width" />
-                <xsl:with-param name="height" select="$height" />
-            </xsl:apply-templates>
-            <!-- for the reader-select case, we need a link as a "button" -->
-            <!-- if this case is deprecated, we can drop this thing -->
-            <xsl:if test="@play-at = 'select'">
-                <div style="text-align: center;">
-                    <a href="{$int-id}.html" target="_blank">
-                        <xsl:text>Click to Pop-Out</xsl:text>
-                    </a>
-                </div>
-            </xsl:if>
-        </xsl:when>
-        <xsl:otherwise />
-    </xsl:choose>
+    <xsl:variable name="layout" select="exsl:node-set($rtf-layout)" />
+    <!-- div is constraint/positioning for contained audio -->
+    <div class="audio-box">
+        <xsl:attribute name="style">
+            <xsl:text>width: </xsl:text>
+            <xsl:value-of select="$layout/width"/>
+            <xsl:text>%;</xsl:text>
+            <xsl:text> margin-left: </xsl:text>
+            <xsl:value-of select="$layout/left-margin"/>
+            <xsl:text>%;</xsl:text>
+            <xsl:text> margin-right: </xsl:text>
+            <xsl:value-of select="$layout/right-margin"/>
+            <xsl:text>%;</xsl:text>
+        </xsl:attribute>
+        <xsl:apply-templates select="." mode="media-embed"/>
+    </div>
+    <!-- Always build a standalone page, PDF links to these -->
+    <xsl:apply-templates select="." mode="media-standalone-page" />
 </xsl:template>
 
 <!-- Formerly a "pop-out" page, now a "standalone" page     -->
 <!-- Has autoplay on since a reader has elected to go there -->
 <!-- TODO: override preview, since it just plays, pass 'default -->
-<xsl:template match="audio|video" mode="video-standalone-page">
-    <xsl:variable name="aspect-ratio">
-        <xsl:apply-templates select="." mode="get-aspect-ratio">
-            <xsl:with-param name="default-aspect" select="'16:9'" />
-        </xsl:apply-templates>
-    </xsl:variable>
-    <!-- apparent width of content region of HTML page  -->
-    <!-- with no sidebar, subtract margins = 900 - 2*30 -->
-    <xsl:variable name="ptx-content-width" select="'840'" />
-    <xsl:variable name="ptx-content-height" select="$ptx-content-width div $aspect-ratio" />
+<xsl:template match="audio|video" mode="media-standalone-page">
     <xsl:apply-templates select="." mode="standalone-page">
         <xsl:with-param name="content">
             <!-- display preview, and enable autoplay  -->
             <!-- since reader has elected this page    -->
-            <!-- audio: height parameter is ignored    -->
-            <xsl:apply-templates select="." mode="video-embed">
-                <xsl:with-param name="width"  select="$ptx-content-width" />
-                <xsl:with-param name="height" select="$ptx-content-height" />
-                <xsl:with-param name="preview" select="'false'" />
-                <xsl:with-param name="autoplay" select="'true'" />
-            </xsl:apply-templates>
             <div style="text-align: center;">Reloading this page will reset a start location</div>
+            <div>
+                <xsl:attribute name="class">
+                    <xsl:choose>
+                        <xsl:when test="self::audio">
+                            <xsl:text>audio-box</xsl:text>
+                        </xsl:when>
+                        <xsl:when test="self::video">
+                            <xsl:text>video-box</xsl:text>
+                        </xsl:when>
+                    </xsl:choose>
+                </xsl:attribute>
+                <xsl:attribute name="style">
+                    <xsl:text>width: </xsl:text>
+                    <xsl:text>100%;</xsl:text>
+                    <xsl:if test="self::video">
+                        <xsl:variable name="rtf-layout">
+                            <xsl:apply-templates select="." mode="layout-parameters">
+                                <xsl:with-param name="default-aspect" select="'16:9'"/>
+                            </xsl:apply-templates>
+                        </xsl:variable>
+                        <xsl:variable name="layout" select="exsl:node-set($rtf-layout)" />
+                        <!-- get back the aspect ratio via height and width of layout, -->
+                        <!-- which are both defined for a video (but not an audio)     -->
+                        <!-- Pairs with 100% width above                               -->
+                        <xsl:variable name="height-percent" select="100 * ($layout/height div $layout/width)"/>
+                        <xsl:text>padding-top: </xsl:text>
+                        <xsl:value-of select="$height-percent"/>
+                        <xsl:text>%;</xsl:text>
+                    </xsl:if>
+                </xsl:attribute>
+                <xsl:apply-templates select="." mode="media-embed">
+                    <xsl:with-param name="preview" select="'false'" />
+                    <xsl:with-param name="autoplay" select="'true'" />
+                </xsl:apply-templates>
+            </div>
         </xsl:with-param>
     </xsl:apply-templates>
 </xsl:template>
@@ -6031,7 +6076,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                     <!-- With sidebars killed, this stuff is extraneous     -->
                     <!-- <xsl:apply-templates select="." mode="sidebars" /> -->
                     <main class="main">
-                        <div id="content" class="pretext-content">
+                        <!-- relax the 600px width restriction, so with    -->
+                        <!-- responsive videos they grow to be much bigger -->
+                        <div id="content" class="pretext-content" style="max-width: 1600px">
                             <!-- This is content passed in as a parameter -->
                             <xsl:copy-of select="$content" />
                           </div>
@@ -6050,8 +6097,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 </xsl:template>
 
 <xsl:template name="generic-preview-svg">
-    <xsl:param name="width" select="''" />
-    <xsl:param name="height" select="''" />
     <!-- viewbox was square (0,0), 96x96, now clipped 14 above and below                   -->
     <!-- preserveAspectRatio="none" makes it amenable to matching video it hides           -->
     <!-- SVG scaling, comprehensive: https://css-tricks.com/scale-svg/                     -->
@@ -6061,7 +6106,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!-- License text:  This image only consists of simple geometric shapes or text.       -->
     <!-- It does not meet the threshold of originality needed for copyright protection,    -->
     <!-- and is therefore in the public domain.                                            -->
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 14 96 68" width="{$width}" height="{$height}" style="cursor:pointer;" preserveAspectRatio="none">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 14 96 68" style="cursor:pointer; position: absolute; top: 0; left: 0; width: 100%; height: 100%;" preserveAspectRatio="none">
         <path fill="#e62117" d="M94.98,28.84c0,0-0.94-6.6-3.81-9.5c-3.64-3.81-7.72-3.83-9.59-4.05c-13.4-0.97-33.52-0.85-33.52-0.85s-20.12-0.12-33.52,0.85c-1.87,0.22-5.95,0.24-9.59,4.05c-2.87,2.9-3.81,9.5-3.81,9.5S0.18,36.58,0,44.33v7.26c0.18,7.75,1.14,15.49,1.14,15.49s0.93,6.6,3.81,9.5c3.64,3.81,8.43,3.69,10.56,4.09c7.53,0.72,31.7,0.89,32.54,0.9c0.01,0,20.14,0.03,33.54-0.94c1.87-0.22,5.95-0.24,9.59-4.05c2.87-2.9,3.81-9.5,3.81-9.5s0.96-7.75,1.02-15.49v-7.26C95.94,36.58,94.98,28.84,94.98,28.84z M38.28,61.41v-27l25.74,13.5L38.28,61.41z"/>
     </svg>
 </xsl:template>
@@ -6094,36 +6139,19 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- NB: here, and elesewhere, references -->
 <!-- to "video" should become "media"     -->
-<xsl:template match="audio[@source]" mode="video-embed">
-    <xsl:param name="width" select="''" />
-    <xsl:param name="height" select="''" />
-    <xsl:param name="preview" select="'true'" />
+<xsl:template match="audio[@source]" mode="media-embed">
+    <xsl:param name="preview" select="'false'" />
     <xsl:param name="autoplay" select="'false'" />
-
-    <!-- $width is in pixels for video @width attribute,   -->
-    <!-- but for the audio element we seem to need to      -->
-    <!-- use CSS, so we revert back to the percentage. (!) -->
-    <!-- Seems to work great on skinny screens             -->
-    <xsl:variable name="width-percentage">
-        <xsl:value-of select="round(($width div $design-width)*100)"/>
-    </xsl:variable>
 
     <xsl:element name="audio">
         <xsl:attribute name="id">
             <xsl:apply-templates select="." mode="html-id"/>
         </xsl:attribute>
-        <!-- seems necessary to style the controls, since it        -->
-        <!-- has no notion of height and width, like video does     -->
-        <!-- caller supplies width in pixels, we assume full height -->
-        <!-- migrate block and height properties to CSS             -->
-        <xsl:attribute name="style">
-            <xsl:text>width:</xsl:text>
-            <xsl:value-of select="$width-percentage" />
-            <xsl:text>%;</xsl:text>
-            <xsl:text>height:100%;display:block;margin:auto;</xsl:text>
+        <xsl:attribute name="class">
+            <xsl:text>audio</xsl:text>
         </xsl:attribute>
         <!-- empty forms work as boolean switches -->
-        <xsl:attribute name="controls" />
+        <xsl:attribute name="controls"/>
         <xsl:if test="$autoplay = 'true'">
             <xsl:attribute name="autoplay" />
         </xsl:if>
@@ -6141,7 +6169,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- no extension suggests hosting has multiple -->
         <!-- versions for browser to sort through       -->
         <!-- More open formats first!  ;-)              -->
-        <xsl:if test="$extension = '' or $extension = 'oog'">
+        <xsl:if test="$extension = '' or $extension = 'ogg'">
             <xsl:element name="source">
                 <xsl:attribute name="src">
                     <xsl:value-of select="@source"/>
@@ -6195,9 +6223,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- dimensions and autoplay as parameters        -->
 <!-- Normally $preview is true, and not passed in -->
 <!-- 'false' is an override for standalone pages  -->
-<xsl:template match="video[@source]" mode="video-embed">
-    <xsl:param name="width" select="''" />
-    <xsl:param name="height" select="''" />
+<xsl:template match="video[@source]" mode="media-embed">
     <xsl:param name="preview" select="'true'" />
     <xsl:param name="autoplay" select="'false'" />
 
@@ -6206,16 +6232,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:attribute name="id">
             <xsl:apply-templates select="." mode="html-id"/>
         </xsl:attribute>
-        <xsl:attribute name="width">
-            <xsl:value-of select="$width" />
-        </xsl:attribute>
-        <xsl:attribute name="height">
-            <xsl:value-of select="$height" />
-        </xsl:attribute>
-        <!-- This CSS allows us to break the aspect-ratio -->
-        <!-- https://stackoverflow.com/questions/4000818/ -->
-        <xsl:attribute name="style">
-            <text>object-fit: fill;</text>
+        <xsl:attribute name="class">
+            <xsl:text>video</xsl:text>
         </xsl:attribute>
         <!-- empty forms work as boolean switches -->
         <xsl:attribute name="controls" />
@@ -6248,13 +6266,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- no extension suggests hosting has multiple -->
         <!-- versions for browser to sort through       -->
         <!-- More open formats first!  ;-)              -->
-        <xsl:if test="$extension = '' or $extension = 'oog'">
+        <xsl:if test="$extension = '' or $extension = 'ogv'">
             <xsl:element name="source">
                 <xsl:attribute name="src">
                     <xsl:value-of select="@source"/>
                     <!-- augment no-extension form -->
                     <xsl:if test="$extension = ''">
-                        <xsl:text>.ogg</xsl:text>
+                        <xsl:text>.ogv</xsl:text>
                     </xsl:if>
                     <xsl:apply-templates select="." mode="temporal-fragment"/>
                 </xsl:attribute>
@@ -6290,6 +6308,25 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
                 </xsl:attribute>
                 <xsl:attribute name="type">
                     <xsl:text>video/mp4</xsl:text>
+                </xsl:attribute>
+            </xsl:element>
+        </xsl:if>
+        <!-- 2007: *.oog officially replaced by *.ogv    -->
+        <!-- 2018-04-01: we supported *.oog for video at -->
+        <!--    91028991e081d2c933d46d3ce5d4d1cb6759c0bf -->
+        <!-- 2020-07-05: demoted, but continue support   -->
+        <xsl:if test="$extension = '' or $extension = 'oog'">
+            <xsl:element name="source">
+                <xsl:attribute name="src">
+                    <xsl:value-of select="@source"/>
+                    <!-- augment no-extension form -->
+                    <xsl:if test="$extension = ''">
+                        <xsl:text>.ogg</xsl:text>
+                    </xsl:if>
+                    <xsl:apply-templates select="." mode="temporal-fragment"/>
+                </xsl:attribute>
+                <xsl:attribute name="type">
+                    <xsl:text>video/ogg</xsl:text>
                 </xsl:attribute>
             </xsl:element>
         </xsl:if>
@@ -6336,9 +6373,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Templates, on a per-service basis, supply a URL, -->
 <!-- and any attributes on the "iframe" element which -->
 <!-- are not shared                                   -->
-<xsl:template match="video[@youtube|@youtubeplaylist|@vimeo]" mode="video-embed">
-    <xsl:param name="width" select="''" />
-    <xsl:param name="height" select="''" />
+<xsl:template match="video[@youtube|@youtubeplaylist|@vimeo]" mode="media-embed">
     <xsl:param name="preview" select="'true'" />
     <xsl:param name="autoplay" select="'false'" />
 
@@ -6378,21 +6413,19 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <div onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">
                 <xsl:choose>
                     <xsl:when test="@preview = 'generic'">
-                        <xsl:call-template name="generic-preview-svg">
-                            <xsl:with-param name="width" select="$width" />
-                            <xsl:with-param name="height" select="$height" />
-                        </xsl:call-template>
+                        <xsl:call-template name="generic-preview-svg"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <img width="{$width}" height="{$height}" src="{@preview}" alt="Video cover image"/>
+                        <img src="{@preview}" class="video-poster"
+                            alt="Video cover image"/>
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
             <div class="hidden-content">
                 <!-- Hidden content in here                   -->
                 <!-- Turn autoplay on, else two clicks needed -->
-                <iframe id="{$hid}" width="{$width}" height="{$height}" allowfullscreen=""
-                        src="{$source-url-autoplay-on}">
+                <iframe id="{$hid}" class="video" 
+                    allowfullscreen="" src="{$source-url-autoplay-on}">
                     <xsl:apply-templates select="." mode="video-iframe-attributes">
                         <xsl:with-param name="autoplay" select="'true'"/>
                     </xsl:apply-templates>
@@ -6400,8 +6433,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </xsl:when>
         <xsl:otherwise>
-            <iframe id="{$hid}" width="{$width}" height="{$height}" allowfullscreen=""
-                    src="{$source-url}">
+            <iframe id="{$hid}"  class="video"
+                allowfullscreen="" src="{$source-url}">
                 <xsl:apply-templates select="." mode="video-iframe-attributes">
                     <xsl:with-param name="autoplay" select="$autoplay"/>
                 </xsl:apply-templates>
@@ -8294,6 +8327,34 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             </xsl:otherwise>
         </xsl:choose>
         </script>
+        <xsl:text>&#xa;</xsl:text>
+
+        <!-- Google Ads on Runestone -->
+        <!-- Only in PreTeXt production version, only visible in -->
+        <!-- *non-login* versions of books hosted at Runestone   -->
+        <xsl:if test="not($runestone-dev)">
+            <!-- attribute is templated, so we form it as a -->
+            <!-- variable that we can place it using an AVT -->
+            <xsl:variable name="id-attr">
+                <xsl:value-of select="$rso"/>
+                <xsl:text>=settings.adsenseid</xsl:text>
+                <xsl:value-of select="$rsc"/>
+            </xsl:variable>
+            <!--  -->
+            <xsl:value-of select="$rso"/>
+            <xsl:text> if response.serve_ad and settings.adsenseid: </xsl:text>
+            <xsl:value-of select="$rsc"/>
+            <xsl:text>&#xa;</xsl:text>
+            <!--  -->
+            <script data-ad-client="{$id-attr}" async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <!--  -->
+            <xsl:text>&#xa;</xsl:text>
+            <xsl:value-of select="$rso"/>
+            <xsl:text> pass </xsl:text>
+            <xsl:value-of select="$rsc"/>
+            <xsl:text>&#xa;</xsl:text>
+            <!--  -->
+        </xsl:if>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -8443,6 +8504,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:apply-templates select="." mode="exercise-components"/>
     </question>
 </xsl:template>
+
+<xsl:template match="exercise[webwork-reps]" mode="runestone-manifest">
+    <question>
+        <xsl:apply-templates select="introduction|webwork-reps|conclusion"/>
+    </question>
+</xsl:template>
+
 
 <!-- Appendix is explicitly no-op, so we do not recurse into "section"  -->
 <xsl:template match="appendix" mode="runestone-manifest"/>
@@ -9049,10 +9117,18 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- in the host anonymous course.   It is incorporated only if   -->
 <!-- "webwork-reps" element is present                            -->
 <!-- TODO: should also depend on whether all are presented as static -->
+<!-- TODO: it is unclear if MathView should be loaded here at all; -->
 <xsl:template name="webwork">
     <xsl:if test="$b-has-webwork-reps">
-        <link href="{$webwork-server}/webwork2_files/js/apps/MathView/mathview.css" rel="stylesheet" />
-        <script src="{$webwork-server}/webwork2_files/js/vendor/iframe-resizer/js/iframeResizer.min.js"></script>
+        <link href="{$webwork-domain}/webwork2_files/js/apps/MathView/mathview.css" rel="stylesheet" />
+        <xsl:choose>
+            <xsl:when test="$webwork-reps-version = 1">
+                <script src="{$webwork-domain}/webwork2_files/js/vendor/iframe-resizer/js/iframeResizer.min.js"></script>
+            </xsl:when>
+            <xsl:when test="$webwork-reps-version = 2">
+                <script src="{$html.js.server}/js/{$html.js.version}/pretext-webwork.js"></script>
+            </xsl:when>
+        </xsl:choose>
     </xsl:if>
 </xsl:template>
 
@@ -9064,111 +9140,117 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- The guts of a WeBWorK problem realized in HTML -->
 <!-- This is heart of an external knowl version, or -->
 <!-- what is born visible under control of a switch -->
-<xsl:template match="webwork-reps[ancestor::exercises]">
+<xsl:template match="webwork-reps">
     <xsl:param name="b-original" select="true()"/>
+    <xsl:variable name="b-has-hint" select="(ancestor::exercises and $b-has-divisional-hint) or
+                                            (ancestor::reading-questions and $b-has-reading-hint) or
+                                            (ancestor::worksheet and $b-has-worksheet-hint) or
+                                            (not(ancestor::exercises or ancestor::reading-questions or ancestor::worksheet) and $b-has-inline-hint)" />
+    <xsl:variable name="b-has-answer" select="(ancestor::exercises and $b-has-divisional-answer) or
+                                              (ancestor::reading-questions and $b-has-reading-answer) or
+                                              (ancestor::worksheet and $b-has-worksheet-answer) or
+                                              (not(ancestor::exercises or ancestor::reading-questions or ancestor::worksheet) and $b-has-inline-answer)" />
+    <xsl:variable name="b-has-solution" select="(ancestor::exercises and $b-has-divisional-solution) or
+                                                (ancestor::reading-questions and $b-has-reading-solution) or
+                                                (ancestor::worksheet and $b-has-worksheet-solution) or
+                                                (not(ancestor::exercises or ancestor::reading-questions or ancestor::worksheet) and $b-has-inline-solution)"/>
+    <xsl:variable name="b-static" select="(ancestor::exercises and ($webwork.divisional.static = 'yes')) or
+                                          (ancestor::reading-questions and ($webwork.reading.static = 'yes')) or
+                                          (ancestor::worksheet and ($webwork.worksheet.static = 'yes')) or
+                                          (not(ancestor::exercises or ancestor::reading-questions or ancestor::worksheet) and ($webwork.inline.static = 'yes'))"/>
     <xsl:choose>
-        <xsl:when test="$webwork.divisional.static = 'yes'">
-            <!-- static, usual HTML treatment -->
+        <xsl:when test="$b-static = 'yes'">
             <xsl:apply-templates select="static" mode="exercise-components">
-                <xsl:with-param name="b-original" select="$b-original"/>
+                <xsl:with-param name="b-original"      select="$b-original"/>
                 <xsl:with-param name="b-has-statement" select="true()"/>
-                <xsl:with-param name="b-has-hint"      select="$b-has-divisional-hint"/>
-                <xsl:with-param name="b-has-answer"    select="$b-has-divisional-answer"/>
-                <xsl:with-param name="b-has-solution"  select="$b-has-divisional-solution"/>
+                <xsl:with-param name="b-has-hint"      select="$b-has-hint"/>
+                <xsl:with-param name="b-has-answer"    select="$b-has-answer"/>
+                <xsl:with-param name="b-has-solution"  select="$b-has-solution"/>
             </xsl:apply-templates>
         </xsl:when>
-        <xsl:otherwise>
-            <!-- dynamic, iframe -->
-            <xsl:apply-templates select="." mode="webwork-iframe">
-                <xsl:with-param name="b-has-hint"     select="$b-has-divisional-hint"/>
-                <xsl:with-param name="b-has-solution" select="$b-has-divisional-solution"/>
-            </xsl:apply-templates>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:template>
-
-<xsl:template match="webwork-reps[ancestor::reading-questions]">
-    <xsl:param name="b-original" select="true()"/>
-    <xsl:choose>
-        <xsl:when test="$webwork.reading.static = 'yes'">
-            <!-- static, usual HTML treatment -->
-            <xsl:apply-templates select="static" mode="exercise-components">
-                <xsl:with-param name="b-original" select="$b-original"/>
-                <xsl:with-param name="b-has-statement" select="true()"/>
-                <xsl:with-param name="b-has-hint"      select="$b-has-reading-hint"/>
-                <xsl:with-param name="b-has-answer"    select="$b-has-reading-answer"/>
-                <xsl:with-param name="b-has-solution"  select="$b-has-reading-solution"/>
-            </xsl:apply-templates>
-        </xsl:when>
-        <xsl:otherwise>
-            <!-- dynamic, iframe -->
-            <xsl:apply-templates select="." mode="webwork-iframe">
-                <xsl:with-param name="b-has-hint"     select="$b-has-reading-hint"/>
-                <xsl:with-param name="b-has-solution" select="$b-has-reading-solution"/>
-            </xsl:apply-templates>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:template>
-
-<xsl:template match="webwork-reps[ancestor::worksheet]">
-    <xsl:param name="b-original" select="true()"/>
-    <xsl:choose>
-        <xsl:when test="$webwork.worksheet.static = 'yes'">
-            <!-- static, usual HTML treatment -->
-            <xsl:apply-templates select="static" mode="exercise-components">
-                <xsl:with-param name="b-original" select="$b-original"/>
-                <xsl:with-param name="b-has-statement" select="true()"/>
-                <xsl:with-param name="b-has-hint"      select="$b-has-worksheet-hint"/>
-                <xsl:with-param name="b-has-answer"    select="$b-has-worksheet-answer"/>
-                <xsl:with-param name="b-has-solution"  select="$b-has-worksheet-solution"/>
-            </xsl:apply-templates>
-        </xsl:when>
-        <xsl:otherwise>
-            <!-- dynamic, iframe -->
-            <xsl:apply-templates select="." mode="webwork-iframe">
-                <xsl:with-param name="b-has-hint"     select="$b-has-worksheet-hint"/>
-                <xsl:with-param name="b-has-solution" select="$b-has-worksheet-solution"/>
-            </xsl:apply-templates>
-        </xsl:otherwise>
-    </xsl:choose>
-</xsl:template>
-
-<!-- NB: Context is not "exercise", so do not -->
-<!-- use "boolean(&INLINE-EXERCISE-FILTER;)"  -->
-<!-- Maybe when webwork-reps is removed?      -->
-<xsl:template match="webwork-reps[not(ancestor::exercises or ancestor::reading-questions or ancestor::worksheet)]">
-    <xsl:param name="b-original" select="true()"/>
-    <xsl:choose>
-        <xsl:when test="$webwork.inline.static = 'yes'">
-            <!-- static, usual HTML treatment -->
-            <xsl:apply-templates select="static" mode="exercise-components">
-                <xsl:with-param name="b-original" select="$b-original"/>
-                <xsl:with-param name="b-has-statement" select="true()"/>
-                <xsl:with-param name="b-has-hint"      select="$b-has-inline-hint"/>
-                <xsl:with-param name="b-has-answer"    select="$b-has-inline-answer"/>
-                <xsl:with-param name="b-has-solution"  select="$b-has-inline-solution"/>
-            </xsl:apply-templates>
-        </xsl:when>
-        <xsl:otherwise>
-            <!-- dynamic, iframe -->
+        <xsl:when test="$webwork-reps-version = 1">
             <xsl:if test="$b-webwork-inline-randomize">
                 <xsl:apply-templates select="." mode="webwork-randomize-buttons"/>
             </xsl:if>
             <xsl:apply-templates select="." mode="webwork-iframe">
-                <xsl:with-param name="b-has-hint"     select="$b-has-inline-hint"/>
-                <xsl:with-param name="b-has-solution" select="$b-has-inline-solution"/>
+                <xsl:with-param name="b-has-hint"     select="$b-has-hint"/>
+                <xsl:with-param name="b-has-solution" select="$b-has-solution"/>
             </xsl:apply-templates>
-        </xsl:otherwise>
+        </xsl:when>
+        <xsl:when test="$webwork-reps-version = 2">
+            <xsl:apply-templates select="." mode="webwork-interactive-div">
+                <xsl:with-param name="b-original"     select="$b-original"/>
+                <xsl:with-param name="b-has-hint"     select="$b-has-hint"/>
+                <xsl:with-param name="b-has-answer"   select="$b-has-answer"/>
+                <xsl:with-param name="b-has-solution" select="$b-has-solution"/>
+            </xsl:apply-templates>
+        </xsl:when>
     </xsl:choose>
 </xsl:template>
 
+<!-- Make a div with a button, where pretext-webwork.js can   -->
+<!-- replace the div content with a live, interactive problem -->
+<xsl:template match="webwork-reps" mode="webwork-interactive-div">
+    <xsl:param name="b-original"/>
+    <xsl:param name="b-has-hint"/>
+    <xsl:param name="b-has-answer"/>
+    <xsl:param name="b-has-solution"/>
+    <xsl:element name="div">
+        <xsl:attribute name="id">
+            <xsl:value-of select="@ww-id"/>
+        </xsl:attribute>
+        <xsl:attribute name="class">
+            <xsl:text>exercise-wrapper</xsl:text>
+        </xsl:attribute>
+        <xsl:attribute name="data-domain">
+            <xsl:value-of select="$webwork-domain"/>
+        </xsl:attribute>
+        <xsl:attribute name="data-seed" >
+            <xsl:value-of select="static/@seed"/>
+        </xsl:attribute>
+        <xsl:choose>
+            <xsl:when test="server-data/@problemSource">
+                <xsl:attribute name="data-problemSource">
+                    <xsl:value-of select="server-data/@problemSource"/>
+                </xsl:attribute>
+            </xsl:when>
+            <xsl:when test="server-data/@sourceFilePath">
+                <xsl:attribute name="data-sourceFilePath">
+                    <xsl:value-of select="server-data/@sourceFilePath"/>
+                </xsl:attribute>
+            </xsl:when>
+        </xsl:choose>
+        <xsl:attribute name="data-courseID">
+            <xsl:value-of select="server-data/@course-id"/>
+        </xsl:attribute>
+        <xsl:attribute name="data-userID">
+            <xsl:value-of select="server-data/@user-id"/>
+        </xsl:attribute>
+        <xsl:attribute name="data-coursePassword">
+            <xsl:value-of select="server-data/@course-password"/>
+        </xsl:attribute>
+        <xsl:attribute name="aria-live">
+            <xsl:value-of select="'polite'"/>
+        </xsl:attribute>
+        <xsl:apply-templates select="static" mode="exercise-components">
+            <xsl:with-param name="b-original"      select="$b-original"/>
+            <xsl:with-param name="b-has-statement" select="true()"/>
+            <xsl:with-param name="b-has-hint"      select="$b-has-hint"/>
+            <xsl:with-param name="b-has-answer"    select="$b-has-answer"/>
+            <xsl:with-param name="b-has-solution"  select="$b-has-solution"/>
+        </xsl:apply-templates>
+        <div>
+            <button class="webwork-button" onclick="initWW('{@ww-id}')">Make Interactive</button>
+        </div>
+    </xsl:element>
+</xsl:template>
 
 <!-- Select the correct URL from four pre-generated choices -->
 <!-- and package up as an iframe for interactive version    -->
+<!-- Used with 2.15- WW servers (webwork-reps version 1)    -->
 <xsl:template match="webwork-reps" mode="webwork-iframe">
     <xsl:param name="b-has-hint"/>
     <xsl:param name="b-has-solution"/>
-
     <xsl:variable name="the-url">
         <xsl:choose>
             <xsl:when test="$b-has-hint and $b-has-solution">
@@ -9190,12 +9272,13 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <iframe name="{@ww-id}" width="{$design-width}" src="{$the-url}" data-seed="{static/@seed}"/>
     <script>
         <xsl:text>iFrameResize({log:true,inPageLinks:true,resizeFrom:'child',checkOrigin:["</xsl:text>
-        <xsl:value-of select="$webwork-server" />
+        <xsl:value-of select="$webwork-domain" />
         <xsl:text>"]})</xsl:text>
     </script>
 </xsl:template>
 
-<!-- Buttons for randomizing the seed of a live WeBWorK problem      -->
+<!-- Buttons for randomizing the seed of a live WeBWorK problem            -->
+<!-- Undocumented. Only designed to work with 2.15 and earlier WW servers. -->
 <xsl:template match="webwork-reps" mode="webwork-randomize-buttons">
     <div class="WW-randomize-buttons">
         <button class="WW-randomize" type="button" onclick="WWiframeReseed('{@ww-id}')">Randomize</button>

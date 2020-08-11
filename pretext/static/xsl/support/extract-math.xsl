@@ -44,6 +44,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Plus variables post-assembly         -->
 <xsl:import href="../mathbook-common.xsl" />
 <!-- Process to enhanced source before relying on IDs -->
+<!-- So we expect the publisher file, which might for -->
+<!-- example point to (static) representations of     -->
+<!-- WeBWorK problems with math elements              -->
 <xsl:import href="../pretext-assembly.xsl"/>
 <!-- Use the HTML variants, as we are making input for MathJax -->
 <xsl:import href="../mathbook-html.xsl" />
@@ -67,6 +70,12 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- construction of the math element should produce the right action.  -->
 <xsl:param name="math.punctuation" select="'none'"/>
 <xsl:variable name="math.punctuation.include" select="$math.punctuation"/>
+
+<!-- We import the HTML stylesheet since we want HTML versions of -->
+<!-- the math bits, but we don't need all the chunking machinery  -->
+<!-- for extracting math, since we are building a single file,    -->
+<!-- so we set the level to control associated templates          -->
+<xsl:variable name="chunk-level" select="0"/>
 
 <!-- No special wrapping needed, so just copy the content -->
 <xsl:template match="me|men|md|mdn" mode="display-math-wrapper">

@@ -101,6 +101,24 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                 </xsl:otherwise>
             </xsl:choose>
 
+            <!-- Explicitly enable AMS-style inline \(...\),      -->
+            <!-- and explicitly disable TeX-style inline $...$    -->
+            <!-- The main HTML conversion does not do anything    -->
+            <!-- special for display math, so we disable any such -->
+            <!-- markup, since we use environments exclusively.   -->
+            <!-- N.B. default HTML adds a "zero-width" space into -->
+            <!-- a \( authored in a non-math context.             -->
+            <!-- N.B. This may need to be changed for MathJax 3   -->
+            <xsl:comment> Coordinate control of MathJax delimiters </xsl:comment>
+            <script type="text/x-mathjax-config">
+                <xsl:text>    MathJax.Hub.Config({&#xa;</xsl:text>
+                <xsl:text>        tex2jax: {&#xa;</xsl:text>
+                <xsl:text>            inlineMath:  [['\\(','\\)']],&#xa;</xsl:text>
+                <xsl:text>            displayMath: [],&#xa;</xsl:text>
+                <xsl:text>        }&#xa;</xsl:text>
+                <xsl:text>    });&#xa;</xsl:text>
+            </script>
+
           <!--  Some style changes from regular pretext-html -->
           <style>
 ul {
@@ -246,20 +264,20 @@ dfn {
                 <xsl:apply-templates select="/pretext/slideshow" mode="subtitle" />
             </h2>
         </xsl:if>
+        <!-- we assume at least one author, these are in a table -->
+        <xsl:apply-templates select="titlepage" mode="author-list"/>
         <!-- optional "event" -->
-        <xsl:if test="event">
+        <xsl:if test="titlepage/event">
             <h4>
-                <xsl:apply-templates select="event"/>
+                <xsl:apply-templates select="titlepage/event"/>
             </h4>
         </xsl:if>
         <!-- optional "date" -->
-        <xsl:if test="date">
+        <xsl:if test="titlepage/date">
             <h4>
-                <xsl:apply-templates select="date"/>
+                <xsl:apply-templates select="titlepage/date"/>
             </h4>
         </xsl:if>
-        <!-- we assume at least one author, these are in a table -->
-        <xsl:apply-templates select="titlepage" mode="author-list"/>
     </section>
     <xsl:apply-templates select="abstract"/>
   </section>

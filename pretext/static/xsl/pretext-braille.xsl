@@ -79,9 +79,11 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- These two templates are similar to those of  pretext-html.xsl. -->
 <!-- Primarily the production of cross-reference ("xref") knowls    -->
-<!-- has been removed.                                              -->
+<!-- has been removed.  The pretext-html.xsl template will have     -->
+<!-- done the assembly phase, adjusting $root to point to the       -->
+<!-- in-memory enhanced source.                                     -->
 <xsl:template match="/">
-    <xsl:apply-templates/>
+    <xsl:apply-templates select="$root"/>
 </xsl:template>
 
 <!-- Deprecation warnings are universal analysis of source and parameters   -->
@@ -90,7 +92,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Note that "docinfo" is at the same level and not structural, so killed -->
 <!-- We process structural nodes via chunking routine in xsl/pretext-common.xsl    -->
 <!-- This in turn calls specific modal templates defined elsewhere in this file     -->
-<xsl:template match="/mathbook|/pretext">
+<xsl:template match="/pretext">
     <!-- No point in proceeding without the file of braille   -->
     <!-- representations, and right at the start, so a banner -->
     <!-- warning for those who think this stylesheet alone    -->
@@ -244,6 +246,8 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <!-- Verbatim from -html conversion read about it there -->
 <xsl:template match="book|article" mode="section-header" />
+<!-- Slideshow is similar, but not present in the -html stylesheet -->
+<xsl:template match="slideshow" mode="section-header" />
 
 <!-- Default is indeterminate (seacrch while debugging) -->
 <xsl:template match="*" mode="division-class">
@@ -271,10 +275,16 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 
 <xsl:template match="section" mode="division-class">
     <xsl:choose>
+        <!-- slideshow is exceptional, a major division, -->
+        <!-- but no real content, and only a title       -->
+        <xsl:when test="parent::slideshow">
+            <xsl:text>fullpage</xsl:text>
+        </xsl:when>
+        <!-- routine and *not* generally terminal -->
         <xsl:when test="$b-has-subsubsection">
             <xsl:text>center</xsl:text>
         </xsl:when>
-        <!-- terminal -->
+        <!-- routine and necessarily terminal -->
         <xsl:otherwise>
             <xsl:text>cell5</xsl:text>
         </xsl:otherwise>
@@ -297,6 +307,10 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- terminal always, according to schema -->
 <xsl:template match="subsubsection" mode="division-class">
     <xsl:text>cell7</xsl:text>
+</xsl:template>
+
+<xsl:template match="slide" mode="division-class">
+    <xsl:text>centerpage</xsl:text>
 </xsl:template>
 
 <!-- ################### -->
@@ -508,12 +522,8 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:variable name="id">
         <xsl:apply-templates select="." mode="visible-id"/>
     </xsl:variable>
-    <!-- And the braille string itself.  We remove ASCII space  -->
-    <!-- which is present as a testing artifact.  Remove later. -->
-    <!-- Real spaces are Unicode braille blank pattern (?),     -->
-    <!-- U+2800, while testing spaces are ASCII spaces, U+0020. -->
-    <xsl:variable name="spaced-braille" select="$math-repr/pi:math[@id = $id]"/>
-    <xsl:variable name="braille" select="translate($spaced-braille, '&#x20;', '')"/>
+    <!-- Real spaces are Unicode braille blank pattern U+2800 -->
+    <xsl:variable name="braille" select="$math-repr/pi:math[@id = $id]/div[@class = 'braille']"/>
     <!-- We investigate actual source for very simple math   -->
     <!-- (one-letter variable names in Latin letters), so we -->
     <!-- process the content (which could have "xref", etc)  -->

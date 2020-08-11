@@ -729,6 +729,10 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:text>%% document language code is "vi-VN", Vietnamese&#xa;</xsl:text>
             <xsl:text>\setmainlanguage{vietnamese}&#xa;</xsl:text>
         </xsl:when>
+        <xsl:when test="$document-language = 'it-IT'">
+            <xsl:text>%% document language code is "it-IT", Italian&#xa;</xsl:text>
+            <xsl:text>\setmainlanguage{italian}&#xa;</xsl:text>
+        </xsl:when>
     </xsl:choose>
     <xsl:text>%% Enable secondary languages based on discovery of @xml:lang values&#xa;</xsl:text>
     <!-- secondary: so not already "main", and look just beyond $document-root (eg "book") -->
@@ -1177,6 +1181,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!-- TODO: condition of figure/*/figure-like, or $subfigure-reps -->
     <xsl:text>%% A faux tcolorbox whose only purpose is to provide common numbering&#xa;</xsl:text>
     <xsl:text>%% facilities for 2D displays which are subnumbered as part of a "sidebyside"&#xa;</xsl:text>
+    <!-- faux subdisplay requires manipulating low-level counters -->
+    <!-- TODO: condition on presence of (plain) 2-D displays to limit use? -->
+    <xsl:text>\makeatletter&#xa;</xsl:text>
     <xsl:text>\newtcolorbox[auto counter</xsl:text>
     <!-- control the levels of the numbering -->
     <!-- global (no periods) is the default  -->
@@ -1191,7 +1198,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:choose>
     <xsl:text>, number freestyle={\noexpand\thetcb@cnt@block(\noexpand\alph{\tcbcounter})}</xsl:text>
     <xsl:text>]{subdisplay}{}&#xa;</xsl:text>
-    <!-- Groups of environments/blocks -->
+    <!-- faux subdisplay requires manipulating low-level counters -->
+    <xsl:text>\makeatother&#xa;</xsl:text>
+   <!-- Groups of environments/blocks -->
     <!-- Variables hold exactly one node of each type in use -->
     <!-- "environment" template constructs...environments -->
     <!-- THEOREM-LIKE -->
@@ -1333,12 +1342,14 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <xsl:apply-templates select="." mode="environment"/>
     </xsl:for-each>
     <!-- FIGURE-LIKE -->
-    <!-- subcaptioned are separate -->
+    <!-- subcaptioned are separate and next, condition on "figure"   -->
+    <!-- ancestor to not mistakenly pick up a 'subtable' (say) here  -->
+    <!-- instead of a 'plain' table (which was once a bug)           -->
     <xsl:variable name="figure-reps" select="
-        ($document-root//figure)[1]|
-        ($document-root//table)[1]|
-        ($document-root//listing)[1]|
-        ($document-root//list)[1]"/>
+        ($document-root//figure[not(ancestor::figure)])[1]|
+        ($document-root//table[not(ancestor::figure)])[1]|
+        ($document-root//listing[not(ancestor::figure)])[1]|
+        ($document-root//list[not(ancestor::figure)])[1]"/>
     <xsl:if test="$figure-reps">
         <xsl:text>%%&#xa;</xsl:text>
         <xsl:text>%% tcolorbox, with styles, for FIGURE-LIKE&#xa;</xsl:text>
@@ -2933,6 +2944,10 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:text>style/.style={</xsl:text>
     <xsl:apply-templates select="." mode="tcb-style"/>
     <xsl:text>} }&#xa;</xsl:text>
+    <!-- subnumbered version requires manipulating low-level counters -->
+    <xsl:if test="$b-subcaptioned">
+        <xsl:text>\makeatletter&#xa;</xsl:text>
+    </xsl:if>
     <!-- create and configure the environment/tcolorbox -->
     <xsl:text>\newtcolorbox</xsl:text>
     <xsl:text>[</xsl:text>
@@ -3031,6 +3046,10 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:value-of select="$environment-name"/>
     <xsl:text>style, }&#xa;</xsl:text>
     <!-- end: options -->
+    <!-- subnumbered version requires manipulating low-level counters -->
+    <xsl:if test="$b-subcaptioned">
+        <xsl:text>\makeatother&#xa;</xsl:text>
+    </xsl:if>
 </xsl:template>
 
 <!-- ########################## -->
@@ -6197,9 +6216,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <xsl:param name="b-has-answer" />
     <xsl:param name="b-has-solution" />
 
-    <xsl:if test="not(preceding-sibling::stage)">
-        <text>\leavevmode\par\noindent%&#xa;</text>
-    </xsl:if>
+    <xsl:apply-templates select="." mode="leave-vertical-mode"/>
     <!-- e.g., Part 2. -->
     <xsl:text>\textbf{</xsl:text>
     <xsl:call-template name="type-name">
@@ -6241,9 +6258,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:variable>
 
     <xsl:if test="not($dry-run = '')">
-        <xsl:if test="not(preceding-sibling::stage)">
-            <text>\leavevmode\par\noindent%&#xa;</text>
-        </xsl:if>
+        <xsl:apply-templates select="." mode="leave-vertical-mode"/>
         <!-- e.g., Part 2. -->
         <xsl:text>\textbf{</xsl:text>
         <xsl:call-template name="type-name">
@@ -6291,7 +6306,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- $b-has-webwork-reps, then on                              -->
         <!-- $document-root//webwork-reps/static//var[@form='buttons'] -->
         <xsl:when test="@form='buttons'" >
-            <xsl:text>\par&#xa;</xsl:text>
             <xsl:text>\begin{itemize}[label=$\odot$,leftmargin=3em,]&#xa;</xsl:text>
             <xsl:for-each select="li">
                 <xsl:text>\item{}</xsl:text>
@@ -6301,7 +6315,6 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
             <xsl:text>\end{itemize}&#xa;</xsl:text>
         </xsl:when>
         <xsl:when test="@form='checkboxes'" >
-            <xsl:text>\par&#xa;</xsl:text>
             <xsl:text>\begin{itemize*}[label=$\square$,leftmargin=3em,itemjoin=\hspace{4em plus 1em minus 3em}]&#xa;</xsl:text>
             <xsl:for-each select="li">
                 <xsl:if test="not(p[.='?']) and not(normalize-space(.)='?')">
@@ -8573,9 +8586,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!-- thing after a heading.  This could be excessive   -->
     <!-- if the cell is empty, but should not be harmful.  -->
     <!-- NB: maybe this should not even be called if all empty -->
-    <xsl:if test="not(preceding-sibling::*[not(&SUBDIVISION-METADATA-FILTER;)])">
-        <xsl:call-template name="leave-vertical-mode" />
-    </xsl:if>
+    <xsl:apply-templates select="." mode="leave-vertical-mode"/>
     <xsl:if test="$in!=''">
         <xsl:text>\begin{sageinput}&#xa;</xsl:text>
         <xsl:value-of select="$in" />
@@ -8760,8 +8771,22 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Potential alternate solution: write a leading "empty" \mbox{}    -->
 <!-- http://tex.stackexchange.com/questions/171220/                   -->
 <!-- include-non-floating-graphic-in-a-theorem-environment            -->
-<xsl:template name="leave-vertical-mode">
-    <xsl:text>\leavevmode%&#xa;</xsl:text>
+<xsl:template match="sage" mode="leave-vertical-mode">
+    <xsl:if test="not(preceding-sibling::*[not(&SUBDIVISION-METADATA-FILTER;)])">
+        <xsl:text>\leavevmode%&#xa;</xsl:text>
+    </xsl:if>
+</xsl:template>
+
+<xsl:template match="sidebyside" mode="leave-vertical-mode">
+    <xsl:if test="not(preceding-sibling::*[not(&SUBDIVISION-METADATA-FILTER;)]) and parent::paragraphs">
+        <xsl:text>\leavevmode\par\noindent%&#xa;</xsl:text>
+    </xsl:if>
+</xsl:template>
+
+<xsl:template match="stage" mode="leave-vertical-mode">
+    <xsl:if test="not(preceding-sibling::stage)">
+        <xsl:text>\leavevmode\par\noindent%&#xa;</xsl:text>
+    </xsl:if>
 </xsl:template>
 
 <xsl:template match="figure|table|list|listing" mode="environment-name">
@@ -8906,6 +8931,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!-- headings, panels, captions.  Then put "\nopagebreak"       -->
     <!-- into the definition, so it is "hidden" and not in the body -->
 
+    <xsl:apply-templates select="." mode="leave-vertical-mode"/>
     <xsl:text>\begin{sidebyside}{</xsl:text>
     <xsl:value-of select="$number-panels" />
     <xsl:text>}{</xsl:text>
