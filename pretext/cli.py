@@ -115,11 +115,12 @@ def build(format, source, output, param, publisher, webwork, diagrams):
         # handle this exactly as in webwork_to_xml (should this
         # be exported in the pretext core module?)
         try:
-            params = (stringparams['server'])
+            server_params = (stringparams['server'])
         except Exception as e:
             root_cause = str(e)
-            print("No server name, {}".format(root_cause))
-        build.webwork(source, webwork_output, params)
+            print("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
+            server_params = "https://webwork-ptx.aimath.org"
+        build.webwork(source, webwork_output, stringparams, server_params)
     if format=='html' or format=='all':
         if diagrams:
             build.diagrams(source,html_output,stringparams)

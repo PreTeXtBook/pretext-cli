@@ -60,11 +60,12 @@ def diagrams(ptxfile, output, params):
     image_output = os.path.join(output, 'images')
     utils.ensure_directory(image_output)
     # call pretext-core's latex image module:
+    # NOTE: we set pub_file=NONE since our pubfile has already been added to the params dictionary.
     ptxcore.latex_image_conversion(
-        xml_source=ptxfile, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat="svg")
+        xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat="svg")
 
 
-def webwork(ptxfile, dest_dir, params):
+def webwork(ptxfile, dest_dir, params, server_params):
     import os, shutil
     from .static.pretext import pretext as ptxcore
     # Pass verbosity level to ptxcore scripts:
@@ -74,10 +75,10 @@ def webwork(ptxfile, dest_dir, params):
     # dest_dir = os.path.join(dest_dir, outfile)
     utils.ensure_directory(dest_dir)
     # call the webwork-to-xml routine from core
-    # the second argument seems to be for debugging on the ptx core side
-    # the third argument has to do with ww server config; here just use
-    # the default/recommended config in PreTeXt Guide.
-    ptxcore.webwork_to_xml(ptxfile, True, params, dest_dir)
+    # the fourth argument seems to be for debugging on the ptx core side
+    # the fifth argument has to do with ww server config; here just use
+    # the default/recommended config in PreTeXt Guide. But this is passed as one of the collection of stringparams, so set to None here.  Sams for the pub_file.
+    ptxcore.webwork_to_xml(xml_source=ptxfile, pub_file=None, stringparams=params, abort_early=True, server_params=server_params, dest_dir=dest_dir)
 
 # This start of a utility function to replicate the tasks for xsltproc.
 def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
