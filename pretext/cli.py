@@ -75,7 +75,7 @@ def new(title,directory,chapter,interactive):
 @click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
               help='Path to main output directory')
 @click.option('--param', multiple=True, help="""
-              Define a stringparam to use during processing. Usage: pretext build --param foo=bar --param baz=woo
+              Define a stringparam to use during processing. Usage: pretext build --param foo:bar --param baz:woo
 """)
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
@@ -95,7 +95,7 @@ def build(format, source, output, param, publisher, webwork, diagrams):
     # from . import utils
     # set up stringparams as dictionary:
     # TODO: exit gracefully if string params were not entered in correct format.
-    stringparams = dict([p.split("=") for p in param])
+    stringparams = dict([p.split(":") for p in param])
     if publisher:
         # publisher = os.path.abspath(publisher)
         stringparams['publisher'] = publisher
