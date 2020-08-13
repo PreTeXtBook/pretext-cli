@@ -3,7 +3,15 @@ import click_config_file
 from . import utils
 from . import version as cli_version
 
+# config file default name:
 config_file = '.ptxconfig'
+
+#Two config file options to reuse on subcommands.
+config_file_option = click_config_file.configuration_option(implicit="False", default=config_file, expose_value=True, help="Read options from configuration FILE specified.  [default: .ptxconfig]  Use `--config None` to run with standard default options.")
+
+save_config_option = click.option('-sc', '--save-config', is_flag=True, default=False, help='save any options provided to local configuration file, specified with --config (or default ".ptxconfig")')
+
+
 
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
@@ -32,7 +40,6 @@ def main(verbose):
               "a subdirectory of the current path based on book title.")
 @click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
 @click.option('-i', '--interactive', is_flag=True, default=False, help="Interactively requests names of book chapters.")
-@click_config_file.configuration_option(implicit="False", default=config_file)
 def new(title,directory,chapter,interactive):
     """
     Creates a subdirectory with the files needed to author a PreTeXt document.
@@ -70,28 +77,33 @@ def new(title,directory,chapter,interactive):
 @main.command(short_help="Build specified format target")
 @click.argument('format', default='html',
               type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
+#The following option is redundant; we already have lots of options in the help.
+# @click.option('--format', default='html', show_default=True, help="Sets which format to build", type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
               help='Path to main output directory')
+@click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file")
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo:bar --param baz:woo
 """)
-@click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file.")
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
-@click_config_file.configuration_option(implicit="False", default=config_file)
-@click.option('--format', default='html', show_default=True, help="Sets which format to build",
-              type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
-@click.option('-w', '--webwork', is_flag=True, default=False, help='rebuild webwork')
-def build(format, source, output, param, publisher, webwork, diagrams):
+@click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
+
+@config_file_option
+@save_config_option
+def build(format, source, output, param, publisher, webwork, diagrams, config, save_config ):
     """
     Process PreTeXt files into specified format.
 
     For html, images coded in source (latex-image, etc) are only processed using the --diagrams option.
+
+    If the project included WeBWorK exercises, these must be processed using the --webwork option.
     """
     import os
-    # Remember options in local configfile:
-    utils.write_config(config_file, source=source, output=output, param=param, publisher=publisher)
+    # Remember options in local configfile when requested:
+    if save_config:
+        utils.write_config(config, source=source, output=output, param=param, publisher=publisher)
     # from . import utils
     # set up stringparams as dictionary:
     # TODO: exit gracefully if string params were not entered in correct format.
@@ -152,16 +164,19 @@ def build(format, source, output, param, publisher, webwork, diagrams):
     help="""
     Choose which port to use for the local server.
     """)
-@click_config_file.configuration_option(implicit="False", default=config_file)
-def view(directory,access,port):
+@config_file_option
+@save_config_option
+def view(directory,access,port,config,save_config):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
     import os
     from . import utils
-    # Remember options in local configfile:
-    utils.write_config(config_file, directory=directory,
-                        access=access, port=port)
+
+    # Remember options in local configfile when requested:
+    if save_config:
+        utils.write_config(config, directory=directory, access=access, port=port)
+
     directory = os.path.abspath(directory)
     if not utils.directory_exists(directory):
         raise_cli_error(f"""

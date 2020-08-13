@@ -46,6 +46,9 @@ def write_config(configfile, **kwargs):
     for key, value in kwargs.items():
         config[key] = value
     config.write()
+    print("Saving options to the config file {}".format(configfile))
+    with open(configfile) as cf:
+        print(cf.read())
 
 
 # Taken from Rob's pretext-core:
