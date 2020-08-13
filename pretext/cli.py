@@ -27,38 +27,41 @@ def main(verbose):
 # pretext new
 @main.command(short_help="Provision a new PreTeXt document.")
 @click.argument('title', default="My Great Book!")
-@click.option('--project_path')
+@click.option('--directory', type=click.Path(),
+              help="Directory to create/use for the project. Defaults to "+
+              "a subdirectory of the current path based on book title.")
 @click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
+@click.option('-i', '--interactive', is_flag=True, default=False, help="Interactively requests names of book chapters.")
 @click_config_file.configuration_option(implicit="False", default=config_file)
-def new(title,project_path,chapter):
+def new(title,directory,chapter,interactive):
     """
     Creates a subdirectory with the files needed to author a PreTeXt document.
-    Requires choosing a TITLE. Optionally takes a PROJECT_PATH, otherwise
-    the project will be generated in a subfolder based upon the title.
 
     Usage:
     pretext new "My Great Book!"
     """
     from . import document, project
     from slugify import slugify
-    if not(project_path):
+    if not(directory):
         if slugify(title):
-            project_path = slugify(title)
+            directory = slugify(title)
         else:
-            project_path = 'my-book'
-    click.echo(f"Generating new PreTeXt project in `{project_path}`.")
+            directory = 'my-book'
+    click.echo(f"Generating new PreTeXt project in `{directory}`.")
     pretext = document.new(title)
     chapter = list(chapter)
-    if not(chapter):
+    if interactive:
         setting_chapters = True
-        current_chapter = 1
+        current_chapter = len(chapter)+1
         while setting_chapters:
             chapter.append(click.prompt(f"Provide the title for Chapter {current_chapter}"))
             setting_chapters = click.confirm('Do you want to name another chapter?')
             current_chapter += 1
+    elif not(chapter):
+        chapter = ["My First Chapter"]
     for c in chapter:
         document.add_chapter(pretext,c)
-    project.write(pretext, project_path)
+    project.write(pretext, directory)
     # TODO: Set options in local configfile:
     # utils.write_config(config_file, source=source,
     #                    output=output, param=param, publisher=publisher)
