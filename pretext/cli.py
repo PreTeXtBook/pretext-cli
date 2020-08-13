@@ -183,6 +183,7 @@ def view(directory,access,port):
         os.chdir(directory)
         click.echo(f"Your documents may be previewed at {url}")
         click.echo("Use [Ctrl]+[C] to halt the server.")
+        httpd.allow_reuse_address = True
         httpd.serve_forever()
 
 # pretext publish
