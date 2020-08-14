@@ -83,7 +83,7 @@ def new(title,directory,chapter,interactive):
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
               help='Path to main output directory')
-@click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to main pretext source file")
+@click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to base folder")
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo:bar --param baz:woo
 """)
@@ -109,8 +109,12 @@ def build(format, source, output, param, publisher, webwork, diagrams, config, s
     # TODO: exit gracefully if string params were not entered in correct format.
     stringparams = dict([p.split(":") for p in param])
     if publisher:
-        # publisher = os.path.abspath(publisher)
         stringparams['publisher'] = publisher
+    if 'publisher' in stringparams:
+        stringparams['publisher'] = os.path.abspath(stringparams['publisher'])
+        if not(os.path.isfile(stringparams['publisher'])):
+            raise ValueError('Publisher file ({}) does not exist'.format(stringparams['publisher']))
+        stringparams['publisher'] = stringparams['publisher'].replace(os.sep, '/')
     # if user supplied output path, respect it:
     # otherwise, use defaults.  TODO: move this to a config file
     output = os.path.abspath(output)

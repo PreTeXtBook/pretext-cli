@@ -87,6 +87,9 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     utils._verbose('XSL conversion of {} by {}'.format(xmlfile, xslfile))
     debug_string = 'XSL conversion via {} of {} to {} and/or into directory {} with parameters {}'
     utils._debug(debug_string.format(xslfile, xmlfile, outfile, outdir, stringparams))
+    
+    # print(stringparams['publisher'])
+
     # string parameters arrive in a "plain" string:string dictionary
     # but the values need to be prepped for lxml use, always
     stringparams = {key: ET.XSLT.strparam(value) for (
@@ -104,11 +107,16 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
         newdom = transform(dom, **stringparams)
         #grab the format from xslfile and use it to name logfile:
         # logfile = xslfile[xslfile.find('pretext-'):].replace('pretext-','').replace('.xsl','')+'-build.log'
-        logfile = "build.log"
-        with open(logfile,"w") as log:
-            log.write(str(transform.error_log))
-        # also print error_log to console.
-        print(transform.error_log)
+        # report any errors
+        messages = transform.error_log
+        if messages:
+            logfile = "build.log"
+            with open(logfile,"w") as log:
+                log.write(str('Messages from application of {}:'.format(xslfile))+'\n')
+                print('Messages from application of {}:'.format(xslfile))
+                for m in messages:
+                    log.write(m.message + '\n')
+                    print(m.message)
         # Write output if not done by exsl:document:
         if outfile:
             utils._verbose('Writing output to file specified')
