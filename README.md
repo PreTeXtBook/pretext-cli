@@ -54,7 +54,7 @@ See <https://packaging.python.org/tutorials/packaging-projects/>.
 
 ```
 python setup.py sdist bdist_wheel
-python -m twine upload --repository testpypi dist/* # to test
+python -m twine upload --repository testpypi --no-deps dist/* # to test
 python -m twine upload dist/* # for real
 ```
 
@@ -68,3 +68,4 @@ Right now, we're mirroring resources from
 <https://github.com/rbeezer/mathbook/> using the commit
 found in `pretext/static/CORE_COMMIT`.
 (TODO: pull/build these without mirroring)
+<div align='right'></div>
