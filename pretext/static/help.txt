@@ -20,16 +20,16 @@ Commands:
 Usage: pretext new [OPTIONS] [TITLE]
 
   Creates a subdirectory with the files needed to author a PreTeXt document.
-  Requires choosing a TITLE. Optionally takes a PROJECT_PATH, otherwise the
-  project will be generated in a subfolder based upon the title.
 
   Usage: pretext new "My Great Book!"
 
 Options:
-  --project_path TEXT
-  --chapter TEXT       Provide one or more chapter titles.
-  --config FILE        Read configuration from FILE.
-  --help               Show this message and exit.
+  --directory PATH   Directory to create/use for the project. Defaults to a
+                     subdirectory of the current path based on book title.
+
+  --chapter TEXT     Provide one or more chapter titles.
+  -i, --interactive  Interactively requests names of book chapters.
+  --help             Show this message and exit.
 
 
 -------------------------------------------------------------------------------
@@ -41,19 +41,29 @@ Usage: pretext build [OPTIONS] [[html|latex|all]]
   For html, images coded in source (latex-image, etc) are only processed
   using the --diagrams option.
 
+  If the project included WeBWorK exercises, these must be processed using
+  the --webwork option.
+
 Options:
   -i, --input PATH      Path to main *.ptx file  [default: source/main.ptx]
   -o, --output PATH     Path to main output directory  [default: output]
+  -p, --publisher PATH  Publisher file name, with path relative to base folder
   --param TEXT          Define a stringparam to use during processing. Usage:
-                        pretext build --param foo=bar --param baz=woo
-
-  -p, --publisher PATH  Publisher file name, with path relative to main
-                        pretext source file.
+                        pretext build --param foo:bar --param baz:woo
 
   -d, --diagrams        Regenerate images coded in source (latex-image, etc)
                         using pretext script
 
-  --config FILE         Read configuration from FILE.
+  -w, --webwork         Reprocess WeBWorK exercises, creating fresh webwork-
+                        representations.ptx file
+
+  --config FILE         Read options from configuration FILE specified.
+                        [default: .ptxconfig]  Use `--config None` to run with
+                        standard default options.
+
+  -sc, --save-config    save any options provided to local configuration file,
+                        specified with --config (or default ".ptxconfig")
+
   --help                Show this message and exit.
 
 
@@ -77,7 +87,15 @@ Options:
   --port INTEGER                  Choose which port to use for the local
                                   server.  [default: 8000]
 
-  --config FILE                   Read configuration from FILE.
+  --config FILE                   Read options from configuration FILE
+                                  specified.  [default: .ptxconfig]  Use
+                                  `--config None` to run with standard default
+                                  options.
+
+  -sc, --save-config              save any options provided to local
+                                  configuration file, specified with --config
+                                  (or default ".ptxconfig")
+
   --help                          Show this message and exit.
 
 

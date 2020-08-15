@@ -16,8 +16,8 @@ subprocess.run(['pretext', 'publish'])
 
 
 # Build package
-subprocess.run("python setup.py sdist bdist_wheel")
+subprocess.run(["python", "setup.py", "sdist", "bdist_wheel"])
 
 # prompt user to upload to PyPI
 print("If all is successful, and you have the PyPI token saved to `.pypitoken`:")
-print("python -m twine upload dist/* -u __TOKEN__ -p $(cat .pypitoken)")
+print("python -m twine upload dist/* -u __token__ -p $(cat .pypitoken)")
