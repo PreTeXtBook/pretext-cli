@@ -1,4 +1,4 @@
-# PreTeXt.py
+# PreTeXt-CLI
 
 A package for authoring and building [PreTeXt](https://pretextbook.org) documents.
 
@@ -53,9 +53,7 @@ To add dependencies for the development environment, use `pipenv install [packag
 See <https://packaging.python.org/tutorials/packaging-projects/>.
 
 ```
-python setup.py sdist bdist_wheel
-python -m twine upload --repository testpypi --no-deps dist/* # to test
-python -m twine upload dist/* # for real
+python build.py
 ```
 
 ## Versioning
