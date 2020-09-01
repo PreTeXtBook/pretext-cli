@@ -72,9 +72,15 @@
         <p>Once you've confirmed that you're using a valid version of Python,
         just run (replacing `python` with `python3` if necessary):</p>
         <cd>python -m pip install --user pretextbook</cd>
-        <p>(It's possible you may get an error like 
+        <aside>
+        <p>If you get an error such as
+        <c>No module named pip.</c> then
+        <url href="https://pip.pypa.io/en/stable/installing/">install pip</url>.
+        </p>
+        <p>It's also possible you may get an error like
         <c>error: invalid command 'bdist_wheel'</c>
-        <mdash /> good news, you can ignore it!)</p>
+        <mdash /> good news, you can ignore it!).</p>
+        </aside>
         <p>After installation, if you didn't see an error like
         <q>WARNING:
         The script pretext is installed in
