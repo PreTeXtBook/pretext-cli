@@ -107,7 +107,8 @@ def build(format, source, output, param, publisher, webwork, diagrams, config, s
     # from . import utils
     # set up stringparams as dictionary:
     # TODO: exit gracefully if string params were not entered in correct format.
-    stringparams = dict([p.split(":") for p in param])
+    param_list = [p.split(":") for p in param]
+    stringparams = {p[0]: ":".join(p[1:]) for p in param_list}
     if publisher:
         stringparams['publisher'] = publisher
     if 'publisher' in stringparams:
