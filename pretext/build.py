@@ -95,10 +95,8 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     stringparams = {key: ET.XSLT.strparam(value) for (
         key, value) in stringparams.items()}
     # xinclude:
-    try:
-        dom.xinclude()
-    except:
-        print('there was an error with xinclude')
+    dom.xinclude()
+
     xslt = ET.parse(xslfile)
     utils._verbose('Loading the transform')
     transform = ET.XSLT(xslt)
