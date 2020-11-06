@@ -118,5 +118,5 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
         # Write output if not done by exsl:document:
         if outfile:
             utils._verbose('Writing output to file specified')
-            with open(outfile, "w") as fh:
+            with open(outfile, "w", encoding='utf-8') as fh:
                 fh.write(str(newdom))
