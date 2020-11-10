@@ -120,3 +120,4 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
             utils._verbose('Writing output to file specified')
             with open(outfile, "w", encoding='utf-8') as fh:
                 fh.write(str(newdom))
+
