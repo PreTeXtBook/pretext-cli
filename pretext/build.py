@@ -7,7 +7,9 @@ def html(ptxfile,output,stringparams):
     import os, shutil
     # from pathlib import Path
     # ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = os.path.join(static.filepath('xsl'), 'pretext-html.xsl')
+    # xslfile = os.path.join(static.filepath('xsl'), 'pretext-html.xsl')
+    static_dir = os.path.dirname(static.__file__)
+    xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
     # create output directories and move there.
     # output = os.path.abspath(output)
     utils.ensure_directory(output)
@@ -30,7 +32,9 @@ def latex(ptxfile,output,stringparams):
     import shutil
     # import sys
     # ptxfile = os.path.abspath('source/main.ptx')
-    xslfile = os.path.join(static.filepath('xsl'), 'pretext-latex.xsl')
+    # xslfile = os.path.join(static.filepath('xsl'), 'pretext-latex.xsl')
+    static_dir = os.path.dirname(static.__file__)
+    xslfile = os.path.join(static_dir, 'xsl', 'pretext-latex.xsl')
     #create output directory
     # output = os.path.abspath(output)
     utils.ensure_directory(output)

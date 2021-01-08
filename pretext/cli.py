@@ -232,3 +232,13 @@ def publish():
     click.echo("")
     click.echo("Once all the above is satisifed, run the following command to update your repository and publish your built HTML on the internet:")
     click.echo("git add docs; git commit -m 'publish updated HTML'; git push")
+
+## pretext debug
+# @main.command(short_help="just for testing")
+# def debug():
+#     import os
+#     from . import static, document, utils
+#     click.echo("This is just for debugging and testing new features.")
+#     static_dir = os.path.dirname(static.__file__)
+#     xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
+#     print(xslfile)
