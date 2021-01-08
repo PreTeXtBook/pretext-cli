@@ -141,3 +141,6 @@ cython_debug/
 .pypitoken
 # Hide PreTeXt build output
 output
+
+#pyproject?
+pyproject.toml

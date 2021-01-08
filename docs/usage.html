@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--********************************************-->
 <!--*       Generated from PreTeXt source      *-->
-<!--*       on 2020-11-10T20:11:01Z       *-->
+<!--*       on 2021-01-08T14:47:53-07:00       *-->
 <!--*   A recent stable commit (2020-08-09):   *-->
 <!--* 98f21740783f166a773df4dc83cab5293ab63a4a *-->
 <!--*                                          *-->
@@ -99,117 +99,117 @@ MathJax.Hub.Config({
 <span class="type">Section</span> <span class="codenumber">3</span> <span class="title">Usage</span>
 </h2>
 <p id="p-18">For your convenience, documentation on using all features of the command-line interface may be viewed below, or displayed on the command line by using the <code class="code-inline tex2jax_ignore">--help</code> option. Use <code class="code-inline tex2jax_ignore">pretext --help</code> to see what commands are available, and (for example) <code class="code-inline tex2jax_ignore">pretext new --help</code> to learn how to use each command.</p>
-<pre class="code-block tex2jax_ignore">Usage: pretext [OPTIONS] COMMAND [ARGS]...
-
-  Command line tools for quickly creating, authoring, and building PreTeXt
-  documents.
-
-Options:
-  -v, --verbose  -v for basic feedback; -vv for debug info
-  --version      Show the version and exit.
-  --help         Show this message and exit.
-
-Commands:
-  build    Build specified format target
-  new      Provision a new PreTeXt document.
-  publish  Prepares project for publishing on GitHub Pages.
-  view     Preview built PreTeXt documents in your browser.
-
-
--------------------------------------------------------------------------------
-
-Usage: pretext new [OPTIONS] [TITLE]
-
-  Creates a subdirectory with the files needed to author a PreTeXt document.
-
-  Usage: pretext new "My Great Book!"
-
-Options:
-  --directory PATH   Directory to create/use for the project. Defaults to a
-                     subdirectory of the current path based on book title.
-
-  --chapter TEXT     Provide one or more chapter titles.
-  -i, --interactive  Interactively requests names of book chapters.
-  --help             Show this message and exit.
+<pre class="code-block tex2jax_ignore">Usage: pretext [OPTIONS] COMMAND [ARGS]...
+
+  Command line tools for quickly creating, authoring, and building PreTeXt
+  documents.
+
+Options:
+  -v, --verbose  -v for basic feedback; -vv for debug info
+  --version      Show the version and exit.
+  --help         Show this message and exit.
+
+Commands:
+  build    Build specified format target
+  new      Provision a new PreTeXt document.
+  publish  Prepares project for publishing on GitHub Pages.
+  view     Preview built PreTeXt documents in your browser.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext build [OPTIONS] [[html|latex|all]]
-
-  Process PreTeXt files into specified format.
-
-  For html, images coded in source (latex-image, etc) are only processed
-  using the --diagrams option.
-
-  If the project included WeBWorK exercises, these must be processed using
-  the --webwork option.
-
-Options:
-  -i, --input PATH      Path to main *.ptx file  [default: source/main.ptx]
-  -o, --output PATH     Path to main output directory  [default: output]
-  -p, --publisher PATH  Publisher file name, with path relative to base folder
-  --param TEXT          Define a stringparam to use during processing. Usage:
-                        pretext build --param foo:bar --param baz:woo
-
-  -d, --diagrams        Regenerate images coded in source (latex-image, etc)
-                        using pretext script
-
-  -w, --webwork         Reprocess WeBWorK exercises, creating fresh webwork-
-                        representations.ptx file
-
-  --config FILE         Read options from configuration FILE specified.
-                        [default: .ptxconfig]  Use `--config None` to run with
-                        standard default options.
-
-  -sc, --save-config    save any options provided to local configuration file,
-                        specified with --config (or default ".ptxconfig")
-
-  --help                Show this message and exit.
+Usage: pretext new [OPTIONS] [TITLE]
+
+  Creates a subdirectory with the files needed to author a PreTeXt document.
+
+  Usage: pretext new "My Great Book!"
+
+Options:
+  --directory PATH   Directory to create/use for the project. Defaults to a
+                     subdirectory of the current path based on book title.
+
+  --chapter TEXT     Provide one or more chapter titles.
+  -i, --interactive  Interactively requests names of book chapters.
+  --help             Show this message and exit.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext view [OPTIONS]
-
-  Starts a local server to preview built PreTeXt documents in your browser.
-
-Options:
-  --directory PATH                Directory containing built PreTeXt
-                                  documents.  [default: output]
-
-  --access [public|private|cocalc]
-                                  Choose whether or not to allow other
-                                  computers on your local network to access
-                                  your documents using your IP address, with
-                                  special option to support CoCalc.com users.
-                                  [default: private]
-
-  --port INTEGER                  Choose which port to use for the local
-                                  server.  [default: 8000]
-
-  --config FILE                   Read options from configuration FILE
-                                  specified.  [default: .ptxconfig]  Use
-                                  `--config None` to run with standard default
-                                  options.
-
-  -sc, --save-config              save any options provided to local
-                                  configuration file, specified with --config
-                                  (or default ".ptxconfig")
-
-  --help                          Show this message and exit.
+Usage: pretext build [OPTIONS] [[html|latex|all]]
+
+  Process PreTeXt files into specified format.
+
+  For html, images coded in source (latex-image, etc) are only processed
+  using the --diagrams option.
+
+  If the project included WeBWorK exercises, these must be processed using
+  the --webwork option.
+
+Options:
+  -i, --input PATH      Path to main *.ptx file  [default: source/main.ptx]
+  -o, --output PATH     Path to main output directory  [default: output]
+  -p, --publisher PATH  Publisher file name, with path relative to base folder
+  --param TEXT          Define a stringparam to use during processing. Usage:
+                        pretext build --param foo:bar --param baz:woo
+
+  -d, --diagrams        Regenerate images coded in source (latex-image, etc)
+                        using pretext script
+
+  -w, --webwork         Reprocess WeBWorK exercises, creating fresh webwork-
+                        representations.ptx file
+
+  --config FILE         Read options from configuration FILE specified.
+                        [default: .ptxconfig]  Use `--config None` to run with
+                        standard default options.
+
+  -sc, --save-config    save any options provided to local configuration file,
+                        specified with --config (or default ".ptxconfig")
+
+  --help                Show this message and exit.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext publish [OPTIONS]
+Usage: pretext view [OPTIONS]
+
+  Starts a local server to preview built PreTeXt documents in your browser.
+
+Options:
+  --directory PATH                Directory containing built PreTeXt
+                                  documents.  [default: output]
+
+  --access [public|private|cocalc]
+                                  Choose whether or not to allow other
+                                  computers on your local network to access
+                                  your documents using your IP address, with
+                                  special option to support CoCalc.com users.
+                                  [default: private]
+
+  --port INTEGER                  Choose which port to use for the local
+                                  server.  [default: 8000]
+
+  --config FILE                   Read options from configuration FILE
+                                  specified.  [default: .ptxconfig]  Use
+                                  `--config None` to run with standard default
+                                  options.
+
+  -sc, --save-config              save any options provided to local
+                                  configuration file, specified with --config
+                                  (or default ".ptxconfig")
+
+  --help                          Show this message and exit.
 
-  Prepares the project locally for HTML publication on GitHub Pages to make
-  the built document available to the general public. Only supports the
-  default `output/html` build directory. Requires Git and a GitHub account.
 
-Options:
-  --help  Show this message and exit.
+-------------------------------------------------------------------------------
+
+Usage: pretext publish [OPTIONS]
+
+  Prepares the project locally for HTML publication on GitHub Pages to make
+  the built document available to the general public. Only supports the
+  default `output/html` build directory. Requires Git and a GitHub account.
+
+Options:
+  --help  Show this message and exit.
 </pre></section></div></main>
 </div>
 </body>
