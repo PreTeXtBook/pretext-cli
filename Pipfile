@@ -4,10 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-
-[packages]
 setuptools = "*"
 wheel = "*"
 twine = "*"
-pretext = {editable = true,path = "."}
 secretstorage = {markers = "sys_platform == 'linux'", version = ">=3"}
+
+[packages]
+pretextbook = {editable = true,path = "."}
+
+[requires]
+python_version = "3.6.12"

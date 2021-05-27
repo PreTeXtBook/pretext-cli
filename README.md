@@ -13,44 +13,61 @@ From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the belo
 
 ```bash
 git clone [REPO_URL]
-cd pretext.py
+cd pretext-cli
 ```
 
-Install `pipenv` to manage your environment:
+Install and configure `pyenv` to ensure you're using the minimum Python
+specified in `.python-version`.
+
+- https://github.com/pyenv/pyenv#installation
 
 ```bash
-python -m pip install --user pipenv # or python3 if necessary
+$ pyenv install "$(cat .python-version)"
+(installs version set in `.python-version`)
+$ which python
+/home/user/.pyenv/shims/python
+$ python -V
+Python (version set in `.python-version`)
+```
+
+Install `pipenv` to manage your Python packages:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install pipenv
 ```
 
 Then all dependencies can be installed as a one-liner:
 
 ```bash
-pipenv install --three
+python -m pipenv install --dev
 ```
 
-Then, use `pipenv run [CMD]` to run individual scripts, e.g.:
+Then use `python -m pipenv shell` to enter the virtual environment directly.
 
 ```
-$ pipenv run pretext new "My Great Book"
-Generating new PreTeXt project in `my-great-book`.
-```
-
-Or use `pipenv shell` to enter the virtual environment directly.
-
-```
-$ pipenv shell
+$ python -m pipenv shell
 Launching subshell in virtual environment…
 $ pretext new "My Great Book"
 Generating new PreTeXt project in `my-great-book`.
 ```
 
-To add dependencies for the package, update `setup.py`. then run `pipenv update`.
+You can also use `python -m pipenv run [CMD]` for quick runs outside the virtual
+environment, e.g.:
 
-To add dependencies for the development environment, use `pipenv install [package]`.
+```
+$ python -m pipenv run pretext new "My Great Book"
+Generating new PreTeXt project in `my-great-book`.
+```
+
+To add dependencies for the package, update `setup.py`. then run `python -m pipenv update`.
+
+To add dependencies for the development environment, use `python -m pipenv install [package]`.
 
 ## Packaging
 
 See <https://packaging.python.org/tutorials/packaging-projects/>.
+Inside a virtual environment:
 
 ```
 python build.py
