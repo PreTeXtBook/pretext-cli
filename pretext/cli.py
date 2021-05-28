@@ -21,16 +21,23 @@ def raise_cli_error(message):
 #  Click command-line interface
 @click.group()
 # Allow a verbosity command:
-@click.option('-v', '--verbose', count=True, help="-v for basic feedback; -vv for debug info")
+@click.option('--silent', count=True, help="suppress basic feedback")
+@click.option('--verbose', count=True, help="show debug info")
 @click.version_option(cli_version(),message=cli_version())
 # @click_config_file.configuration_option()
-def main(verbose):
+def main(silent,verbose):
     """
     Command line tools for quickly creating, authoring, and building
     PreTeXt documents.
     """
     # set verbosity:
-    utils.set_verbosity(verbose)
+    if verbose:
+        verbosity = 2
+    elif silent:
+        verbosity = 0
+    else:
+        verbosity = 1
+    utils.set_verbosity(verbosity)
 
 
 # pretext new
