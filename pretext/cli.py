@@ -84,7 +84,7 @@ def new(title,directory,chapter,interactive):
 # pretext build
 @main.command(short_help="Build specified format target")
 @click.argument('format', default='html',
-              type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
+              type=click.Choice(['html', 'latex', 'diagrams', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
@@ -148,9 +148,9 @@ def build(format, source, output, param, publisher, webwork, diagrams, pdf, conf
             print("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
             server_params = "https://webwork-ptx.aimath.org"
         build.webwork(source, webwork_output, stringparams, server_params)
+    if diagrams or format=='diagrams':
+        build.diagrams(source,html_output,stringparams)
     if format=='html' or format=='all':
-        if diagrams:
-            build.diagrams(source,html_output,stringparams)
         build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
         build.latex(source,latex_output,stringparams)
