@@ -1,5 +1,6 @@
 import click
 import click_config_file
+import subprocess
 from . import utils
 from . import version as cli_version
 
@@ -77,8 +78,6 @@ def new(title,directory,chapter,interactive):
 @main.command(short_help="Build specified format target")
 @click.argument('format', default='html',
               type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
-#The following option is redundant; we already have lots of options in the help.
-# @click.option('--format', default='html', show_default=True, help="Sets which format to build", type=click.Choice(['html', 'latex', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
@@ -89,10 +88,11 @@ def new(title,directory,chapter,interactive):
 """)
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
+@click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
 
 @config_file_option
 @save_config_option
-def build(format, source, output, param, publisher, webwork, diagrams, config, save_config ):
+def build(format, source, output, param, publisher, webwork, diagrams, pdf, config, save_config ):
     """
     Process PreTeXt files into specified format.
 
@@ -147,6 +147,9 @@ def build(format, source, output, param, publisher, webwork, diagrams, config, s
         build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
         build.latex(source,latex_output,stringparams)
+        if pdf:
+            with utils.working_directory(latex_output):
+                subprocess.run(['pdflatex','main.tex'])
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
