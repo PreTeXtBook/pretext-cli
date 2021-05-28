@@ -39,7 +39,8 @@
 
 <!-- Each dictionary uses the webworks' visible-ids as keys. There are     -->
 <!-- dictionaries for obtaining:                                           -->
-<!-- 1. a 'ptx'|'server' flag (is it authored in PTX or on the server?)    -->
+<!-- 1. a ptx|server flag (authored in PTX [or a copy], or from server)    -->
+<!-- 1b. if it is copied, from which?                                      -->
 <!-- 2. a seed for randomization (with a default explicitly declared)      -->
 <!-- 3. source (a problem's file path if it is server-based)               -->
 <!-- 4. human readable PG (for PTX-authored)                               -->
@@ -53,10 +54,15 @@
 <!-- that lives on a server. Or if the configuration of the hosting server -->
 <!-- or course changes.                                                    -->
 
-<!-- Then other translation sheets' assempbly phase will factor in         -->
+<!-- Then other translation sheets' assembly phase will factor in          -->
 <!-- webwork-representations.xml                                           -->
 
 <xsl:import href="./pretext-common.xsl" />
+<xsl:import href="./pretext-assembly.xsl"/>
+
+<!-- Override the corresponding param in pretext-assembly so that webwork  -->
+<!-- copies can be made.                                                   -->
+<xsl:variable name="b-extracting-pg" select="true()"/>
 
 <!-- We are outputting Python code, and there is no reason to output       -->
 <!-- anything other than "text"                                            -->
@@ -93,6 +99,7 @@
     <xsl:apply-templates select="mathbook|pretext" mode="deprecation-warnings" />
     <!-- Initialize empty dictionaries, then define key-value pairs -->
     <xsl:text>origin = {}&#xa;</xsl:text>
+    <xsl:text>copiedfrom = {}&#xa;</xsl:text>
     <xsl:text>seed = {}&#xa;</xsl:text>
     <xsl:text>source = {}&#xa;</xsl:text>
     <xsl:text>pghuman = {}&#xa;</xsl:text>
@@ -109,7 +116,7 @@
     <xsl:variable name="problem">
         <xsl:apply-templates select="." mode="visible-id" />
     </xsl:variable>
-    <!-- 1. a 'ptx'|'server' flag (is it authored in PTX or on the server?)    -->
+    <!-- 1. a ptx|copy|server flag (authored in PTX, a copy, or from server)   -->
     <xsl:text>origin["</xsl:text>
     <xsl:value-of select="$problem" />
     <xsl:text>"] = "server"&#xa;</xsl:text>
@@ -132,10 +139,18 @@
     <xsl:variable name="problem">
         <xsl:apply-templates select="." mode="visible-id" />
     </xsl:variable>
-    <!-- 1. a 'ptx'|'server' flag (is it authored in PTX or on the server?)    -->
+    <!-- 1. a ptx|server flag (authored in PTX [or a copy], or from server)    -->
     <xsl:text>origin["</xsl:text>
     <xsl:value-of select="$problem" />
     <xsl:text>"] = "ptx"&#xa;</xsl:text>
+    <!-- 1b. if this problem is a copy, record where it was copied from        -->
+    <xsl:if test="@copied-from">
+        <xsl:text>copiedfrom["</xsl:text>
+        <xsl:value-of select="$problem" />
+        <xsl:text>"] = "</xsl:text>
+        <xsl:value-of select="@copied-from"/>
+        <xsl:text>"&#xa;</xsl:text>
+    </xsl:if>
     <!-- 2. a seed for randomization (with a default explicitly declared)      -->
     <xsl:text>seed["</xsl:text>
     <xsl:value-of select="$problem" />
@@ -389,6 +404,8 @@
     <xsl:call-template name="sanitize-text">
         <xsl:with-param name="text" select=".//pg-code" />
     </xsl:call-template>
+    <!-- if there are latex-image in the problem, put their code here -->
+    <xsl:apply-templates select=".//image[latex-image/@syntax = 'PGtikz']" mode="latex-image-code"/>
 </xsl:template>
 
 
@@ -729,6 +746,13 @@
         <xsl:if test=".//image[@pg-name]">
             <xsl:call-template name="macro-padding">
                 <xsl:with-param name="string" select="'PGgraphmacros.pl'"/>
+                <xsl:with-param name="b-human-readable" select="$b-human-readable"/>
+            </xsl:call-template>
+        </xsl:if>
+        <!-- when there is a PGtikz graph -->
+        <xsl:if test=".//latex-image[@syntax = 'PGtikz']">
+            <xsl:call-template name="macro-padding">
+                <xsl:with-param name="string" select="'PGtikz.pl'"/>
                 <xsl:with-param name="b-human-readable" select="$b-human-readable"/>
             </xsl:call-template>
         </xsl:if>
@@ -1075,8 +1099,26 @@
             </xsl:choose>
         </xsl:for-each>
     </xsl:variable>
+    <!-- PTX-built macros file -->
+    <xsl:variable name="ptx-pg-macros">
+        <xsl:variable name="ptx-pg-macros-filename">
+            <xsl:choose>
+                <xsl:when test="$docinfo/initialism">
+                    <xsl:value-of select="$docinfo/initialism"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="$document-root" mode="title-filesafe"/>
+                </xsl:otherwise>
+            </xsl:choose>
+            <text>.pl</text>
+        </xsl:variable>
+        <xsl:call-template name="macro-padding">
+            <xsl:with-param name="string" select="$ptx-pg-macros-filename"/>
+            <xsl:with-param name="b-human-readable" select="$b-human-readable"/>
+        </xsl:call-template>
+    </xsl:variable>
     <!-- always finish with PG course macro -->
-    <xsl:variable name="course-macro">
+    <xsl:variable name="course-macros">
         <xsl:call-template name="macro-padding">
             <xsl:with-param name="string" select="'PGcourse.pl'"/>
             <xsl:with-param name="b-human-readable" select="$b-human-readable"/>
@@ -1091,7 +1133,10 @@
         <xsl:value-of select="$standard-macros" />
         <xsl:value-of select="$implied-macros" />
         <xsl:value-of select="$user-macros" />
-        <xsl:value-of select="$course-macro" />
+        <xsl:if test=".//latex-image">
+            <xsl:value-of select="$ptx-pg-macros" />
+        </xsl:if>
+        <xsl:value-of select="$course-macros" />
         <xsl:text>);</xsl:text>
         <xsl:if test="$b-human-readable">
             <xsl:text>&#xa;</xsl:text>
@@ -1164,6 +1209,9 @@
     <xsl:value-of select="@name"/>
 </xsl:template>
 
+<xsl:template match="latex-image[@syntax = 'PGtikz']/var" mode="latex-image">
+    <xsl:value-of select="@name" />
+</xsl:template>
 
 <!-- ############ -->
 <!-- PGML answers -->
@@ -1364,7 +1412,7 @@
 <!-- PGML Image Construction -->
 <!-- ####################### -->
 
-<xsl:template match="image[@pg-name]">
+<xsl:template match="image[@pg-name]" mode="components">
     <xsl:variable name="width">
         <xsl:apply-templates select="." mode="get-width-percentage" />
     </xsl:variable>
@@ -1374,8 +1422,35 @@
     <xsl:value-of select="substring-before($width, '%') div 100 * $design-width-pg"/>
     <xsl:if test="description">
         <xsl:text>, extra_html_tags=&gt;qq!alt="</xsl:text>
-        <xsl:apply-templates select="description" mode="pg" />
+        <xsl:apply-templates select="description" />
         <xsl:text>"!</xsl:text>
+    </xsl:if>
+    <xsl:text>)@]* </xsl:text>
+</xsl:template>
+
+<xsl:template match="image[latex-image/@syntax = 'PGtikz']" mode="components">
+    <xsl:variable name="visible-id">
+        <xsl:apply-templates select="." mode="visible-id"/>
+    </xsl:variable>
+    <xsl:variable name="pg-name" select="concat('$', translate($visible-id,'-','_'))"/>
+    <xsl:variable name="width">
+        <xsl:apply-templates select="." mode="get-width-percentage" />
+    </xsl:variable>
+    <xsl:text>[@image(insertGraph(</xsl:text>
+    <xsl:value-of select="$pg-name"/>
+    <xsl:text>), width=&gt;</xsl:text>
+    <xsl:value-of select="substring-before($width, '%') div 100 * $design-width-pg"/>
+    <xsl:if test="description">
+        <xsl:variable name="delimiter">
+            <xsl:call-template name="find-unused-character">
+                <xsl:with-param name="string" select="description"/>
+                <xsl:with-param name="charset" select="concat('&quot;|/\?:;.,=+-_~`!^&amp;*',&SIMPLECHAR;)"/>
+            </xsl:call-template>
+        </xsl:variable>
+        <xsl:text>, alt=&gt;qq</xsl:text>
+        <xsl:value-of select="$delimiter"/>
+        <xsl:apply-templates select="description" />
+        <xsl:value-of select="$delimiter"/>
     </xsl:if>
     <xsl:text>)@]* </xsl:text>
 </xsl:template>
@@ -1386,11 +1461,40 @@
     <xsl:apply-templates select="text()|var"/>
 </xsl:template>
 
+<xsl:template match="image[latex-image/@syntax = 'PGtikz']" mode="latex-image-code">
+    <xsl:variable name="visible-id">
+        <xsl:apply-templates select="." mode="visible-id"/>
+    </xsl:variable>
+    <xsl:variable name="pg-name" select="concat('$', translate($visible-id,'-','_'))"/>
+    <xsl:value-of select="$pg-name"/>
+    <xsl:text> = createTikZImage();&#xa;</xsl:text>
+    <xsl:if test="$docinfo/latex-image-preamble[@syntax = 'PGtikz']">
+        <xsl:value-of select="$pg-name"/>
+        <xsl:text>->addToPreamble(latexImagePreamble());&#xa;</xsl:text>
+    </xsl:if>
+    <xsl:variable name="pg-tikz-code">
+        <xsl:apply-templates select="latex-image/text()|latex-image/var" mode="latex-image"/>
+    </xsl:variable>
+    <xsl:value-of select="$pg-name"/>
+    <xsl:text>->BEGIN_TIKZ&#xa;</xsl:text>
+    <xsl:call-template name="sanitize-text">
+        <xsl:with-param name="text" select="$pg-tikz-code"/>
+    </xsl:call-template>
+    <xsl:text>&#xa;END_TIKZ&#xa;</xsl:text>
+</xsl:template>
+
+<xsl:template match="text()" mode="latex-image">
+    <xsl:variable name="dollar-fixed"  select="str:replace(.,             '\$', '\~~$')"/>
+    <xsl:variable name="percent-fixed" select="str:replace($dollar-fixed, '\%', '\~~%')"/>
+    <xsl:variable name="at-fixed"      select="str:replace($percent-fixed, '@',  '~~@')"/>
+    <xsl:value-of select="$at-fixed"/>
+</xsl:template>
+
 <!-- An "instruction" is a peer of p, only within a webwork. The purpose   -->
 <!-- is to give the reader something like keyboard syntax instructions     -->
 <!-- but withhold these in print output.                                   -->
 <xsl:template match="instruction">
-    <xsl:if test="preceding-sibling::p|preceding-sibling::sidebyside and not(child::*[1][self::ol] or child::*[1][self::ul])">
+    <xsl:if test="preceding-sibling::p and not(child::*[1][self::ol] or child::*[1][self::ul])">
         <xsl:call-template name="potential-list-indent" />
     </xsl:if>
     <xsl:text>[@KeyboardInstructions(</xsl:text>
@@ -1450,7 +1554,7 @@
 <!-- inside a list, special handling                                      -->
 <xsl:template match="p">
     <xsl:param name="b-human-readable" />
-    <xsl:if test="preceding-sibling::p|preceding-sibling::sidebyside and not(child::*[1][self::ol] or child::*[1][self::ul])">
+    <xsl:if test="preceding-sibling::p and not(child::*[1][self::ol] or child::*[1][self::ul])">
         <xsl:call-template name="potential-list-indent" />
     </xsl:if>
     <xsl:apply-templates>
@@ -1467,19 +1571,21 @@
     </xsl:if>
 </xsl:template>
 
-<!-- Sidebyside in a WeBWorK expects only one child: image or tabular.    -->
-<!-- Just applies templates to its child                                  -->
-<!-- NB: this may need improvements, such as positioning                  -->
-<!-- NB: a Schematron rule should enforce the single child                -->
-<xsl:template match="sidebyside">
+<!-- Some common wrappers for image and tabular   -->
+<!-- Formerly this template was for sidebyside    -->
+<!-- And we leave it to also work on a sidebyside -->
+<!-- for backwards compatibility. However, such   -->
+<!-- use will be caught by a deprectation warning -->
+<!-- as well as fail a schema validation.         -->
+<xsl:template match="image|tabular|sidebyside">
     <xsl:param name="b-human-readable" />
-    <xsl:if test="preceding-sibling::p|preceding-sibling::sidebyside">
+    <xsl:if test="preceding-sibling::p">
         <xsl:call-template name="potential-list-indent" />
     </xsl:if>
     <xsl:if test="not(ancestor::li)">
         <xsl:text>&gt;&gt; </xsl:text>
     </xsl:if>
-    <xsl:apply-templates select="image|tabular">
+    <xsl:apply-templates select="self::image|self::tabular|self::sidebyside/image|self::sidebyside/tabular" mode="components">
         <xsl:with-param name="b-human-readable" select="$b-human-readable" />
     </xsl:apply-templates>
     <xsl:if test="not(ancestor::li)">
@@ -1501,13 +1607,6 @@
 <xsl:template match="*" mode="xref-number">
     <xsl:apply-templates select="." mode="number" />
 </xsl:template>
-
-<!-- In common template, but have to point -->
-<!-- to it since it is a modal template    -->
-<xsl:template match="exercisegroup" mode="xref-number">
-    <xsl:apply-imports />
-</xsl:template>
-
 
 <!-- ######### -->
 <!-- PGML Math -->
@@ -1693,6 +1792,51 @@
     <xsl:apply-templates select="parent::*" mode="alignat-columns"/>
     <xsl:text>&#xa;</xsl:text>
 </xsl:template>
+
+<!-- ######### -->
+<!-- Groupings -->
+<!-- ######### -->
+
+<!-- We cannot rely on the -common templates for these,   -->
+<!-- because if they contain math, we need to respect the -->
+<!-- human readable parameter.                            -->
+
+<xsl:template match="q">
+    <xsl:param name="b-human-readable" />
+    <xsl:call-template name="lq-character"/>
+    <xsl:apply-templates>
+        <xsl:with-param name="b-human-readable" select="$b-human-readable" />
+    </xsl:apply-templates>
+    <xsl:call-template name="rq-character"/>
+</xsl:template>
+
+<xsl:template match="sq">
+    <xsl:param name="b-human-readable" />
+    <xsl:call-template name="lsq-character"/>
+    <xsl:apply-templates>
+        <xsl:with-param name="b-human-readable" select="$b-human-readable" />
+    </xsl:apply-templates>
+    <xsl:call-template name="rsq-character"/>
+</xsl:template>
+
+<xsl:template match="dblbrackets">
+    <xsl:param name="b-human-readable" />
+    <xsl:call-template name="ldblbracket-character"/>
+    <xsl:apply-templates>
+        <xsl:with-param name="b-human-readable" select="$b-human-readable" />
+    </xsl:apply-templates>
+    <xsl:call-template name="rdblbracket-character"/>
+</xsl:template>
+
+<xsl:template match="angles">
+    <xsl:param name="b-human-readable" />
+    <xsl:call-template name="langle-character"/>
+    <xsl:apply-templates>
+        <xsl:with-param name="b-human-readable" select="$b-human-readable" />
+    </xsl:apply-templates>
+    <xsl:call-template name="rangle-character"/>
+</xsl:template>
+
 
 <!-- ########################## -->
 <!-- Numbers, units, quantities -->
@@ -2317,7 +2461,7 @@
     </xsl:apply-templates>
 </xsl:template>
 
-<xsl:template match="tabular">
+<xsl:template match="tabular" mode="components">
     <!-- PTX tabular attributes top, bottom, left, right, halign are essentially passed -->
     <!-- down to cells, rather than used at the tabular level.                          -->
     <xsl:param name="b-human-readable" />
