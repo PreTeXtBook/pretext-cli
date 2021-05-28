@@ -1,14 +1,6 @@
 from lxml import etree as ET
 from slugify import slugify
-
-# Info on namespaces: http://lxml.de/tutorial.html#namespaces
-NSMAP = {
-    "xi": "http://www.w3.org/2001/XInclude",
-    "xml": "http://www.w3.org/XML/1998/namespace",
-}
-
-def nstag(prefix,suffix):
-    return "{" + NSMAP[prefix] + "}" + suffix
+from .utils import nstag, NSMAP
 
 def new(title_string):
     pretext = ET.Element(
@@ -22,6 +14,7 @@ def new(title_string):
     lip.text = "\\usepackage{tikz}"
     doc = ET.SubElement(pretext, "book")
     doc.set(nstag("xml","id"),slugify(title_string))
+    doc.set(nstag("xml","lang"),"en-US")
     title = ET.SubElement(doc,"title")
     title.text = title_string
     return ET.ElementTree(pretext)

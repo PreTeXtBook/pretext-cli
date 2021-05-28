@@ -91,3 +91,12 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
+
+
+# Info on namespaces: http://lxml.de/tutorial.html#namespaces
+NSMAP = {
+    "xi": "http://www.w3.org/2001/XInclude",
+    "xml": "http://www.w3.org/XML/1998/namespace",
+}
+def nstag(prefix,suffix):
+    return "{" + NSMAP[prefix] + "}" + suffix
