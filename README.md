@@ -37,7 +37,7 @@ python -m pip install --upgrade pip
 python -m pip install pipenv
 ```
 
-Then all dependencies can be installed as a one-liner:
+Then all additional dependencies can be installed as a one-liner:
 
 ```bash
 python -m pipenv install --dev
@@ -77,7 +77,7 @@ python build.py
 
 See [VERSIONING.md](VERSIONING.md).
 
-## PreTeXt XSL
+## PreTeXt "Core"
 
 Right now, we're mirroring resources from
 <https://github.com/rbeezer/mathbook/> using the commit

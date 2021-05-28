@@ -1,6 +1,7 @@
 import os
 from contextlib import contextmanager
 import configobj
+from http.server import SimpleHTTPRequestHandler
 
 @contextmanager
 def working_directory(path):
@@ -79,3 +80,14 @@ def _debug(msg):
     """Write a message to the console with some raw information"""
     if _verbosity >= 2:
         print('PTX-CLI:DEBUG: {}'.format(msg))
+
+
+class NoCacheHandler(SimpleHTTPRequestHandler):
+    """HTTP request handler with no caching"""
+    def end_headers(self):
+        self.send_my_headers()
+        SimpleHTTPRequestHandler.end_headers(self)
+    def send_my_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")

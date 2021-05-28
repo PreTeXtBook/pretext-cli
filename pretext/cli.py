@@ -176,6 +176,7 @@ def view(directory,access,port,config,save_config):
     Starts a local server to preview built PreTeXt documents in your browser.
     """
     import os
+    import socketserver, socket
     from . import utils
 
     # Remember options in local configfile when requested:
@@ -188,9 +189,7 @@ def view(directory,access,port,config,save_config):
         The directory `{directory}` does not exist.
         Maybe try `pretext build` first?
         """)
-    import http.server, socketserver, socket
     binding = "localhost" if (access=='private') else "0.0.0.0"
-    Handler = http.server.SimpleHTTPRequestHandler
     if access=='cocalc':
         import json
         project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
@@ -199,6 +198,7 @@ def view(directory,access,port,config,save_config):
         url = f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
         url = f"http://{binding}:{port}"
+    Handler = utils.NoCacheHandler
     with socketserver.TCPServer((binding, port), Handler) as httpd:
         os.chdir(directory)
         click.echo(f"Your documents may be previewed at {url}")
