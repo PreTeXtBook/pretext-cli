@@ -3,6 +3,7 @@ import click_config_file
 import subprocess
 from . import utils
 from . import version as cli_version
+from lxml import etree as ET
 
 # config file default name:
 config_file = '.ptxconfig'
@@ -150,6 +151,10 @@ def build(format, source, output, param, publisher, webwork, diagrams, pdf, conf
         build.webwork(source, webwork_output, stringparams, server_params)
     if diagrams or format=='diagrams':
         build.diagrams(source,html_output,stringparams)
+    else:
+        source_xml = ET.parse(source)
+        if source_xml.find("//latex-image") is not None:
+            print("Warning: <latex-image/>s in source will not be built.")
     if format=='html' or format=='all':
         build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
