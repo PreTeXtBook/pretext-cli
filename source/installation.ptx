@@ -10,7 +10,7 @@
         prompt:</p>
         <cd>python -V</cd>
         <p>If your version is 2.x, try this instead (and if so, either replace
-        all future references to `python` in these instructions with `python3`,
+        all future references to <c>python</c> in these instructions with <c>python3</c>,
         or try 
         <url href="https://askubuntu.com/a/321000">this</url>).</p>
         <cd>python3 -V</cd>
@@ -35,7 +35,7 @@
       <subsection>
         <title>PreTeXt-CLI</title>
         <p>Once you've confirmed that you're using a valid version of Python,
-        just run (replacing `python` with `python3` if necessary):</p>
+        just run (replacing <c>python</c> with <c>python3</c> if necessary):</p>
         <cd>python -m pip install --user pretextbook</cd>
         <aside>
         <p>If you get an error such as
@@ -46,23 +46,27 @@
         <c>error: invalid command 'bdist_wheel'</c>
         <mdash /> good news, you can ignore it!).</p>
         </aside>
-        <p>After installation, if you didn't see an error like
-        <q>WARNING:
-        The script pretext is installed in
-        '[file_path]' which is not on PATH.</q>, then try to run:</p>
+        <p>After installation, try to run:</p>
         <cd>pretext --help</cd>
         <p>If that works, great! Otherwise, it likely means that Python packages aren't
         available on your <q>PATH</q>.</p>
         <ul>
             <li>
-        <p>To fix this on Linux/Mac, run the following commands:</p>
+                <p>
+One option is to try running <c>python -m pretext --help</c>. If that works,
+then you can use <c>python -m pretext</c> in place of <c>pretext</c>, and you
+won't need to do anything further.
+                </p>
+            </li>
+            <li>
+        <p>To fix your <q>PATH</q> on Linux/Mac, run the following commands:</p>
         <cd>
 <![CDATA[echo "export PATH=\"`python -m site --user-base`/bin:$PATH\"" >> ~/.bash_profile
 echo "export PATH=\"`python -m site --user-base`/bin:$PATH\"" >> ~/.zprofile]]>
         </cd>
             </li>
             <li>
-        <p>To fix this on Windows, open your Windows Control Panel, search for <q>environment</q>,
+        <p>To fix your <q>PATH</q> on Windows, open your Windows Control Panel, search for <q>environment</q>,
         and select <q>Edit environment variables for your account</q></p>
         <p>Then edit your PATH variable and add the following line (replacing <c>3x</c> with the
         version of Python you installed, e.g. <c>38</c> for version <c>3.8</c>):</p>
