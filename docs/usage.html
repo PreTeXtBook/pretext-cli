@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--********************************************-->
 <!--*       Generated from PreTeXt source      *-->
-<!--*       on 2021-01-08T14:47:53-07:00       *-->
+<!--*       on 2021-06-02T20:46:14Z       *-->
 <!--*   A recent stable commit (2020-08-09):   *-->
 <!--* 98f21740783f166a773df4dc83cab5293ab63a4a *-->
 <!--*                                          *-->
@@ -14,36 +14,29 @@
 <title>Usage</title>
 <meta name="Keywords" content="Authored in PreTeXt">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-    tex2jax: {
-        inlineMath: [['\\(','\\)']]
-    },
-    asciimath2jax: {
-        ignoreClass: ".*",
-        processClass: "has_am"
-    },
-    jax: ["input/AsciiMath"],
-    extensions: ["asciimath2jax.js"],
-    TeX: {
-        extensions: ["extpfeil.js", "autobold.js", "https://pretextbook.org/js/lib/mathjaxknowl.js", "AMScd.js", ],
-        // scrolling to fragment identifiers is controlled by other Javascript
-        positionToHash: false,
-        equationNumbers: { autoNumber: "none", useLabelIds: true, },
-        TagSide: "right",
-        TagIndent: ".8em",
-    },
-    // HTML-CSS output Jax to be dropped for MathJax 3.0
-    "HTML-CSS": {
-        scale: 88,
-        mtextFontInherit: true,
-    },
-    CommonHTML: {
-        scale: 88,
-        mtextFontInherit: true,
-    },
-});
-</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_CHTML-full"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/jquery.min.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/jquery.sticky.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/jquery.espy.min.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/0.13/pretext.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/0.13/pretext_add_on.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/knowl.js"></script><!--knowl.js code controls Sage Cells within knowls--><script xmlns:svg="http://www.w3.org/2000/svg">sagecellEvalName='Evaluate (Sage)';
+<script>window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    tags: "none",
+    useLabelIds: true,
+    tagSide: "right",
+    tagIndent: ".8em",
+    packages: {'[+]': ['base', 'extpfeil', 'ams', 'amscd', 'newcommand', 'knowl']}
+  },
+  options: {
+    ignoreHtmlClass: "tex2jax_ignore",
+    processHtmlClass: "has_am",
+  },
+  chtml: {
+    scale: 0.88,
+    mtextInheritFont: true
+  },
+  loader: {
+    load: ['input/asciimath', '[tex]/extpfeil', '[tex]/amscd', '[tex]/newcommand', '[pretext]/mathjaxknowl3.js'],
+    paths: {pretext: "https://pretextbook.org/js/lib"},
+  },
+};
+</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/jquery.min.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/jquery.sticky.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/jquery.espy.min.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/0.13/pretext.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/0.13/pretext_add_on.js"></script><script xmlns:svg="http://www.w3.org/2000/svg" src="https://pretextbook.org/js/lib/knowl.js"></script><!--knowl.js code controls Sage Cells within knowls--><script xmlns:svg="http://www.w3.org/2000/svg">sagecellEvalName='Evaluate (Sage)';
 </script><link xmlns:svg="http://www.w3.org/2000/svg" href="https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,600,600italic" rel="stylesheet" type="text/css">
 <link xmlns:svg="http://www.w3.org/2000/svg" href="https://fonts.googleapis.com/css?family=Inconsolata:400,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
 <link xmlns:svg="http://www.w3.org/2000/svg" href="https://pretextbook.org/css/0.31/pretext.css" rel="stylesheet" type="text/css">
@@ -57,7 +50,7 @@ MathJax.Hub.Config({
 <!-- 2019-10-12: Temporary - CSS file for experiments with styling --><link xmlns:svg="http://www.w3.org/2000/svg" href="developer.css" rel="stylesheet" type="text/css">
 </head>
 <body class="mathbook-article has-toc has-sidebar-left">
-<a class="assistive" href="#content">Skip to main content</a><div xmlns:svg="http://www.w3.org/2000/svg" class="hidden-content" style="display:none">\(\newcommand{\foo}{bar}
+<a class="assistive" href="#content">Skip to main content</a><div xmlns:svg="http://www.w3.org/2000/svg" id="latex-macros" class="hidden-content" style="display:none">\(\newcommand{\foo}{bar}
 \newcommand{\lt}{&lt;}
 \newcommand{\gt}{&gt;}
 \newcommand{\amp}{&amp;}
@@ -92,125 +85,130 @@ MathJax.Hub.Config({
 <li><a href="installation.html#subsection-6" data-scroll="subsection-6">Upgrading</a></li>
 </ul>
 </li>
-<li class="link active"><a href="usage.html" data-scroll="usage"><span class="codenumber">3</span> <span class="title">Usage</span></a></li>
+<li class="link active">
+<a href="usage.html" data-scroll="usage"><span class="codenumber">3</span> <span class="title">Usage</span></a><ul><li><a href="usage.html#help-output" data-scroll="help-output"><code class="code-inline tex2jax_ignore">pretext --help</code> Output</a></li></ul>
+</li>
 </ul></nav><div class="extras"><nav><a class="mathbook-link" href="https://pretextbook.org">Authored in PreTeXt</a><a href="https://www.mathjax.org"><img title="Powered by MathJax" src="https://www.mathjax.org/badge/badge.gif" alt="Powered by MathJax"></a></nav></div>
 </div></div>
 <main class="main"><div id="content" class="pretext-content"><section xmlns:svg="http://www.w3.org/2000/svg" class="section" id="usage"><h2 class="heading hide-type">
 <span class="type">Section</span> <span class="codenumber">3</span> <span class="title">Usage</span>
 </h2>
-<p id="p-18">For your convenience, documentation on using all features of the command-line interface may be viewed below, or displayed on the command line by using the <code class="code-inline tex2jax_ignore">--help</code> option. Use <code class="code-inline tex2jax_ignore">pretext --help</code> to see what commands are available, and (for example) <code class="code-inline tex2jax_ignore">pretext new --help</code> to learn how to use each command.</p>
-<pre class="code-block tex2jax_ignore">Usage: pretext [OPTIONS] COMMAND [ARGS]...
-
-  Command line tools for quickly creating, authoring, and building PreTeXt
-  documents.
-
-Options:
-  -v, --verbose  -v for basic feedback; -vv for debug info
-  --version      Show the version and exit.
-  --help         Show this message and exit.
-
-Commands:
-  build    Build specified format target
-  new      Provision a new PreTeXt document.
-  publish  Prepares project for publishing on GitHub Pages.
-  view     Preview built PreTeXt documents in your browser.
+<section class="introduction" id="introduction-2"><p id="p-19">For your convenience, documentation on using all features of the command-line interface may be viewed below, or displayed on the command line by using the <code class="code-inline tex2jax_ignore">--help</code> option. Use <code class="code-inline tex2jax_ignore">pretext --help</code> to see what commands are available, and (for example) <code class="code-inline tex2jax_ignore">pretext new --help</code> to learn how to use each command.</p></section><section class="subsection" id="help-output"><h3 class="heading hide-type">
+<span class="type">Subsection</span> <span class="codenumber">3.1</span> <span class="title"><code class="code-inline tex2jax_ignore">pretext --help</code> Output</span>
+</h3>
+<pre class="code-display tex2jax_ignore">Usage: pretext [OPTIONS] COMMAND [ARGS]...
+
+  Command line tools for quickly creating, authoring, and building PreTeXt
+  documents.
+
+Options:
+  --silent   suppress basic feedback
+  --verbose  show debug info
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  build    Build specified format target
+  new      Provision a new PreTeXt document.
+  publish  Prepares project for publishing on GitHub Pages.
+  view     Preview built PreTeXt documents in your browser.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext new [OPTIONS] [TITLE]
-
-  Creates a subdirectory with the files needed to author a PreTeXt document.
-
-  Usage: pretext new "My Great Book!"
-
-Options:
-  --directory PATH   Directory to create/use for the project. Defaults to a
-                     subdirectory of the current path based on book title.
-
-  --chapter TEXT     Provide one or more chapter titles.
-  -i, --interactive  Interactively requests names of book chapters.
-  --help             Show this message and exit.
+Usage: pretext new [OPTIONS] [TITLE]
+
+  Creates a subdirectory with the files needed to author a PreTeXt document.
+
+  Usage: pretext new "My Great Book!"
+
+Options:
+  --directory PATH   Directory to create/use for the project. Defaults to a
+                     subdirectory of the current path based on book title.
+  --chapter TEXT     Provide one or more chapter titles.
+  -i, --interactive  Interactively requests names of book chapters.
+  --help             Show this message and exit.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext build [OPTIONS] [[html|latex|all]]
-
-  Process PreTeXt files into specified format.
-
-  For html, images coded in source (latex-image, etc) are only processed
-  using the --diagrams option.
-
-  If the project included WeBWorK exercises, these must be processed using
-  the --webwork option.
-
-Options:
-  -i, --input PATH      Path to main *.ptx file  [default: source/main.ptx]
-  -o, --output PATH     Path to main output directory  [default: output]
-  -p, --publisher PATH  Publisher file name, with path relative to base folder
-  --param TEXT          Define a stringparam to use during processing. Usage:
-                        pretext build --param foo:bar --param baz:woo
-
-  -d, --diagrams        Regenerate images coded in source (latex-image, etc)
-                        using pretext script
-
-  -w, --webwork         Reprocess WeBWorK exercises, creating fresh webwork-
-                        representations.ptx file
-
-  --config FILE         Read options from configuration FILE specified.
-                        [default: .ptxconfig]  Use `--config None` to run with
-                        standard default options.
-
-  -sc, --save-config    save any options provided to local configuration file,
-                        specified with --config (or default ".ptxconfig")
-
-  --help                Show this message and exit.
+Usage: pretext build [OPTIONS] [[html|latex|diagrams|all]]
+
+  Process PreTeXt files into specified format.
+
+  For html, images coded in source (latex-image, etc) are only processed using
+  the --diagrams option.
+
+  If the project included WeBWorK exercises, these must be processed using the
+  --webwork option.
+
+Options:
+  -i, --input PATH                Path to main *.ptx file  [default:
+                                  source/main.ptx]
+  -o, --output PATH               Path to main output directory  [default:
+                                  output]
+  -p, --publisher PATH            Publisher file name, with path relative to
+                                  base folder
+  --param TEXT                    Define a stringparam to use during
+                                  processing. Usage: pretext build --param
+                                  foo:bar --param baz:woo
+  -d, --diagrams                  Regenerate images coded in source (latex-
+                                  image, etc) using pretext script
+  -df, --diagrams-format [svg|pdf|eps|tex]
+                                  Specify output format for generated images
+                                  (svg, png, etc).
+  -w, --webwork                   Reprocess WeBWorK exercises, creating fresh
+                                  webwork-representations.ptx file
+  --pdf                           Compile LaTeX output to PDF using
+                                  commandline pdflatex
+  --config FILE                   Read options from configuration FILE
+                                  specified.  [default: .ptxconfig]  Use
+                                  `--config None` to run with standard default
+                                  options.
+  -sc, --save-config              save any options provided to local
+                                  configuration file, specified with --config
+                                  (or default ".ptxconfig")
+  --help                          Show this message and exit.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext view [OPTIONS]
-
-  Starts a local server to preview built PreTeXt documents in your browser.
-
-Options:
-  --directory PATH                Directory containing built PreTeXt
-                                  documents.  [default: output]
-
-  --access [public|private|cocalc]
-                                  Choose whether or not to allow other
-                                  computers on your local network to access
-                                  your documents using your IP address, with
-                                  special option to support CoCalc.com users.
-                                  [default: private]
-
-  --port INTEGER                  Choose which port to use for the local
-                                  server.  [default: 8000]
-
-  --config FILE                   Read options from configuration FILE
-                                  specified.  [default: .ptxconfig]  Use
-                                  `--config None` to run with standard default
-                                  options.
-
-  -sc, --save-config              save any options provided to local
-                                  configuration file, specified with --config
-                                  (or default ".ptxconfig")
-
-  --help                          Show this message and exit.
+Usage: pretext view [OPTIONS]
+
+  Starts a local server to preview built PreTeXt documents in your browser.
+
+Options:
+  --directory PATH                Directory containing built PreTeXt
+                                  documents.  [default: output]
+  --access [public|private|cocalc]
+                                  Choose whether or not to allow other
+                                  computers on your local network to access
+                                  your documents using your IP address, with
+                                  special option to support CoCalc.com users.
+                                  [default: private]
+  --port INTEGER                  Choose which port to use for the local
+                                  server.  [default: 8000]
+  --config FILE                   Read options from configuration FILE
+                                  specified.  [default: .ptxconfig]  Use
+                                  `--config None` to run with standard default
+                                  options.
+  -sc, --save-config              save any options provided to local
+                                  configuration file, specified with --config
+                                  (or default ".ptxconfig")
+  --help                          Show this message and exit.
 
 
 -------------------------------------------------------------------------------
 
-Usage: pretext publish [OPTIONS]
-
-  Prepares the project locally for HTML publication on GitHub Pages to make
-  the built document available to the general public. Only supports the
-  default `output/html` build directory. Requires Git and a GitHub account.
-
-Options:
-  --help  Show this message and exit.
-</pre></section></div></main>
+Usage: pretext publish [OPTIONS]
+
+  Prepares the project locally for HTML publication on GitHub Pages to make
+  the built document available to the general public. Only supports the
+  default `output/html` build directory. Requires Git and a GitHub account.
+
+Options:
+  --help  Show this message and exit.
+</pre></section></section></div></main>
 </div>
 </body>
 </html>
