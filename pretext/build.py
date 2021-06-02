@@ -81,9 +81,11 @@ def diagrams(ptxfile, output, params, formats):
     # NOTE: we set pub_file=NONE since our pubfile has already been added to the params dictionary.
     core.latex_image_conversion(
         xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
-    print('now doing sage images')
-    core.sage_conversion(
-        xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+    source_xml = ET.parse(ptxfile)
+    if source_xml.find("//sageplot") is not None:
+        print('Now converting sageplot images')
+        core.sage_conversion(
+            xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
 
 # # very gross port of core function
 # def core_latex_image_conversion(xml_source, pub_file, stringparams, xmlid_root, data_dir, dest_dir, outformat):
