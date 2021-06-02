@@ -68,7 +68,7 @@ def latex(ptxfile,output,stringparams):
 #         dest_dir=image_output, outformat="svg")
 
 # Function to build diagrams/images contained in source.
-def diagrams(ptxfile, output, params):
+def diagrams(ptxfile, output, params, formats):
     import os
     # from .static.pretext import pretext as ptxcore
     # Pass verbosity level to ptxcore sripts:
@@ -80,7 +80,7 @@ def diagrams(ptxfile, output, params):
     # call pretext-core's latex image module:
     # NOTE: we set pub_file=NONE since our pubfile has already been added to the params dictionary.
     core.latex_image_conversion(
-        xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat="svg")
+        xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
 
 # # very gross port of core function
 # def core_latex_image_conversion(xml_source, pub_file, stringparams, xmlid_root, data_dir, dest_dir, outformat):

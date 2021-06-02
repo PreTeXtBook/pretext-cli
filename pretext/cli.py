@@ -95,12 +95,13 @@ def new(title,directory,chapter,interactive):
               Define a stringparam to use during processing. Usage: pretext build --param foo:bar --param baz:woo
 """)
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
+@click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'png', 'pdf', 'eps', 'tex', 'all'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).")
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
 
 @config_file_option
 @save_config_option
-def build(format, source, output, param, publisher, webwork, diagrams, pdf, config, save_config ):
+def build(format, source, output, param, publisher, webwork, diagrams, diagrams_format, pdf, config, save_config ):
     """
     Process PreTeXt files into specified format.
 
@@ -150,7 +151,7 @@ def build(format, source, output, param, publisher, webwork, diagrams, pdf, conf
             server_params = "https://webwork-ptx.aimath.org"
         build.webwork(source, webwork_output, stringparams, server_params)
     if diagrams or format=='diagrams':
-        build.diagrams(source,html_output,stringparams)
+        build.diagrams(source,html_output,stringparams,diagrams_format)
     else:
         source_xml = ET.parse(source)
         if source_xml.find("//latex-image") is not None:
