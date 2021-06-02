@@ -154,8 +154,8 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
         build.diagrams(source,html_output,stringparams,diagrams_format)
     else:
         source_xml = ET.parse(source)
-        if source_xml.find("//latex-image") is not None:
-            print("Warning: <latex-image/>s in source will not be built.")
+        if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
+            print("Warning: <latex-image/> or <sageplot> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
     if format=='html' or format=='all':
         build.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
