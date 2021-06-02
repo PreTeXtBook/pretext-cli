@@ -22,8 +22,8 @@ def raise_cli_error(message):
 #  Click command-line interface
 @click.group()
 # Allow a verbosity command:
-@click.option('--silent', count=True, help="suppress basic feedback")
-@click.option('--verbose', count=True, help="show debug info")
+@click.option('--silent', is_flag=True, help="suppress basic feedback")
+@click.option('--verbose', is_flag=True, help="show debug info")
 @click.version_option(cli_version(),message=cli_version())
 # @click_config_file.configuration_option()
 def main(silent,verbose):
