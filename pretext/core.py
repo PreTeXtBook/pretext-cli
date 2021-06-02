@@ -9,9 +9,16 @@ def set_verbosity(verbosity):
     ptxcore.set_verbosity(verbosity)
 
 def latex_image_conversion(xml_source, pub_file, stringparams, xmlid_root, data_dir, dest_dir, outformat):
-    ptxcore.latex_image_conversion(
-    xml_source, pub_file, stringparams, xmlid_root, data_dir, dest_dir, outformat)
+    ptxcore.latex_image_conversion(xml_source, pub_file, stringparams, xmlid_root, data_dir, dest_dir, outformat)
 
+
+def sage_conversion(xml_source, pub_file, stringparams, xmlid_root, dest_dir, outformat):
+    ptxcore.sage_conversion(xml_source, pub_file, stringparams, xmlid_root, dest_dir, outformat)
+
+
+#Not functional yet:
+# def all_images(xml_source, pub_file, stringparams, xmlid_root, data_dir, dest_dir, outformat):
+#     ptxcore.all_images(xml_source, pub_file, stringparams, xmlid_root)
 
 def webwork_to_xml(xml_source, pub_file, stringparams,                   abort_early, server_params, dest_dir):
     ptxcore.webwork_to_xml(xml_source, pub_file, stringparams, abort_early, server_params, dest_dir)
