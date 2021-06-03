@@ -82,6 +82,7 @@ def diagrams(ptxfile, output, params, formats):
     core.latex_image_conversion(
         xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
     source_xml = ET.parse(ptxfile)
+    source_xml.xinclude()
     if source_xml.find("//sageplot") is not None:
         print('Now converting sageplot images')
         core.sage_conversion(
