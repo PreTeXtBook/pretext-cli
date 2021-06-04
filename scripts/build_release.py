@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 # export --help to file to include in documentation
 helps =  subprocess.check_output(['pretext', '--help']).decode("utf-8")
@@ -11,8 +12,15 @@ with open("pretext/static/help.txt", 'w') as helpfile:
 
 
 # Build documentation from PreTeXt
-subprocess.run(['pretext', 'build'])
-subprocess.run(['pretext', 'publish'])
+current_directory=os.getcwd()
+os.chdir('docs-project')
+try:
+    subprocess.run(['pretext', 'build'])
+    subprocess.run(['pretext', 'publish'])
+finally:
+    os.chdir(current_directory)
+subprocess.run(['cp', '-r', 'docs-project/docs', 'docs'])
+subprocess.run(['rm', '-rf', 'docs-project/docs'])
 
 
 # Build package

@@ -10,6 +10,6 @@
     </introduction>
   <subsection xml:id="help-output">
     <title><c>pretext --help</c> Output </title>
-    <program><input><xi:include href="../pretext/static/help.txt" parse="text" /></input></program>
+    <program><input><xi:include href="../../pretext/static/help.txt" parse="text" /></input></program>
   </subsection>
 </section>

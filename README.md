@@ -98,7 +98,7 @@ See <https://packaging.python.org/tutorials/packaging-projects/>.
 Inside a virtual environment:
 
 ```
-python build.py
+python scripts/build_release.py
 ```
 
 ## Versioning
@@ -110,4 +110,8 @@ See [VERSIONING.md](VERSIONING.md).
 Right now, we're mirroring resources from
 <https://github.com/rbeezer/mathbook/> using the commit
 found in `pretext/static/CORE_COMMIT`.
-These can be updated by running `python update_core.py`.
+These can be updated by running:
+
+```
+python scripts/update_core.py
+```
