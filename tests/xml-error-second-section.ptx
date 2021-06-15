@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+    <section xml:id="ch-chapter-2-section" xmlns:xi="http://www.w3.org/2001/XInclude">
+      <title>Section 2.1</title>
+      <p>
+        This is the first paragraph
+      <ol>
+        <li>
+          <p>
+            First list
+          </p>
+        </li>
+        <li>
+          <<p> missing closing tag.</p>
+        </li>
+      </ol>
+      <!-- <xi:include href="xml-error-xinclude.ptx" /> -->
+      </p>
+    </section>
+

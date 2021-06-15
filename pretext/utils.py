@@ -51,6 +51,34 @@ def write_config(configfile, **kwargs):
     with open(configfile) as cf:
         print(cf.read())
 
+#check xml syntax
+
+
+def xml_syntax_check(xmlfile):
+    # parse xml
+    try:
+        source_xml = ET.parse(xmlfile)
+        # we need to call xinclude once for each level of nesting (just to check for errors).  25 levels should be more than sufficient
+        for i in range(25):
+            source_xml.xinclude()
+        print('XML syntax appears well formed.')
+
+    # check for file IO error
+    except IOError:
+        print('Invalid File')
+
+    # check for XML syntax errors
+    except ET.XMLSyntaxError as err:
+        print('XML Syntax Error, see error_syntax.log. Quitting...')
+        with open('error_syntax.log', 'w') as error_log_file:
+            error_log_file.write(str(err.error_log))
+        quit()
+    except ET.XIncludeError as err:
+        print(
+            'XML Syntax Error with instance of xinclude; see error_syntax.log. Quitting...')
+        with open('error_syntax.log', 'w') as error_log_file:
+            error_log_file.write(str(err.error_log))
+        quit()
 
 # Taken from Rob's pretext-core:
 # These are consistent with pretext-core. 

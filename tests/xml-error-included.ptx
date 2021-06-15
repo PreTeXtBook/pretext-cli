@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+    <chapter xml:id="ch-chapter-2" xmlns:xi="http://www.w3.org/2001/XInclude">
+      <title>Chapter 2</title>
+      <p>
+        This is the first paragraph
+      <ol>
+        <li>
+          <p>
+            First list
+          </p>
+        </li>
+        <li>
+          <p> missing closing tag.</p> 
+        </li>
+      </ol>
+      </p>
+      <xi:include href="xml-error-second-section.ptx" />
+    </chapter>
+
