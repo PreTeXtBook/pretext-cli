@@ -2,6 +2,9 @@ import os
 from contextlib import contextmanager
 import configobj
 from http.server import SimpleHTTPRequestHandler
+from lxml import etree as ET
+from . import static
+
 
 @contextmanager
 def working_directory(path):
@@ -79,6 +82,33 @@ def xml_syntax_check(xmlfile):
         with open('error_syntax.log', 'w') as error_log_file:
             error_log_file.write(str(err.error_log))
         quit()
+
+def schema_validate(xmlfile):
+    #get path to RelaxNG schema file:
+    static_dir = os.path.dirname(static.__file__)
+    schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')
+
+    # Open schemafile for validation:
+    relaxng = ET.RelaxNG(file=schemarngfile)
+
+    # Parse xml file:
+    source_xml = ET.parse(xmlfile)
+
+    ## just for testing:
+    # relaxng.validate(source_xml)
+    # log = relaxng.error_log
+    # print(log)
+
+    # validate against schema
+    try:
+        relaxng.assertValid(source_xml)
+        print('PreTeXt source passed schema validation.')
+
+    except ET.DocumentInvalid as err:
+        print('Warning: PreTeXt document did not pass schema validation; unexpected output may result. See error_schema.log for hints.  Continuing with build.')
+        with open('error_schema.log', 'w') as error_log_file:
+            error_log_file.write(str(err.error_log))
+        pass
 
 # Taken from Rob's pretext-core:
 # These are consistent with pretext-core. 

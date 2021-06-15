@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+    <section xml:id="ch-chapter-2" xmlns:xi="http://www.w3.org/2001/XInclude">
+      <title>Another Section</title>
+   
+      <p>
+        This is the first paragraph
+      <ol>
+        <li>
+          <p>
+            First list
+          </p>
+        </li>
+        <li>
+          <p> A paragraph.</p> 
+        </li>
+      </ol>
+      </p>
+      <!-- <xi:include href="xml-error-second-section.ptx" /> -->
+    </section>
+

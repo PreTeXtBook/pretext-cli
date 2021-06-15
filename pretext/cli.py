@@ -113,8 +113,10 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
     # Remember options in local configfile when requested:
     if save_config:
         utils.write_config(config, source=source, output=output, param=param, publisher=publisher)
-    # Check for xml syntax errors before proceeding:
-    utils.xml_syntax_check()
+    # Check for xml syntax errors and quit if xml invalid:
+    utils.xml_syntax_check(source)
+    # Validate xml against schema; continue with warning if invalid:
+    utils.schema_validate(source)
     # set up stringparams as dictionary:
     # TODO: exit gracefully if string params were not entered in correct format.
     param_list = [p.split(":") for p in param]
