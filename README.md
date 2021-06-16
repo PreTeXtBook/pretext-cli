@@ -40,6 +40,10 @@ $ python -V
 Python (version set in `.python-version`)
 ```
 
+#### Steps on Windows
+
+In windows, you can either use the bash shell and follow the directions above, or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation).  In the latter case, make sure to follow all the installation instructions, including the **Finish the installation**.  Then proceed to follow the directions above to install the version of python in `.python-version`.  Finally, you may then need to manually add that version of python to your path.
+
 ### Managing packages and virtual environments
 
 Install `pipenv` to manage your Python packages:
