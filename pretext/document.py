@@ -1,6 +1,8 @@
 from lxml import etree as ET
 from slugify import slugify
+
 from .utils import nstag, NSMAP
+from . import static
 
 def new(title_string):
     pretext = ET.Element(
@@ -27,5 +29,4 @@ def add_chapter(pretext,title_string):
     title.text = title_string
 
 def publisher():
-    from . import static
     return ET.parse(static.filepath("publisher.ptx"))

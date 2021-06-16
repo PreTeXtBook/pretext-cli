@@ -1,9 +1,16 @@
 import click
 import click_config_file
-import subprocess
-from . import utils
-from . import version as cli_version
+import json
 from lxml import etree as ET
+import os
+import shutil
+from slugify import slugify
+import socketserver
+import socket
+import subprocess
+
+from . import version as cli_version
+from . import build, document, project, utils
 
 # config file default name:
 config_file = '.ptxconfig'
@@ -56,8 +63,6 @@ def new(title,directory,chapter,interactive):
     Usage:
     pretext new "My Great Book!"
     """
-    from . import document, project
-    from slugify import slugify
     if not(directory):
         if slugify(title):
             directory = slugify(title)
@@ -109,7 +114,6 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
 
     If the project included WeBWorK exercises, these must be processed using the --webwork option.
     """
-    import os
     # Remember options in local configfile when requested:
     if save_config:
         utils.write_config(config, source=source, output=output, param=param, publisher=publisher)
@@ -140,7 +144,6 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
     # put webwork-representations.ptx in same dir as source main file
     webwork_output = os.path.dirname(source)
     #build targets:
-    from . import build
     if webwork:
         # prepare params; for now assume only server is passed
         # see documentation of pretext core webwork_to_xml
@@ -195,9 +198,6 @@ def view(directory,access,port,config,save_config):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
-    import os
-    import socketserver, socket
-    from . import utils
 
     # Remember options in local configfile when requested:
     if save_config:
@@ -211,7 +211,6 @@ def view(directory,access,port,config,save_config):
         """)
     binding = "localhost" if (access=='private') else "0.0.0.0"
     if access=='cocalc':
-        import json
         project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
         url = f"https://cocalc.com/{project_id}/server/{port}/"
     elif access=='public':
@@ -235,13 +234,11 @@ def publish():
     Only supports the default `output/html` build directory.
     Requires Git and a GitHub account.
     """
-    from . import utils
     if not utils.directory_exists("output/html"):
         raise_cli_error(f"""
         The directory `output/html` does not exist.
         Maybe try `pretext build` first?
         """)
-    import shutil
     shutil.rmtree("docs",ignore_errors=True)
     shutil.copytree("output/html","docs")
     click.echo("Use these instructions if your project isn't already set up with Git and GitHub:")
