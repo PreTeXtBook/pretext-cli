@@ -6,7 +6,7 @@ with open("README.md", "r") as readme_file:
 with open("pretext/static/VERSION", "r") as version_file:
     VERSION = version_file.read().strip()
 
-with open("pretext/static/MINIMUM_PYTHON_VERSION", "r") as mpv_file:
+with open(".python-version") as mpv_file:
     MINIMUM_PYTHON_VERSION = mpv_file.read().strip()
 
 setuptools.setup(
@@ -20,8 +20,8 @@ setuptools.setup(
     install_requires=[
        'lxml',
        'python-slugify',
+       'requests',
        'click>=7.0',
-       "importlib_resources ; python_version<'3.7'",
        "pdfCropMargins",
        "click-config-file",
     ],
