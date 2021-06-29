@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <docinfo>
+    <macros>\newcommand{\foo}{b^{ar}}</macros>
+    <latex-image-preamble>\usepackage{tikz}</latex-image-preamble>
+  </docinfo>
+  <book xml:id="my-great-book">
+    <title>My Great Book</title>
+    <xi:include href="./chapter-1.ptx" />
+    <xi:include href="./chapter-2.ptx" />
+  </book>
+</pretext>

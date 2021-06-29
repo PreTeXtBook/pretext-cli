@@ -10,7 +10,9 @@ from slugify import slugify
 import socketserver
 import socket
 import subprocess
-
+import os, zipfile, requests, io
+import tempfile, shutil
+from . import utils, static
 from . import version as cli_version
 from . import document, project, utils, core
 from . import build as builders
@@ -58,46 +60,43 @@ def main():
 
 
 # pretext new
-@main.command(short_help="Provision a new PreTeXt document.")
-@click.argument('title', default="My Great Book!")
-@click.option('--directory', type=click.Path(),
-              help="Directory to create/use for the project. Defaults to "+
-              "a subdirectory of the current path based on book title.")
-@click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
-@click.option('-i', '--interactive', is_flag=True, default=False, help="Interactively requests names of book chapters.")
-def new(title,directory,chapter,interactive):
+@main.command(short_help="Generates the necessary files for a new PreTeXt project.")
+@click.argument('template', default='book',
+              type=click.Choice(['book', 'article'], case_sensitive=False))
+@click.option('-d', '--directory', type=click.Path(), default='new-pretext-project',
+              help="Directory to create/use for the project.")
+@click.option('-u', '--url-template', type=click.STRING,
+              help="Download a zipped template from its URL.")
+def new(template,directory,url_template):
     """
-    Creates a subdirectory with the files needed to author a PreTeXt document.
-
-    Usage:
-    pretext new "My Great Book!"
+    Generates the necessary files for a new PreTeXt project.
+    Supports `pretext new book` (default) and `pretext new article`,
+    or generating from URL with `pretext new --url-template [URL]`.
     """
-    if not(directory):
-        if slugify(title):
-            directory = slugify(title)
-        else:
-            directory = 'my-book'
-    click.echo(f"Generating new PreTeXt project in `{directory}`.")
-    pretext = document.new(title)
-    chapter = list(chapter)
-    if interactive:
-        setting_chapters = True
-        current_chapter = len(chapter)+1
-        while setting_chapters:
-            chapter.append(click.prompt(f"Provide the title for Chapter {current_chapter}"))
-            setting_chapters = click.confirm('Do you want to name another chapter?')
-            current_chapter += 1
-    elif not(chapter):
-        chapter = ["My First Chapter"]
-    for c in chapter:
-        document.add_chapter(pretext,c)
-    project.write(pretext, directory)
-    # TODO: Set options in local configfile:
-    # utils.write_config(config_file, source=source,
-    #                    output=output, param=param, publisher=publisher)
+    directory_fullpath = os.path.abspath(directory)
+    click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
+    static_dir = os.path.dirname(static.__file__)
+    if url_template is not None:
+        r = requests.get(url_template)
+        archive = zipfile.ZipFile(io.BytesIO(r.content))
+    else:
+        template_path = os.path.join(static_dir, 'templates', f'{template}.zip')
+        archive = zipfile.ZipFile(template_path)
+    # find (first) project.ptx to use as root of template
+    filenames = [os.path.basename(filepath) for filepath in archive.namelist()]
+    project_ptx_index = filenames.index('project.ptx')
+    project_ptx_path = archive.namelist()[project_ptx_index]
+    project_dir_path = os.path.dirname(project_ptx_path)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        for filepath in [filepath for filepath in archive.namelist() if filepath.startswith(project_dir_path)]:
+            archive.extract(filepath,path=tmpdirname)
+        tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
+        shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
+    click.echo(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
+    click.echo(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
 # pretext build
-@main.command(short_help="Build specified format target")
+@main.command(short_help="Build specified target")
 @click.argument('format', default='html',
               type=click.Choice(['html', 'latex', 'diagrams', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,

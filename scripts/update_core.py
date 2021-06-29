@@ -4,16 +4,6 @@ import requests, zipfile, io, shutil
 with open("pretext/static/CORE_COMMIT","r") as commitfile:
     commit = commitfile.readline().strip()
 
-#filemap = [
-#    ("pretext/pretext.py", "pretext/core.py"),
-#]
-
-#for pair in filemap:
-#    urllib.request.urlretrieve(
-#        f'https://raw.githubusercontent.com/rbeezer/mathbook/{commit}/{pair[0]}',
-#        pair[1]
-#    )
-
 r = requests.get(f"https://github.com/rbeezer/mathbook/archive/{commit}.zip")
 archive = zipfile.ZipFile(io.BytesIO(r.content))
 archive.extractall("tmp")

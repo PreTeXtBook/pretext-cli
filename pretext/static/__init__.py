@@ -1,7 +1,4 @@
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    import importlib_resources as pkg_resources #backported package
+import importlib.resources as pkg_resources
 
 
 def filepath(filename):
