@@ -55,9 +55,21 @@ def write_config(configfile, **kwargs):
     with open(configfile) as cf:
         print(cf.read())
 
+
+# Grabs project directory based on presence of `project.ptx`
+def project_path(dirpath=os.getcwd()):
+    if os.path.isfile(os.path.join(dirpath,'project.ptx')):
+        # we're at the project root
+        return dirpath
+    parentpath = os.path.dirname(dirpath)
+    if parentpath == dirpath:
+        # cannot ascend higher, no project found
+        return None
+    else:
+        # check parent instead
+        return project_path(dirpath=parentpath)
+
 #check xml syntax
-
-
 def xml_syntax_check(xmlfile):
     # parse xml
     try:
@@ -141,6 +153,8 @@ def _debug(msg):
     print('PTX-CLI:DEBUG: {}'.format(msg))
 
 
+
+# boilerplate to prevent overzealous caching by preview server
 class NoCacheHandler(SimpleHTTPRequestHandler):
     """HTTP request handler with no caching"""
     def end_headers(self):
