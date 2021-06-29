@@ -5,7 +5,7 @@
     (default location).
 -->
 <project>
-  <build>
+  <targets>
     <target>
       <alias>html</alias>
       <format>html</format>
@@ -20,5 +20,5 @@
       <publication>publication/publication.ptx</publication>
       <output-dir>output/pdf</output-dir>
     </target>
-  </build>
+  </targets>
 </project>

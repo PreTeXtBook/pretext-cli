@@ -58,9 +58,37 @@ def write_config(configfile, **kwargs):
     with open(configfile) as cf:
         print(cf.read())
 
+
+# Grabs project directory based on presence of `project.ptx`
+def project_path(dirpath=os.getcwd()):
+    if os.path.isfile(os.path.join(dirpath,'project.ptx')):
+        # we're at the project root
+        return dirpath
+    parentpath = os.path.dirname(dirpath)
+    if parentpath == dirpath:
+        # cannot ascend higher, no project found
+        return None
+    else:
+        # check parent instead
+        return project_path(dirpath=parentpath)
+
+def project_xml(dirpath=os.getcwd()):
+    if project_path(dirpath) is None:
+        return ET.ElementTree('<project/>')
+    return ET.parse(os.path.join(project_path(dirpath),'project.ptx'))
+
+def target_xml(alias,dirpath=os.getcwd()):
+    xpath = f'targets/target/alias[text()="{alias}"]'
+    return project_xml().xpath(xpath)[0].getparent()
+
+def update_from_project_xml(variable,xpath):
+    custom = project_xml().find(xpath)
+    if custom is not None:
+        return custom.text.strip()
+    else:
+        return variable
+
 #check xml syntax
-
-
 def xml_syntax_check(xmlfile):
     # parse xml
     try:
@@ -115,6 +143,8 @@ def schema_validate(xmlfile):
         pass
 
 
+
+# boilerplate to prevent overzealous caching by preview server
 class NoCacheHandler(SimpleHTTPRequestHandler):
     """HTTP request handler with no caching"""
     def end_headers(self):
