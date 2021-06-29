@@ -55,7 +55,7 @@ def latex(ptxfile,output,stringparams):
 def diagrams(ptxfile, output, params, formats):
     # from .static.pretext import pretext as ptxcore
     # Pass verbosity level to ptxcore sripts:
-    core.set_verbosity(utils._verbosity)
+    # core.set_verbosity(utils._verbosity)
     # We assume passed paths are absolute.
     # set images directory
     image_output = os.path.join(output, 'images')
@@ -75,7 +75,7 @@ def diagrams(ptxfile, output, params, formats):
 def webwork(ptxfile, dest_dir, params, server_params):
     # from .static.pretext import pretext as ptxcore
     # Pass verbosity level to ptxcore scripts:
-    core.set_verbosity(utils._verbosity)
+    # core.set_verbosity(utils._verbosity)
     # Assume passed paths are absolute.
     # Set directory for WW representations.
     # dest_dir = os.path.join(dest_dir, outfile)

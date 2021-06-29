@@ -930,6 +930,7 @@
             Url =
                 element url {
                     attribute href {text},
+                    attribute visual {text}?,
                     TextShort
                 }
             Xref =
@@ -1563,7 +1564,8 @@
                     attribute width {text}?,
                     element description {(TextShort | WWVariable)*}?,
                     element latex-image {
-                        attribute syntax {"PGtikz"}
+                        attribute syntax {"PGtikz"},
+                        text
                     }?
                 }
             </code>
@@ -1629,15 +1631,19 @@
                     attribute end {xsd:integer}?,
                     attribute play-at {"embed" | "popout" | "select"}?,
                     attribute preview {"default" | "generic" | text}?,
-                    (AttributesSourceFile | AttributesYouTube |
-                     AttributesYouTubePlaylist)
+                    (AttributesSourceFile | AttributesNetwork | AttributesYouTube |
+                     AttributesYouTubePlaylist | AttributesVimeo)
                 }
             AttributesSourceFile =
                 attribute source {text}
+            AttributesNetwork =
+                attribute href {text}
             AttributesYouTube =
                 attribute youtube {text}
             AttributesYouTubePlaylist =
                 attribute youtubeplaylist {text}
+            AttributesVimeo =
+                attribute vimeo {text}
             </code>
         </fragment>
     </section>

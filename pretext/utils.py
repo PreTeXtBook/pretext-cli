@@ -116,29 +116,29 @@ def schema_validate(xmlfile):
 #   to use elsewhere, write, e.g., utils._verbos('message')
 # In any function that imports pretext-core, pass verbosity by 
 #   using ptxcore.set_verbosity(utils._verbosity)
-def set_verbosity(v):
-    """Set how chatty routines are at console: 0, 1, or 2"""
-    # 0 - nothing
-    # 1 - _verbose() only
-    # 2 - _verbose() and _debug()
-    global _verbosity
+# def set_verbosity(v):
+#     """Set how chatty routines are at console: 0, 1, or 2"""
+#     # 0 - nothing
+#     # 1 - _verbose() only
+#     # 2 - _verbose() and _debug()
+#     global _verbosity
 
-    if ((v != 0) and (v != 1) and (v != 2)):
-        print(
-            'PTX-CLI:WARNING: verbosity level above 2 has no additional effect')
-    _verbosity = v
+#     if ((v != 0) and (v != 1) and (v != 2)):
+#         print(
+#             'PTX-CLI:WARNING: verbosity level above 2 has no additional effect')
+#     _verbosity = v
 
 
 def _verbose(msg):
     """Write a message to the console on program progress"""
-    if _verbosity >= 1:
-        print('PTX-CLI: {}'.format(msg))
+    # if _verbosity >= 1:
+    print('PTX-CLI: {}'.format(msg))
 
 
 def _debug(msg):
     """Write a message to the console with some raw information"""
-    if _verbosity >= 2:
-        print('PTX-CLI:DEBUG: {}'.format(msg))
+    # if _verbosity >= 2:
+    print('PTX-CLI:DEBUG: {}'.format(msg))
 
 
 class NoCacheHandler(SimpleHTTPRequestHandler):
