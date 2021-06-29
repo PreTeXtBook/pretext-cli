@@ -1,11 +1,21 @@
 import click
 import click_config_file
+import json
+from lxml import etree as ET
+import os
+import shutil
+from slugify import slugify
+import socketserver
+import socket
 import subprocess
 import os, zipfile, requests, io
 import tempfile, shutil
 from . import utils, static
 from . import version as cli_version
-from lxml import etree as ET
+from . import document, project, utils, core
+from . import build as builders
+# from .static.pretext import pretext as ptxcore
+
 
 # config file default name:
 config_file = '.ptxconfig'
@@ -40,7 +50,7 @@ def main(silent,verbose):
         verbosity = 0
     else:
         verbosity = 1
-    utils.set_verbosity(verbosity)
+    core.set_verbosity(verbosity)
 
 
 # pretext new
@@ -105,11 +115,13 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
 
     If the project included WeBWorK exercises, these must be processed using the --webwork option.
     """
-    import os
     # Remember options in local configfile when requested:
     if save_config:
         utils.write_config(config, source=source, output=output, param=param, publisher=publisher)
-    # from . import utils
+    # Check for xml syntax errors and quit if xml invalid:
+    utils.xml_syntax_check(source)
+    # Validate xml against schema; continue with warning if invalid:
+    utils.schema_validate(source)
     # set up stringparams as dictionary:
     # TODO: exit gracefully if string params were not entered in correct format.
     param_list = [p.split(":") for p in param]
@@ -133,7 +145,6 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
     # put webwork-representations.ptx in same dir as source main file
     webwork_output = os.path.dirname(source)
     #build targets:
-    from . import build
     if webwork:
         # prepare params; for now assume only server is passed
         # see documentation of pretext core webwork_to_xml
@@ -145,18 +156,18 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
             root_cause = str(e)
             print("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
             server_params = "https://webwork-ptx.aimath.org"
-        build.webwork(source, webwork_output, stringparams, server_params)
+        builders.webwork(source, webwork_output, stringparams, server_params)
     if diagrams or format=='diagrams':
-        build.diagrams(source,html_output,stringparams,diagrams_format)
+        builders.diagrams(source,html_output,stringparams,diagrams_format)
     else:
         source_xml = ET.parse(source)
         source_xml.xinclude()
         if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
             print("Warning: <latex-image/> or <sageplot/> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
     if format=='html' or format=='all':
-        build.html(source,html_output,stringparams)
+        builders.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
-        build.latex(source,latex_output,stringparams)
+        builders.latex(source,latex_output,stringparams)
         if pdf:
             with utils.working_directory(latex_output):
                 subprocess.run(['pdflatex','main.tex'])
@@ -188,9 +199,6 @@ def view(directory,access,port,config,save_config):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
-    import os
-    import socketserver, socket
-    from . import utils
 
     # Remember options in local configfile when requested:
     if save_config:
@@ -204,7 +212,6 @@ def view(directory,access,port,config,save_config):
         """)
     binding = "localhost" if (access=='private') else "0.0.0.0"
     if access=='cocalc':
-        import json
         project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
         url = f"https://cocalc.com/{project_id}/server/{port}/"
     elif access=='public':
@@ -228,13 +235,11 @@ def publish():
     Only supports the default `output/html` build directory.
     Requires Git and a GitHub account.
     """
-    from . import utils
     if not utils.directory_exists("output/html"):
         raise_cli_error(f"""
         The directory `output/html` does not exist.
         Maybe try `pretext build` first?
         """)
-    import shutil
     shutil.rmtree("docs",ignore_errors=True)
     shutil.copytree("output/html","docs")
     click.echo("Use these instructions if your project isn't already set up with Git and GitHub:")

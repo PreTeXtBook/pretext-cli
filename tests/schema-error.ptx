@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<pretext xmlns:xi="http://www.w3.org/2001/XInclude">
+  <book xml:id="schema-error-test">
+    <title>Testing an xml error</title>
+
+
+    <chapter xml:id="ch-chapter-1">
+      <title>Chapter 1</title>
+      <introduction>
+        <p>
+      <p>
+        A rogue paragraph.
+      </p>
+          This is an introduction.
+        </p>
+      </introduction>
+      <section xml:id="sec-section-1.1">
+        <title>Section 1.1</title>
+        
+      <p>
+        This is the first paragraph
+      </p>
+      </section>
+      <xi:include href="schema-error-included.ptx" />
+    </chapter>
+
+  </book>
+</pretext>

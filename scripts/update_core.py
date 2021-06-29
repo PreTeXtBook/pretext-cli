@@ -11,6 +11,8 @@ shutil.rmtree("pretext/static/xsl", ignore_errors=True)
 shutil.copytree(f"tmp/mathbook-{commit}/xsl", "pretext/static/xsl")
 shutil.rmtree("pretext/static/pretext", ignore_errors=True)
 shutil.copytree(f"tmp/mathbook-{commit}/pretext", "pretext/static/pretext")
+shutil.rmtree("pretext/static/schema", ignore_errors=True)
+shutil.copytree(f"tmp/mathbook-{commit}/schema", "pretext/static/schema")
 shutil.rmtree("tmp")
 
 print("Copied rbeezer/mathbook Python scripts.")

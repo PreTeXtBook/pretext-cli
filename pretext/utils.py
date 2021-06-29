@@ -2,6 +2,10 @@ import os
 from contextlib import contextmanager
 import configobj
 from http.server import SimpleHTTPRequestHandler
+from lxml import etree as ET
+
+from . import static
+
 
 @contextmanager
 def working_directory(path):
@@ -51,35 +55,90 @@ def write_config(configfile, **kwargs):
     with open(configfile) as cf:
         print(cf.read())
 
+#check xml syntax
+
+
+def xml_syntax_check(xmlfile):
+    # parse xml
+    try:
+        source_xml = ET.parse(xmlfile)
+        # we need to call xinclude once for each level of nesting (just to check for errors).  25 levels should be more than sufficient
+        for i in range(25):
+            source_xml.xinclude()
+        print('XML syntax appears well formed.')
+
+    # check for file IO error
+    except IOError:
+        print('Invalid File')
+
+    # check for XML syntax errors
+    except ET.XMLSyntaxError as err:
+        print('XML Syntax Error, see error_syntax.log. Quitting...')
+        with open('error_syntax.log', 'w') as error_log_file:
+            error_log_file.write(str(err.error_log))
+        quit()
+    except ET.XIncludeError as err:
+        print(
+            'XML Syntax Error with instance of xinclude; see error_syntax.log. Quitting...')
+        with open('error_syntax.log', 'w') as error_log_file:
+            error_log_file.write(str(err.error_log))
+        quit()
+
+def schema_validate(xmlfile):
+    #get path to RelaxNG schema file:
+    static_dir = os.path.dirname(static.__file__)
+    schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')
+
+    # Open schemafile for validation:
+    relaxng = ET.RelaxNG(file=schemarngfile)
+
+    # Parse xml file:
+    source_xml = ET.parse(xmlfile)
+
+    ## just for testing:
+    # relaxng.validate(source_xml)
+    # log = relaxng.error_log
+    # print(log)
+
+    # validate against schema
+    try:
+        relaxng.assertValid(source_xml)
+        print('PreTeXt source passed schema validation.')
+
+    except ET.DocumentInvalid as err:
+        print('Warning: PreTeXt document did not pass schema validation; unexpected output may result. See error_schema.log for hints.  Continuing with build.')
+        with open('error_schema.log', 'w') as error_log_file:
+            error_log_file.write(str(err.error_log))
+        pass
 
 # Taken from Rob's pretext-core:
 # These are consistent with pretext-core. 
 #   to use elsewhere, write, e.g., utils._verbos('message')
 # In any function that imports pretext-core, pass verbosity by 
 #   using ptxcore.set_verbosity(utils._verbosity)
-def set_verbosity(v):
-    """Set how chatty routines are at console: 0, 1, or 2"""
-    # 0 - nothing
-    # 1 - _verbose() only
-    # 2 - _verbose() and _debug()
-    global _verbosity
+# def set_verbosity(v):
+#     """Set how chatty routines are at console: 0, 1, or 2"""
+#     # 0 - nothing
+#     # 1 - _verbose() only
+#     # 2 - _verbose() and _debug()
+#     global _verbosity
 
-    if ((v != 0) and (v != 1) and (v != 2)):
-        print(
-            'PTX-CLI:WARNING: verbosity level above 2 has no additional effect')
-    _verbosity = v
+#     if ((v != 0) and (v != 1) and (v != 2)):
+#         print(
+#             'PTX-CLI:WARNING: verbosity level above 2 has no additional effect')
+#     _verbosity = v
 
 
 def _verbose(msg):
     """Write a message to the console on program progress"""
-    if _verbosity >= 1:
-        print('PTX-CLI: {}'.format(msg))
+    # if _verbosity >= 1:
+    print('PTX-CLI: {}'.format(msg))
 
 
 def _debug(msg):
     """Write a message to the console with some raw information"""
-    if _verbosity >= 2:
-        print('PTX-CLI:DEBUG: {}'.format(msg))
+    # if _verbosity >= 2:
+    print('PTX-CLI:DEBUG: {}'.format(msg))
 
 
 class NoCacheHandler(SimpleHTTPRequestHandler):

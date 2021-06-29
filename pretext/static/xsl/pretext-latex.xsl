@@ -5823,7 +5823,14 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     <!-- the original source, and not the enhanced source, and -->
     <!-- causes the relative file name to resolve according    -->
     <!-- to the correct location.   Experiments with the       -->
-    <xsl:variable name="filename" select="concat(concat('problems/mom-', myopenmath/@problem), '.xml')" />
+    <xsl:variable name="filename">
+        <xsl:if test="$b-managed-directories">
+            <xsl:value-of select="$generated-directory"/>
+        </xsl:if>
+        <xsl:text>problems/mom-</xsl:text>
+        <xsl:value-of select="myopenmath/@problem"/>
+        <xsl:text>.xml</xsl:text>
+    </xsl:variable>
     <xsl:apply-templates select="document($filename, $original)/myopenmath" mode="exercise-components">
         <xsl:with-param name="b-original" select="$b-original" />
         <xsl:with-param name="purpose" select="$purpose" />
@@ -7165,7 +7172,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Eventually match on all interactives                            -->
 <!-- NB: baseurl is assumed to have a trailing slash                 -->
 
-<xsl:template match="audio[@source]|video[@source]|interactive" mode="static-url">
+<xsl:template match="audio[@source|@href]|video[@source|@href]|interactive" mode="static-url">
     <xsl:value-of select="$baseurl"/>
     <xsl:apply-templates select="." mode="standalone-filename" />
 </xsl:template>
@@ -7213,6 +7220,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- has @preview -->
         <xsl:when test="@preview">
             <xsl:text>\includegraphics[width=0.80\linewidth,height=\qrsize,keepaspectratio]{</xsl:text>
+            <xsl:if test="$b-managed-directories">
+                <xsl:value-of select="$external-directory"/>
+            </xsl:if>
             <xsl:value-of select="@preview" />
             <xsl:text>}</xsl:text>
         </xsl:when>
@@ -7223,8 +7233,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- nothing specified, look for scraped via visible-id -->
         <xsl:when test="@youtube">
             <xsl:text>\includegraphics[width=0.80\linewidth,height=\qrsize,keepaspectratio]{</xsl:text>
-            <xsl:value-of select="$generated-image-directory"/>
-            <xsl:if test="$b-managed-generated-images">
+            <xsl:value-of select="$generated-directory"/>
+            <xsl:if test="$b-managed-directories">
                 <xsl:text>youtube/</xsl:text>
             </xsl:if>
             <xsl:apply-templates select="." mode="visible-id" />
@@ -7242,6 +7252,9 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- has @preview -->
         <xsl:when test="@preview">
             <xsl:text>\includegraphics[width=0.80\linewidth,height=\qrsize,keepaspectratio]{</xsl:text>
+            <xsl:if test="$b-managed-directories">
+                <xsl:value-of select="$external-directory"/>
+            </xsl:if>
             <xsl:value-of select="@preview" />
             <xsl:text>}</xsl:text>
         </xsl:when>
@@ -7249,8 +7262,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
         <!-- Critical: coordinate with "extract-interactive.xsl" -->
         <xsl:otherwise>
             <xsl:variable name="default-preview-image">
-                <xsl:value-of select="$generated-image-directory"/>
-                <xsl:if test="$b-managed-generated-images">
+                <xsl:value-of select="$generated-directory"/>
+                <xsl:if test="$b-managed-directories">
                     <xsl:text>preview/</xsl:text>
                 </xsl:if>
                 <xsl:apply-templates select="." mode="visible-id" />
@@ -7269,7 +7282,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:choose>
 </xsl:template>
 
-<xsl:template match="audio[@source]|video[@source]" mode="static-caption">
+<xsl:template match="audio[@source|@href]|video[@source|@href]" mode="static-caption">
     <xsl:choose>
         <!-- author-supplied override -->
         <xsl:when test="caption">
@@ -8870,7 +8883,7 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
     </xsl:variable>
     <xsl:text>\includegraphics[width=\linewidth]</xsl:text>
     <xsl:text>{</xsl:text>
-    <xsl:value-of select="$external-image-directory"/>
+    <xsl:value-of select="$external-directory"/>
     <xsl:value-of select="@source"/>
     <xsl:if test="not($extension)">
         <xsl:text>.pdf&#xa;</xsl:text>
@@ -8883,8 +8896,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <xsl:template match="image[asymptote]" mode="image-inclusion">
     <!-- need image filename in two different scenarios -->
     <xsl:variable name="image-file-name">
-        <xsl:value-of select="$generated-image-directory"/>
-        <xsl:if test="$b-managed-generated-images">
+        <xsl:value-of select="$generated-directory"/>
+        <xsl:if test="$b-managed-directories">
             <xsl:text>asymptote/</xsl:text>
         </xsl:if>
         <xsl:apply-templates select="." mode="visible-id" />
@@ -8894,8 +8907,8 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
       <xsl:when test="$b-asymptote-links">
         <xsl:variable name="image-html-url">
             <xsl:value-of select="$baseurl"/>
-            <xsl:value-of select="$generated-image-directory"/>
-            <xsl:if test="$b-managed-generated-images">
+            <xsl:value-of select="$generated-directory"/>
+            <xsl:if test="$b-managed-directories">
                 <xsl:text>asymptote/</xsl:text>
             </xsl:if>
             <xsl:apply-templates select="." mode="visible-id" />
@@ -8926,24 +8939,24 @@ along with MathBook XML.  If not, see <http://www.gnu.org/licenses/>.
 <!-- PNGs are fallback for 3D     -->
 <xsl:template match="image[sageplot]" mode="image-inclusion">
     <xsl:text>\IfFileExists{</xsl:text>
-    <xsl:value-of select="$generated-image-directory"/>
-    <xsl:if test="$b-managed-generated-images">
+    <xsl:value-of select="$generated-directory"/>
+    <xsl:if test="$b-managed-directories">
         <xsl:text>sageplot/</xsl:text>
     </xsl:if>
     <xsl:apply-templates select="." mode="visible-id" />
     <xsl:text>.pdf}%&#xa;</xsl:text>
     <xsl:text>{\includegraphics[width=\linewidth]</xsl:text>
     <xsl:text>{</xsl:text>
-    <xsl:value-of select="$generated-image-directory"/>
-    <xsl:if test="$b-managed-generated-images">
+    <xsl:value-of select="$generated-directory"/>
+    <xsl:if test="$b-managed-directories">
         <xsl:text>sageplot/</xsl:text>
     </xsl:if>
     <xsl:apply-templates select="." mode="visible-id" />
     <xsl:text>.pdf}}%&#xa;</xsl:text>
     <xsl:text>{\includegraphics[width=\linewidth]</xsl:text>
     <xsl:text>{</xsl:text>
-    <xsl:value-of select="$generated-image-directory"/>
-    <xsl:if test="$b-managed-generated-images">
+    <xsl:value-of select="$generated-directory"/>
+    <xsl:if test="$b-managed-directories">
         <xsl:text>sageplot/</xsl:text>
     </xsl:if>
     <xsl:apply-templates select="." mode="visible-id" />
