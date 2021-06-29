@@ -2,6 +2,7 @@ import os
 from contextlib import contextmanager
 import configobj
 from http.server import SimpleHTTPRequestHandler
+import socketserver
 import logging
 from lxml import etree as ET
 
@@ -144,7 +145,8 @@ def schema_validate(xmlfile):
 
 
 
-# boilerplate to prevent overzealous caching by preview server
+# boilerplate to prevent overzealous caching by preview server, and
+# avoid port issues
 class NoCacheHandler(SimpleHTTPRequestHandler):
     """HTTP request handler with no caching"""
     def end_headers(self):
@@ -154,6 +156,16 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
+class TCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+def run_server(directory,binding,port,url):
+    with TCPServer((binding, port), NoCacheHandler) as httpd:
+        with working_directory(directory):
+            log.info(f"Your build located at `{directory}` may be previewed at")
+            log.info(url)
+            log.info("Use [Ctrl]+[C] to halt the server.")
+            httpd.serve_forever()
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
