@@ -55,17 +55,17 @@ def main(silent,verbose):
 
 # pretext new
 @main.command(short_help="Generates the necessary files for a new PreTeXt project.")
+@click.argument('template', default='book',
+              type=click.Choice(['book', 'article'], case_sensitive=False))
 @click.option('-d', '--directory', type=click.Path(), default='new-pretext-project',
               help="Directory to create/use for the project.")
-@click.option('-t', '--template', default='book',
-              type=click.Choice(['book', 'article'], case_sensitive=False),
-              help="Template to use for new project.")
 @click.option('-u', '--url-template', type=click.STRING,
               help="Download a zipped template from its URL.")
-def new(directory,template,url_template):
+def new(template,directory,url_template):
     """
     Generates the necessary files for a new PreTeXt project.
-    Defaults to the current working directory.
+    Supports `pretext new book` (default) and `pretext new article`,
+    or generating from URL with `pretext new --url-template [URL]`.
     """
     directory_fullpath = os.path.abspath(directory)
     click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
