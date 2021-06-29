@@ -1720,7 +1720,7 @@
               </xs:complexType>
             </xs:element>
             <xs:element minOccurs="0" name="latex-image">
-              <xs:complexType>
+              <xs:complexType mixed="true">
                 <xs:attribute name="syntax" use="required">
                   <xs:simpleType>
                     <xs:restriction base="xs:token">
@@ -1920,18 +1920,26 @@
       </xs:attribute>
       <xs:attribute name="preview"/>
       <xs:attribute name="source"/>
+      <xs:attribute name="href"/>
       <xs:attribute name="youtube"/>
       <xs:attribute name="youtubeplaylist"/>
+      <xs:attribute name="vimeo"/>
     </xs:complexType>
   </xs:element>
   <xs:attributeGroup name="AttributesSourceFile">
     <xs:attribute name="source" use="required"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="AttributesNetwork">
+    <xs:attribute name="href" use="required"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="AttributesYouTube">
     <xs:attribute name="youtube" use="required"/>
   </xs:attributeGroup>
   <xs:attributeGroup name="AttributesYouTubePlaylist">
     <xs:attribute name="youtubeplaylist" use="required"/>
+  </xs:attributeGroup>
+  <xs:attributeGroup name="AttributesVimeo">
+    <xs:attribute name="vimeo" use="required"/>
   </xs:attributeGroup>
   <xs:group name="ExerciseBody">
     <xs:sequence>
@@ -2692,6 +2700,7 @@
     <xs:complexType mixed="true">
       <xs:group ref="TextShort"/>
       <xs:attribute name="href" use="required"/>
+      <xs:attribute name="visual"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="xref">

@@ -10,7 +10,10 @@ import socket
 import subprocess
 
 from . import version as cli_version
-from . import build, document, project, utils
+from . import document, project, utils, core
+from . import build as builders
+# from .static.pretext import pretext as ptxcore
+
 
 # config file default name:
 config_file = '.ptxconfig'
@@ -45,7 +48,7 @@ def main(silent,verbose):
         verbosity = 0
     else:
         verbosity = 1
-    utils.set_verbosity(verbosity)
+    core.set_verbosity(verbosity)
 
 
 # pretext new
@@ -155,18 +158,18 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
             root_cause = str(e)
             print("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
             server_params = "https://webwork-ptx.aimath.org"
-        build.webwork(source, webwork_output, stringparams, server_params)
+        builders.webwork(source, webwork_output, stringparams, server_params)
     if diagrams or format=='diagrams':
-        build.diagrams(source,html_output,stringparams,diagrams_format)
+        builders.diagrams(source,html_output,stringparams,diagrams_format)
     else:
         source_xml = ET.parse(source)
         source_xml.xinclude()
         if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
             print("Warning: <latex-image/> or <sageplot/> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
     if format=='html' or format=='all':
-        build.html(source,html_output,stringparams)
+        builders.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
-        build.latex(source,latex_output,stringparams)
+        builders.latex(source,latex_output,stringparams)
         if pdf:
             with utils.working_directory(latex_output):
                 subprocess.run(['pdflatex','main.tex'])

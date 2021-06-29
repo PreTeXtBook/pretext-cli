@@ -485,10 +485,11 @@ def webwork_to_xml(xml_source, pub_file, stringparams, abort_early, server_param
     # execute XSL extraction to get back six dictionaries
     # where the keys are the internal-ids for the problems
     # origin, copy, seed, source, pghuman, pgdense
+    # also get the localization as a string
     ptx_xsl_dir = get_ptx_xsl_path()
     extraction_xslt = os.path.join(ptx_xsl_dir, 'extract-pg.xsl')
 
-    # Build dictionaries into a scratch directory/file
+    # Build dictionaries and localization string into a scratch directory/file
     tmp_dir = get_temporary_directory()
     ww_filename = os.path.join(tmp_dir, 'webwork-dicts.txt')
     _debug('WeBWorK dictionaries temporarily in {}'.format(ww_filename))
@@ -497,7 +498,7 @@ def webwork_to_xml(xml_source, pub_file, stringparams, abort_early, server_param
     ww_file = open(ww_filename, 'r')
     problem_dictionaries = ww_file.read()
     ww_file.close()
-    # "run" the dictionaries
+    # "run" the dictionaries and localization string
     # protect backslashes in LaTeX code
     # globals() necessary for success
     exec(problem_dictionaries.replace('\\','\\\\'), globals())
@@ -1055,6 +1056,7 @@ def webwork_to_xml(xml_source, pub_file, stringparams, abort_early, server_param
             server_data.set('course-id',courseID)
             server_data.set('user-id',userID)
             server_data.set('course-password',course_password)
+            server_data.set('language',localization)
             server_data.tail = "\n    "
 
         elif (ww_reps_version == '1'):
@@ -1076,8 +1078,8 @@ def webwork_to_xml(xml_source, pub_file, stringparams, abort_early, server_param
                     server_url.set('hint',hint)
                     server_url.set('solution',solution)
                     server_url.set('domain',ww_domain)
-                    url_shell = "{}?courseID={}&userID={}&password={}&course_password={}&answersSubmitted=0&displayMode=MathJax&outputformat=simple&problemSeed={}&{}"
-                    server_url.text = url_shell.format(ww_domain_path,courseID,userID,password,course_password,seed[problem],source_query)
+                    url_shell = "{}?courseID={}&userID={}&password={}&course_password={}&answersSubmitted=0&displayMode=MathJax&outputformat=simple&language={}&problemSeed={}&{}"
+                    server_url.text = url_shell.format(ww_domain_path,courseID,userID,password,course_password,localization,seed[problem],source_query)
                     server_url.tail = "\n    "
 
         # Add PG for PTX-authored problems
@@ -1497,7 +1499,8 @@ def epub(xml_source, pub_file, out_file, dest_dir, math_format):
     #   package.opf
     #   css
     #   xhtml
-    #     images (customizable)
+    #     generated images (customizable)
+    #     external images (customizable)
     # META-INF
 
     source_dir = get_source_path(xml_source)
@@ -1518,6 +1521,8 @@ def epub(xml_source, pub_file, out_file, dest_dir, math_format):
     # and produce some information needed for the packaging here.
     _verbose('converting source ({}) and clean representations ({}) into EPUB files'.format(xml_source, math_representations))
     params = {}
+
+    # the EPUB production is parmameterized by how math is produced
     params['mathfile'] = math_representations
     params['math.format'] = math_format
     if pub_file:
@@ -1564,21 +1569,21 @@ def epub(xml_source, pub_file, out_file, dest_dir, math_format):
 
     # directory of images, relative to master source file, given by publisher
     # build the same directory relative to the XHTML files
-    #imdir = packaging_tree.xpath('/packaging/images/@image-directory')[0]
-    #source_image_dir = os.path.join(source_dir, str(imdir))
-    #os.mkdir(os.path.join(tmp_dir, 'EPUB', 'xhtml', str(imdir)))
-    source_image_dir = os.path.join(source_dir, 'images')
-    os.mkdir(os.path.join(tmp_dir, 'EPUB', 'xhtml', 'images'))
+
     # position cover file
     cov = packaging_tree.xpath('/packaging/cover/@filename')[0]
     cover_source = os.path.join(source_dir, str(cov))
-    cover_dest = os.path.join(tmp_dir, 'EPUB', 'xhtml', str(cov))
+    cover_dest = os.path.join(xhtml_dir, str(cov))
+    # https://stackoverflow.com/questions/2793789, Python 3.2
+    os.makedirs(os.path.dirname(cover_dest), exist_ok=True)
     shutil.copy2(cover_source, cover_dest)
+
     # position image files
     images = packaging_tree.xpath('/packaging/images/image/@filename')
     for im in images:
         source = os.path.join(source_dir, str(im))
-        dest = os.path.join(tmp_dir, 'EPUB', 'xhtml', str(im))
+        dest = os.path.join(xhtml_dir, str(im))
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
         shutil.copy2(source, dest)
 
     # clean-up the trash
@@ -1638,11 +1643,33 @@ def epub(xml_source, pub_file, out_file, dest_dir, math_format):
 def html(xml, pub_file, stringparams, dest_dir):
     """Convert XML source to HTML files in destination directory"""
     import os.path # join()
+    import shutil # copytree()
+
+    warning = '\n'.join(['*************************************************',
+                         'Conversion to HTML is experimental and incomplete',
+                         '    (Temporarily requires Python version 3.8)    ',
+                         '*************************************************'])
+    print(warning)
+
+    # Consult publisher file for locations of images
+    # data directory likely only needed for latex compilation
+    generated_abs, _, external_abs, generated, _, external = get_image_directories(xml, pub_file)
 
     # support publisher file, not subtree argument
     if pub_file:
         stringparams['publisher'] = pub_file
     extraction_xslt = os.path.join(get_ptx_xsl_path(), 'pretext-html.xsl')
+
+    # copy externally manufactured media to  dest_dir
+    if external:
+        external_dir = os.path.join(dest_dir, external)
+        shutil.copytree(external_abs, external_dir, dirs_exist_ok=True)
+
+    # copy generated to  dest_dir
+    if generated:
+        generated_dir = os.path.join(dest_dir, generated)
+        shutil.copytree(generated_abs, generated_dir, dirs_exist_ok=True)
+
     # Write output into working directory, no scratch space needed
     _verbose('converting {} to HTML in {}'.format(xml, dest_dir))
     xsltproc(extraction_xslt, xml, None, dest_dir, stringparams)
@@ -1660,7 +1687,8 @@ def latex(xml, pub_file, stringparams, out_file, dest_dir):
     if pub_file:
         stringparams['publisher'] = pub_file
     extraction_xslt = os.path.join(get_ptx_xsl_path(), 'pretext-latex.xsl')
-    # form output filename based on source filename
+    # form output filename based on source filename,
+    # unless an  out_file  has been specified
     derivedname = get_output_filename(xml, out_file, dest_dir, '.tex')
     # Write output into working directory, no scratch space needed
     _verbose('converting {} to LaTeX as {}'.format(xml, derivedname))
@@ -1673,8 +1701,10 @@ def latex(xml, pub_file, stringparams, out_file, dest_dir):
 
 def pdf(xml, pub_file, stringparams, out_file, dest_dir):
     """Convert XML source to a PDF (incomplete)"""
-    import os.path # join()
-    import shutil # copytree
+    import os # chdir()
+    import os.path # join(), split(), splitext()
+    import shutil # copytree(), copy2()
+    import subprocess # run()
 
     warning = '\n'.join(['************************************************',
                          'Conversion to PDF is experimental and incomplete',
@@ -1682,24 +1712,63 @@ def pdf(xml, pub_file, stringparams, out_file, dest_dir):
                          '************************************************'])
     print(warning)
     #
-    generated_abs, _, external_abs, generated, _, external = get_image_directories(xml, pub_file)
+    generated_abs, data_abs, external_abs, generated, data, external = get_image_directories(xml, pub_file)
     # perhaps necessary (so drop "if"), but maybe not; needs to be supported
     if pub_file:
         stringparams['publisher'] = pub_file
     # names for scratch directories
     tmp_dir = get_temporary_directory()
-    generated_dir = os.path.join(tmp_dir, generated)
-    external_dir = os.path.join(tmp_dir, external)
-    # make the LateX source file in scratch directory
+
+    # make the LaTeX source file in scratch directory
+    # (1) pass None as out_file to derive from XML source filename
+    # (2) pass tmp_dir (scratch) as destination directory
     latex(xml, pub_file, stringparams, None, tmp_dir)
+
     # "dirs_exist_ok" keyword is Python 3.8; necessary?
-    # copy managed, generated images
-    shutil.copytree(generated_abs, generated_dir, dirs_exist_ok=True)
-    # copy externally manufactured images
-    shutil.copytree(external_abs, external_dir, dirs_exist_ok=True)
 
+    # Create localized filenames for pdflatex conversion step
+    # sourcename  needs to match behavior of latex() with above arguments
+    basename = os.path.splitext(os.path.split(xml)[1])[0]
+    sourcename = basename + '.tex'
+    pdfname = basename + '.pdf'
 
+    # Copy directories as indicated in publisher file
+    # A "None" value will indicate there was no information
+    # (an empty string is impossible due to a slash always being present?)
 
+    # Managed, generated images
+    if generated:
+        generated_dir = os.path.join(tmp_dir, generated)
+        shutil.copytree(generated_abs, generated_dir, dirs_exist_ok=True)
+    # externally manufactured images
+    if external:
+        external_dir = os.path.join(tmp_dir, external)
+        shutil.copytree(external_abs, external_dir, dirs_exist_ok=True)
+    # data files
+    if data:
+        data_dir = os.path.join(tmp_dir, data)
+        shutil.copytree(data_abs, data_dir, dirs_exist_ok=True)
+
+    # now work in temporary directory since LaTeX is a bit incapable
+    # of working outside of the current working directory
+    os.chdir(tmp_dir)
+    # process with a  pdflatex  engine
+    latex_exec_cmd = get_executable_cmd('tex')
+    # In flux during development, now nonstop
+    # -halt-on-error will give an exit code to examine
+    # perhaps behavior depends on -v, -vv
+    # Two passes to resolve cross-references,
+    # we may need a third for tcolorbox adjustments
+    latex_cmd = latex_exec_cmd + ['-halt-on-error', sourcename]
+    subprocess.run(latex_cmd)
+    subprocess.run(latex_cmd)
+
+    # out_file: not(None) only if provided in CLI
+    # dest_dir: always defined, if only current directory of CLI invocation
+    if out_file:
+        shutil.copy2(pdfname, out_file)
+    else:
+        shutil.copy2(pdfname, dest_dir)
 
 
 #################
@@ -1802,18 +1871,20 @@ def set_verbosity(v):
     # 0 - nothing
     # 1 - _verbose() only
     # 2 - _verbose() and _debug()
-    global _verbosity
+    global __verbosity
 
     if ((v != 0) and (v !=1 ) and (v!= 2)):
         raise ValueError('PTX:ERROR: verbosity level is 0, 1, or 2, not {}'.format(v))
-    _verbosity = v
+    __verbosity = v
 
 def _verbose(msg):
     """Write a concise message to the console on program progress"""
     # N.B.: this should be an informative progress indicator for an impatient
     # author who wonders if anything is happening.  Use _debug() for messages
     # with content useful for location or solving problems.
-    if _verbosity >= 1:
+    global __verbosity
+
+    if __verbosity >= 1:
         print('PTX: {}'.format(msg))
 
 def _debug(msg):
@@ -1821,7 +1892,9 @@ def _debug(msg):
     # N.B. This can be as detailed and infotrmative as possible,
     # and should be helpful in locating where a problem occurs
     # or what scenario caused that problem.
-    if _verbosity >= 2:
+    global __verbosity
+
+    if __verbosity >= 2:
         print('PTX:DEBUG: {}'.format(msg))
 
 def python_version():
@@ -1986,14 +2059,14 @@ def copy_data_directory(source_file, data_dir, tmp_dir):
 def get_temporary_directory():
     """Create, record, and return a scratch directory"""
     import tempfile #  mkdtemp()
-    global _temps   #  cache of temporary directories
+    global __temps   #  cache of temporary directories
 
     temp_dir = tempfile.mkdtemp()
     # Register the directory for cleanup at the end of successful
     # execution iff the verbosity is set to level 2 ("debug")
     # So errors, or requesting gross debugging info, will leave the
     # directories behind for inspection, otherwise they get removed
-    _temps.append(temp_dir)
+    __temps.append(temp_dir)
     return temp_dir
 
 def get_output_filename(xml, out_file, dest_dir, suffix):
@@ -2011,11 +2084,12 @@ def get_output_filename(xml, out_file, dest_dir, suffix):
 def release_temporary_directories():
     """Release scratch directories unless requesting debugging info"""
     import shutil #  rmtree()
-    global _temps #  cache of temporary directories
+    global __verbosity
+    global __temps
 
-    _debug('Temporary directories left behind for inspection: {}'.format(_temps))
-    if _verbosity < 2:
-        for td in _temps:
+    _debug('Temporary directories left behind for inspection: {}'.format(__temps))
+    if __verbosity < 2:
+        for td in __temps:
             _verbose('Removing temporary directory {}'.format(td))
             # conservatively, raise exception on errors
             shutil.rmtree(td, ignore_errors=False)
@@ -2039,8 +2113,8 @@ def get_image_directories(xml_source, pub_file):
     # N.B. manage attributes carefully to distinguish
     # absent (None) versus empty string value ('')
 
-    # Examine /publication/source element carefully for
-    # attributes which we code here for convenience
+    # Examine /publication/source/directories element carefully
+    # for attributes which we code here for convenience
     gen_attr = 'generated'
     data_attr = 'data'
     ext_attr = 'external'
@@ -2062,18 +2136,18 @@ def get_image_directories(xml_source, pub_file):
         pub_tree.xinclude()
         # "source" element => single-item list
         # no "source" element => empty list => triple of None returned
-        element_list = pub_tree.xpath("/publication/source/images")
+        element_list = pub_tree.xpath("/publication/source/directories")
         if element_list:
             attributes_dict = element_list[0].attrib
             # common error message
             abs_path_error = ' '.join(['the directory path to data for images, given in the',
-                             'publisher file as "source/images/@{}" must be relative to',
+                             'publisher file as "source/directories/@{}" must be relative to',
                              'the PreTeXt source file location, and not the absolute path "{}"'])
             # attribute absent => None
             if gen_attr in attributes_dict.keys():
                 raw_path = attributes_dict[gen_attr]
                 if os.path.isabs(raw_path):
-                    raise ValueError(abs_path_error.format(data_attr, raw_path))
+                    raise ValueError(abs_path_error.format(gen_attr, raw_path))
                 else:
                     abs_path = os.path.join(source_dir, raw_path)
                 generated = raw_path
@@ -2107,19 +2181,23 @@ def get_image_directories(xml_source, pub_file):
 ########
 
 # One-time set-up for global use in the module
-# Module provides, and depends on:
+# Module provides, and depends on these variables,
+# whose scope is the module, so must be declared
+# by employing routines as non-local ("global")
 #
-#  _verbosity - level of detail in console output
+#  __verbosity - level of detail in console output
 #
 #  _ptx_path - root directory of installed PreTeXt distribution
 #              necessary to locate stylesheets and other support
 #
 #  _config - parsed values from an INI-style configuration file
+#
+#  __temps - created temporary directories, to report or release
 
 # verbosity parameter defaults to 0 at startup
 # employing application can use set_verbosity()
 # to override via application's methodology
-_verbosity = None
+__verbosity = None
 set_verbosity(0)
 
 # Discover and set distribution path once at start-up
@@ -2130,4 +2208,5 @@ set_ptx_path()
 _config = None
 set_config_info()
 
-_temps = []
+#  cache of temporary directories
+__temps = []

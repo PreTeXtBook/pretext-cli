@@ -99,6 +99,12 @@
 <!-- responsible for integrating PNG images in place of SVG -->
 <xsl:param name="math.format"/>
 
+<!-- Cover image filename, once -->
+<xsl:variable name="cover-filename">
+    <xsl:value-of select="$external-directory"/>
+    <xsl:value-of select="$publication/epub/@cover"/>
+</xsl:variable>
+
 <!-- Kindle needs various tweaks, way beyond just math as MathML -->
 <!-- and PNG images.  So a misnomer to call it a "math format",  -->
 <!-- but a a boolean sure helps                                  -->
@@ -331,7 +337,7 @@
         <item id="css-setclr" href="{$css-dir}/setcolors.css"         media-type="text/css"/>
         <item id="cover-page" href="{$xhtml-dir}/cover-page.xhtml" media-type="application/xhtml+xml"/>
         <item id="table-contents" href="{$xhtml-dir}/table-contents.xhtml" properties="nav" media-type="application/xhtml+xml"/>
-        <item id="cover-image" href="{$xhtml-dir}/{$publication/epub/@cover}" properties="cover-image" media-type="image/png"/>
+        <item id="cover-image" href="{$xhtml-dir}/{$cover-filename}" properties="cover-image" media-type="image/png"/>
 
         <!-- cruise found objects, including comments we generate to help debug       -->
         <!-- NB: * could be just "item", but we generally want all elements           -->
@@ -442,11 +448,13 @@
             <!-- for actual EPUB file eventually output -->
             <xsl:apply-templates select="$document-root" mode="title-filesafe"/>
         </filename>
-        <cover filename="{$publication/epub/@cover}"/>
+        <cover filename="{$cover-filename}"/>
         <css stylefile="{$html-css-stylefile}" colorfile="{$html-css-colorfile}"/>
-        <images image-directory="{$publication/epub/@image-directory}">
+        <!-- Decide what to do with preview images, etc. -->
+        <images>
             <xsl:for-each select="$document-root//image">
                 <image>
+                    <!-- filename begins with directories from publisher file -->
                     <xsl:attribute name="filename">
                         <xsl:apply-templates select="." mode="epub-base-filename"/>
                     </xsl:attribute>
@@ -556,7 +564,7 @@ width: 100%
                 <!-- https://www.opticalauthoring.com/inside-the-epub-format-the-cover-image/   -->
                 <!-- says the "figure" is necessary, and does not seem to hurt (CSS could style)-->
                 <figure>
-                    <img src="{$publication/epub/@cover}"/>
+                    <img src="{$cover-filename}"/>
                 </figure>
             </body>
         </html>
@@ -669,6 +677,7 @@ width: 100%
                 </xsl:call-template>
             </xsl:variable>
             <!-- PDF LaTeX, SVG HTML, PNG Kindle if not indicated -->
+            <xsl:value-of select="$external-directory"/>
             <xsl:apply-templates select="@source" />
             <xsl:if test="$extension=''">
                 <xsl:choose>
@@ -682,7 +691,18 @@ width: 100%
             </xsl:if>
         </xsl:when>
         <xsl:when test="latex-image|sageplot|asymptote">
-            <xsl:value-of select="$directory.images" />
+            <xsl:value-of select="$generated-directory"/>
+            <xsl:choose>
+                <xsl:when test="latex-image">
+                    <xsl:text>latex-image</xsl:text>
+                </xsl:when>
+                <xsl:when test="sageplot">
+                    <xsl:text>sageplot</xsl:text>
+                </xsl:when>
+                <xsl:when test="asymptote">
+                    <xsl:text>asymptote</xsl:text>
+                </xsl:when>
+            </xsl:choose>
             <xsl:text>/</xsl:text>
             <xsl:apply-templates select="." mode="visible-id" />
             <xsl:choose>
