@@ -55,11 +55,12 @@ def main(silent,verbose):
 
 # pretext new
 @main.command(short_help="Generates the necessary files for a new PreTeXt project.")
-@click.option('--directory', type=click.Path(), default='.',
-              help="Directory to create/use for the project. Defaults to the current working directory.")
-@click.option('--template', default='book',
-              type=click.Choice(['book'], case_sensitive=False))
-@click.option('--url-template', type=click.STRING,
+@click.option('-d', '--directory', type=click.Path(), default='new-pretext-project',
+              help="Directory to create/use for the project.")
+@click.option('-t', '--template', default='book',
+              type=click.Choice(['book', 'article'], case_sensitive=False),
+              help="Template to use for new project.")
+@click.option('-u', '--url-template', type=click.STRING,
               help="Download a zipped template from its URL.")
 def new(directory,template,url_template):
     """
@@ -72,9 +73,9 @@ def new(directory,template,url_template):
     if url_template is not None:
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
-    elif template=='book':
-            template_path = os.path.join(static_dir, 'templates', 'book.zip')
-            archive = zipfile.ZipFile(template_path)
+    else:
+        template_path = os.path.join(static_dir, 'templates', f'{template}.zip')
+        archive = zipfile.ZipFile(template_path)
     # find (first) project.ptx to use as root of template
     filenames = [os.path.basename(filepath) for filepath in archive.namelist()]
     project_ptx_index = filenames.index('project.ptx')
@@ -86,7 +87,7 @@ def new(directory,template,url_template):
         tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
     click.echo(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
-    click.echo("Then try to `pretext build` and `pretext view`.")
+    click.echo(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
 # pretext build
 @main.command(short_help="Build specified target")
