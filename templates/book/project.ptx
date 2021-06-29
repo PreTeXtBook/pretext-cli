@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This file provides the overall configuration for your PreTeXt
+    project. To edit the content of your document, open `source/main.ptx`
+    (default location).
+-->
 <project>
   <build>
     <target>
@@ -9,11 +14,11 @@
       <output-dir>output/html</output-dir>
     </target>
     <target>
-      <alias>latex</alias>
-      <format>latex</format>
+      <alias>pdf</alias>
+      <format>pdf</format>
       <source>source/main.ptx</source>
       <publication>publication/publication.ptx</publication>
-      <output-dir>output/latex</output-dir>
+      <output-dir>output/pdf</output-dir>
     </target>
   </build>
 </project>
