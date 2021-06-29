@@ -69,6 +69,22 @@ def project_path(dirpath=os.getcwd()):
         # check parent instead
         return project_path(dirpath=parentpath)
 
+def project_xml(dirpath=os.getcwd()):
+    if project_path(dirpath) is None:
+        return ET.ElementTree('<project/>')
+    return ET.parse(os.path.join(project_path(dirpath),'project.ptx'))
+
+def target_xml(alias,dirpath=os.getcwd()):
+    xpath = f'targets/target/alias[text()="{alias}"]'
+    return project_xml().xpath(xpath)[0].getparent()
+
+def update_from_project_xml(variable,xpath):
+    custom = project_xml().find(xpath)
+    if custom is not None:
+        return custom.text.strip()
+    else:
+        return variable
+
 #check xml syntax
 def xml_syntax_check(xmlfile):
     # parse xml
