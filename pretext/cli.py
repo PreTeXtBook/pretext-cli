@@ -1,7 +1,8 @@
 import click
 import click_config_file
 import subprocess
-import os, zipfile
+import os, zipfile, requests, io
+import tempfile, shutil
 from . import utils, static
 from . import version as cli_version
 from lxml import etree as ET
@@ -48,7 +49,9 @@ def main(silent,verbose):
               help="Directory to create/use for the project. Defaults to the current working directory.")
 @click.option('--template', default='book',
               type=click.Choice(['book'], case_sensitive=False))
-def new(directory,template):
+@click.option('--url-template', type=click.STRING,
+              help="Download a zipped template from its URL.")
+def new(directory,template,url_template):
     """
     Generates the necessary files for a new PreTeXt project.
     Defaults to the current working directory.
@@ -56,15 +59,27 @@ def new(directory,template):
     directory_fullpath = os.path.abspath(directory)
     click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
     static_dir = os.path.dirname(static.__file__)
-    if template=='book':
-        template_path = os.path.join(static_dir, 'templates', 'book.zip')
-        archive = zipfile.ZipFile(template_path)
-    archive.extractall(path=directory)
+    if url_template is not None:
+        r = requests.get(url_template)
+        archive = zipfile.ZipFile(io.BytesIO(r.content))
+    elif template=='book':
+            template_path = os.path.join(static_dir, 'templates', 'book.zip')
+            archive = zipfile.ZipFile(template_path)
+    # find (first) project.ptx to use as root of template
+    filenames = [os.path.basename(filepath) for filepath in archive.namelist()]
+    project_ptx_index = filenames.index('project.ptx')
+    project_ptx_path = archive.namelist()[project_ptx_index]
+    project_dir_path = os.path.dirname(project_ptx_path)
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        for filepath in [filepath for filepath in archive.namelist() if filepath.startswith(project_dir_path)]:
+            archive.extract(filepath,path=tmpdirname)
+        tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
+        shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
     click.echo(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     click.echo("Then try to `pretext build` and `pretext view`.")
 
 # pretext build
-@main.command(short_help="Build specified format target")
+@main.command(short_help="Build specified target")
 @click.argument('format', default='html',
               type=click.Choice(['html', 'latex', 'diagrams', 'all'], case_sensitive=False))
 @click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
