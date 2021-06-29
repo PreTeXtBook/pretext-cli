@@ -113,7 +113,7 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
             logfile = "build.log"
             with open(logfile,"w") as logout:
                 logout.write(str('Messages from application of {}:'.format(xslfile))+'\n')
-                log.info(f'Messages from application of {}:'.format(xslfile))
+                log.info('Messages from application of {}:'.format(xslfile))
                 for m in messages:
                     logout.write(m.message + '\n')
                     print(m.message)

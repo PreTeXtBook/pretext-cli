@@ -58,7 +58,7 @@ def main():
         verbosity = 1
     core.set_verbosity(verbosity)
     if utils.project_path() is not None:
-        click.echo(f"PreTeXt project found in `{utils.project_path()}`.")
+        log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
 
 
@@ -78,10 +78,10 @@ def new(template,directory,url_template):
     """
     directory_fullpath = os.path.abspath(directory)
     if utils.project_path(directory_fullpath) is not None:
-        click.echo(f"A project has already been created in `{utils.project_path(directory_fullpath)}`.")
-        click.echo(f"No new project will be generated.")
+        log.warning(f"A project already exists in `{utils.project_path(directory_fullpath)}`.")
+        log.warning(f"No new project will be generated.")
         return
-    click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
+    log.info(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
     static_dir = os.path.dirname(static.__file__)
     if url_template is not None:
         r = requests.get(url_template)
@@ -246,9 +246,9 @@ def view(target,access,port,custom):
     Handler = utils.NoCacheHandler
     with socketserver.TCPServer((binding, port), Handler) as httpd:
         os.chdir(directory)
-        click.echo(f"Your build located at `{directory}` may be previewed at")
-        click.echo(url)
-        click.echo("Use [Ctrl]+[C] to halt the server.")
+        log.info(f"Your build located at `{directory}` may be previewed at")
+        log.info(url)
+        log.info("Use [Ctrl]+[C] to halt the server.")
         httpd.allow_reuse_address = True
         httpd.serve_forever()
 
