@@ -222,12 +222,8 @@ def view(target,access,port,custom):
         access = utils.update_from_project_xml(access,'view/access')
         port = int(utils.update_from_project_xml(port,'view/port'))
 
-    if target is None:
-        # get first target from project_xml
-        target_path = utils.project_xml().find('targets/target/output-dir').text
-    else:
-        # get appropriate target
-        target_path = utils.target_xml(target).find('output-dir').text
+    target_path = utils.target_xml(alias=target).find('output-dir').text.strip()
+
     directory = os.path.abspath(target_path)
     if not utils.directory_exists(directory):
         raise_cli_error(f"""
