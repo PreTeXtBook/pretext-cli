@@ -7,7 +7,6 @@ import logging
 import os
 import shutil
 from slugify import slugify
-import socketserver
 import socket
 import subprocess
 import os, zipfile, requests, io
@@ -235,22 +234,17 @@ def view(target,access,port,custom):
         The directory `{directory}` does not exist.
         Maybe try `pretext build` first?
         """)
-    binding = "localhost" if (access=='private') else "0.0.0.0"
     if access=='cocalc':
+        binding = "0.0.0.0"
         project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
         url = f"https://cocalc.com/{project_id}/server/{port}/"
     elif access=='public':
+        binding = "0.0.0.0"
         url = f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
+        binding = "localhost"
         url = f"http://{binding}:{port}"
-    Handler = utils.NoCacheHandler
-    with socketserver.TCPServer((binding, port), Handler) as httpd:
-        os.chdir(directory)
-        log.info(f"Your build located at `{directory}` may be previewed at")
-        log.info(url)
-        log.info("Use [Ctrl]+[C] to halt the server.")
-        httpd.allow_reuse_address = True
-        httpd.serve_forever()
+    utils.run_server(directory,binding,port,url)
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
