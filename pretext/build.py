@@ -57,9 +57,6 @@ def latex(ptxfile,output,stringparams):
 
 # Function to build diagrams/images contained in source.
 def diagrams(ptxfile, output, params, formats):
-    # from .static.pretext import pretext as ptxcore
-    # Pass verbosity level to ptxcore sripts:
-    # core.set_verbosity(utils._verbosity)
     # We assume passed paths are absolute.
     # set images directory
     image_output = os.path.join(output, 'images')
@@ -71,15 +68,12 @@ def diagrams(ptxfile, output, params, formats):
     source_xml = ET.parse(ptxfile)
     source_xml.xinclude()
     if source_xml.find("//sageplot") is not None:
-        print('Now converting sageplot images')
+        log.info('Now converting sageplot images\n')
         core.sage_conversion(
             xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
 
 
 def webwork(ptxfile, dest_dir, params, server_params):
-    # from .static.pretext import pretext as ptxcore
-    # Pass verbosity level to ptxcore scripts:
-    # core.set_verbosity(utils._verbosity)
     # Assume passed paths are absolute.
     # Set directory for WW representations.
     # dest_dir = os.path.join(dest_dir, outfile)
@@ -94,11 +88,9 @@ def webwork(ptxfile, dest_dir, params, server_params):
 def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     dom = ET.parse(xmlfile)
 
-    utils._verbose('XSL conversion of {} by {}'.format(xmlfile, xslfile))
+    log.info('XSL conversion of {} by {}'.format(xmlfile, xslfile))
     debug_string = 'XSL conversion via {} of {} to {} and/or into directory {} with parameters {}'
-    utils._debug(debug_string.format(xslfile, xmlfile, outfile, outdir, stringparams))
-
-    # print(stringparams['publisher'])
+    log.debug(debug_string.format(xslfile, xmlfile, outfile, outdir, stringparams))
 
     # string parameters arrive in a "plain" string:string dictionary
     # but the values need to be prepped for lxml use, always
@@ -108,9 +100,9 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
     dom.xinclude()
 
     xslt = ET.parse(xslfile)
-    utils._verbose('Loading the transform')
+    log.info('Loading the transform')
     transform = ET.XSLT(xslt)
-    utils._verbose('Transforming the source')
+    log.info('Transforming the source')
     with utils.working_directory(outdir):
         newdom = transform(dom, **stringparams)
         #grab the format from xslfile and use it to name logfile:
@@ -119,15 +111,15 @@ def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
         messages = transform.error_log
         if messages:
             logfile = "build.log"
-            with open(logfile,"w") as log:
-                log.write(str('Messages from application of {}:'.format(xslfile))+'\n')
-                print('Messages from application of {}:'.format(xslfile))
+            with open(logfile,"w") as logout:
+                logout.write(str('Messages from application of {}:'.format(xslfile))+'\n')
+                log.info(f'Messages from application of {}:'.format(xslfile))
                 for m in messages:
-                    log.write(m.message + '\n')
+                    logout.write(m.message + '\n')
                     print(m.message)
         # Write output if not done by exsl:document:
         if outfile:
-            utils._verbose('Writing output to file specified')
+            log.info('Writing output to file specified')
             with open(outfile, "w", encoding='utf-8') as fh:
                 fh.write(str(newdom))
 

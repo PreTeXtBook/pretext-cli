@@ -39,7 +39,7 @@ def raise_cli_error(message):
 #  Click command-line interface
 @click.group()
 # Allow a verbosity command:
-@click_logging.simple_verbosity_option(log)
+@click_logging.simple_verbosity_option(log, help="Sets the severity of warnings: DEBUG for all; CRITICAL for almost none.  ERROR, WARNING, or INFO (default) are also options.")
 # @click.option('--silent', is_flag=True, help="suppress basic feedback")
 # @click.option('--verbose', is_flag=True, help="show debug info")
 @click.version_option(cli_version(),message=cli_version())
@@ -74,7 +74,7 @@ def new(template,directory,url_template):
     or generating from URL with `pretext new --url-template [URL]`.
     """
     directory_fullpath = os.path.abspath(directory)
-    click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
+    log.info(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
     static_dir = os.path.dirname(static.__file__)
     if url_template is not None:
         r = requests.get(url_template)
@@ -92,8 +92,8 @@ def new(template,directory,url_template):
             archive.extract(filepath,path=tmpdirname)
         tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
-    click.echo(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
-    click.echo(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
+    log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
+    log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
 # pretext build
 @main.command(short_help="Build specified target")
@@ -161,7 +161,7 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
             server_params = (stringparams['server'])
         except Exception as e:
             root_cause = str(e)
-            print("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
+            log.warning("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
             server_params = "https://webwork-ptx.aimath.org"
         builders.webwork(source, webwork_output, stringparams, server_params)
     if diagrams or format=='diagrams':
@@ -170,7 +170,7 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
         source_xml = ET.parse(source)
         source_xml.xinclude()
         if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
-            print("Warning: <latex-image/> or <sageplot/> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
+            log.warning("<latex-image/> or <sageplot/> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
     if format=='html' or format=='all':
         builders.html(source,html_output,stringparams)
     if format=='latex' or format=='all':
@@ -228,8 +228,8 @@ def view(directory,access,port,config,save_config):
     Handler = utils.NoCacheHandler
     with socketserver.TCPServer((binding, port), Handler) as httpd:
         os.chdir(directory)
-        click.echo(f"Your documents may be previewed at {url}")
-        click.echo("Use [Ctrl]+[C] to halt the server.")
+        log.info(f"Your documents may be previewed at {url}")
+        log.info("Use [Ctrl]+[C] to halt the server.")
         httpd.allow_reuse_address = True
         httpd.serve_forever()
 
@@ -249,21 +249,21 @@ def publish():
         """)
     shutil.rmtree("docs",ignore_errors=True)
     shutil.copytree("output/html","docs")
-    click.echo("Use these instructions if your project isn't already set up with Git and GitHub:")
-    click.echo("https://docs.github.com/en/github/importing-your-projects-to-github/adding-an-existing-project-to-github-using-the-command-line")
-    click.echo("")
-    click.echo("Be sure your repo on GitHub is set to publish from the `docs` subdirectory:")
-    click.echo("https://docs.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site")
-    click.echo("")
-    click.echo("Once all the above is satisifed, run the following command to update your repository and publish your built HTML on the internet:")
-    click.echo("git add docs; git commit -m 'publish updated HTML'; git push")
+    log.info("Use these instructions if your project isn't already set up with Git and GitHub:")
+    log.info("https://docs.github.com/en/github/importing-your-projects-to-github/adding-an-existing-project-to-github-using-the-command-line")
+    log.info("")
+    log.info("Be sure your repo on GitHub is set to publish from the `docs` subdirectory:")
+    log.info("https://docs.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site")
+    log.info("")
+    log.info("Once all the above is satisifed, run the following command to update your repository and publish your built HTML on the internet:")
+    log.info("git add docs; git commit -m 'publish updated HTML'; git push")
 
 ## pretext debug
 # @main.command(short_help="just for testing")
 # def debug():
 #     import os
 #     from . import static, document, utils
-#     click.echo("This is just for debugging and testing new features.")
+#     log.info("This is just for debugging and testing new features.")
 #     static_dir = os.path.dirname(static.__file__)
 #     xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
 #     print(xslfile)
