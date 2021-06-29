@@ -1,7 +1,9 @@
 import click
 import click_config_file
+import click_logging
 import json
 from lxml import etree as ET
+import logging
 import os
 import shutil
 from slugify import slugify
@@ -14,6 +16,9 @@ from . import document, project, utils, core
 from . import build as builders
 # from .static.pretext import pretext as ptxcore
 
+
+log = logging.getLogger('ptxlogger')
+click_logging.basic_config(log)
 
 # config file default name:
 config_file = '.ptxconfig'
@@ -32,19 +37,20 @@ def raise_cli_error(message):
 #  Click command-line interface
 @click.group()
 # Allow a verbosity command:
-@click.option('--silent', is_flag=True, help="suppress basic feedback")
-@click.option('--verbose', is_flag=True, help="show debug info")
+@click_logging.simple_verbosity_option(log)
+# @click.option('--silent', is_flag=True, help="suppress basic feedback")
+# @click.option('--verbose', is_flag=True, help="show debug info")
 @click.version_option(cli_version(),message=cli_version())
 # @click_config_file.configuration_option()
-def main(silent,verbose):
+def main():
     """
     Command line tools for quickly creating, authoring, and building
     PreTeXt documents.
     """
     # set verbosity:
-    if verbose:
+    if log.level == 10:
         verbosity = 2
-    elif silent:
+    elif log.level == 50:
         verbosity = 0
     else:
         verbosity = 1
@@ -109,7 +115,7 @@ def new(title,directory,chapter,interactive):
 
 @config_file_option
 @save_config_option
-def build(format, source, output, param, publisher, webwork, diagrams, diagrams_format, pdf, config, save_config ):
+def build(format, source, output, param, publisher, webwork, diagrams, diagrams_format, pdf, config, save_config):
     """
     Process PreTeXt files into specified format.
 

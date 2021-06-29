@@ -1,11 +1,15 @@
 from lxml import etree as ET
+import logging
 import os
 import shutil
 
 from . import static, document, utils, core
 
+# Get access to logger
+log = logging.getLogger('ptxlogger')
 
 def html(ptxfile,output,stringparams):
+    log.error('This is another error')
     # from pathlib import Path
     # ptxfile = os.path.abspath('source/main.ptx')
     # xslfile = os.path.join(static.filepath('xsl'), 'pretext-html.xsl')

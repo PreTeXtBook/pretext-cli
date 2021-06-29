@@ -2,10 +2,13 @@ import os
 from contextlib import contextmanager
 import configobj
 from http.server import SimpleHTTPRequestHandler
+import logging
 from lxml import etree as ET
 
 from . import static
 
+# Get access to logger
+log = logging.getLogger('ptxlogger')
 
 @contextmanager
 def working_directory(path):
