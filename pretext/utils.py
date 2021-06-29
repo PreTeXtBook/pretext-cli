@@ -78,7 +78,9 @@ def project_xml(dirpath=os.getcwd()):
         return ET.ElementTree('<project/>')
     return ET.parse(os.path.join(project_path(dirpath),'project.ptx'))
 
-def target_xml(alias,dirpath=os.getcwd()):
+def target_xml(alias=None,dirpath=os.getcwd()):
+    if alias is None:
+        return project_xml().find("targets/target")
     xpath = f'targets/target/alias[text()="{alias}"]'
     return project_xml().xpath(xpath)[0].getparent()
 
