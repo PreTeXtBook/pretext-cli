@@ -1,7 +1,8 @@
 import click
 import click_config_file
 import subprocess
-from . import utils
+import os, zipfile
+from . import utils, static
 from . import version as cli_version
 from lxml import etree as ET
 
@@ -42,45 +43,25 @@ def main(silent,verbose):
 
 
 # pretext new
-@main.command(short_help="Provision a new PreTeXt document.")
-@click.argument('title', default="My Great Book!")
-@click.option('--directory', type=click.Path(),
-              help="Directory to create/use for the project. Defaults to "+
-              "a subdirectory of the current path based on book title.")
-@click.option('--chapter', multiple=True, help="Provide one or more chapter titles.")
-@click.option('-i', '--interactive', is_flag=True, default=False, help="Interactively requests names of book chapters.")
-def new(title,directory,chapter,interactive):
+@main.command(short_help="Generates the necessary files for a new PreTeXt project.")
+@click.option('--directory', type=click.Path(), default='.',
+              help="Directory to create/use for the project. Defaults to the current working directory.")
+@click.option('--template', default='book',
+              type=click.Choice(['book'], case_sensitive=False))
+def new(directory,template):
     """
-    Creates a subdirectory with the files needed to author a PreTeXt document.
-
-    Usage:
-    pretext new "My Great Book!"
+    Generates the necessary files for a new PreTeXt project.
+    Defaults to the current working directory.
     """
-    from . import document, project
-    from slugify import slugify
-    if not(directory):
-        if slugify(title):
-            directory = slugify(title)
-        else:
-            directory = 'my-book'
-    click.echo(f"Generating new PreTeXt project in `{directory}`.")
-    pretext = document.new(title)
-    chapter = list(chapter)
-    if interactive:
-        setting_chapters = True
-        current_chapter = len(chapter)+1
-        while setting_chapters:
-            chapter.append(click.prompt(f"Provide the title for Chapter {current_chapter}"))
-            setting_chapters = click.confirm('Do you want to name another chapter?')
-            current_chapter += 1
-    elif not(chapter):
-        chapter = ["My First Chapter"]
-    for c in chapter:
-        document.add_chapter(pretext,c)
-    project.write(pretext, directory)
-    # TODO: Set options in local configfile:
-    # utils.write_config(config_file, source=source,
-    #                    output=output, param=param, publisher=publisher)
+    directory_fullpath = os.path.abspath(directory)
+    click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
+    static_dir = os.path.dirname(static.__file__)
+    if template=='book':
+        template_path = os.path.join(static_dir, 'templates', 'book.zip')
+        archive = zipfile.ZipFile(template_path)
+    archive.extractall(path=directory)
+    click.echo(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
+    click.echo("Then try to `pretext build` and `pretext view`.")
 
 # pretext build
 @main.command(short_help="Build specified format target")
