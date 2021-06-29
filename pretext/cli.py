@@ -16,7 +16,6 @@ from . import document, project, utils, core
 from . import build as builders
 # from .static.pretext import pretext as ptxcore
 
-
 # config file default name:
 config_file = '.ptxconfig'
 
@@ -25,10 +24,10 @@ config_file_option = click_config_file.configuration_option(implicit="False", de
 
 save_config_option = click.option('-sc', '--save-config', is_flag=True, default=False, help='save any options provided to local configuration file, specified with --config (or default ".ptxconfig")')
 
-
-
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
+
+
 
 
 #  Click command-line interface
@@ -51,6 +50,9 @@ def main(silent,verbose):
     else:
         verbosity = 1
     core.set_verbosity(verbosity)
+    if utils.project_path() is not None:
+        click.echo(f"PreTeXt project found in `{utils.project_path()}`.")
+        os.chdir(utils.project_path())
 
 
 # pretext new
@@ -68,6 +70,10 @@ def new(template,directory,url_template):
     or generating from URL with `pretext new --url-template [URL]`.
     """
     directory_fullpath = os.path.abspath(directory)
+    if utils.project_path(directory_fullpath) is not None:
+        click.echo(f"A project has already been created in `{utils.project_path(directory_fullpath)}`.")
+        click.echo(f"No new project will be generated.")
+        return
     click.echo(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
     static_dir = os.path.dirname(static.__file__)
     if url_template is not None:
@@ -175,9 +181,9 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
-@click.option('--directory', type=click.Path(), default="output", show_default=True,
-             help="Directory containing built PreTeXt documents.")
+@click.option('-t', '--target', default=None)
 @click.option(
+    '-a',
     '--access',
     type=click.Choice(['public', 'private', 'cocalc'], case_sensitive=False),
     default='private',
@@ -188,24 +194,35 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
     to support CoCalc.com users.
     """)
 @click.option(
+    '-p',
     '--port',
     default=8000,
     show_default=True,
     help="""
     Choose which port to use for the local server.
     """)
-@config_file_option
-@save_config_option
-def view(directory,access,port,config,save_config):
+@click.option(
+    '-c',
+    '--custom',
+    is_flag=True,
+    help="""
+    Override defaults with those set in project.ptx.
+    """)
+def view(target,access,port,custom):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
+    if custom:
+        access = utils.update_from_project_xml(access,'view/access')
+        port = int(utils.update_from_project_xml(port,'view/port'))
 
-    # Remember options in local configfile when requested:
-    if save_config:
-        utils.write_config(config, directory=directory, access=access, port=port)
-
-    directory = os.path.abspath(directory)
+    if target is None:
+        # get first target from project_xml
+        target_path = utils.project_xml().find('targets/target/output-dir').text
+    else:
+        # get appropriate target
+        target_path = utils.target_xml(target).find('output-dir').text
+    directory = os.path.abspath(target_path)
     if not utils.directory_exists(directory):
         raise_cli_error(f"""
         The directory `{directory}` does not exist.
@@ -222,7 +239,8 @@ def view(directory,access,port,config,save_config):
     Handler = utils.NoCacheHandler
     with socketserver.TCPServer((binding, port), Handler) as httpd:
         os.chdir(directory)
-        click.echo(f"Your documents may be previewed at {url}")
+        click.echo(f"Your build located at `{directory}` may be previewed at")
+        click.echo(url)
         click.echo("Use [Ctrl]+[C] to halt the server.")
         httpd.allow_reuse_address = True
         httpd.serve_forever()
