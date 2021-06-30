@@ -6,16 +6,14 @@ import logging
 import os
 import sys
 import shutil
-from slugify import slugify
 import socket
 import subprocess
 import os, zipfile, requests, io
 import tempfile, shutil
 from . import utils, static
 from . import version as cli_version
-from . import document, project, utils, core
 from . import build as builder
-# from .static.pretext import pretext as ptxcore
+from .static.pretext import pretext as core
 
 
 log = logging.getLogger('ptxlogger')

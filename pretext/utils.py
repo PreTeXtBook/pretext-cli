@@ -1,9 +1,7 @@
 import os
 from contextlib import contextmanager
-import configobj
 from http.server import SimpleHTTPRequestHandler
 import socketserver
-import sys
 import logging
 from lxml import etree as ET
 
