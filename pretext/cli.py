@@ -158,6 +158,7 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
     
     #if the project manifest doesn't have the target alias, exit build
     if utils.target_xml(alias=target) is None:
+        log.critical("Build target does not exist in project manifest project.ptx")
         sys.exit("Exiting without completing task.")
 
     # Pull build info (source/output/params/etc) when not already supplied by user:

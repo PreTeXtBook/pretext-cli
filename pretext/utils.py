@@ -71,7 +71,8 @@ def target_xml(alias=None,dirpath=os.getcwd()):
     xpath = f'targets/target/alias[text()="{alias}"]'
     matches = project_xml().xpath(xpath)
     if len(matches) == 0:
-        log.critical(f"No targets with alias {alias} found in project manifest file project.ptx.")
+        log.info(f"No targets with alias {alias} found in project manifest file project.ptx.")
+        return None
     return project_xml().xpath(xpath)[0].getparent()
 
 def update_from_project_xml(variable,xpath):
@@ -80,14 +81,6 @@ def update_from_project_xml(variable,xpath):
         return custom.text.strip()
     else:
         return variable
-
-
-# resolve_targets accepts a project manifest, and user supplied target, source, and output (all of which could be None)
-def resolve_targets(manifest, user_target, source, output):
-
-    # return a list of dictionaries containing each target, input/output and maybe other important info
-    return targets
-
 
 #check xml syntax
 def xml_syntax_check(xmlfile):
