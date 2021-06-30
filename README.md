@@ -70,16 +70,16 @@ Then use `python -m pipenv shell` to enter the virtual environment directly.
 ```
 $ python -m pipenv shell
 Launching subshell in virtual environment…
-$ pretext new "My Great Book"
-Generating new PreTeXt project in `my-great-book`.
+$ cd
+$ pretext new
+Generating new PreTeXt project in `/home/user/new-pretext-project` using `book` template.
 ```
 
 You can also use `python -m pipenv run [CMD]` for quick runs outside the virtual
 environment, e.g.:
 
 ```
-$ python -m pipenv run pretext new "My Great Book"
-Generating new PreTeXt project in `my-great-book`.
+$ python -m pipenv run pretext new
 ```
 
 ### Updating dependencies
@@ -105,10 +105,6 @@ Inside a virtual environment:
 python scripts/build_release.py
 ```
 
-## Versioning
-
-See [VERSIONING.md](VERSIONING.md).
-
 ## PreTeXt "Core"
 
 Right now, we're mirroring resources from
@@ -119,3 +115,16 @@ These can be updated by running:
 ```
 python scripts/update_core.py
 ```
+
+## Templates
+
+Running the following will zip up the templates used by
+`pretext new` for use in the CLI.
+
+```
+python scripts/zip_templates.py
+```
+
+## Versioning
+
+See [VERSIONING.md](VERSIONING.md).
