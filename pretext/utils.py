@@ -1,6 +1,5 @@
 import os
 from contextlib import contextmanager
-import configobj
 from http.server import SimpleHTTPRequestHandler
 import socketserver
 import logging
@@ -47,20 +46,6 @@ def directory_exists(path):
     """
     return os.path.exists(path)
 
-# Write config file
-def write_config(configfile, **kwargs):
-    config = configobj.ConfigObj(configfile, unrepr=True)
-    # config.filename = configfile
-    # config["source"] = source
-    # config["output"] = output
-    # etc:
-    for key, value in kwargs.items():
-        config[key] = value
-    config.write()
-    log.info("Saving options to the config file {}".format(configfile))
-    with open(configfile) as cf:
-        print(cf.read())
-
 
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath=os.getcwd()):
@@ -84,6 +69,10 @@ def target_xml(alias=None,dirpath=os.getcwd()):
     if alias is None:
         return project_xml().find("targets/target")
     xpath = f'targets/target/alias[text()="{alias}"]'
+    matches = project_xml().xpath(xpath)
+    if len(matches) == 0:
+        log.info(f"No targets with alias {alias} found in project manifest file project.ptx.")
+        return None
     return project_xml().xpath(xpath)[0].getparent()
 
 def update_from_project_xml(variable,xpath):
