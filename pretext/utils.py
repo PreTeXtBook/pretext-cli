@@ -66,17 +66,17 @@ def project_xml(dirpath=os.getcwd()):
 def target_xml(alias=None,dirpath=os.getcwd()):
     if alias is None:
         return project_xml().find("targets/target")
-    xpath = f'targets/target/alias[text()="{alias}"]'
+    xpath = f'targets/target[@name="{alias}"]'
     matches = project_xml().xpath(xpath)
     if len(matches) == 0:
         log.info(f"No targets with alias {alias} found in project manifest file project.ptx.")
         return None
-    return project_xml().xpath(xpath)[0].getparent()
+    return project_xml().xpath(xpath)[0]
 
 def update_from_project_xml(variable,xpath):
-    custom = project_xml().find(xpath)
-    if custom is not None:
-        return custom.text.strip()
+    custom = project_xml().xpath(xpath)
+    if len(custom) > 0:
+        return custom[0]
     else:
         return variable
 
