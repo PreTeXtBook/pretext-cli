@@ -151,3 +151,5 @@ pyproject.toml
 pretext/static/pretext
 pretext/static/schema
 pretext/static/xsl
+#shipped templates
+pretext/static/templates
