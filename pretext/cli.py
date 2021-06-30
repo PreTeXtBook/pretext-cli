@@ -101,6 +101,25 @@ def new(template,directory,url_template):
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
+# pretext init
+@main.command(short_help="Generates the project manifest for a PreTeXt project in the current directory.")
+def init():
+    """
+    Generates the project manifest for a PreTeXt project in the current directory. This feature
+    is mainly intended for updating existing projects to use this CLI.
+    """
+    directory_fullpath = os.path.abspath('.')
+    if utils.project_path(directory_fullpath) is not None:
+        log.warning(f"A project already exists in `{utils.project_path(directory_fullpath)}`.")
+        log.warning(f"No project manifest will be generated.")
+        return
+    log.info(f"Generating new PreTeXt manifest in `{directory_fullpath}`.")
+    static_dir = os.path.dirname(static.__file__)
+    manifest_path = os.path.join(static_dir, 'templates', 'project.ptx')
+    shutil.copyfile(manifest_path,os.path.join(directory_fullpath,"project.ptx"))
+    log.info(f"Success! Open `{directory_fullpath}/project.ptx` to edit your manifest.")
+    log.info(f"Edit your <target/>s to point to your PreTeXt source and publication files.")
+
 # pretext build
 @main.command(short_help="Build specified target")
 @click.argument('format', default='html',
