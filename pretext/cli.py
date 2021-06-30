@@ -1,10 +1,10 @@
 import click
-import click_config_file
 import click_logging
 import json
 from lxml import etree as ET
 import logging
 import os
+import sys
 import shutil
 from slugify import slugify
 import socket
@@ -14,35 +14,22 @@ import tempfile, shutil
 from . import utils, static
 from . import version as cli_version
 from . import document, project, utils, core
-from . import build as builders
+from . import build as builder
 # from .static.pretext import pretext as ptxcore
 
 
 log = logging.getLogger('ptxlogger')
 click_logging.basic_config(log)
 
-# config file default name:
-config_file = '.ptxconfig'
-
-#Two config file options to reuse on subcommands.
-config_file_option = click_config_file.configuration_option(implicit="False", default=config_file, expose_value=True, help="Read options from configuration FILE specified.  [default: .ptxconfig]  Use `--config None` to run with standard default options.")
-
-save_config_option = click.option('-sc', '--save-config', is_flag=True, default=False, help='save any options provided to local configuration file, specified with --config (or default ".ptxconfig")')
-
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
-
-
 
 
 #  Click command-line interface
 @click.group()
 # Allow a verbosity command:
 @click_logging.simple_verbosity_option(log, help="Sets the severity of warnings: DEBUG for all; CRITICAL for almost none.  ERROR, WARNING, or INFO (default) are also options.")
-# @click.option('--silent', is_flag=True, help="suppress basic feedback")
-# @click.option('--verbose', is_flag=True, help="show debug info")
 @click.version_option(cli_version(),message=cli_version())
-# @click_config_file.configuration_option()
 def main():
     """
     Command line tools for quickly creating, authoring, and building
@@ -116,17 +103,17 @@ def init():
     log.info(f"Generating new PreTeXt manifest in `{directory_fullpath}`.")
     static_dir = os.path.dirname(static.__file__)
     manifest_path = os.path.join(static_dir, 'templates', 'project.ptx')
-    shutil.copyfile(manifest_path,os.path.join(directory_fullpath,"project.ptx"))
-    log.info(f"Success! Open `{directory_fullpath}/project.ptx` to edit your manifest.")
+    project_ptx_path = os.path.join(directory_fullpath,"project.ptx")
+    shutil.copyfile(manifest_path,project_ptx_path)
+    log.info(f"Success! Open `{project_ptx_path}` to edit your manifest.")
     log.info(f"Edit your <target/>s to point to your PreTeXt source and publication files.")
 
 # pretext build
 @main.command(short_help="Build specified target")
-@click.argument('format', default='html',
-              type=click.Choice(['html', 'latex', 'diagrams', 'all'], case_sensitive=False))
-@click.option('-i', '--input', 'source', type=click.Path(), default='source/main.ptx', show_default=True,
+@click.argument('target', required=False)
+@click.option('-i', '--input', 'source', type=click.Path(), show_default=True,
               help='Path to main *.ptx file')
-@click.option('-o', '--output', type=click.Path(), default='output', show_default=True,
+@click.option('-o', '--output', type=click.Path(), default=None, show_default=True,
               help='Path to main output directory')
 @click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to base folder")
 @click.option('--param', multiple=True, help="""
@@ -136,10 +123,7 @@ def init():
 @click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'pdf', 'eps', 'tex'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).") # Add back in 'png' and 'all' when png works on Windows.
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
-
-@config_file_option
-@save_config_option
-def build(format, source, output, param, publisher, webwork, diagrams, diagrams_format, pdf, config, save_config):
+def build(target, source, output, param, publisher, webwork, diagrams, diagrams_format, pdf):
     """
     Process PreTeXt files into specified format.
 
@@ -147,9 +131,61 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
 
     If the project included WeBWorK exercises, these must be processed using the --webwork option.
     """
-    # Remember options in local configfile when requested:
-    if save_config:
-        utils.write_config(config, source=source, output=output, param=param, publisher=publisher)
+    # locate manifest:
+    manifest_dir = utils.project_path()
+    if manifest_dir is None:
+        log.warning(f"No project manifest was found.  Run `pretext init` to generate one.")
+        manifest = None
+        # if no target has been specified, set to old default of html.  Then set any other defaults
+        if target is None:
+            target = 'html'
+        if source is None:
+            source = 'source/main.ptx'
+        if output is None:
+            output = f'output/{target}'
+        # set target_format to target ragardless:
+        if target != 'html' and target != 'latex':
+            log.critical(f'Without a project manifest, you can only build "html" or "latex".  Exiting...')
+            sys.exit(f"`pretext build` did not complete.  Please try again.")
+        target_format = target
+    else:
+        manifest = 'project.ptx'
+            
+    # Now check if no target was provided, in which case, set to first target of manifest
+    if target is None:
+        target = utils.update_from_project_xml(target, 'targets/target/alias')
+        log.info(f"Since no build target was supplied, we will build {target}, the first target of the project manifest {manifest} in {manifest_dir}")
+    
+    #if the project manifest doesn't have the target alias, exit build
+    if utils.target_xml(alias=target) is None:
+        sys.exit("Exiting without completing task.")
+
+    # Pull build info (source/output/params/etc) when not already supplied by user:
+    print(f"source = {source}, output = {output}, publisher = {publisher}")
+    if source is None:
+        source = utils.target_xml(alias=target).find('source').text.strip()
+        log.debug(f"No source provided, using {source}, taken from manifest")
+    if output is None:
+        output = utils.target_xml(alias=target).find('output-dir').text.strip()
+        log.debug(f"No output provided, using {output}, taken from manifest")
+    if publisher is None:
+        try:
+            publisher = utils.target_xml(alias=target).find('publication').text.strip()
+            log.debug(f"No publisher file provided, using {publisher}, taken from manifest")
+        except:
+            log.warning(f"No publisher file was found in {manifest}, will try to build anyway.")
+            pass
+    # TODO: get params working from manifest.
+
+    # Set target_format to the correct thing
+    try: 
+        target_format = utils.target_xml(alias=target).find('format').text.strip()
+        log.debug(
+            f"Setting the target format to {target_format}, taken from manifest for target {target}")
+    except:
+        target_format = target
+        log.warning(f"No format listed in the manifest for the target {target}.  Will try to build using {target} as the format.")
+
     # Check for xml syntax errors and quit if xml invalid:
     utils.xml_syntax_check(source)
     # Validate xml against schema; continue with warning if invalid:
@@ -163,17 +199,13 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
     if 'publisher' in stringparams:
         stringparams['publisher'] = os.path.abspath(stringparams['publisher'])
         if not(os.path.isfile(stringparams['publisher'])):
-            raise ValueError('Publisher file ({}) does not exist'.format(stringparams['publisher']))
+            log.error(f"You or the manifest supplied {stringparams['publisher']} as a publisher file, but it doesn't exist at that location.  Will try to build anyway.")
+            # raise ValueError('Publisher file ({}) does not exist'.format(stringparams['publisher']))
         stringparams['publisher'] = stringparams['publisher'].replace(os.sep, '/')
-    # if user supplied output path, respect it:
-    # otherwise, use defaults.  TODO: move this to a config file
-    output = os.path.abspath(output)
-    latex_output = os.path.join(output, "latex")
-    html_output = os.path.join(output, "html")
+
     # set up source (input) and output as absolute paths
     source = os.path.abspath(source)
-    latex_output = os.path.abspath(latex_output)
-    html_output = os.path.abspath(html_output)
+    output = os.path.abspath(output)
     # put webwork-representations.ptx in same dir as source main file
     webwork_output = os.path.dirname(source)
     #build targets:
@@ -188,20 +220,20 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
             root_cause = str(e)
             log.warning("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
             server_params = "https://webwork-ptx.aimath.org"
-        builders.webwork(source, webwork_output, stringparams, server_params)
-    if diagrams or format=='diagrams':
-        builders.diagrams(source,html_output,stringparams,diagrams_format)
+        builder.webwork(source, webwork_output, stringparams, server_params)
+    if diagrams:
+        builder.diagrams(source,'generated_assets',stringparams,diagrams_format)
     else:
         source_xml = ET.parse(source)
         source_xml.xinclude()
         if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
             log.warning("<latex-image/> or <sageplot/> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
-    if format=='html' or format=='all':
-        builders.html(source,html_output,stringparams)
-    if format=='latex' or format=='all':
-        builders.latex(source,latex_output,stringparams)
+    if target_format=='html':
+        builder.html(source,output,stringparams)
+    if target_format=='latex':
+        builder.latex(source,output,stringparams)
         if pdf:
-            with utils.working_directory(latex_output):
+            with utils.working_directory(output):
                 subprocess.run(['pdflatex','main.tex'])
 
 # pretext view

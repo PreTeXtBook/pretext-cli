@@ -3,6 +3,7 @@ from contextlib import contextmanager
 import configobj
 from http.server import SimpleHTTPRequestHandler
 import socketserver
+import sys
 import logging
 from lxml import etree as ET
 
@@ -45,20 +46,6 @@ def directory_exists(path):
     """
     return os.path.exists(path)
 
-# Write config file
-def write_config(configfile, **kwargs):
-    config = configobj.ConfigObj(configfile, unrepr=True)
-    # config.filename = configfile
-    # config["source"] = source
-    # config["output"] = output
-    # etc:
-    for key, value in kwargs.items():
-        config[key] = value
-    config.write()
-    log.info("Saving options to the config file {}".format(configfile))
-    with open(configfile) as cf:
-        print(cf.read())
-
 
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath=os.getcwd()):
@@ -82,6 +69,9 @@ def target_xml(alias=None,dirpath=os.getcwd()):
     if alias is None:
         return project_xml().find("targets/target")
     xpath = f'targets/target/alias[text()="{alias}"]'
+    matches = project_xml().xpath(xpath)
+    if len(matches) == 0:
+        log.critical(f"No targets with alias {alias} found in project manifest file project.ptx.")
     return project_xml().xpath(xpath)[0].getparent()
 
 def update_from_project_xml(variable,xpath):
@@ -90,6 +80,14 @@ def update_from_project_xml(variable,xpath):
         return custom.text.strip()
     else:
         return variable
+
+
+# resolve_targets accepts a project manifest, and user supplied target, source, and output (all of which could be None)
+def resolve_targets(manifest, user_target, source, output):
+
+    # return a list of dictionaries containing each target, input/output and maybe other important info
+    return targets
+
 
 #check xml syntax
 def xml_syntax_check(xmlfile):
