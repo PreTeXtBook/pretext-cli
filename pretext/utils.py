@@ -4,6 +4,8 @@ import configobj
 from http.server import SimpleHTTPRequestHandler
 import socketserver
 import logging
+import threading
+import watchdog.events, watchdog.observers, time
 from lxml import etree as ET
 
 from . import static
@@ -160,15 +162,33 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Expires", "0")
 class TCPServer(socketserver.TCPServer):
     allow_reuse_address = True
-
-def run_server(directory,binding,port,url):
-    with TCPServer((binding, port), NoCacheHandler) as httpd:
-        with working_directory(directory):
-            log.info(f"Your build located at `{directory}` may be previewed at")
-            log.info(url)
-            log.info("Use [Ctrl]+[C] to halt the server.")
+def serve_forever(directory,binding,port):
+    with working_directory(directory):
+        with TCPServer((binding, port), NoCacheHandler) as httpd:
             httpd.serve_forever()
 
+def run_server(directory,binding,port,url,watch):
+    log.info(f"Your build located at `{directory}` may be previewed at")
+    log.info(url)
+    log.info("Use [Ctrl]+[C] to halt the server.")
+    threading.Thread(target=lambda: serve_forever(directory,binding,port),daemon=True).start()
+    if watch:
+        logging.basicConfig(level=logging.INFO,
+                            format='%(asctime)s - %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
+        path = project_path()
+        event_handler = watchdog.events.LoggingEventHandler()
+        observer = watchdog.observers.Observer()
+        observer.schedule(event_handler, path, recursive=True)
+        observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        log.info("")
+        log.info("Closing server...")
+        if watch: observer.stop()
+    if watch: observer.join()
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
 NSMAP = {

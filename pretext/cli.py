@@ -6,7 +6,6 @@ from lxml import etree as ET
 import logging
 import os
 import shutil
-from slugify import slugify
 import socket
 import subprocess
 import os, zipfile, requests, io
@@ -206,7 +205,7 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
-@click.option('-t', '--target', default=None)
+@click.argument('target', required=False)
 @click.option(
     '-a',
     '--access',
@@ -233,21 +232,31 @@ def build(format, source, output, param, publisher, webwork, diagrams, diagrams_
     help="""
     Override defaults with those set in project.ptx.
     """)
-def view(target,access,port,custom):
+@click.option(
+    '-d',
+    '--directory',
+    type=click.Path(),
+    help="""
+    Serve files from provided directory
+    """)
+@click.option('-w', '--watch', is_flag=True)
+def view(target,access,port,custom,directory,watch):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     """
     if custom:
         access = utils.update_from_project_xml(access,'view/access')
         port = int(utils.update_from_project_xml(port,'view/port'))
-
-    target_path = utils.target_xml(alias=target).find('output-dir').text.strip()
-
-    directory = os.path.abspath(target_path)
+    if directory is None:
+        txml = utils.target_xml(alias=target)
+        if txml is None:
+            raise_cli_error(f"Target with alias `{target}` could not be found.")
+        target_path = txml.find('output-dir').text.strip()
+        directory = os.path.abspath(target_path)
     if not utils.directory_exists(directory):
         raise_cli_error(f"""
         The directory `{directory}` does not exist.
-        Maybe try `pretext build` first?
+        Maybe try `pretext build {target}` first?
         """)
     if access=='cocalc':
         binding = "0.0.0.0"
@@ -259,7 +268,7 @@ def view(target,access,port,custom):
     else:
         binding = "localhost"
         url = f"http://{binding}:{port}"
-    utils.run_server(directory,binding,port,url)
+    utils.run_server(directory,binding,port,url,watch)
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
