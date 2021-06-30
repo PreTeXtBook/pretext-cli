@@ -146,3 +146,8 @@ docs-project/docs
 
 #pyproject?
 pyproject.toml
+
+#pretext-core
+pretext/static/pretext
+pretext/static/schema
+pretext/static/xsl
