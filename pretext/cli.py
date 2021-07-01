@@ -10,6 +10,7 @@ import socket
 import subprocess
 import os, zipfile, requests, io
 import tempfile, shutil
+import git
 from . import utils, static
 from . import version as cli_version
 from . import build as builder
@@ -233,11 +234,15 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
             log.warning("The source has interactive elements or videos that need a preview to be generated, but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
     if target_format=='html' and not only_assets:
         builder.html(source,output,stringparams)
+        # core.html(source, None, stringparams, output)
     if target_format=='latex' and not only_assets:
         builder.latex(source,output,stringparams)
-        if pdf:
-            with utils.working_directory(output):
-                subprocess.run(['pdflatex','main.tex'])
+
+        # if pdf:
+        #     with utils.working_directory(output):
+        #         subprocess.run(['pdflatex','main.tex'])
+    if target_format=='pdf' and not only_assets:
+        builder.pdf(source,output,stringparams)
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
@@ -321,28 +326,50 @@ def view(target,access,port,custom,directory,watch):
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
-def publish():
+@click.argument('target', required=False)
+def publish(target):
     """
-    Prepares the project locally for HTML publication on GitHub Pages to make
+    Automates HTML publication of [TARGET] on GitHub Pages to make
     the built document available to the general public.
-    Only supports the default `output/html` build directory.
-    Requires Git and a GitHub account.
+    Requires that your project is under Git version control
+    using an `origin` remote
+    properly configured with GitHub and GitHub Pages. Pubilshed
+    files will live in `docs` subdirectory of project.
     """
-    if not utils.directory_exists("output/html"):
+    try:
+        repo = git.Repo(os.getcwd())
+    except git.exc.InvalidGitRepositoryError:
+        raise_cli_error("Project must be under Git version control.")
+    if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
+        log.info("Updating project Git repository with latest changes to source.")
+        repo.git.add(all=True)
+        repo.git.commit(message="Update to PreTeXt project source.")
+    try:
+        origin = repo.remote('origin')
+    except ValueError:
+        raise_cli_error("Repository must have an `origin` remote pointing to GitHub.")
+    txml = utils.target_xml(target)
+    if txml.find("format").text.strip()!="html":
+        raise_cli_error("Only HTML format targets are allowed.")
+    output_dir = txml.find("output-dir").text.strip()
+    if not utils.directory_exists(output_dir):
         raise_cli_error(f"""
-        The directory `output/html` does not exist.
+        The directory `{output_dir}` does not exist.
         Maybe try `pretext build` first?
         """)
+    log.info(f"Preparing to publish the latest build located in `{output_dir}`.")
     shutil.rmtree("docs",ignore_errors=True)
-    shutil.copytree("output/html","docs")
-    log.info("Use these instructions if your project isn't already set up with Git and GitHub:")
-    log.info("https://docs.github.com/en/github/importing-your-projects-to-github/adding-an-existing-project-to-github-using-the-command-line")
-    log.info("")
-    log.info("Be sure your repo on GitHub is set to publish from the `docs` subdirectory:")
-    log.info("https://docs.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site")
-    log.info("")
-    log.info("Once all the above is satisifed, run the following command to update your repository and publish your built HTML on the internet:")
-    log.info("git add docs; git commit -m 'publish updated HTML'; git push")
+    shutil.copytree(output_dir,"docs")
+    log.info(f"Latest build copied to `docs/`.")
+    repo.git.add('docs')
+    try:
+        repo.git.commit(message="Publish latest HTML build.")
+    except git.exc.GitCommandError:
+        raise_cli_error("Latest HTML build is the same as last published build.")
+    log.info("Pushing to GitHub. (Your password may be required below.)")
+    origin.push()
+    log.info(f"Latest build successfully pushed to GitHub.")
+    log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
 
 ## pretext debug
 # @main.command(short_help="just for testing")
