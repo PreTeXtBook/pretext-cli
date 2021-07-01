@@ -321,20 +321,26 @@ def view(target,access,port,custom,directory,watch):
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
-def publish():
+@click.argument('target', required=False)
+def publish(target):
     """
-    Prepares the project locally for HTML publication on GitHub Pages to make
+    Automates HTML publication of [TARGET] on GitHub Pages to make
     the built document available to the general public.
-    Only supports the default `output/html` build directory.
-    Requires Git and a GitHub account.
+    Requires that your project is under Git version control
+    and properly configured with GitHub and GitHub Pages.
     """
-    if not utils.directory_exists("output/html"):
+    txml = utils.target_xml(target)
+    if txml.find("format").text.strip()!="html":
+        raise_cli_error("Only HTML format targets are allowed.")
+    output_dir = txml.find("output-dir").text.strip()
+    if not utils.directory_exists(output_dir):
         raise_cli_error(f"""
-        The directory `output/html` does not exist.
+        The directory `{output_dir}` does not exist.
         Maybe try `pretext build` first?
         """)
+    log.info(f"Preparing to publish the latest build located in `{output_dir}`.")
     shutil.rmtree("docs",ignore_errors=True)
-    shutil.copytree("output/html","docs")
+    shutil.copytree(output_dir,"docs")
     log.info("Use these instructions if your project isn't already set up with Git and GitHub:")
     log.info("https://docs.github.com/en/github/importing-your-projects-to-github/adding-an-existing-project-to-github-using-the-command-line")
     log.info("")
