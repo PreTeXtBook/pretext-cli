@@ -120,8 +120,9 @@ def init():
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
 @click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'pdf', 'eps', 'tex'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).") # Add back in 'png' and 'all' when png works on Windows.
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
+@click.option('-oa', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets")
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
-def build(target, source, output, param, publisher, webwork, diagrams, diagrams_format, pdf):
+def build(target, source, output, param, publisher, webwork, diagrams, diagrams_format, only_assets, pdf):
     """
     Process PreTeXt files into specified format.
 
@@ -148,12 +149,12 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
         target_format = target
     else:
         manifest = 'project.ptx'
-            
+
     # Now check if no target was provided, in which case, set to first target of manifest
     if target is None:
-        target = utils.update_from_project_xml('targets/target/alias',default=target)
+        target = utils.project_xml.find('targets/target').get("name")
         log.info(f"Since no build target was supplied, we will build {target}, the first target of the project manifest {manifest} in {manifest_dir}")
-    
+
     #if the project manifest doesn't have the target alias, exit build
     if utils.target_xml(alias=target) is None:
         log.critical("Build target does not exist in project manifest project.ptx")
@@ -226,10 +227,10 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
         source_xml = ET.parse(source)
         source_xml.xinclude()
         if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
-            log.warning("<latex-image/> or <sageplot/> in source, but will not be (re)built. Run pretext build diagrams if updates are needed.")
-    if target_format=='html':
+            log.warning("There are <latex-image/> or <sageplot/> in source, but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
+    if target_format=='html' and not only_assets:
         builder.html(source,output,stringparams)
-    if target_format=='latex':
+    if target_format=='latex' and not only_assets:
         builder.latex(source,output,stringparams)
         if pdf:
             with utils.working_directory(output):
@@ -282,8 +283,8 @@ def view(target,access,port,custom,directory,watch):
     TARGET is the name of the target to build from `project.ptx`.
     """
     if custom:
-        access = utils.update_from_project_xml('view/access',default=access)
-        port = int(utils.update_from_project_xml('view/port',default=port))
+        access = utils.text_from_project_xml('view/access',default=access)
+        port = int(utils.text_from_project_xml('view/port',default=port))
     txml = utils.target_xml(alias=target)
     if watch:
         watch_target = txml
