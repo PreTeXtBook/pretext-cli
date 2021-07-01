@@ -2,6 +2,8 @@ from lxml import etree as ET
 import logging
 import os
 import shutil
+import sys
+
 from . import static, utils
 from .static.pretext import pretext as core
 
@@ -12,46 +14,80 @@ def html(ptxfile,output,stringparams):
     # from pathlib import Path
     # ptxfile = os.path.abspath('source/main.ptx')
     # xslfile = os.path.join(static.filepath('xsl'), 'pretext-html.xsl')
-    static_dir = os.path.dirname(static.__file__)
-    xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
+    # static_dir = os.path.dirname(static.__file__)
+    # xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
     # create output directories and move there.
     # output = os.path.abspath(output)
     utils.ensure_directory(output)
-    utils.ensure_directory(os.path.join(output,'knowl'))
-    utils.ensure_directory(os.path.join(output,'images'))
+    # utils.ensure_directory(os.path.join(output,'knowl'))
+    # utils.ensure_directory(os.path.join(output,'images'))
     # Copy images from source/images
-    src = os.path.join(os.path.dirname(os.path.abspath(ptxfile)), 'images')
-    if os.path.exists(src):
-        src_files = os.listdir(src)
-        for file_name in src_files:
-            full_file_name = os.path.join(src, file_name)
-            if os.path.isfile(full_file_name):
-                shutil.copy(full_file_name, os.path.join(output, 'images'))
+    # src = os.path.join(os.path.dirname(os.path.abspath(ptxfile)), 'images')
+    # if os.path.exists(src):
+    #     src_files = os.listdir(src)
+    #     for file_name in src_files:
+    #         full_file_name = os.path.join(src, file_name)
+    #         if os.path.isfile(full_file_name):
+    #             shutil.copy(full_file_name, os.path.join(output, 'images'))
     # transform ptx using xsl:
-    xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams=stringparams)
+    # xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams=stringparams)
+    log.info(f"\nNow building HTML into {output}\n")
+    try:
+        core.html(ptxfile, None, stringparams, output)
+        log.info(f"\nSuccess! Run `pretext view html` to see the results.\n")
+    except Exception:
+        log.debug(f"There was a fatal error here", exc_info=True)
+        log.critical(
+            f"A fatal error has occurred. For more info, run pretext with `-v debug`")
+        sys.exit()
+
 
 
 def latex(ptxfile,output,stringparams):
     # ptxfile = os.path.abspath('source/main.ptx')
     # xslfile = os.path.join(static.filepath('xsl'), 'pretext-latex.xsl')
-    static_dir = os.path.dirname(static.__file__)
-    xslfile = os.path.join(static_dir, 'xsl', 'pretext-latex.xsl')
+    # static_dir = os.path.dirname(static.__file__)
+    # xslfile = os.path.join(static_dir, 'xsl', 'pretext-latex.xsl')
     #create output directory
     # output = os.path.abspath(output)
     utils.ensure_directory(output)
     utils.ensure_directory(os.path.join(output, 'images'))
     # Copy images from source/images
     # This is less than ideal.  The author is able to provide a path to the static images, but this assumes they are always src="images/foo.png"
-    src = os.path.join(os.path.dirname(ptxfile), 'images')
-    if os.path.exists(src):
-        src_files = os.listdir(src)
-        for file_name in src_files:
-            full_file_name = os.path.join(src, file_name)
-            if os.path.isfile(full_file_name):
-                shutil.copy(full_file_name, os.path.join(output, 'images'))
+    # src = os.path.join(os.path.dirname(ptxfile), 'images')
+    # if os.path.exists(src):
+    #     src_files = os.listdir(src)
+    #     for file_name in src_files:
+    #         full_file_name = os.path.join(src, file_name)
+    #         if os.path.isfile(full_file_name):
+    #             shutil.copy(full_file_name, os.path.join(output, 'images'))
     # Do the xsltproc equivalent:
     # params = {"latex.font.size": "'20pt'"}
-    xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams=stringparams)
+    log.info(f"\nNow building LaTeX into {output}\n")
+    # no publisher file (already in stringparams); no output.tex (will be determined by core.latex).
+    try:
+        core.latex(ptxfile, None, stringparams, None, output)
+        log.info(f"\nSuccess! Run `pretext view latex` to see the results.\n")
+
+    except Exception:
+        log.debug(f"There was a fatal error here", exc_info=True)
+        log.critical(
+            f"A fatal error has occurred. For more info, run pretext with `-v debug`")
+        sys.exit()
+    # xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams=stringparams)
+
+def pdf(ptxfile,output,stringparams):
+    utils.ensure_directory(output)
+    log.info(f"\nNow building LaTeX into {output}\n")
+    try:
+        core.pdf(ptxfile, pub_file=None, stringparams=stringparams,
+             out_file=None, dest_dir=output)
+        log.info(f"\nSuccess! Run `pretext view pdf` to see the results.\n")
+    except Exception:
+        log.debug(f"There was a fatal error here", exc_info=True)
+        log.critical(f"A fatal error has occurred. For more info, run pretext with `-v debug`")
+        sys.exit()
+        # traceback.print_exc()
 
 
 # Function to build diagrams/images contained in source.
