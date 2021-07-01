@@ -152,7 +152,7 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
 
     # Now check if no target was provided, in which case, set to first target of manifest
     if target is None:
-        target = utils.project_xml.find('targets/target').get("name")
+        target = utils.project_xml().find('targets/target').get("name")
         log.info(f"Since no build target was supplied, we will build {target}, the first target of the project manifest {manifest} in {manifest_dir}")
 
     #if the project manifest doesn't have the target alias, exit build
