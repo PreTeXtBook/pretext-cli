@@ -90,10 +90,17 @@ To add dependencies for the package, edit `setup.py`. then run
 python -m pipenv update
 ```
 
-To add dependencies for the development environment, use
+To add dependencies for the development environment
+(those not needed to use the packaged CLI), use
 
 ```
-python -m pipenv install [package]
+python -m pipenv install [package] --dev
+```
+
+To update dependencies added by other contributors, use
+
+```
+python -m pipenv sync
 ```
 
 ### Syncing untracked updates
