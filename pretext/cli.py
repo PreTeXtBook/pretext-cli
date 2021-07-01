@@ -149,12 +149,12 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
         target_format = target
     else:
         manifest = 'project.ptx'
-            
+
     # Now check if no target was provided, in which case, set to first target of manifest
     if target is None:
-        target = utils.update_from_project_xml(target, 'targets/target/@name')
+        target = utils.project_xml.find('targets/target').get("name")
         log.info(f"Since no build target was supplied, we will build {target}, the first target of the project manifest {manifest} in {manifest_dir}")
-    
+
     #if the project manifest doesn't have the target alias, exit build
     if utils.target_xml(alias=target) is None:
         log.critical("Build target does not exist in project manifest project.ptx")
@@ -238,7 +238,7 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
-@click.option('-t', '--target', default=None)
+@click.argument('target', required=False)
 @click.option(
     '-a',
     '--access',
@@ -265,21 +265,44 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
     help="""
     Override defaults with those set in project.ptx.
     """)
-def view(target,access,port,custom):
+@click.option(
+    '-d',
+    '--directory',
+    type=click.Path(),
+    help="""
+    Serve files from provided directory
+    """)
+@click.option('-w', '--watch', is_flag=True, help="""
+    Watch the status of project files and
+    automatically rebuild target when changes
+    are made. (Only supports HTML-format targets.)
+    """)
+def view(target,access,port,custom,directory,watch):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
+    TARGET is the name of the target to build from `project.ptx`.
     """
     if custom:
-        access = utils.update_from_project_xml(access,'view/access')
-        port = int(utils.update_from_project_xml(port,'view/port'))
-
-    target_path = utils.target_xml(alias=target).find('output-dir').text.strip()
-
-    directory = os.path.abspath(target_path)
+        access = utils.text_from_project_xml('view/access',default=access)
+        port = int(utils.text_from_project_xml('view/port',default=port))
+    txml = utils.target_xml(alias=target)
+    if watch:
+        watch_target = txml
+        if watch_target.find("format").text.strip() != "html":
+            raise_cli_error("Watch only supports HTML formats.")
+    else:
+        watch_target = None
+    if directory is None:
+        if txml is None:
+            raise_cli_error(f"Target with alias `{target}` could not be found.")
+        target_path = txml.find('output-dir').text.strip()
+        directory = os.path.abspath(target_path)
+    else:
+        watch_taret = None
     if not utils.directory_exists(directory):
         raise_cli_error(f"""
         The directory `{directory}` does not exist.
-        Maybe try `pretext build` first?
+        Maybe try `pretext build {target}` first?
         """)
     if access=='cocalc':
         binding = "0.0.0.0"
@@ -291,7 +314,7 @@ def view(target,access,port,custom):
     else:
         binding = "localhost"
         url = f"http://{binding}:{port}"
-    utils.run_server(directory,binding,port,url)
+    utils.run_server(directory,binding,port,url,watch_target)
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")

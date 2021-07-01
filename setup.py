@@ -21,6 +21,7 @@ setuptools.setup(
        'lxml',
        'python-slugify',
        'requests',
+       'watchdog',
        'click>=7.0',
        "pdfCropMargins",
        "click-logging",

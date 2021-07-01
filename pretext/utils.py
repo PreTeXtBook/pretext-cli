@@ -3,9 +3,11 @@ from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
 import socketserver
 import logging
+import threading
+import watchdog.events, watchdog.observers, time
 from lxml import etree as ET
 
-from . import static
+from . import static, build
 
 # Get access to logger
 log = logging.getLogger('ptxlogger')
@@ -60,7 +62,7 @@ def project_path(dirpath=os.getcwd()):
 
 def project_xml(dirpath=os.getcwd()):
     if project_path(dirpath) is None:
-        return ET.ElementTree('<project/>')
+        return ET.ElementTree(ET.Element("project"))
     return ET.parse(os.path.join(project_path(dirpath),'project.ptx'))
 
 def target_xml(alias=None,dirpath=os.getcwd()):
@@ -73,12 +75,12 @@ def target_xml(alias=None,dirpath=os.getcwd()):
         return None
     return project_xml().xpath(xpath)[0]
 
-def update_from_project_xml(variable,xpath):
-    custom = project_xml().xpath(xpath)
-    if len(custom) > 0:
-        return custom[0]
+def text_from_project_xml(xpath,default=None):
+    matches = project_xml().xpath(xpath)
+    if len(matches) > 0:
+        return matches[0].text.strip()
     else:
-        return variable
+        return default
 
 #check xml syntax
 def xml_syntax_check(xmlfile):
@@ -138,26 +140,54 @@ def schema_validate(xmlfile):
 
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
-class NoCacheHandler(SimpleHTTPRequestHandler):
-    """HTTP request handler with no caching"""
-    def end_headers(self):
-        self.send_my_headers()
-        SimpleHTTPRequestHandler.end_headers(self)
-    def send_my_headers(self):
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
-class TCPServer(socketserver.TCPServer):
-    allow_reuse_address = True
+def serve_forever(directory,binding,port):
+    class RequestHandler(SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=directory, **kwargs)
+        """HTTP request handler with no caching"""
+        def end_headers(self):
+            self.send_my_headers()
+            SimpleHTTPRequestHandler.end_headers(self)
+        def send_my_headers(self):
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+    class TCPServer(socketserver.TCPServer):
+        allow_reuse_address = True
+    with TCPServer((binding, port), RequestHandler) as httpd:
+        httpd.serve_forever()
 
-def run_server(directory,binding,port,url):
-    with TCPServer((binding, port), NoCacheHandler) as httpd:
-        with working_directory(directory):
-            log.info(f"Your build located at `{directory}` may be previewed at")
-            log.info(url)
-            log.info("Use [Ctrl]+[C] to halt the server.")
-            httpd.serve_forever()
+class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
+    def __init__(self,target):
+        self.ptxfile = target.find("source").text.strip()
+        self.output = target.find("output-dir").text.strip()
+        pub_relpath = target.find("publication").text.strip()
+        pub_abspath = os.path.abspath(pub_relpath)
+        self.stringparams = {"publisher": pub_abspath}
+    def on_any_event(self,event):
+        log.info("Changes to source found, rebuilding target...")
+        build.html(self.ptxfile,self.output,self.stringparams)
 
+def run_server(directory,binding,port,url,watch_target):
+    log.info(f"Your build located at `{directory}` may be previewed at")
+    log.info(url)
+    log.info("Use [Ctrl]+[C] to halt the server.")
+    threading.Thread(target=lambda: serve_forever(directory,binding,port),daemon=True).start()
+    if watch_target is not None:
+        path = os.path.join(project_path(),os.path.dirname(watch_target.find("source").text.strip()))
+        log.info(f"Watching for changes in `{os.path.abspath(path)}` ...")
+        event_handler = HTMLRebuildHandler(watch_target)
+        observer = watchdog.observers.Observer()
+        observer.schedule(event_handler, path, recursive=True)
+        observer.start()
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        log.info("")
+        log.info("Closing server...")
+        if watch_target is not None: observer.stop()
+    if watch_target is not None: observer.join()
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
 NSMAP = {
