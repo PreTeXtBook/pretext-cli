@@ -99,25 +99,25 @@ def diagrams(ptxfile, output, params, formats):
     # parse source so we can check for image types.
     source_xml = ET.parse(ptxfile)
     source_xml.xinclude()
-    if source_xml.find("/pretext/*[not(docinfo)]//latex-image") is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0:
         log.info('Now generating latex-images\n\n')
         # call pretext-core's latex image module:
         # NOTE: we set pub_file=NONE since our pubfile has already been added to the params dictionary.
         core.latex_image_conversion(
             xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
-    if source_xml.find("/pretext/*[not(docinfo)]//sageplot") is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0:
         log.info('Now generating sageplot images\n\n')
         core.sage_conversion(
             xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
-    if source_xml.find("/pretext/*[not(docinfo)]//asymptote") is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0:
         log.info('Now generating asymptote images\n\n')
         core.asymptote_conversion(
             xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
-    if source_xml.find("/pretext/*[not(docinfo)]//interactive[not(@preview)]") is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         log.info('Now generating preview images for interactives\n\n')
         core.preview_images(
             xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output)
-    if source_xml.find("/pretext/*[not(docinfo)]//video[@youtube]") is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
         log.info('Now generating youtube previews\n\n')
         core.youtube_thumbnail(
             xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
