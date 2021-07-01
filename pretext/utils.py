@@ -161,21 +161,33 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
     def __init__(self,target):
         self.ptxfile = target.find("source").text.strip()
         self.output = target.find("output-dir").text.strip()
+        self.target_name = target.get("name")
         pub_relpath = target.find("publication").text.strip()
         pub_abspath = os.path.abspath(pub_relpath)
         self.stringparams = {"publisher": pub_abspath}
+        self.last_build_at = time.time()-5
     def on_any_event(self,event):
-        log.info("Changes to source found, rebuilding target...")
-        build.html(self.ptxfile,self.output,self.stringparams)
+        # only trigger rebuild at most every 5 seconds
+        if self.last_build_at + 5 < time.time():
+            self.last_build_at = time.time()
+            log.info(f"\nChanges to source detected, rebuilding target `{self.target_name}`...\n")
+            build.html(self.ptxfile,self.output,self.stringparams)
 
 def run_server(directory,binding,port,url,watch_target):
-    log.info(f"Your build located at `{directory}` may be previewed at")
-    log.info(url)
-    log.info("Use [Ctrl]+[C] to halt the server.")
+    log.info(f"Your build located at `{directory}` may be previewed at\n")
+    log.info(url+"\n")
+    log.info("Use [Ctrl]+[C] to halt the server.\n")
     threading.Thread(target=lambda: serve_forever(directory,binding,port),daemon=True).start()
     if watch_target is not None:
+        log.info("Building HTML...\n")
+        ptxfile = watch_target.find("source").text.strip()
+        output = watch_target.find("output-dir").text.strip()
+        pub_relpath = watch_target.find("publication").text.strip()
+        pub_abspath = os.path.abspath(pub_relpath)
+        stringparams = {"publisher": pub_abspath}
+        build.html(ptxfile,output,stringparams)
         path = os.path.join(project_path(),os.path.dirname(watch_target.find("source").text.strip()))
-        log.info(f"Watching for changes in `{os.path.abspath(path)}` ...")
+        log.info(f"\nWatching for changes in `{os.path.abspath(path)}` ...\n")
         event_handler = HTMLRebuildHandler(watch_target)
         observer = watchdog.observers.Observer()
         observer.schedule(event_handler, path, recursive=True)
