@@ -10,30 +10,13 @@ from .static.pretext import pretext as core
 # Get access to logger
 log = logging.getLogger('ptxlogger')
 
-def html(ptxfile,output,stringparams):
-    # from pathlib import Path
-    # ptxfile = os.path.abspath('source/main.ptx')
-    # xslfile = os.path.join(static.filepath('xsl'), 'pretext-html.xsl')
-    # static_dir = os.path.dirname(static.__file__)
-    # xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
-    # create output directories and move there.
-    # output = os.path.abspath(output)
+def html(ptxfile,pub_file,output,stringparams):
+    init_ptxcore()
     utils.ensure_directory(output)
-    # utils.ensure_directory(os.path.join(output,'knowl'))
-    # utils.ensure_directory(os.path.join(output,'images'))
-    # Copy images from source/images
-    # src = os.path.join(os.path.dirname(os.path.abspath(ptxfile)), 'images')
-    # if os.path.exists(src):
-    #     src_files = os.listdir(src)
-    #     for file_name in src_files:
-    #         full_file_name = os.path.join(src, file_name)
-    #         if os.path.isfile(full_file_name):
-    #             shutil.copy(full_file_name, os.path.join(output, 'images'))
-    # transform ptx using xsl:
-    # xsltproc(xslfile, ptxfile, outfile=None, outdir=output, stringparams=stringparams)
+    print(output)
     log.info(f"\nNow building HTML into {output}\n")
     try:
-        core.html(ptxfile, None, stringparams, output)
+        core.html(ptxfile, pub_file, stringparams, output)
         log.info(f"\nSuccess! Run `pretext view html` to see the results.\n")
     except Exception:
         log.debug(f"There was a fatal error here", exc_info=True)
@@ -43,87 +26,80 @@ def html(ptxfile,output,stringparams):
 
 
 
-def latex(ptxfile,output,stringparams):
-    # ptxfile = os.path.abspath('source/main.ptx')
-    # xslfile = os.path.join(static.filepath('xsl'), 'pretext-latex.xsl')
-    # static_dir = os.path.dirname(static.__file__)
-    # xslfile = os.path.join(static_dir, 'xsl', 'pretext-latex.xsl')
-    #create output directory
-    # output = os.path.abspath(output)
+def latex(ptxfile,pub_file,output,stringparams):
+    init_ptxcore()
     utils.ensure_directory(output)
-    utils.ensure_directory(os.path.join(output, 'images'))
-    # Copy images from source/images
-    # This is less than ideal.  The author is able to provide a path to the static images, but this assumes they are always src="images/foo.png"
-    # src = os.path.join(os.path.dirname(ptxfile), 'images')
-    # if os.path.exists(src):
-    #     src_files = os.listdir(src)
-    #     for file_name in src_files:
-    #         full_file_name = os.path.join(src, file_name)
-    #         if os.path.isfile(full_file_name):
-    #             shutil.copy(full_file_name, os.path.join(output, 'images'))
-    # Do the xsltproc equivalent:
-    # params = {"latex.font.size": "'20pt'"}
     log.info(f"\nNow building LaTeX into {output}\n")
-    # no publisher file (already in stringparams); no output.tex (will be determined by core.latex).
     try:
-        core.latex(ptxfile, None, stringparams, None, output)
+        core.latex(ptxfile, pub_file, stringparams, None, output)
         log.info(f"\nSuccess! Run `pretext view latex` to see the results.\n")
-
     except Exception:
         log.debug(f"There was a fatal error here", exc_info=True)
         log.critical(
             f"A fatal error has occurred. For more info, run pretext with `-v debug`")
         sys.exit()
-    # xsltproc(xslfile, ptxfile, outfile='main.tex', outdir=output, stringparams=stringparams)
 
-def pdf(ptxfile,output,stringparams):
+
+def pdf(ptxfile,pub_file,output,stringparams):
+    init_ptxcore()
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     try:
-        core.pdf(ptxfile, pub_file=None, stringparams=stringparams,
-             out_file=None, dest_dir=output)
+        core.pdf(ptxfile, pub_file, stringparams,
+             None, dest_dir=output)
         log.info(f"\nSuccess! Run `pretext view pdf` to see the results.\n")
     except Exception:
         log.debug(f"There was a fatal error here", exc_info=True)
         log.critical(f"A fatal error has occurred. For more info, run pretext with `-v debug`")
         sys.exit()
-        # traceback.print_exc()
+
 
 
 # Function to build diagrams/images contained in source.
-def diagrams(ptxfile, output, params, formats):
+def diagrams(ptxfile, pub_file, output, params, formats):
+    init_ptxcore()
     # We assume passed paths are absolute.
     # set images directory
-    image_output = os.path.join(output, 'images')
-    utils.ensure_directory(image_output)
     # parse source so we can check for image types.
     source_xml = ET.parse(ptxfile)
     source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0:
+        image_output = os.path.abspath(os.path.join(output, 'latex-images'))
+        utils.ensure_directory(image_output)
         log.info('Now generating latex-images\n\n')
         # call pretext-core's latex image module:
-        # NOTE: we set pub_file=NONE since our pubfile has already been added to the params dictionary.
         core.latex_image_conversion(
-            xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0:
+        image_output = os.path.abspath(os.path.join(output, 'sageplot'))
+        utils.ensure_directory(image_output)
         log.info('Now generating sageplot images\n\n')
         core.sage_conversion(
-            xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0:
+        image_output = os.path.abspath(
+            os.path.join(output, 'asymptote'))
+        utils.ensure_directory(image_output)
         log.info('Now generating asymptote images\n\n')
         core.asymptote_conversion(
-            xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
+        image_output = os.path.abspath(
+                    os.path.join(output, 'preview'))
+        utils.ensure_directory(image_output)
         log.info('Now generating preview images for interactives\n\n')
         core.preview_images(
-            xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output)
+            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
+        image_output = os.path.abspath(
+            os.path.join(output, 'youtube'))
+        utils.ensure_directory(image_output)
         log.info('Now generating youtube previews\n\n')
         core.youtube_thumbnail(
-            xml_source=ptxfile, pub_file=None, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
 
 
-def webwork(ptxfile, dest_dir, params, server_params):
+def webwork(ptxfile, pub_file, dest_dir, params, server_params):
     # Assume passed paths are absolute.
     # Set directory for WW representations.
     # dest_dir = os.path.join(dest_dir, outfile)
@@ -134,42 +110,8 @@ def webwork(ptxfile, dest_dir, params, server_params):
     # the default/recommended config in PreTeXt Guide. But this is passed as one of the collection of stringparams, so set to None here.  Sams for the pub_file.
     core.webwork_to_xml(xml_source=ptxfile, pub_file=None, stringparams=params, abort_early=True, server_params=server_params, dest_dir=dest_dir)
 
-# This start of a utility function to replicate the tasks for xsltproc.
-def xsltproc(xslfile, xmlfile, outfile=None, outdir=".", stringparams={}):
-    dom = ET.parse(xmlfile)
-
-    log.info('XSL conversion of {} by {}'.format(xmlfile, xslfile))
-    debug_string = 'XSL conversion via {} of {} to {} and/or into directory {} with parameters {}'
-    log.debug(debug_string.format(xslfile, xmlfile, outfile, outdir, stringparams))
-
-    # string parameters arrive in a "plain" string:string dictionary
-    # but the values need to be prepped for lxml use, always
-    stringparams = {key: ET.XSLT.strparam(value) for (
-        key, value) in stringparams.items()}
-    # xinclude:
-    dom.xinclude()
-
-    xslt = ET.parse(xslfile)
-    log.info('Loading the transform')
-    transform = ET.XSLT(xslt)
-    log.info('Transforming the source')
-    with utils.working_directory(outdir):
-        newdom = transform(dom, **stringparams)
-        #grab the format from xslfile and use it to name logfile:
-        # logfile = xslfile[xslfile.find('pretext-'):].replace('pretext-','').replace('.xsl','')+'-build.log'
-        # report any errors
-        messages = transform.error_log
-        if messages:
-            logfile = "build.log"
-            with open(logfile,"w") as logout:
-                logout.write(str('Messages from application of {}:'.format(xslfile))+'\n')
-                log.info('Messages from application of {}:'.format(xslfile))
-                for m in messages:
-                    logout.write(m.message + '\n')
-                    print(m.message)
-        # Write output if not done by exsl:document:
-        if outfile:
-            log.info('Writing output to file specified')
-            with open(outfile, "w", encoding='utf-8') as fh:
-                fh.write(str(newdom))
-
+def init_ptxcore():
+    exdict = {ele.tag: ele.text
+              for ele in utils.project_xml().xpath("executables/*")}
+    print(exdict)
+    core.set_executables(exdict)

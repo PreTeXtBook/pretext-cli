@@ -114,7 +114,7 @@ def init():
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(), default=None, show_default=True,
               help='Path to main output directory')
-@click.option('-p', '--publisher', type=click.Path(), default=None, help="Publisher file name, with path relative to base folder")
+@click.option('-p', '--publication', type=click.Path(), default=None, help="Publication file name, with path relative to base folder")
 @click.option('--param', multiple=True, help="""
               Define a stringparam to use during processing. Usage: pretext build --param foo:bar --param baz:woo
 """)
@@ -123,7 +123,7 @@ def init():
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('-oa', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets")
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
-def build(target, source, output, param, publisher, webwork, diagrams, diagrams_format, only_assets, pdf):
+def build(target, source, output, param, publication, webwork, diagrams, diagrams_format, only_assets, pdf):
     """
     Process PreTeXt files into specified format.
 
@@ -162,17 +162,17 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
         sys.exit("Exiting without completing task.")
 
     # Pull build info (source/output/params/etc) when not already supplied by user:
-    print(f"source = {source}, output = {output}, publisher = {publisher}")
+    log.debug(f"source = {source}, output = {output}, publisher = {publication}")
     if source is None:
         source = utils.target_xml(alias=target).find('source').text.strip()
         log.debug(f"No source provided, using {source}, taken from manifest")
     if output is None:
         output = utils.target_xml(alias=target).find('output-dir').text.strip()
         log.debug(f"No output provided, using {output}, taken from manifest")
-    if publisher is None:
+    if publication is None:
         try:
-            publisher = utils.target_xml(alias=target).find('publication').text.strip()
-            log.debug(f"No publisher file provided, using {publisher}, taken from manifest")
+            publication = utils.target_xml(alias=target).find('publication').text.strip()
+            log.debug(f"No publisher file provided, using {publication}, taken from manifest")
         except:
             log.warning(f"No publisher file was found in {manifest}, will try to build anyway.")
             pass
@@ -195,18 +195,31 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
     # TODO: exit gracefully if string params were not entered in correct format.
     param_list = [p.split(":") for p in param]
     stringparams = {p[0].strip(): ":".join(p[1:]).strip() for p in param_list}
-    if publisher:
-        stringparams['publisher'] = publisher
+    # if publication:
+        # stringparams['publisher'] = publication
     if 'publisher' in stringparams:
-        stringparams['publisher'] = os.path.abspath(stringparams['publisher'])
-        if not(os.path.isfile(stringparams['publisher'])):
+        publication = stringparams['publisher']
+    publication = os.path.abspath(publication)
+    if not(os.path.isfile(publication)):
             log.error(f"You or the manifest supplied {stringparams['publisher']} as a publisher file, but it doesn't exist at that location.  Will try to build anyway.")
+            static_dir = os.path.dirname(static.__file__)
+            publication = os.path.join(static_dir, 'templates', 'publication.ptx')
             # raise ValueError('Publisher file ({}) does not exist'.format(stringparams['publisher']))
-        stringparams['publisher'] = stringparams['publisher'].replace(os.sep, '/')
-
+    # Ensure directories for assets and generated assets to avoid errors when building:
+    pub_tree = ET.parse(publication)
+    pub_tree.xinclude()
+    element_list = pub_tree.xpath("/publication/source/directories")
+    attributes_dict = element_list[0].attrib
+    utils.ensure_directory(os.path.abspath(os.path.join(os.path.dirname(source), attributes_dict['external'])))
+    utils.ensure_directory(os.path.abspath(os.path.join(os.path.dirname(source), attributes_dict['generated'])))
+    # for key in attributes_dict:
+    #     utils.ensure_directory(os.path.join(os.path.abspath(source), attributes_dict[key]))
     # set up source (input) and output as absolute paths
     source = os.path.abspath(source)
     output = os.path.abspath(output)
+    #remove output directory so ptxcore doesn't complain.
+    if os.path.isdir(output):
+        shutil.rmtree(output)
     # put webwork-representations.ptx in same dir as source main file
     webwork_output = os.path.dirname(source)
     #build targets:
@@ -221,9 +234,11 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
             root_cause = str(e)
             log.warning("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
             server_params = "https://webwork-ptx.aimath.org"
-        builder.webwork(source, webwork_output, stringparams, server_params)
+        builder.webwork(source, publication, webwork_output, stringparams, server_params)
     if diagrams:
-        builder.diagrams(source,'generated_assets',stringparams,diagrams_format)
+        # TODO: read this from publisher file.
+        generated_assets = 'generated-assets'
+        builder.diagrams(source,publication,generated_assets,stringparams,diagrams_format)
     else:
         source_xml = ET.parse(source)
         source_xml.xinclude()
@@ -233,16 +248,16 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
         if len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0 and target_format == 'latex':
             log.warning("The source has interactive elements or videos that need a preview to be generated, but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
     if target_format=='html' and not only_assets:
-        builder.html(source,output,stringparams)
+        builder.html(source,publication,output,stringparams)
         # core.html(source, None, stringparams, output)
     if target_format=='latex' and not only_assets:
-        builder.latex(source,output,stringparams)
+        builder.latex(source,publication,output,stringparams)
 
         # if pdf:
         #     with utils.working_directory(output):
         #         subprocess.run(['pdflatex','main.tex'])
     if target_format=='pdf' and not only_assets:
-        builder.pdf(source,output,stringparams)
+        builder.pdf(source,publication,output,stringparams)
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
