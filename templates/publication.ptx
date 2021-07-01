@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<publication>
+    <source>
+        <!-- directories are relative to the main source PreTeXt file -->
+        <directories external="../assets" generated="../generated-assets"/>
+    </source>
+</publication>

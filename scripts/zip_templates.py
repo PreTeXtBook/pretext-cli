@@ -9,3 +9,4 @@ for template_path in glob.iglob('templates/*'):
             template_path,
         )
 shutil.copyfile('templates/project.ptx','pretext/static/templates/project.ptx' )
+shutil.copyfile('templates/publication.ptx','pretext/static/templates/publication.ptx' )
