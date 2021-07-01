@@ -96,6 +96,28 @@ To add dependencies for the development environment, use
 python -m pipenv install [package]
 ```
 
+### Syncing untracked updates
+
+Updates to certain files tracked to the repository will
+need to be rebuilt by each user when pulled from GitHub.
+
+The file `pretext/static/CORE_COMMIT` tracks the upstream
+commit of core PreTeXt XSL/Python code we're developing against
+(from `rbeezer/mathbook`).
+To grab these updates from upstream, run:
+
+```
+python scripts/update_core.py
+```
+
+Updates to `templates/` must be zipped and moved into
+`pretext/static/templates`. This is done automatically by
+running:
+
+```
+python scripts/zip_templates.py
+```
+
 ## Packaging
 
 See <https://packaging.python.org/tutorials/packaging-projects/>.
@@ -103,26 +125,6 @@ Inside a virtual environment:
 
 ```
 python scripts/build_release.py
-```
-
-## PreTeXt "Core"
-
-Right now, we're mirroring resources from
-<https://github.com/rbeezer/mathbook/> using the commit
-found in `pretext/static/CORE_COMMIT`.
-These can be updated by running:
-
-```
-python scripts/update_core.py
-```
-
-## Templates
-
-Running the following will zip up the templates used by
-`pretext new` for use in the CLI.
-
-```
-python scripts/zip_templates.py
 ```
 
 ## Versioning
