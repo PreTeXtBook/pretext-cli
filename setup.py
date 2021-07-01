@@ -22,6 +22,7 @@ setuptools.setup(
        'python-slugify',
        'requests',
        'watchdog',
+       'GitPython',
        'click>=7.0',
        "pdfCropMargins",
        "click-logging",
