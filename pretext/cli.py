@@ -10,6 +10,7 @@ import socket
 import subprocess
 import os, zipfile, requests, io
 import tempfile, shutil
+import git
 from . import utils, static
 from . import version as cli_version
 from . import build as builder
@@ -327,8 +328,22 @@ def publish(target):
     Automates HTML publication of [TARGET] on GitHub Pages to make
     the built document available to the general public.
     Requires that your project is under Git version control
-    and properly configured with GitHub and GitHub Pages.
+    using an `origin` remote
+    properly configured with GitHub and GitHub Pages. Pubilshed
+    files will live in `docs` subdirectory of project.
     """
+    try:
+        repo = git.Repo(os.getcwd())
+    except git.exc.InvalidGitRepositoryError:
+        raise_cli_error("Project must be under Git version control.")
+    if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
+        log.info("Updating project Git repository with latest changes to source.")
+        repo.git.add(all=True)
+        repo.git.commit(message="Update to PreTeXt project source.")
+    try:
+        origin = repo.remote('origin')
+    except ValueError:
+        raise_cli_error("Repository must have an `origin` remote pointing to GitHub.")
     txml = utils.target_xml(target)
     if txml.find("format").text.strip()!="html":
         raise_cli_error("Only HTML format targets are allowed.")
@@ -341,14 +356,15 @@ def publish(target):
     log.info(f"Preparing to publish the latest build located in `{output_dir}`.")
     shutil.rmtree("docs",ignore_errors=True)
     shutil.copytree(output_dir,"docs")
-    log.info("Use these instructions if your project isn't already set up with Git and GitHub:")
-    log.info("https://docs.github.com/en/github/importing-your-projects-to-github/adding-an-existing-project-to-github-using-the-command-line")
-    log.info("")
-    log.info("Be sure your repo on GitHub is set to publish from the `docs` subdirectory:")
-    log.info("https://docs.github.com/en/github/working-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site")
-    log.info("")
-    log.info("Once all the above is satisifed, run the following command to update your repository and publish your built HTML on the internet:")
-    log.info("git add docs; git commit -m 'publish updated HTML'; git push")
+    log.info(f"Latest build copied to `docs/`.")
+    repo.git.add('docs')
+    try:
+        repo.git.commit(message="Publish latest HTML build.")
+    except git.exc.GitCommandError:
+        raise_cli_error("Latest HTML build is the same as last published build.")
+    origin.push()
+    log.info(f"Latest build successfully pushed to GitHub.")
+    log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
 
 ## pretext debug
 # @main.command(short_help="just for testing")
