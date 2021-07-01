@@ -19,4 +19,16 @@
       <output-dir>output/pdf</output-dir>
     </target>
   </targets>
+  <executables>
+      <tex>xelatex</tex>
+      <pdfsvg>pdf2svg</pdfsvg>
+      <asy>asy</asy>
+      <sage>sage</sage>
+      <pdfpng>convert</pdfpng>
+      <pdfeps>pdftops</pdfeps>
+      <pdfcrop>pdf-crop-margins</pdfcrop>
+      <pageres>pageres</pageres>
+      <node>node</node>
+      <liblouis>file2brl</liblouis>
+    </executables>
 </project>
