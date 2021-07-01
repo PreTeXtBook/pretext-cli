@@ -362,6 +362,7 @@ def publish(target):
         repo.git.commit(message="Publish latest HTML build.")
     except git.exc.GitCommandError:
         raise_cli_error("Latest HTML build is the same as last published build.")
+    log.info("Pushing to GitHub. (Your password may be required below.)")
     origin.push()
     log.info(f"Latest build successfully pushed to GitHub.")
     log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
