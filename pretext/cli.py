@@ -3,7 +3,6 @@ import click_logging
 import json
 from lxml import etree as ET
 import logging
-import os
 import sys
 import shutil
 import socket
@@ -15,6 +14,7 @@ from . import utils, static
 from . import version as cli_version
 from . import build as builder
 from .static.pretext import pretext as core
+from .project import Target,Project
 
 
 log = logging.getLogger('ptxlogger')
@@ -250,13 +250,13 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
 @click.option(
     '-a',
     '--access',
-    type=click.Choice(['public', 'private', 'cocalc'], case_sensitive=False),
+    type=click.Choice(['public', 'private'], case_sensitive=False),
     default='private',
     show_default=True,
     help="""
     Choose whether or not to allow other computers on your local network
-    to access your documents using your IP address, with special option
-    to support CoCalc.com users.
+    to access your documents using your IP address. (Ignored when used
+    in CoCalc, which works automatically.)
     """)
 @click.option(
     '-p',
@@ -265,13 +265,6 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
     show_default=True,
     help="""
     Choose which port to use for the local server.
-    """)
-@click.option(
-    '-c',
-    '--custom',
-    is_flag=True,
-    help="""
-    Override defaults with those set in project.ptx.
     """)
 @click.option(
     '-d',
@@ -285,44 +278,22 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
     automatically rebuild target when changes
     are made. (Only supports HTML-format targets.)
     """)
-def view(target,access,port,custom,directory,watch):
+def view(target,access,port,directory,watch):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
-    TARGET is the name of the target to build from `project.ptx`.
+    TARGET is the name of the <target/> defined in `project.ptx`.
     """
-    if custom:
-        access = utils.text_from_project_xml('view/access',default=access)
-        port = int(utils.text_from_project_xml('view/port',default=port))
-    txml = utils.target_xml(alias=target)
-    if watch:
-        watch_target = txml
-        if watch_target.find("format").text.strip() != "html":
-            raise_cli_error("Watch only supports HTML formats.")
+    target_name=target
+    if directory is not None:
+        utils.run_server(directory,access,port)
+        return
     else:
-        watch_target = None
-    if directory is None:
-        if txml is None:
-            raise_cli_error(f"Target with alias `{target}` could not be found.")
-        target_path = txml.find('output-dir').text.strip()
-        directory = os.path.abspath(target_path)
+        project = Project()
+        target = project.target(name=target_name)
+    if target is not None:
+        target.view(access,port,watch)
     else:
-        watch_taret = None
-    if not utils.directory_exists(directory):
-        raise_cli_error(f"""
-        The directory `{directory}` does not exist.
-        Maybe try `pretext build {target}` first?
-        """)
-    if access=='cocalc':
-        binding = "0.0.0.0"
-        project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
-        url = f"https://cocalc.com/{project_id}/server/{port}/"
-    elif access=='public':
-        binding = "0.0.0.0"
-        url = f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
-    else:
-        binding = "localhost"
-        url = f"http://{binding}:{port}"
-    utils.run_server(directory,binding,port,url,watch_target)
+        log.error(f"Target `{target_name}` could not be found.")
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
@@ -336,40 +307,10 @@ def publish(target):
     properly configured with GitHub and GitHub Pages. Pubilshed
     files will live in `docs` subdirectory of project.
     """
-    try:
-        repo = git.Repo(os.getcwd())
-    except git.exc.InvalidGitRepositoryError:
-        raise_cli_error("Project must be under Git version control.")
-    if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
-        log.info("Updating project Git repository with latest changes to source.")
-        repo.git.add(all=True)
-        repo.git.commit(message="Update to PreTeXt project source.")
-    try:
-        origin = repo.remote('origin')
-    except ValueError:
-        raise_cli_error("Repository must have an `origin` remote pointing to GitHub.")
-    txml = utils.target_xml(target)
-    if txml.find("format").text.strip()!="html":
-        raise_cli_error("Only HTML format targets are allowed.")
-    output_dir = txml.find("output-dir").text.strip()
-    if not utils.directory_exists(output_dir):
-        raise_cli_error(f"""
-        The directory `{output_dir}` does not exist.
-        Maybe try `pretext build` first?
-        """)
-    log.info(f"Preparing to publish the latest build located in `{output_dir}`.")
-    shutil.rmtree("docs",ignore_errors=True)
-    shutil.copytree(output_dir,"docs")
-    log.info(f"Latest build copied to `docs/`.")
-    repo.git.add('docs')
-    try:
-        repo.git.commit(message="Publish latest HTML build.")
-    except git.exc.GitCommandError:
-        raise_cli_error("Latest HTML build is the same as last published build.")
-    log.info("Pushing to GitHub. (Your password may be required below.)")
-    origin.push()
-    log.info(f"Latest build successfully pushed to GitHub.")
-    log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
+    target_name=target
+    project = Project()
+    target = project.target(name=target_name)
+    target.publish()
 
 ## pretext debug
 # @main.command(short_help="just for testing")
