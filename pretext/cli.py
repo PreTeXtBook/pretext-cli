@@ -162,7 +162,7 @@ def build(target, source, output, param, publication, webwork, diagrams, diagram
         sys.exit("Exiting without completing task.")
 
     # Pull build info (source/output/params/etc) when not already supplied by user:
-    print(f"source = {source}, output = {output}, publisher = {publication}")
+    log.debug(f"source = {source}, output = {output}, publisher = {publication}")
     if source is None:
         source = utils.target_xml(alias=target).find('source').text.strip()
         log.debug(f"No source provided, using {source}, taken from manifest")
@@ -217,6 +217,9 @@ def build(target, source, output, param, publication, webwork, diagrams, diagram
     # set up source (input) and output as absolute paths
     source = os.path.abspath(source)
     output = os.path.abspath(output)
+    #remove output directory so ptxcore doesn't complain.
+    if os.path.isdir(output):
+        shutil.rmtree(output)
     # put webwork-representations.ptx in same dir as source main file
     webwork_output = os.path.dirname(source)
     #build targets:
