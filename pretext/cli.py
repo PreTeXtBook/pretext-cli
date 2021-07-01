@@ -233,11 +233,15 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
             log.warning("The source has interactive elements or videos that need a preview to be generated, but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
     if target_format=='html' and not only_assets:
         builder.html(source,output,stringparams)
+        # core.html(source, None, stringparams, output)
     if target_format=='latex' and not only_assets:
         builder.latex(source,output,stringparams)
-        if pdf:
-            with utils.working_directory(output):
-                subprocess.run(['pdflatex','main.tex'])
+
+        # if pdf:
+        #     with utils.working_directory(output):
+        #         subprocess.run(['pdflatex','main.tex'])
+    if target_format=='pdf' and not only_assets:
+        builder.pdf(source,output,stringparams)
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
