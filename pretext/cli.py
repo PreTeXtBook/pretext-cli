@@ -152,7 +152,7 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
 
     # Now check if no target was provided, in which case, set to first target of manifest
     if target is None:
-        target = utils.project_xml.find('targets/target').get("name")
+        target = utils.project_xml().find('targets/target').get("name")
         log.info(f"Since no build target was supplied, we will build {target}, the first target of the project manifest {manifest} in {manifest_dir}")
 
     #if the project manifest doesn't have the target alias, exit build
@@ -226,8 +226,11 @@ def build(target, source, output, param, publisher, webwork, diagrams, diagrams_
     else:
         source_xml = ET.parse(source)
         source_xml.xinclude()
-        if source_xml.find("//latex-image") is not None or source_xml.find("//sageplot") is not None:
-            log.warning("There are <latex-image/> or <sageplot/> in source, but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
+        if len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0 and target_format == 'html':
+            log.warning("There are generated images (<latex-image/>, <asymptote/>, or <sageplot/>) or in source, but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
+        # TODO: remove the elements that are not needed for latex.
+        if len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0 and target_format == 'latex':
+            log.warning("The source has interactive elements or videos that need a preview to be generated, but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
     if target_format=='html' and not only_assets:
         builder.html(source,output,stringparams)
     if target_format=='latex' and not only_assets:
