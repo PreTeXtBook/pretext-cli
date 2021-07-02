@@ -193,9 +193,10 @@ def build(target, format, source, output, stringparam, publication, webwork, dia
     Serve files from provided directory
     """)
 @click.option('-w', '--watch', is_flag=True, help="""
-    Watch the status of project files and
+    Watch the status of source files and
     automatically rebuild target when changes
-    are made. (Only supports HTML-format targets.)
+    are made. Only supports HTML-format targets, and
+    only recommended for smaller projects.
     """)
 def view(target,access,port,directory,watch):
     """
