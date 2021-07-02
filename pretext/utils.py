@@ -1,7 +1,9 @@
 import os
+import json
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
 import socketserver
+import socket
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
@@ -86,7 +88,7 @@ def text_from_project_xml(xpath,default=None):
         return default
 
 #check xml syntax
-def xml_syntax_check(xmlfile):
+def xml_syntax_validate(xmlfile):
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
@@ -112,7 +114,7 @@ def xml_syntax_check(xmlfile):
             error_log_file.write(str(err.error_log))
         quit()
 
-def schema_validate(xmlfile):
+def xml_schema_validate(xmlfile):
     #get path to RelaxNG schema file:
     static_dir = os.path.dirname(static.__file__)
     schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')
@@ -161,48 +163,50 @@ def serve_forever(directory,binding,port):
         httpd.serve_forever()
 
 class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
-    def __init__(self,target):
-        self.ptxfile = target.find("source").text.strip()
-        self.output = target.find("output-dir").text.strip()
-        self.target_name = target.get("name")
-        pub_relpath = target.find("publication").text.strip()
-        pub_abspath = os.path.abspath(pub_relpath)
-        self.stringparams = {"publisher": pub_abspath}
-        self.last_build_at = time.time()-5
+    def __init__(self,callback):
+        self.last_trigger_at = time.time()-5
+        self.callback = callback
     def on_any_event(self,event):
-        # only trigger rebuild at most every 5 seconds
-        if self.last_build_at + 5 < time.time():
-            self.last_build_at = time.time()
-            log.info(f"\nChanges to source detected, rebuilding target `{self.target_name}`...\n")
-            build.html(self.ptxfile,self.output,self.stringparams)
+        # only trigger at most every 5 seconds
+        if time.time() > self.last_trigger_at + 5:
+            self.last_trigger_at = time.time()
+            log.info(f"\nChanges to source detected.\n")
+            self.callback()
 
-def run_server(directory,binding,port,url,watch_target):
-    log.info(f"Your build located at `{directory}` may be previewed at\n")
+def binding_for_access(access):
+    if os.path.isfile("/home/user/.smc/info.json") or access=="public":
+        return "0.0.0.0"
+    else:
+        return "localhost"
+def url_for_access(access,port):
+    if os.path.isfile("/home/user/.smc/info.json"):
+        project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
+        return f"https://cocalc.com/{project_id}/server/{port}/"
+    elif access=='public':
+        return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
+    else:
+        return f"http://localhost:{port}"
+
+def run_server(directory,access,port,watch_directory=None,watch_callback=lambda:None):
+    binding = binding_for_access(access)
+    url = url_for_access(access,port)
+    log.info(f"The directory `{directory}` may be previewed at\n")
     log.info(url+"\n")
     log.info("Use [Ctrl]+[C] to halt the server.\n")
     threading.Thread(target=lambda: serve_forever(directory,binding,port),daemon=True).start()
-    if watch_target is not None:
-        log.info("Building HTML...\n")
-        ptxfile = watch_target.find("source").text.strip()
-        output = watch_target.find("output-dir").text.strip()
-        pub_relpath = watch_target.find("publication").text.strip()
-        pub_abspath = os.path.abspath(pub_relpath)
-        stringparams = {"publisher": pub_abspath}
-        build.html(ptxfile,output,stringparams)
-        path = os.path.join(project_path(),os.path.dirname(watch_target.find("source").text.strip()))
-        log.info(f"\nWatching for changes in `{os.path.abspath(path)}` ...\n")
-        event_handler = HTMLRebuildHandler(watch_target)
+    if watch_directory is not None:
+        log.info(f"\nWatching for changes in `{watch_directory}` ...\n")
+        event_handler = HTMLRebuildHandler(watch_callback)
         observer = watchdog.observers.Observer()
-        observer.schedule(event_handler, path, recursive=True)
+        observer.schedule(event_handler, watch_directory, recursive=True)
         observer.start()
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        log.info("")
-        log.info("Closing server...")
-        if watch_target is not None: observer.stop()
-    if watch_target is not None: observer.join()
+        log.info("\nClosing server...")
+        if watch_directory is not None: observer.stop()
+    if watch_directory is not None: observer.join()
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
 NSMAP = {

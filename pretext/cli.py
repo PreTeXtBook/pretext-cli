@@ -3,7 +3,6 @@ import click_logging
 import json
 from lxml import etree as ET
 import logging
-import os
 import sys
 import shutil
 import socket
@@ -15,6 +14,7 @@ from . import utils, static
 from . import version as cli_version
 from . import build as builder
 from .static.pretext import pretext as core
+from .project import Target,Project
 
 
 log = logging.getLogger('ptxlogger')
@@ -110,20 +110,24 @@ def init():
 # pretext build
 @main.command(short_help="Build specified target")
 @click.argument('target', required=False)
-@click.option('-i', '--input', 'source', type=click.Path(), show_default=True,
+@click.option('-f', '--format', default="html", type=click.Choice(['html','latex']), show_default=True,
+              help='Output format to build.')
+@click.option('-i', '--input', 'source', type=click.Path(),
               help='Path to main *.ptx file')
-@click.option('-o', '--output', type=click.Path(), default=None, show_default=True,
+@click.option('-o', '--output', type=click.Path(),
               help='Path to main output directory')
-@click.option('-p', '--publication', type=click.Path(), default=None, help="Publication file name, with path relative to base folder")
-@click.option('--param', multiple=True, help="""
-              Define a stringparam to use during processing. Usage: pretext build --param foo:bar --param baz:woo
-""")
+@click.option('-p', '--publication', type=click.Path(), default=None,
+              help="Path to publication *.ptx file")
+@click.option('--stringparam', nargs=2, multiple=True, help="""
+              Define a stringparam to use during processing.
+              Usage: pretext build --param foo bar --param baz woo
+              """)
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
 @click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'pdf', 'eps', 'tex'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).") # Add back in 'png' and 'all' when png works on Windows.
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('-oa', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets")
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
-def build(target, source, output, param, publication, webwork, diagrams, diagrams_format, only_assets, pdf):
+def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets, pdf):
     """
     Process PreTeXt files into specified format.
 
@@ -131,133 +135,33 @@ def build(target, source, output, param, publication, webwork, diagrams, diagram
 
     If the project included WeBWorK exercises, these must be processed using the --webwork option.
     """
-    # locate manifest:
-    manifest_dir = utils.project_path()
-    if manifest_dir is None:
-        log.warning(f"No project manifest was found.  Run `pretext init` to generate one.")
-        manifest = None
-        # if no target has been specified, set to old default of html.  Then set any other defaults
-        if target is None:
-            target = 'html'
-        if source is None:
-            source = 'source/main.ptx'
-        if output is None:
-            output = f'output/{target}'
-        # set target_format to target ragardless:
-        if target != 'html' and target != 'latex':
-            log.critical(f'Without a project manifest, you can only build "html" or "latex".  Exiting...')
-            sys.exit(f"`pretext build` did not complete.  Please try again.")
-        target_format = target
-    else:
-        manifest = 'project.ptx'
-
-    # Now check if no target was provided, in which case, set to first target of manifest
-    if target is None:
-        target = utils.project_xml().find('targets/target').get("name")
-        log.info(f"Since no build target was supplied, we will build {target}, the first target of the project manifest {manifest} in {manifest_dir}")
-
-    #if the project manifest doesn't have the target alias, exit build
-    if utils.target_xml(alias=target) is None:
-        log.critical("Build target does not exist in project manifest project.ptx")
-        sys.exit("Exiting without completing task.")
-
-    # Pull build info (source/output/params/etc) when not already supplied by user:
-    log.debug(f"source = {source}, output = {output}, publisher = {publication}")
-    if source is None:
-        source = utils.target_xml(alias=target).find('source').text.strip()
-        log.debug(f"No source provided, using {source}, taken from manifest")
-    if output is None:
-        output = utils.target_xml(alias=target).find('output-dir').text.strip()
-        log.debug(f"No output provided, using {output}, taken from manifest")
-    if publication is None:
-        try:
-            publication = utils.target_xml(alias=target).find('publication').text.strip()
-            log.debug(f"No publisher file provided, using {publication}, taken from manifest")
-        except:
-            log.warning(f"No publisher file was found in {manifest}, will try to build anyway.")
-            pass
-    # TODO: get params working from manifest.
-
-    # Set target_format to the correct thing
-    try: 
-        target_format = utils.target_xml(alias=target).find('format').text.strip()
-        log.debug(
-            f"Setting the target format to {target_format}, taken from manifest for target {target}")
-    except:
-        target_format = target
-        log.warning(f"No format listed in the manifest for the target {target}.  Will try to build using {target} as the format.")
-
-    # Check for xml syntax errors and quit if xml invalid:
-    utils.xml_syntax_check(source)
-    # Validate xml against schema; continue with warning if invalid:
-    utils.schema_validate(source)
+    target_name = target
     # set up stringparams as dictionary:
-    # TODO: exit gracefully if string params were not entered in correct format.
-    param_list = [p.split(":") for p in param]
-    stringparams = {p[0].strip(): ":".join(p[1:]).strip() for p in param_list}
-    # if publication:
-        # stringparams['publisher'] = publication
-    if 'publisher' in stringparams:
-        publication = stringparams['publisher']
-    publication = os.path.abspath(publication)
-    if not(os.path.isfile(publication)):
-            log.error(f"You or the manifest supplied {stringparams['publisher']} as a publisher file, but it doesn't exist at that location.  Will try to build anyway.")
-            static_dir = os.path.dirname(static.__file__)
-            publication = os.path.join(static_dir, 'templates', 'publication.ptx')
-            # raise ValueError('Publisher file ({}) does not exist'.format(stringparams['publisher']))
-    # Ensure directories for assets and generated assets to avoid errors when building:
-    pub_tree = ET.parse(publication)
-    pub_tree.xinclude()
-    element_list = pub_tree.xpath("/publication/source/directories")
-    attributes_dict = element_list[0].attrib
-    utils.ensure_directory(os.path.abspath(os.path.join(os.path.dirname(source), attributes_dict['external'])))
-    utils.ensure_directory(os.path.abspath(os.path.join(os.path.dirname(source), attributes_dict['generated'])))
-    # for key in attributes_dict:
-    #     utils.ensure_directory(os.path.join(os.path.abspath(source), attributes_dict[key]))
-    # set up source (input) and output as absolute paths
-    source = os.path.abspath(source)
-    output = os.path.abspath(output)
-    #remove output directory so ptxcore doesn't complain.
-    if os.path.isdir(output):
-        shutil.rmtree(output)
-    # put webwork-representations.ptx in same dir as source main file
-    webwork_output = os.path.dirname(source)
-    #build targets:
-    if webwork:
-        # prepare params; for now assume only server is passed
-        # see documentation of pretext core webwork_to_xml
-        # handle this exactly as in webwork_to_xml (should this
-        # be exported in the pretext core module?)
-        try:
-            server_params = (stringparams['server'])
-        except Exception as e:
-            root_cause = str(e)
-            log.warning("No server name, {}.  Using default https://webwork-ptx.aimath.org".format(root_cause))
-            server_params = "https://webwork-ptx.aimath.org"
-        builder.webwork(source, publication, webwork_output, stringparams, server_params)
-    if diagrams:
-        # TODO: read this from publisher file.
-        generated_assets = 'generated-assets'
-        builder.diagrams(source,publication,generated_assets,stringparams,diagrams_format)
+    stringparams = {p[0] : p[1] for p in stringparam}
+    if utils.project_path() is None:
+        log.warning(f"No project.ptx manifest was found. Run `pretext init` to generate one.")
+        log.warning("Continuing using commandline arguments.")
+        if publication is None:
+              pass
+        target = Target(name=format,format=format,source=source,output_dir=output,
+                        publication=publication,stringparams=stringparams)
+        project = Project(targets=[target])
     else:
-        source_xml = ET.parse(source)
-        source_xml.xinclude()
-        if len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0 and target_format == 'html':
-            log.warning("There are generated images (<latex-image/>, <asymptote/>, or <sageplot/>) or in source, but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
-        # TODO: remove the elements that are not needed for latex.
-        if len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0 and target_format == 'latex':
-            log.warning("The source has interactive elements or videos that need a preview to be generated, but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-    if target_format=='html' and not only_assets:
-        builder.html(source,publication,output,stringparams)
-        # core.html(source, None, stringparams, output)
-    if target_format=='latex' and not only_assets:
-        builder.latex(source,publication,output,stringparams)
-
-        # if pdf:
-        #     with utils.working_directory(output):
-        #         subprocess.run(['pdflatex','main.tex'])
-    if target_format=='pdf' and not only_assets:
-        builder.pdf(source,publication,output,stringparams)
+        project = Project()
+        if target_name is None:
+            log.info(f"Since no build target was supplied, the first target of the "+
+                     "project.ptx manifest will be built.")
+        target = project.target(name=target_name)
+        if target is None:
+            log.critical("Build target could not be found in project.ptx manifest.")
+            log.critical("Exiting without completing task.")
+            return
+        #overwrite target with commandline arguments, update project accordingly
+        target = Target(xml_element=target.xml_element(),
+                        format=format,source=source,output_dir=output,
+                        publication=publication,stringparams=stringparams)
+        project = Project(xml_element=project.xml_element(),targets=[target])
+    project.build(target_name,webwork,diagrams,diagrams_format,only_assets)
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
@@ -265,13 +169,13 @@ def build(target, source, output, param, publication, webwork, diagrams, diagram
 @click.option(
     '-a',
     '--access',
-    type=click.Choice(['public', 'private', 'cocalc'], case_sensitive=False),
+    type=click.Choice(['public', 'private'], case_sensitive=False),
     default='private',
     show_default=True,
     help="""
     Choose whether or not to allow other computers on your local network
-    to access your documents using your IP address, with special option
-    to support CoCalc.com users.
+    to access your documents using your IP address. (Ignored when used
+    in CoCalc, which works automatically.)
     """)
 @click.option(
     '-p',
@@ -280,13 +184,6 @@ def build(target, source, output, param, publication, webwork, diagrams, diagram
     show_default=True,
     help="""
     Choose which port to use for the local server.
-    """)
-@click.option(
-    '-c',
-    '--custom',
-    is_flag=True,
-    help="""
-    Override defaults with those set in project.ptx.
     """)
 @click.option(
     '-d',
@@ -300,44 +197,22 @@ def build(target, source, output, param, publication, webwork, diagrams, diagram
     automatically rebuild target when changes
     are made. (Only supports HTML-format targets.)
     """)
-def view(target,access,port,custom,directory,watch):
+def view(target,access,port,directory,watch):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
-    TARGET is the name of the target to build from `project.ptx`.
+    TARGET is the name of the <target/> defined in `project.ptx`.
     """
-    if custom:
-        access = utils.text_from_project_xml('view/access',default=access)
-        port = int(utils.text_from_project_xml('view/port',default=port))
-    txml = utils.target_xml(alias=target)
-    if watch:
-        watch_target = txml
-        if watch_target.find("format").text.strip() != "html":
-            raise_cli_error("Watch only supports HTML formats.")
+    target_name=target
+    if directory is not None:
+        utils.run_server(directory,access,port)
+        return
     else:
-        watch_target = None
-    if directory is None:
-        if txml is None:
-            raise_cli_error(f"Target with alias `{target}` could not be found.")
-        target_path = txml.find('output-dir').text.strip()
-        directory = os.path.abspath(target_path)
+        project = Project()
+        target = project.target(name=target_name)
+    if target is not None:
+        project.view(target_name,access,port,watch)
     else:
-        watch_taret = None
-    if not utils.directory_exists(directory):
-        raise_cli_error(f"""
-        The directory `{directory}` does not exist.
-        Maybe try `pretext build {target}` first?
-        """)
-    if access=='cocalc':
-        binding = "0.0.0.0"
-        project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
-        url = f"https://cocalc.com/{project_id}/server/{port}/"
-    elif access=='public':
-        binding = "0.0.0.0"
-        url = f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
-    else:
-        binding = "localhost"
-        url = f"http://{binding}:{port}"
-    utils.run_server(directory,binding,port,url,watch_target)
+        log.error(f"Target `{target_name}` could not be found.")
 
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
@@ -351,40 +226,9 @@ def publish(target):
     properly configured with GitHub and GitHub Pages. Pubilshed
     files will live in `docs` subdirectory of project.
     """
-    try:
-        repo = git.Repo(os.getcwd())
-    except git.exc.InvalidGitRepositoryError:
-        raise_cli_error("Project must be under Git version control.")
-    if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
-        log.info("Updating project Git repository with latest changes to source.")
-        repo.git.add(all=True)
-        repo.git.commit(message="Update to PreTeXt project source.")
-    try:
-        origin = repo.remote('origin')
-    except ValueError:
-        raise_cli_error("Repository must have an `origin` remote pointing to GitHub.")
-    txml = utils.target_xml(target)
-    if txml.find("format").text.strip()!="html":
-        raise_cli_error("Only HTML format targets are allowed.")
-    output_dir = txml.find("output-dir").text.strip()
-    if not utils.directory_exists(output_dir):
-        raise_cli_error(f"""
-        The directory `{output_dir}` does not exist.
-        Maybe try `pretext build` first?
-        """)
-    log.info(f"Preparing to publish the latest build located in `{output_dir}`.")
-    shutil.rmtree("docs",ignore_errors=True)
-    shutil.copytree(output_dir,"docs")
-    log.info(f"Latest build copied to `docs/`.")
-    repo.git.add('docs')
-    try:
-        repo.git.commit(message="Publish latest HTML build.")
-    except git.exc.GitCommandError:
-        raise_cli_error("Latest HTML build is the same as last published build.")
-    log.info("Pushing to GitHub. (Your password may be required below.)")
-    origin.push()
-    log.info(f"Latest build successfully pushed to GitHub.")
-    log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
+    target_name = target
+    project = Project()
+    project.publish(target_name)
 
 ## pretext debug
 # @main.command(short_help="just for testing")
