@@ -2,10 +2,62 @@
 
 A package for authoring and building [PreTeXt](https://pretextbook.org) documents.
 
-Documentation for end-users is available at 
-<https://pretextbook.github.io/pretext-cli/>.
+## Installation
 
-Documentation for developers is available below.
+### Installing Python
+
+PreTeXt-CLI requires the Python version specified in `.python-version`.
+
+To check your version, type this into your terminal or command prompt:
+
+```
+python -V
+```
+
+If your version is 2.x, try this instead
+(and if so, either replace all future references to `python`
+in these instructions with `python3`).
+
+```
+python3 -V
+```
+
+If you don't have a compatible Python available, try one of these:
+
+- https://www.python.org/downloads/
+  - Windows warning: Be sure to select the option adding Python to your Path.
+- https://github.com/pyenv/pyenv#installation (Mac/Linux)
+- https://github.com/pyenv-win/pyenv-win#installation (Windows)
+
+### Installing PreTeXt-CLI
+
+Once you've confirmed that you're using a valid version of Python, just
+run (replacing `python` with `python3` if necessary):
+
+```
+python -m pip install --user pretextbook
+```
+
+(It's also possible you may get an error like 
+`error: invalid command 'bdist_wheel'`
+— good news, you can ignore it!)
+
+After installation, try to run:
+
+```
+pretext --help
+```
+
+If that works, great! Otherwise, it likely means that Python packages
+aren't available on your “PATH”. In that case, replace all `pretext`
+commands with `python -m pretext` instead:
+
+```
+python -m pretext --help
+```
+
+Either way, the `--help` option will explain how to use all the different
+subcommands like `pretext new` and `pretext build`. Happy authoring!
 
 ## Development
 
@@ -137,3 +189,13 @@ python scripts/build_release.py
 ## Versioning
 
 See [VERSIONING.md](VERSIONING.md).
+
+## About
+
+### Lead Contributors
+- [Steven Clontz](https://clontz.org/)
+- [Oscar Levin](https://math.oscarlevin.com/)
+
+### About PreTeXt
+The development of [PreTeXt's core](https://github.com/rbeezer/mathbook)
+is led by [Rob Beezer](http://buzzard.ups.edu/).
