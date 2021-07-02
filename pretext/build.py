@@ -11,7 +11,6 @@ from .static.pretext import pretext as core
 log = logging.getLogger('ptxlogger')
 
 def html(ptxfile,pub_file,output,stringparams):
-    init_ptxcore()
     utils.ensure_directory(output)
     print(output)
     log.info(f"\nNow building HTML into {output}\n")
@@ -27,7 +26,6 @@ def html(ptxfile,pub_file,output,stringparams):
 
 
 def latex(ptxfile,pub_file,output,stringparams):
-    init_ptxcore()
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     try:
@@ -57,14 +55,13 @@ def pdf(ptxfile,pub_file,output,stringparams):
 
 # Function to build diagrams/images contained in source.
 def diagrams(ptxfile, pub_file, output, params, formats):
-    init_ptxcore()
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for image types.
     source_xml = ET.parse(ptxfile)
     source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0:
-        image_output = os.path.abspath(os.path.join(output, 'latex-images'))
+        image_output = os.path.abspath(os.path.join(output, 'latex-image'))
         utils.ensure_directory(image_output)
         log.info('Now generating latex-images\n\n')
         # call pretext-core's latex image module:
@@ -110,8 +107,3 @@ def webwork(ptxfile, pub_file, dest_dir, params, server_params):
     # the default/recommended config in PreTeXt Guide. But this is passed as one of the collection of stringparams, so set to None here.  Sams for the pub_file.
     core.webwork_to_xml(xml_source=ptxfile, pub_file=None, stringparams=params, abort_early=True, server_params=server_params, dest_dir=dest_dir)
 
-def init_ptxcore():
-    exdict = {ele.tag: ele.text
-              for ele in utils.project_xml().xpath("executables/*")}
-    print(exdict)
-    core.set_executables(exdict)
