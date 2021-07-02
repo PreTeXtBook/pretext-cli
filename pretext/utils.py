@@ -136,8 +136,8 @@ def xml_schema_validate(xmlfile):
         log.info('PreTeXt source passed schema validation.')
 
     except ET.DocumentInvalid as err:
-        log.warning('PreTeXt document did not pass schema validation; unexpected output may result. See error_schema.log for hints.  Continuing with build.')
-        with open('error_schema.log', 'w') as error_log_file:
+        log.debug('PreTeXt document did not pass schema validation; unexpected output may result. See .error_schema.log for hints.  Continuing with build.')
+        with open('.error_schema.log', 'w') as error_log_file:
             error_log_file.write(str(err.error_log))
         pass
 
