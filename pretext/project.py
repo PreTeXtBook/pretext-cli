@@ -214,9 +214,11 @@ class Project():
                             "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
         if target.format()=='html' and not only_assets:
             builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams())
-            # core.html(source, None, stringparams, output)
         if target.format()=='latex' and not only_assets:
             builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams())
+            # core script doesn't put a copy of images in output for latex builds, so we do it instead here
+            shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"))
+            shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"))
         if target.format()=='pdf' and not only_assets:
             builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams())
 
