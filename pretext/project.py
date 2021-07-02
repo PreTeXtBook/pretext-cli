@@ -77,10 +77,7 @@ class Target():
 
     def view(self,access,port,watch):
         if not utils.directory_exists(self.output_dir()):
-            log.error(f"""
-            The directory `{self.output_dir()}` does not exist.
-            Maybe try `pretext build {self.name()}` first?
-            """)
+            log.error(f"The directory `{self.output_dir()}` does not exist. Maybe try `pretext build {self.name()}` first?")
             return
         directory = self.output_dir()
         if watch:
@@ -112,7 +109,7 @@ class Target():
             log.error("Repository must have an `origin` remote pointing to GitHub.")
             return
         if not utils.directory_exists(self.output_dir()):
-            log.error("The directory `{self.output_dir()}` does not exist. Maybe try `pretext build` first?")
+            log.error(f"The directory `{self.output_dir()}` does not exist. Maybe try `pretext build` first?")
             return
         log.info(f"Preparing to publish the latest build located in `{self.output_dir()}`.")
         docs_path = os.path.join(self.__project_path,"docs")
