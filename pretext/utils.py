@@ -88,7 +88,7 @@ def text_from_project_xml(xpath,default=None):
         return default
 
 #check xml syntax
-def xml_syntax_check(xmlfile):
+def xml_syntax_validate(xmlfile):
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
@@ -114,7 +114,7 @@ def xml_syntax_check(xmlfile):
             error_log_file.write(str(err.error_log))
         quit()
 
-def schema_validate(xmlfile):
+def xml_schema_validate(xmlfile):
     #get path to RelaxNG schema file:
     static_dir = os.path.dirname(static.__file__)
     schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')

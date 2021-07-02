@@ -3,6 +3,8 @@ import os, sys, shutil
 import logging
 import git
 from . import static, utils
+from . import build as builder
+from .static.pretext import pretext as core
 
 log = logging.getLogger('ptxlogger')
 
@@ -14,7 +16,7 @@ class Target():
                  source=None,
                  publication=None,
                  output_dir=None,
-                 stringparams_dict=None,
+                 stringparams=None,
                  project_path=None):
         if project_path is None:
             project_path = os.getcwd()
@@ -37,13 +39,24 @@ class Target():
                 tag_element = ET.SubElement(xml_element,tag)
                 tag_element.text = ele_text.strip()
         # set several stringparam subelements with key/value attributes
-        if stringparams_dict is not None:
+        if stringparams is not None:
             for sp_element in xml_element.xpath("stringparam"):
                 xml_element.remove(sp_element)
-            for key,val in stringparams_dict.items():
+            for key,val in stringparams.items():
                 sp_element = ET.SubElement(xml_element,"stringparam")
                 sp_element.set("key",key.strip())
                 sp_element.set("value", val.strip())
+        # set publisher key of stringparams to match publication
+        if publication is not None:
+            for pub_element in xml_element.xpath('stringparam[@key="publisher"]'):
+                xml_element.remove(pub_element)
+            if not os.path.isfile(os.path.join(project_path,publication)):
+                log.warning(f"The supplied publication filepath {publication} doesn't match any files. Using default publication settings instead.")
+                static_dir = os.path.dirname(static.__file__)
+                publication = os.path.join(static_dir, 'templates', 'publication.ptx')
+            sp_element = ET.SubElement(xml_element,"stringparam")
+            sp_element.set("key","publisher")
+            sp_element.set("value",publication)
         # construction is done!
         self.__xml_element = xml_element
         self.__project_path = project_path
@@ -63,8 +76,29 @@ class Target():
     def source_dir(self):
         return os.path.dirname(self.source())
 
+    def source_xml(self):
+        ele_tree = ET.parse(self.source())
+        ele_tree.xinclude()
+        return ele_tree.getroot()
+
     def publication(self):
         return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("publication").text.strip()))
+
+    def publication_rel_from_source(self):
+        return os.path.relpath(self.publication(),self.source_dir())
+
+    def publication_xml(self):
+        ele_tree = ET.parse(self.publication())
+        ele_tree.xinclude()
+        return ele_tree.getroot()
+
+    def external_dir(self):
+        rel_dir = self.publication_xml().find("source/directories").get("external").strip()
+        return os.path.join(self.source_dir(),rel_dir)
+
+    def generated_dir(self):
+        rel_dir = self.publication_xml().find("source/directories").get("generated").strip()
+        return os.path.join(self.source_dir(),rel_dir)
 
     def output_dir(self):
         return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("output-dir").text.strip()))
@@ -75,57 +109,6 @@ class Target():
             for sp_ele in self.xml_element().xpath("stringparam")
         }
 
-    def view(self,access,port,watch):
-        if not utils.directory_exists(self.output_dir()):
-            log.error(f"The directory `{self.output_dir()}` does not exist. Maybe try `pretext build {self.name()}` first?")
-            return
-        directory = self.output_dir()
-        if watch:
-            watch_directory = self.source_dir()
-        else:
-            watch_directory = None
-        watch_callback=self.build
-        utils.run_server(directory,access,port,watch_directory,watch_callback)
-
-    def build(self):
-        log.info(f"pretending to build target {self.name()}")
-
-    def publish(self):
-        if self.format() != "html":
-            log.error("Only HTML format targets are supported.")
-            return
-        try:
-            repo = git.Repo(self.__project_path)
-        except git.exc.InvalidGitRepositoryError:
-            log.error("Target's project must be under Git version control.")
-            return
-        if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
-            log.info("Updating project Git repository with latest changes to source.")
-            repo.git.add(all=True)
-            repo.git.commit(message="Update to PreTeXt project source.")
-        try:
-            origin = repo.remote('origin')
-        except ValueError:
-            log.error("Repository must have an `origin` remote pointing to GitHub.")
-            return
-        if not utils.directory_exists(self.output_dir()):
-            log.error(f"The directory `{self.output_dir()}` does not exist. Maybe try `pretext build` first?")
-            return
-        log.info(f"Preparing to publish the latest build located in `{self.output_dir()}`.")
-        docs_path = os.path.join(self.__project_path,"docs")
-        shutil.rmtree(docs_path,ignore_errors=True)
-        shutil.copytree(self.output_dir(),docs_path)
-        log.info(f"Latest build copied to `{docs_path}`.")
-        repo.git.add('docs')
-        try:
-            repo.git.commit(message=f"Publish latest build of target {self.name()}.")
-        except git.exc.GitCommandError:
-            log.error("Latest build is the same as last published build.")
-            return
-        log.info("Pushing to GitHub. (Your password may be required below.)")
-        origin.push()
-        log.info(f"Latest build successfully pushed to GitHub.")
-        log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
 
 
 class Project():
@@ -150,7 +133,7 @@ class Project():
                 xml_element.remove(targets_element)
             targets_element = ET.SubElement(xml_element,"targets")
             for target in targets:
-                targets_element.insert(target.xml_element)
+                targets_element.append(target.xml_element())
         self.__xml_element = xml_element
         self.__project_path = project_path
 
@@ -173,3 +156,119 @@ class Project():
         else:
             return None
 
+    def view(self,target_name,access,port,watch):
+        target = self.target(target_name)
+        if not utils.directory_exists(target.output_dir()):
+            log.error(f"The directory `{self.output_dir()}` does not exist. Maybe try `pretext build {self.name()}` first?")
+            return
+        directory = target.output_dir()
+        if watch:
+            watch_directory = target.source_dir()
+        else:
+            watch_directory = None
+        watch_callback=lambda:self.build(target_name)
+        utils.run_server(directory,access,port,watch_directory,watch_callback)
+
+    def build(self,target_name,webwork=False,diagrams=False,diagrams_format="svg",only_assets=False):
+        # prepre core PreTeXt pythons scripts
+        self.init_ptxcore()
+        # Check for xml syntax errors and quit if xml invalid:
+        self.xml_syntax_validate_source(target_name)
+        # Validate xml against schema; continue with warning if invalid:
+        self.xml_schema_validate_source(target_name)
+        # Ensure directories for assets and generated assets to avoid errors when building:
+        target = self.target(target_name)
+        utils.ensure_directory(target.external_dir())
+        utils.ensure_directory(target.generated_dir())
+        #remove output directory so ptxcore doesn't complain.
+        if os.path.isdir(target.output_dir()):
+            shutil.rmtree(target.output_dir())
+        #build targets:
+        if webwork:
+            # prepare params; for now assume only server is passed
+            # see documentation of pretext core webwork_to_xml
+            # handle this exactly as in webwork_to_xml (should this
+            # be exported in the pretext core module?)
+            webwork_output = os.path.join(target.generated_dir(),'webwork')
+            utils.ensure_directory(webwork_output)
+            try:
+                server_url = target.stringparams()['server']
+            except Exception as e:
+                root_cause = str(e)
+                server_url = "https://webwork-ptx.aimath.org"
+                log.warning(f"No server name, {root_cause}.")
+                log.warning(f"Using default {server_params}")
+            builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams(), server_url)
+        if diagrams:
+            builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), diagrams_format)
+        else:
+            source_xml = target.source_xml()
+            if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
+                log.warning("There are generated images (<latex-image/>, <asymptote/>, or <sageplot/>) or in source, "+
+                            "but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
+            # TODO: remove the elements that are not needed for latex.
+            if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
+                log.warning("The source has interactive elements or videos that need a preview to be generated, "+
+                            "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
+        if target.format()=='html' and not only_assets:
+            builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams())
+            # core.html(source, None, stringparams, output)
+        if target.format()=='latex' and not only_assets:
+            builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams())
+        if target.format()=='pdf' and not only_assets:
+            builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams())
+
+    def publish(self,target_name):
+        target = self.target(target_name)
+        if target.format() != "html":
+            log.error("Only HTML format targets are supported.")
+            return
+        try:
+            repo = git.Repo(self.__project_path)
+        except git.exc.InvalidGitRepositoryError:
+            log.error("Target's project must be under Git version control.")
+            return
+        if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
+            log.info("Updating project Git repository with latest changes to source.")
+            repo.git.add(all=True)
+            repo.git.commit(message="Update to PreTeXt project source.")
+        try:
+            origin = repo.remote('origin')
+        except ValueError:
+            log.error("Repository must have an `origin` remote pointing to GitHub.")
+            return
+        if not utils.directory_exists(target.output_dir()):
+            log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build` first?")
+            return
+        log.info(f"Preparing to publish the latest build located in `{target.output_dir()}`.")
+        docs_path = os.path.join(self.__project_path,"docs")
+        shutil.rmtree(docs_path,ignore_errors=True)
+        shutil.copytree(target.output_dir(),docs_path)
+        log.info(f"Latest build copied to `{docs_path}`.")
+        repo.git.add('docs')
+        try:
+            repo.git.commit(message=f"Publish latest build of target {target.name()}.")
+        except git.exc.GitCommandError:
+            log.error("Latest build is the same as last published build.")
+            return
+        log.info("Pushing to GitHub. (Your password may be required below.)")
+        origin.push()
+        log.info(f"Latest build successfully pushed to GitHub.")
+        log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
+
+    def xml_syntax_validate_source(self,target_name):
+        target = self.target(target_name)
+        utils.xml_syntax_validate(target.source())
+
+    def xml_schema_validate_source(self,target_name):
+        target = self.target(target_name)
+        utils.xml_schema_validate(target.source())
+
+    def executables(self):
+        return {
+            ele.tag: ele.text
+            for ele in self.xml_element().xpath("executables/*")
+        }
+
+    def init_ptxcore(self):
+        core.set_executables(self.executables())
