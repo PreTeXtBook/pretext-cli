@@ -24,6 +24,11 @@ class Target():
                 static_dir = os.path.dirname(static.__file__)
                 template_xml = os.path.join(static_dir,"templates","project.ptx")
                 xml_element = ET.parse(template_xml).getroot().find("targets/target")
+                publication = os.path.join(static_dir,"templates","project.ptx")
+                for pub_ele in xml_element.xpath("publication"):
+                    xml_element.remove(pub_ele)
+                pub_ele = ET.SubElement(xml_element,"publication")
+                pub_ele.text = publication
         if xml_element.tag != "target":
             raise ValueError("xml_element must have tag `target` as root")
         # construct self.xml_element
@@ -82,11 +87,19 @@ class Target():
         return ele_tree.getroot()
 
     def external_dir(self):
-        rel_dir = self.publication_xml().find("source/directories").get("external").strip()
+        dir_ele = self.publication_xml().find("source/directories")
+        if dir_ele is None:
+            log.error("Publication file does not specify asset directories.")
+            return None
+        rel_dir = dir_ele.get("external")
         return os.path.join(self.source_dir(),rel_dir)
 
     def generated_dir(self):
-        rel_dir = self.publication_xml().find("source/directories").get("generated").strip()
+        dir_ele = self.publication_xml().find("source/directories")
+        if dir_ele is None:
+            log.error("Publication file does not specify asset directories.")
+            return None
+        rel_dir = dir_ele.get("generated")
         return os.path.join(self.source_dir(),rel_dir)
 
     def output_dir(self):
