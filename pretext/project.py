@@ -166,6 +166,7 @@ class Project():
         directory = target.output_dir()
         if watch:
             watch_directory = target.source_dir()
+            self.build(target_name)
         else:
             watch_directory = None
         watch_callback=lambda:self.build(target_name)
@@ -175,9 +176,10 @@ class Project():
         # prepre core PreTeXt pythons scripts
         self.init_ptxcore()
         # Check for xml syntax errors and quit if xml invalid:
-        self.xml_syntax_validate_source(target_name)
+        if not self.xml_source_syntax_is_valid(target_name):
+            return
         # Validate xml against schema; continue with warning if invalid:
-        self.xml_schema_validate_source(target_name)
+        self.xml_source_schema_is_valid(target_name)
         # Ensure directories for assets and generated assets to avoid errors when building:
         target = self.target(target_name)
         utils.ensure_directory(target.external_dir())
@@ -260,13 +262,13 @@ class Project():
         log.info(f"Latest build successfully pushed to GitHub.")
         log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
 
-    def xml_syntax_validate_source(self,target_name):
+    def xml_source_syntax_is_valid(self,target_name):
         target = self.target(target_name)
-        utils.xml_syntax_validate(target.source())
+        return utils.xml_syntax_is_valid(target.source())
 
-    def xml_schema_validate_source(self,target_name):
+    def xml_source_schema_is_valid(self,target_name):
         target = self.target(target_name)
-        utils.xml_schema_validate(target.source())
+        return utils.xml_schema_is_valid(target.source())
 
     def executables(self):
         return {

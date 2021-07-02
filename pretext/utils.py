@@ -88,7 +88,7 @@ def text_from_project_xml(xpath,default=None):
         return default
 
 #check xml syntax
-def xml_syntax_validate(xmlfile):
+def xml_syntax_is_valid(xmlfile):
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
@@ -100,21 +100,23 @@ def xml_syntax_validate(xmlfile):
     # check for file IO error
     except IOError:
         log.error('Invalid File')
+        return False
 
     # check for XML syntax errors
     except ET.XMLSyntaxError as err:
         log.error('XML Syntax Error, see error_syntax.log. Quitting...')
         with open('error_syntax.log', 'w') as error_log_file:
             error_log_file.write(str(err.error_log))
-        quit()
+        return False
     except ET.XIncludeError as err:
         log.error(
             'XML Syntax Error with instance of xinclude; see error_syntax.log. Quitting...')
         with open('error_syntax.log', 'w') as error_log_file:
             error_log_file.write(str(err.error_log))
-        quit()
+        return False
+    return True
 
-def xml_schema_validate(xmlfile):
+def xml_schema_is_valid(xmlfile):
     #get path to RelaxNG schema file:
     static_dir = os.path.dirname(static.__file__)
     schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')
@@ -134,13 +136,12 @@ def xml_schema_validate(xmlfile):
     try:
         relaxng.assertValid(source_xml)
         log.info('PreTeXt source passed schema validation.')
-
     except ET.DocumentInvalid as err:
         log.debug('PreTeXt document did not pass schema validation; unexpected output may result. See .error_schema.log for hints.  Continuing with build.')
         with open('.error_schema.log', 'w') as error_log_file:
             error_log_file.write(str(err.error_log))
-        pass
-
+        return False
+    return True
 
 
 # boilerplate to prevent overzealous caching by preview server, and
