@@ -46,17 +46,6 @@ class Target():
                 sp_element = ET.SubElement(xml_element,"stringparam")
                 sp_element.set("key",key.strip())
                 sp_element.set("value", val.strip())
-        # set publisher key of stringparams to match publication
-        if publication is not None:
-            for pub_element in xml_element.xpath('stringparam[@key="publisher"]'):
-                xml_element.remove(pub_element)
-            if not os.path.isfile(os.path.join(project_path,publication)):
-                log.warning(f"The supplied publication filepath {publication} doesn't match any files. Using default publication settings instead.")
-                static_dir = os.path.dirname(static.__file__)
-                publication = os.path.join(static_dir, 'templates', 'publication.ptx')
-            sp_element = ET.SubElement(xml_element,"stringparam")
-            sp_element.set("key","publisher")
-            sp_element.set("value",publication)
         # construction is done!
         self.__xml_element = xml_element
         self.__project_path = project_path
@@ -159,7 +148,7 @@ class Project():
     def view(self,target_name,access,port,watch):
         target = self.target(target_name)
         if not utils.directory_exists(target.output_dir()):
-            log.error(f"The directory `{self.output_dir()}` does not exist. Maybe try `pretext build {self.name()}` first?")
+            log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build {target.name()}` first?")
             return
         directory = target.output_dir()
         if watch:

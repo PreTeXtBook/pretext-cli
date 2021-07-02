@@ -110,7 +110,7 @@ def init():
 # pretext build
 @main.command(short_help="Build specified target")
 @click.argument('target', required=False)
-@click.option('-f', '--format', default="html", type=click.Choice(['html','latex']), show_default=True,
+@click.option('-f', '--format', type=click.Choice(['html','latex','pdf']),
               help='Output format to build.')
 @click.option('-i', '--input', 'source', type=click.Path(),
               help='Path to main *.ptx file')

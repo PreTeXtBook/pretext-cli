@@ -45,7 +45,6 @@ def latex(ptxfile,pub_file,output,stringparams):
 
 
 def pdf(ptxfile,pub_file,output,stringparams):
-    init_ptxcore()
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     try:
