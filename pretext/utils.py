@@ -64,8 +64,11 @@ def project_path(dirpath=os.getcwd()):
 
 def project_xml(dirpath=os.getcwd()):
     if project_path(dirpath) is None:
-        return ET.ElementTree(ET.Element("project"))
-    return ET.parse(os.path.join(project_path(dirpath),'project.ptx'))
+        static_dir = os.path.dirname(static.__file__)
+        project_manifest = os.path.join(static_dir, 'templates', 'project.ptx')
+    else:
+        project_manifest = os.path.join(project_path(dirpath), 'project.ptx')
+    return ET.parse(project_manifest)
 
 def target_xml(alias=None,dirpath=os.getcwd()):
     if alias is None:
