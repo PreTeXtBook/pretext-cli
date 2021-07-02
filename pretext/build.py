@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import sys
+import pathlib
 
 from . import static, utils
 from .static.pretext import pretext as core
@@ -10,12 +11,17 @@ from .static.pretext import pretext as core
 # Get access to logger
 log = logging.getLogger('ptxlogger')
 
+def linux_path(path):
+    # hack to make core ptx happy
+    p = pathlib.Path(path)
+    return p.as_posix()
+
 def html(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
     print(output)
     log.info(f"\nNow building HTML into {output}\n")
     try:
-        core.html(ptxfile, pub_file, stringparams, output)
+        core.html(ptxfile, linux_path(pub_file), stringparams, output)
         log.info(f"\nSuccess! Run `pretext view html` to see the results.\n")
     except Exception:
         log.debug(f"There was a fatal error here", exc_info=True)
@@ -29,7 +35,7 @@ def latex(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     try:
-        core.latex(ptxfile, pub_file, stringparams, None, output)
+        core.latex(ptxfile, linux_path(pub_file), stringparams, None, output)
         log.info(f"\nSuccess! Run `pretext view latex` to see the results.\n")
     except Exception:
         log.debug(f"There was a fatal error here", exc_info=True)
@@ -43,7 +49,7 @@ def pdf(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     try:
-        core.pdf(ptxfile, pub_file, stringparams,
+        core.pdf(ptxfile, linux_path(pub_file), stringparams,
              None, dest_dir=output)
         log.info(f"\nSuccess! Run `pretext view pdf` to see the results.\n")
     except Exception:
@@ -66,34 +72,34 @@ def diagrams(ptxfile, pub_file, output, params, formats):
         log.info('Now generating latex-images\n\n')
         # call pretext-core's latex image module:
         core.latex_image_conversion(
-            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params, xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         utils.ensure_directory(image_output)
         log.info('Now generating sageplot images\n\n')
         core.sage_conversion(
-            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0:
         image_output = os.path.abspath(
             os.path.join(output, 'asymptote'))
         utils.ensure_directory(image_output)
         log.info('Now generating asymptote images\n\n')
         core.asymptote_conversion(
-            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
                     os.path.join(output, 'preview'))
         utils.ensure_directory(image_output)
         log.info('Now generating preview images for interactives\n\n')
         core.preview_images(
-            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output)
+            xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params, xmlid_root=None, dest_dir=image_output)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
         image_output = os.path.abspath(
             os.path.join(output, 'youtube'))
         utils.ensure_directory(image_output)
         log.info('Now generating youtube previews\n\n')
         core.youtube_thumbnail(
-            xml_source=ptxfile, pub_file=pub_file, stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
+            xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params, xmlid_root=None, dest_dir=image_output, outformat=formats)
 
 
 def webwork(ptxfile, pub_file, dest_dir, params, server_params):
