@@ -1,28 +1,9 @@
 import subprocess
 import os
 
-# export --help to file to include in documentation
-helps =  subprocess.check_output(['pretext', '--help']).decode("utf-8")
-for subcmd in ['new', 'build', 'view', 'publish']:
-    helps += "\n\n"+("-"*79)+"\n\n"
-    helps += subprocess.check_output(['pretext', subcmd, '--help']).decode("utf-8")
-
-with open("pretext/static/help.txt", 'w') as helpfile:
-    helpfile.write(helps)
-
-
-# Build documentation from PreTeXt
-current_directory=os.getcwd()
-os.chdir('docs-project')
-try:
-    subprocess.run(['pretext', 'build'])
-    subprocess.run(['pretext', 'publish'])
-finally:
-    os.chdir(current_directory)
-subprocess.run(['cp', '-r', 'docs-project/docs', 'docs'])
-subprocess.run(['rm', '-rf', 'docs-project/docs'])
-
-
+# ensure up-to-date "static" resources
+subprocess.run(["python", "scripts/update_core.py"])
+subprocess.run(["python", "scripts/zip_templates.py"])
 # Build package
 subprocess.run(["python", "setup.py", "sdist", "bdist_wheel"])
 
