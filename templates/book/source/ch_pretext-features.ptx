@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- This chapter will eventually contain a bunch of examples of pretext functionality. Useful for copy/paste examples of various things. -->
+
+<chapter xml:id="ch_pretext-features" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Examples of <pretext /> features</title>
+  <introduction>
+    <p>Below are examples of a lot of <pretext /> elements.</p>
+  </introduction>
+  <section xml:id="sec_ptxfeat-blocks">
+    <title>Environments and Blocks</title>
+    <p>Some text</p>
+    <theorem xml:id="thm-my-theorem">
+      <title>My Theorem</title>
+      
+      <statement>
+        <p>
+          Theorem statement.          
+        </p>
+      </statement>
+      <proof>
+        <p>
+          Proof of theorem.
+        </p>
+      </proof>
+    </theorem>
+    
+    <example>
+      <statement>
+        <p>
+          Statement of example
+        </p>
+      </statement>
+      <solution>
+        <p>
+          The solution.
+        </p>
+      </solution>
+    </example>
+    <p>
+      Now a figure.
+    </p>
+    <figure>
+      <caption>A frog</caption>
+      <image source="frog.jpg" width="50%">
+        <description>A nice-looking frog with a longish
+        description.</description>
+      </image>
+    </figure>
+    <figure xml:id="figure-tikz-electronics">
+      <caption>TikZ Electronics Diagram</caption>
+      <image xml:id="tikz-electronics">
+        <description>A pile of electronic components wired
+        together</description>
+        <latex-image>
+          \begin{tikzpicture}
+            \coordinate (A) at (90+360/5:1);
+            \coordinate (B) at (90+2*360/5:1);
+            \coordinate (C) at (90+3*360/5:1);
+            \coordinate (D) at (90+4*360/5:1);
+            \coordinate (E) at (90:1);
+
+            \draw (A) -- (B) -- (C) -- (D) -- (E) -- (A);
+            \foreach \x in {(A), (B), (C), (D), (E)}{
+              \fill \x circle (2pt);
+            }
+          \end{tikzpicture}
+        </latex-image>
+      </image>
+    </figure>
+  </section>
+  <section xml:id="section-2-2">
+    <title>Another section</title>
+    <p>This will have more stuff</p>
+  </section>
+</chapter>

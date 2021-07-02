@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<exercises xml:id="ex_firstch" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <!-- You can ommit the title and just get the default "Exercises" -->
+  <title>My Exercises</title>
+  
+  <exercise>
+    <statement>
+      <p>
+        Is this an exercis?
+      </p>
+    </statement>
+    <answer>
+      <p>
+        Yes.
+      </p>
+    </answer>
+    <solution>
+      <p>
+        It is, but not a very good one.
+      </p>
+    </solution>
+  </exercise>
+  <exercise>
+    <statement>
+      <p>
+        Another, with a hint.
+      </p>
+    </statement>
+    <hint>
+      <p>
+        The hint.
+      </p>
+    </hint>
+  </exercise>
+  
+</exercises>
+

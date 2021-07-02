@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<section xml:id="sec_firstch-examples" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Examples</title>
+  
+  <p>
+    Here is an example:
+  </p>
+ 
+  <example>
+    <statement>
+      <p>
+        The statement of the example, since it will have a solution.  What is the solution?
+      </p>
+    </statement>
+    <solution>
+      <p>
+        This is the solution.
+      </p>
+    </solution>
+  </example>
+
+  <p>
+    Here is another example, but without a solution
+  </p>
+
+  <example>
+    <p>
+      This is an example of an example without a solution (or hint or answer) so the paragraph doesn't need to be inside a statement tag.
+    </p>
+  </example>
+  
+</section>
+
