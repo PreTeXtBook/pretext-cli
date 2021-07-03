@@ -137,7 +137,10 @@ def build(target, format, source, output, stringparam, publication, webwork, dia
     """
     target_name = target
     # set up stringparams as dictionary:
-    stringparams = {p[0] : p[1] for p in stringparam}
+    if len(stringparam) > 0:
+        stringparams = {p[0] : p[1] for p in stringparam}
+    else:
+        stringparams = None
     if utils.project_path() is None:
         log.warning(f"No project.ptx manifest was found. Run `pretext init` to generate one.")
         log.warning("Continuing using commandline arguments.")
