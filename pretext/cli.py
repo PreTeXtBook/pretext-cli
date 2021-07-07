@@ -123,7 +123,7 @@ def init():
               Usage: pretext build --stringparam foo bar --stringparam baz woo
               """)
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
-@click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'pdf', 'eps', 'tex'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).") # Add back in 'png' and 'all' when png works on Windows.
+@click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'png', 'pdf', 'eps', 'tex', 'all'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).") # Add back in 'png' and 'all' when png works on Windows.
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('-oa', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets")
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
