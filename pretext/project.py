@@ -192,8 +192,8 @@ class Project():
         if Path(self.__project_path) not in Path(target.output_dir()).parents:
             log.error("Build output must be a proper subdirectory of the project. Aborted.")
             return
-        if Path(target.output_dir()) in Path(target.source()+"foo").parents or \
-            Path(target.output_dir()) in Path(target.publication()+"foo").parents:
+        if Path(target.output_dir()) in Path(os.path.join(target.source_dir(),"foo")).parents or \
+            Path(target.output_dir()) in Path(os.path.join(target.publication_dir(),"foo")).parents:
             log.error("Build output cannot contain source or publication files. Aborted.")
             return
         #remove output directory so ptxcore doesn't complain.
