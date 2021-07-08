@@ -5,6 +5,7 @@ import git
 from . import static, utils
 from . import build as builder
 from .static.pretext import pretext as core
+from pathlib import Path
 
 log = logging.getLogger('ptxlogger')
 
@@ -77,6 +78,9 @@ class Target():
 
     def publication(self):
         return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("publication").text.strip()))
+
+    def publication_dir(self):
+        return os.path.dirname(self.publication())
 
     def publication_rel_from_source(self):
         return os.path.relpath(self.publication(),self.source_dir())
@@ -184,6 +188,14 @@ class Project():
         target = self.target(target_name)
         utils.ensure_directory(target.external_dir())
         utils.ensure_directory(target.generated_dir())
+        # refuse to build if output is not a subdirectory of the working directory or contains source/publication
+        if Path(self.__project_path) not in Path(target.output_dir()).parents:
+            log.error("Build output must be a proper subdirectory of the project. Aborted.")
+            return
+        if Path(target.output_dir()) in Path(target.source()+"foo").parents or \
+            Path(target.output_dir()) in Path(target.publication()+"foo").parents:
+            log.error("Build output cannot contain source or publication files. Aborted.")
+            return
         #remove output directory so ptxcore doesn't complain.
         if os.path.isdir(target.output_dir()):
             shutil.rmtree(target.output_dir())
