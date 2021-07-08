@@ -201,7 +201,7 @@ class Project():
                 root_cause = str(e)
                 server_url = "https://webwork-ptx.aimath.org"
                 log.warning(f"No server name, {root_cause}.")
-                log.warning(f"Using default {server_params}")
+                log.warning(f"Using default {server_url}")
             builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams(), server_url)
         if diagrams:
             builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), diagrams_format)

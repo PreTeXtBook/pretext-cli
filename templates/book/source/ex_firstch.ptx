@@ -34,5 +34,37 @@
     </hint>
   </exercise>
   
+  <!-- For an example of WeBWorK, uncomment the next exercise and        -->
+  <!-- run `pretext build html -w`.  You must also specify where         -->
+  <!-- the "webwork-representations.ptx" file is in the publication file -->
+  <!-- <exercise>
+    <webwork xml:id="webwork-add-numbers">
+      <description>
+        Add two positive single-digit integers.
+      </description>
+
+      <pg-code>
+        $a = random(1, 9, 1);
+        $b = random(1, 9, 1);
+        $c = Compute($a + $b);
+      </pg-code>
+
+      <statement>
+        <p>
+          Compute the sum of <m><var name="$a" /></m> and <m><var name="$b" /></m>:
+        </p>
+        <p>
+          <m><var name="$a" /> + <var name="$b" /> =</m><var name="$c" width="5" category="integer" />
+        </p>
+      </statement>
+
+      <solution>
+        <p>
+          <m><var name="$a" /> + <var name="$b" /> = <var name="$c" /></m>.
+        </p>
+      </solution>
+    </webwork>
+  </exercise> -->
+
 </exercises>
 

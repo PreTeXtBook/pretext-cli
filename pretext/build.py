@@ -18,7 +18,6 @@ def linux_path(path):
 
 def html(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
-    print(output)
     log.info(f"\nNow building HTML into {output}\n")
     try:
         core.html(ptxfile, linux_path(pub_file), stringparams, output)
