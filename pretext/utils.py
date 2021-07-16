@@ -1,4 +1,5 @@
 import os
+import random
 import json
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
@@ -143,10 +144,36 @@ def xml_schema_is_valid(xmlfile):
         return False
     return True
 
+# watchdog handler for watching changes to source
+class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
+    def __init__(self,callback):
+        self.last_trigger_at = time.time()-5
+        self.callback = callback
+    def on_any_event(self,event):
+        # only trigger at most every 5 seconds
+        if time.time() > self.last_trigger_at + 5:
+            self.last_trigger_at = time.time()
+            log.info(f"\nChanges to source detected.\n")
+            self.callback()
 
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
-def serve_forever(directory,binding,port):
+def binding_for_access(access="private"):
+    if os.path.isfile("/home/user/.smc/info.json") or access=="public":
+        return "0.0.0.0"
+    else:
+        return "localhost"
+def url_for_access(access="private",port=8000):
+    if os.path.isfile("/home/user/.smc/info.json"):
+        project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
+        return f"https://cocalc.com/{project_id}/server/{port}/"
+    elif access=='public':
+        return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
+    else:
+        return f"http://localhost:{port}"
+def serve_forever(directory,access="private",port=8000):
+    log.info(f"Now starting a server to preview directory `{directory}`.\n")
+    binding = binding_for_access(access)
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=directory, **kwargs)
@@ -160,41 +187,23 @@ def serve_forever(directory,binding,port):
             self.send_header("Expires", "0")
     class TCPServer(socketserver.TCPServer):
         allow_reuse_address = True
-    with TCPServer((binding, port), RequestHandler) as httpd:
-        httpd.serve_forever()
-
-class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
-    def __init__(self,callback):
-        self.last_trigger_at = time.time()-5
-        self.callback = callback
-    def on_any_event(self,event):
-        # only trigger at most every 5 seconds
-        if time.time() > self.last_trigger_at + 5:
-            self.last_trigger_at = time.time()
-            log.info(f"\nChanges to source detected.\n")
-            self.callback()
-
-def binding_for_access(access):
-    if os.path.isfile("/home/user/.smc/info.json") or access=="public":
-        return "0.0.0.0"
-    else:
-        return "localhost"
-def url_for_access(access,port):
-    if os.path.isfile("/home/user/.smc/info.json"):
-        project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
-        return f"https://cocalc.com/{project_id}/server/{port}/"
-    elif access=='public':
-        return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
-    else:
-        return f"http://localhost:{port}"
+    looking_for_port = True
+    while looking_for_port:
+        try:
+            with TCPServer((binding, port), RequestHandler) as httpd:
+                looking_for_port = False
+                url = url_for_access(access,port)
+                log.info(f"Server started at {url}\n")
+                log.info("Use [Ctrl]+[C] to halt the server.\n")
+                httpd.serve_forever()
+        except OSError:
+            log.warning(f"Port {port} could not be used.")
+            port = random.randint(49152,65535)
+            log.warning(f"Trying port {port} instead.\n")
 
 def run_server(directory,access,port,watch_directory=None,watch_callback=lambda:None):
     binding = binding_for_access(access)
-    url = url_for_access(access,port)
-    log.info(f"The directory `{directory}` may be previewed at\n")
-    log.info(url+"\n")
-    log.info("Use [Ctrl]+[C] to halt the server.\n")
-    threading.Thread(target=lambda: serve_forever(directory,binding,port),daemon=True).start()
+    threading.Thread(target=lambda: serve_forever(directory,access,port),daemon=True).start()
     if watch_directory is not None:
         log.info(f"\nWatching for changes in `{watch_directory}` ...\n")
         event_handler = HTMLRebuildHandler(watch_callback)
