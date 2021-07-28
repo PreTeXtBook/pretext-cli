@@ -1,18 +1,12 @@
 import click
 import click_logging
-import json
-from lxml import etree as ET
 import logging
-import sys
 import shutil
-import socket
-import subprocess
 import os, zipfile, requests, io
 import tempfile, shutil
-import git
+
 from . import utils, static
 from . import version as cli_version
-from . import build as builder
 from .static.pretext import pretext as core
 from .project import Target,Project
 
@@ -233,13 +227,3 @@ def publish(target):
     target_name = target
     project = Project()
     project.publish(target_name)
-
-## pretext debug
-# @main.command(short_help="just for testing")
-# def debug():
-#     import os
-#     from . import static, document, utils
-#     log.info("This is just for debugging and testing new features.")
-#     static_dir = os.path.dirname(static.__file__)
-#     xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
-#     print(xslfile)

@@ -1,5 +1,5 @@
 from lxml import etree as ET
-import os, sys, shutil
+import os, shutil
 import logging
 import git
 from . import static, utils
