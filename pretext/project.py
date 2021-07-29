@@ -250,11 +250,6 @@ class Project():
             log.info("Updating project Git repository with latest changes to source.")
             repo.git.add(all=True)
             repo.git.commit(message="Update to PreTeXt project source.")
-        try:
-            origin = repo.remote('origin')
-        except ValueError:
-            log.error("Repository must have an `origin` remote pointing to GitHub.")
-            return
         if not utils.directory_exists(target.output_dir()):
             log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build` first?")
             return
@@ -267,10 +262,14 @@ class Project():
         try:
             repo.git.commit(message=f"Publish latest build of target {target.name()}.")
         except git.exc.GitCommandError:
-            log.error("Latest build is the same as last published build.")
-            return
+            log.warning("Latest build is the same as last published build.")
+            pass
         log.info("Pushing to GitHub. (Your password may be required below.)")
-        origin.push()
+        try:
+            repo.git.push()
+        except git.exc.GitCommandError:
+            log.error("Unable to push to GitHub.  Try running `git push` yourself.")
+            return
         log.info(f"Latest build successfully pushed to GitHub.")
         log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
 
