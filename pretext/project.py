@@ -151,6 +151,11 @@ class Project():
             Target(xml_element=target_element,project_path=self.__project_path)
             for target_element in xml_element().xpath("targets/target")
         ]
+    
+    def list_target_names(self):
+        for target in self.xml_element().xpath('targets/target'):
+            if len(target.xpath('@name'))>0:
+                print(''.join(target.xpath('@name')))
 
     def target(self,name=None):
         if name is None:

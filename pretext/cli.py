@@ -19,11 +19,12 @@ def raise_cli_error(message):
 
 
 #  Click command-line interface
-@click.group()
+@click.group(invoke_without_command=True)
 # Allow a verbosity command:
 @click_logging.simple_verbosity_option(log, help="Sets the severity of warnings: DEBUG for all; CRITICAL for almost none.  ERROR, WARNING, or INFO (default) are also options.")
 @click.version_option(cli_version(),message=cli_version())
-def main():
+@click.option('-t', '--targets', is_flag=True, help='Display list of build/view "targets" available in the project manifest.')
+def main(targets):
     """
     Command line tools for quickly creating, authoring, and building
     PreTeXt documents.
@@ -36,6 +37,9 @@ def main():
     else:
         verbosity = 1
     core.set_verbosity(verbosity)
+    if targets:
+        Project().list_target_names()
+        return
     if utils.project_path() is not None:
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
