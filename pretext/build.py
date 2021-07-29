@@ -19,43 +19,18 @@ def linux_path(path):
 def html(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
     log.info(f"\nNow building HTML into {output}\n")
-    try:
-        core.html(ptxfile, linux_path(pub_file), stringparams, output)
-        log.info(f"\nSuccess! Run `pretext view html` to see the results.\n")
-    except Exception:
-        log.debug(f"There was a fatal error here", exc_info=True)
-        log.critical(
-            f"A fatal error has occurred. For more info, run pretext with `-v debug`")
-        sys.exit()
-
-
+    core.html(ptxfile, linux_path(pub_file), stringparams, output)
 
 def latex(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
-    try:
-        core.latex(ptxfile, linux_path(pub_file), stringparams, None, output)
-        log.info(f"\nSuccess! Run `pretext view latex` to see the results.\n")
-    except Exception:
-        log.debug(f"There was a fatal error here", exc_info=True)
-        log.critical(
-            f"A fatal error has occurred. For more info, run pretext with `-v debug`")
-        sys.exit()
-
+    core.latex(ptxfile, linux_path(pub_file), stringparams, None, output)
 
 def pdf(ptxfile,pub_file,output,stringparams):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
-    try:
-        core.pdf(ptxfile, linux_path(pub_file), stringparams,
+    core.pdf(ptxfile, linux_path(pub_file), stringparams,
              None, dest_dir=output)
-        log.info(f"\nSuccess! Run `pretext view pdf` to see the results.\n")
-    except Exception:
-        log.debug(f"There was a fatal error here", exc_info=True)
-        log.critical(f"A fatal error has occurred. For more info, run pretext with `-v debug`")
-        sys.exit()
-
-
 
 # Function to build diagrams/images contained in source.
 def diagrams(ptxfile, pub_file, output, params, formats):
