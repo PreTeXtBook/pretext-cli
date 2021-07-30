@@ -65,8 +65,7 @@ def project_path(dirpath=os.getcwd()):
 
 def project_xml(dirpath=os.getcwd()):
     if project_path(dirpath) is None:
-        static_dir = os.path.dirname(static.__file__)
-        project_manifest = os.path.join(static_dir, 'templates', 'project.ptx')
+        project_manifest = static.path('templates','project.ptx')
     else:
         project_manifest = os.path.join(project_path(dirpath), 'project.ptx')
     return ET.parse(project_manifest)
@@ -119,8 +118,7 @@ def xml_syntax_is_valid(xmlfile):
 
 def xml_schema_is_valid(xmlfile):
     #get path to RelaxNG schema file:
-    static_dir = os.path.dirname(static.__file__)
-    schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')
+    schemarngfile = static.path('schema','pretext.rng')
 
     # Open schemafile for validation:
     relaxng = ET.RelaxNG(file=schemarngfile)

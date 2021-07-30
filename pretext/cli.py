@@ -65,12 +65,11 @@ def new(template,directory,url_template):
         log.warning(f"No new project will be generated.")
         return
     log.info(f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template.")
-    static_dir = os.path.dirname(static.__file__)
     if url_template is not None:
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
     else:
-        template_path = os.path.join(static_dir, 'templates', f'{template}.zip')
+        template_path = static.path('templates', f'{template}.zip')
         archive = zipfile.ZipFile(template_path)
     # find (first) project.ptx to use as root of template
     filenames = [os.path.basename(filepath) for filepath in archive.namelist()]
@@ -98,8 +97,7 @@ def init():
         log.warning(f"No project manifest will be generated.")
         return
     log.info(f"Generating new PreTeXt manifest in `{directory_fullpath}`.")
-    static_dir = os.path.dirname(static.__file__)
-    manifest_path = os.path.join(static_dir, 'templates', 'project.ptx')
+    manifest_path = static.path('templates', 'project.ptx')
     project_ptx_path = os.path.join(directory_fullpath,"project.ptx")
     shutil.copyfile(manifest_path,project_ptx_path)
     log.info(f"Success! Open `{project_ptx_path}` to edit your manifest.")
