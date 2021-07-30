@@ -279,7 +279,7 @@ class Project():
             # build was successful, so copy contents of temporary directory to actual directory
             log.info(f"\nCopying successful build from {temp_dir} into {target.output_dir()}.")
             shutil.copytree(temp_dir,target.output_dir(),dirs_exist_ok=True)
-            log.info(f"\nDone! Run `pretext view {target.name()}` to see the results.\n")
+            log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
 
     def publish(self,target_name,commit_message="Update to PreTeXt project source."):
         target = self.target(target_name)
