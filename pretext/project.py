@@ -22,11 +22,11 @@ class Target():
         if project_path is None:
             project_path = os.getcwd()
         if xml_element is None:
-                template_xml = static.path("templates","project.ptx")
-                xml_element = ET.parse(template_xml).getroot().find("targets/target")
-                publication_path = static.path("templates","publication.ptx")
-                for pub_ele in xml_element.xpath("publication"):
-                    pub_ele.text = publication_path
+            template_xml = static.path("templates","project.ptx")
+            xml_element = ET.parse(template_xml).getroot().find("targets/target")
+            publication_path = static.path("templates","publication.ptx")
+            for pub_ele in xml_element.xpath("publication"):
+                pub_ele.text = publication_path
         if xml_element.tag != "target":
             raise ValueError("xml_element must have tag `target` as root")
         # construct self.xml_element
