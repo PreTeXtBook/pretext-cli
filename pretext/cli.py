@@ -38,7 +38,7 @@ def main(targets):
         verbosity = 1
     core.set_verbosity(verbosity)
     if targets:
-        Project().list_target_names()
+        Project().print_target_names()
         return
     if utils.project_path() is not None:
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")

@@ -152,7 +152,7 @@ class Project():
             for target_element in self.xml_element().xpath("targets/target")
         ]
     
-    def list_target_names(self):
+    def print_target_names(self):
         for target in self.targets():
             print(target.name())
 
