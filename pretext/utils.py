@@ -223,3 +223,10 @@ NSMAP = {
 }
 def nstag(prefix,suffix):
     return "{" + NSMAP[prefix] + "}" + suffix
+
+def expand_pretext_href(lxml_element):
+    '''
+    Expands @pretext-href attributes to point to the distributed xsl directory.
+    '''
+    for ele in lxml_element.xpath('//*[@pretext-href]'):
+        ele.set('href',str(static.core_xsl(ele.get('pretext-href'),as_path=True)))
