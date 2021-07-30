@@ -104,7 +104,7 @@ class Target():
         rel_dir = dir_ele.get("generated")
         return os.path.join(self.source_dir(),rel_dir)
 
-    def webwork_representations(self):
+    def webwork_representations_path(self):
         dir_ele = self.publication_xml().find("source[@webwork-problems]")
         if dir_ele is None:
             log.debug("Publication file does not specify webwork-representation.ptx file")
@@ -202,9 +202,9 @@ class Project():
         utils.ensure_directory(target.generated_dir())
         # Check for WeBWorK but not webwork-representations file:
         if len(target.source_xml().xpath('//webwork'))>0:
-            if target.webwork_representations() is None:
+            if target.webwork_representations_path() is None:
                 log.warning(f'Your source contains WeBWorK exercises but you do not have a "webwork-representations" file specified in your publication file.  Modify your publication file and run `pretext build -w`.')
-            elif not os.path.isfile(target.webwork_representations()):
+            elif not os.path.isfile(target.webwork_representations_path()):
                 log.warning(f'Your source contains WeBWorK exercises the path to the "webwork-representations.ptx" file in your publication file does not point to a file. Run `pretext build -w` or modify your publication file.')
         # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
         if clean:
