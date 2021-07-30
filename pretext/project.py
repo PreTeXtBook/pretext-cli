@@ -1,6 +1,7 @@
 from lxml import etree as ET
 import os, shutil
 import logging
+import tempfile
 import git
 from . import static, utils
 from . import build as builder
@@ -177,7 +178,7 @@ class Project():
         watch_callback=lambda:self.build(target_name)
         utils.run_server(directory,access,port,watch_directory,watch_callback)
 
-    def build(self,target_name,webwork=False,diagrams=False,diagrams_format="svg",only_assets=False):
+    def build(self,target_name,webwork=False,diagrams=False,diagrams_format="svg",only_assets=False,clean=False):
         # prepre core PreTeXt pythons scripts
         self.init_ptxcore()
         # Check for xml syntax errors and quit if xml invalid:
@@ -191,74 +192,77 @@ class Project():
         target = self.target(target_name)
         utils.ensure_directory(target.external_dir())
         utils.ensure_directory(target.generated_dir())
-        # refuse to build if output is not a subdirectory of the working directory or contains source/publication
-        if Path(self.__project_path) not in Path(target.output_dir()).parents:
-            log.error("Build output must be a proper subdirectory of the project. Aborted.")
-            return
-        if Path(target.output_dir()) in Path(os.path.join(target.source_dir(),"foo")).parents or \
-            Path(target.output_dir()) in Path(os.path.join(target.publication_dir(),"foo")).parents:
-            log.error("Build output cannot contain source or publication files. Aborted.")
-            return
-        #remove output directory so ptxcore doesn't complain.
-        if os.path.isdir(target.output_dir()):
-            shutil.rmtree(target.output_dir())
-        #build targets:
-        if webwork:
-            # prepare params; for now assume only server is passed
-            # see documentation of pretext core webwork_to_xml
-            # handle this exactly as in webwork_to_xml (should this
-            # be exported in the pretext core module?)
-            webwork_output = os.path.join(target.generated_dir(),'webwork')
-            utils.ensure_directory(webwork_output)
-            try:
-                server_url = target.stringparams()['server']
-            except Exception as e:
-                root_cause = str(e)
-                server_url = "https://webwork-ptx.aimath.org"
-                log.warning(f"No server name, {root_cause}.")
-                log.warning(f"Using default {server_url}")
-            builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams(), server_url)
-        if diagrams:
-            builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), diagrams_format)
-        else:
-            source_xml = target.source_xml()
-            if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
-                log.warning("There are generated images (<latex-image/>, <asymptote/>, or <sageplot/>) or in source, "+
-                            "but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
-            # TODO: remove the elements that are not needed for latex.
-            if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
-                log.warning("The source has interactive elements or videos that need a preview to be generated, "+
-                            "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-        if target.format()=='html' and not only_assets:
-            try:
-                builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams())
-                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-            except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
-                log.critical(
-                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                return
-        if target.format()=='latex' and not only_assets:
-            try:
-                builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams())
-                # core script doesn't put a copy of images in output for latex builds, so we do it instead here
-                shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"))
-                shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"))
-                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-            except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
-                log.critical(
-                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                return
-        if target.format()=='pdf' and not only_assets:
-            try:
-                builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams())
-                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-            except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
-                log.critical(
-                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                return
+        # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
+        if clean:
+            if Path(self.__project_path) not in Path(target.output_dir()).parents:
+                log.warning("Refusing to clean output directory that isn't a proper subdirectory of the project.")
+            elif Path(target.output_dir()) in Path(os.path.join(target.source_dir(),"foo")).parents or \
+                Path(target.output_dir()) in Path(os.path.join(target.publication_dir(),"foo")).parents:
+                log.warning("Refusing to clean output directory that contains source or publication files.")
+            else:
+                log.warning(f"Destorying directory {target.output_dir()} to clean previously built files.")
+                shutil.rmtree(target.output_dir())
+        #build in temporary directory so ptxcore doesn't complain
+        with tempfile.TemporaryDirectory() as temp_dir:
+            #build targets:
+            if webwork:
+                # prepare params; for now assume only server is passed
+                # see documentation of pretext core webwork_to_xml
+                # handle this exactly as in webwork_to_xml (should this
+                # be exported in the pretext core module?)
+                webwork_output = os.path.join(target.generated_dir(),'webwork')
+                utils.ensure_directory(webwork_output)
+                try:
+                    server_url = target.stringparams()['server']
+                except Exception as e:
+                    root_cause = str(e)
+                    server_url = "https://webwork-ptx.aimath.org"
+                    log.warning(f"No server name, {root_cause}.")
+                    log.warning(f"Using default {server_url}")
+                builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams(), server_url)
+            if diagrams:
+                builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), diagrams_format)
+            else:
+                source_xml = target.source_xml()
+                if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
+                    log.warning("There are generated images (<latex-image/>, <asymptote/>, or <sageplot/>) or in source, "+
+                                "but these will not be (re)built. Run pretext build with the `-d` flag if updates are needed.")
+                # TODO: remove the elements that are not needed for latex.
+                if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
+                    log.warning("The source has interactive elements or videos that need a preview to be generated, "+
+                                "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
+            if target.format()=='html' and not only_assets:
+                try:
+                    builder.html(target.source(),target.publication(),temp_dir,target.stringparams())
+                    log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
+                except Exception as e:
+                    log.debug(f"Critical error info:\n", exc_info=True)
+                    log.critical(
+                        f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+                    return
+            if target.format()=='latex' and not only_assets:
+                try:
+                    builder.latex(target.source(),target.publication(),temp_dir,target.stringparams())
+                    # core script doesn't put a copy of images in output for latex builds, so we do it instead here
+                    shutil.copytree(target.external_dir(),os.path.join(temp_dir,"external"))
+                    shutil.copytree(target.generated_dir(),os.path.join(temp_dir,"generated"))
+                    log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
+                except Exception as e:
+                    log.debug(f"Critical error info:\n", exc_info=True)
+                    log.critical(
+                        f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+                    return
+            if target.format()=='pdf' and not only_assets:
+                try:
+                    builder.pdf(target.source(),target.publication(),temp_dir,target.stringparams())
+                    log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
+                except Exception as e:
+                    log.debug(f"Critical error info:\n", exc_info=True)
+                    log.critical(
+                        f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+                    return
+            # build was successful, so copy contents of temporary directory to actual directory
+            shutil.copytree(temp_dir,target.output_dir(),dirs_exist_ok=True)
 
     def publish(self,target_name,commit_message="Update to PreTeXt project source."):
         target = self.target(target_name)

@@ -123,7 +123,8 @@ def init():
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('-oa', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets)")
 @click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
-def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets, pdf):
+@click.option('--clean', is_flag=True, help="Destory output's target directory before build to clean up previously built files.")
+def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets, pdf,clean):
     """
     Process PreTeXt files into specified format.
 
@@ -160,7 +161,7 @@ def build(target, format, source, output, stringparam, publication, webwork, dia
                         format=format,source=source,output_dir=output,
                         publication=publication,stringparams=stringparams)
         project = Project(xml_element=project.xml_element(),targets=[target])
-    project.build(target_name,webwork,diagrams,diagrams_format,only_assets)
+    project.build(target_name,webwork,diagrams,diagrams_format,only_assets,clean)
 
 # pretext view
 @main.command(short_help="Preview built PreTeXt documents in your browser.")
