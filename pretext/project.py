@@ -168,13 +168,14 @@ class Project():
 
     def view(self,target_name,access,port,watch):
         target = self.target(target_name)
+        directory = target.output_dir()
+        if watch:
+            log.info("Building target...")
+            watch_directory = target.source_dir()
+            self.build(target_name)
         if not utils.directory_exists(target.output_dir()):
             log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build {target.name()}` first?")
             return
-        directory = target.output_dir()
-        if watch:
-            watch_directory = target.source_dir()
-            self.build(target_name)
         else:
             watch_directory = None
         watch_callback=lambda:self.build(target_name)
