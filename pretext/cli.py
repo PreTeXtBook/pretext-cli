@@ -192,12 +192,17 @@ def build(target, format, source, output, stringparam, publication, webwork, dia
     Serve files from provided directory
     """)
 @click.option('-w', '--watch', is_flag=True, help="""
-    Watch the status of source files and
-    automatically rebuild target when changes
+    Run a build before starting server, and then
+    watch the status of source files,
+    automatically rebuilding target when changes
     are made. Only supports HTML-format targets, and
-    only recommended for smaller projects.
+    only recommended for smaller projects or small
+    subsets of projects.
     """)
-def view(target,access,port,directory,watch):
+@click.option('-b', '--build', is_flag=True, help="""
+    Run a build before starting server.
+    """)
+def view(target,access,port,directory,watch,build):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
@@ -210,7 +215,7 @@ def view(target,access,port,directory,watch):
         project = Project()
         target = project.target(name=target_name)
     if target is not None:
-        project.view(target_name,access,port,watch)
+        project.view(target_name,access,port,watch,build)
     else:
         log.error(f"Target `{target_name}` could not be found.")
 

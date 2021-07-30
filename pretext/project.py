@@ -162,10 +162,10 @@ class Project():
         else:
             return None
 
-    def view(self,target_name,access,port,watch):
+    def view(self,target_name,access,port,watch=False,build=False):
         target = self.target(target_name)
         directory = target.output_dir()
-        if watch:
+        if watch or build:
             log.info("Building target...")
             watch_directory = target.source_dir()
             self.build(target_name)
