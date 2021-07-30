@@ -1,4 +1,12 @@
-import requests, zipfile, io, shutil
+import requests, zipfile, io, shutil, tempfile, os
+
+def remove(path):
+    """ param <path> could either be relative or absolute. """
+    # https://stackoverflow.com/a/41789397
+    if os.path.isfile(path) or os.path.islink(path):
+        os.remove(path)  # remove the file
+    elif os.path.isdir(path):
+        shutil.rmtree(path)  # remove dir and all contains
 
 # grab copy of necessary rbeezer/mathbook files from specified commit
 with open("pretext/static/CORE_COMMIT","r") as commitfile:
@@ -6,13 +14,13 @@ with open("pretext/static/CORE_COMMIT","r") as commitfile:
 
 r = requests.get(f"https://github.com/rbeezer/mathbook/archive/{commit}.zip")
 archive = zipfile.ZipFile(io.BytesIO(r.content))
-archive.extractall("tmp")
-shutil.rmtree("pretext/static/xsl", ignore_errors=True)
-shutil.copytree(f"tmp/mathbook-{commit}/xsl", "pretext/static/xsl")
-shutil.rmtree("pretext/static/pretext", ignore_errors=True)
-shutil.copytree(f"tmp/mathbook-{commit}/pretext", "pretext/static/pretext")
-shutil.rmtree("pretext/static/schema", ignore_errors=True)
-shutil.copytree(f"tmp/mathbook-{commit}/schema", "pretext/static/schema")
-shutil.rmtree("tmp")
+with tempfile.TemporaryDirectory() as tmpdirname:
+    archive.extractall(tmpdirname)
+    for subdir in ['xsl','pretext','schema']:
+        remove(os.path.join("pretext","static",subdir))
+        shutil.copytree(
+            os.path.join(tmpdirname,f"mathbook-{commit}",subdir),
+            os.path.join("pretext","static",subdir),
+        )
 
-print("Copied rbeezer/mathbook Python scripts.")
+print("Updated rbeezer/mathbook resources from GitHub.")
