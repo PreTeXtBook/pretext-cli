@@ -219,15 +219,22 @@ def view(target,access,port,directory,watch):
 # pretext publish
 @main.command(short_help="Prepares project for publishing on GitHub Pages.")
 @click.argument('target', required=False)
-def publish(target):
+@click.option(
+    '-m',
+    '--commit-message',
+    default="Update to PreTeXt project source.",
+    show_default=True,
+    help="""
+    Customize message to leave on Git commit for source updates.
+    """)
+def publish(target,commit_message):
     """
     Automates HTML publication of [TARGET] on GitHub Pages to make
     the built document available to the general public.
     Requires that your project is under Git version control
-    using an `origin` remote
     properly configured with GitHub and GitHub Pages. Pubilshed
     files will live in `docs` subdirectory of project.
     """
     target_name = target
     project = Project()
-    project.publish(target_name)
+    project.publish(target_name,commit_message)
