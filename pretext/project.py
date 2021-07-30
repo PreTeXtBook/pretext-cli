@@ -186,7 +186,7 @@ class Project():
         if not self.xml_publication_is_valid(target_name):
             return
         # Validate xml against schema; continue with warning if invalid:
-        self.xml_source_validate(target_name)
+        self.xml_schema_validate(target_name)
         # Ensure directories for assets and generated assets to avoid errors when building:
         target = self.target(target_name)
         utils.ensure_directory(target.external_dir())
