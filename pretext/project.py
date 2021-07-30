@@ -301,7 +301,7 @@ class Project():
         target = self.target(target_name)
         return utils.xml_syntax_is_valid(target.source())
 
-    def xml_source_validate(self,target_name):
+    def xml_schema_validate(self,target_name):
         target = self.target(target_name)
         return utils.xml_source_validates_against_schema(target.source())
 
