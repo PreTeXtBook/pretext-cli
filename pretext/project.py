@@ -25,7 +25,7 @@ class Target():
                 static_dir = os.path.dirname(static.__file__)
                 template_xml = os.path.join(static_dir,"templates","project.ptx")
                 xml_element = ET.parse(template_xml).getroot().find("targets/target")
-                publication = os.path.join(static_dir,"templates","project.ptx")
+                publication = os.path.join(static_dir,"templates","publication.ptx")
                 for pub_ele in xml_element.xpath("publication"):
                     xml_element.remove(pub_ele)
                 pub_ele = ET.SubElement(xml_element,"publication")
@@ -185,10 +185,12 @@ class Project():
         # prepre core PreTeXt pythons scripts
         self.init_ptxcore()
         # Check for xml syntax errors and quit if xml invalid:
-        if not self.xml_source_syntax_is_valid(target_name):
+        if not self.xml_source_is_valid(target_name):
+            return
+        if not self.xml_publication_is_valid(target_name):
             return
         # Validate xml against schema; continue with warning if invalid:
-        self.xml_source_schema_is_valid(target_name)
+        self.xml_source_validate(target_name)
         # Ensure directories for assets and generated assets to avoid errors when building:
         target = self.target(target_name)
         utils.ensure_directory(target.external_dir())
@@ -235,7 +237,7 @@ class Project():
             try:
                 builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams())
                 log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-            except:
+            except Exception as e:
                 log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
                     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
@@ -247,7 +249,7 @@ class Project():
                 shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"))
                 shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"))
                 log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-            except:
+            except Exception as e:
                 log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
                     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
@@ -299,13 +301,28 @@ class Project():
         log.info(f"Latest build successfully pushed to GitHub.")
         log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
 
-    def xml_source_syntax_is_valid(self,target_name):
+    def xml_source_is_valid(self,target_name):
         target = self.target(target_name)
         return utils.xml_syntax_is_valid(target.source())
 
-    def xml_source_schema_is_valid(self,target_name):
+    def xml_source_validate(self,target_name):
         target = self.target(target_name)
-        return utils.xml_schema_is_valid(target.source())
+        return utils.xml_source_validates_against_schema(target.source())
+
+    def xml_publication_is_valid(self,target_name):
+        target = self.target(target_name)
+        try:
+            publication_xml = ET.parse(target.publication())
+            # Would we ever have a publication with xi:include?  Just in case...
+            publication_xml.xinclude()
+        except Exception as e:
+            log.critical(f'Unable to read publication file.  Quitting. {e}')
+            log.debug('', exc_info=True)
+            return False
+        if (publication_xml.getroot().tag != 'publication'):
+            log.error(f'The publication file {target.publication()} must have "<publication>" as its root element.')
+            return False
+        return True
 
     def executables(self):
         return {

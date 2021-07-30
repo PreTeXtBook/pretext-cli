@@ -96,11 +96,13 @@ def xml_syntax_is_valid(xmlfile):
         # we need to call xinclude once for each level of nesting (just to check for errors).  25 levels should be more than sufficient
         for i in range(25):
             source_xml.xinclude()
-        log.info('XML syntax appears well formed.')
-
+        log.debug('XML syntax appears well formed.')
+        if (source_xml.getroot().tag != 'pretext'):
+            log.error(f'The file {xmlfile} does not have "<pretext>" as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx).')
+            return False
     # check for file IO error
     except IOError:
-        log.error('Invalid File')
+        log.error(f'The file {xmlfile} does not exist')
         return False
 
     # check for XML syntax errors
@@ -117,7 +119,7 @@ def xml_syntax_is_valid(xmlfile):
         return False
     return True
 
-def xml_schema_is_valid(xmlfile):
+def xml_source_validates_against_schema(xmlfile):
     #get path to RelaxNG schema file:
     static_dir = os.path.dirname(static.__file__)
     schemarngfile = os.path.join(static_dir, 'schema', 'pretext.rng')
