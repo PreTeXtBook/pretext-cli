@@ -21,13 +21,25 @@ def raise_cli_error(message):
 #  Click command-line interface
 @click.group(invoke_without_command=True)
 # Allow a verbosity command:
-@click_logging.simple_verbosity_option(log, help="Sets the severity of warnings: DEBUG for all; CRITICAL for almost none.  ERROR, WARNING, or INFO (default) are also options.")
+@click_logging.simple_verbosity_option(
+    log,
+    help="Sets the severity of log messaging: DEBUG for all, INFO (default) for most, then WARNING, ERROR, and CRITICAL for decreasing verbosity."
+)
 @click.version_option(cli_version(),message=cli_version())
 @click.option('-t', '--targets', is_flag=True, help='Display list of build/view "targets" available in the project manifest.')
 def main(targets):
     """
-    Command line tools for quickly creating, authoring, and building
-    PreTeXt documents.
+    Command line tools for quickly creating, authoring, and building PreTeXt projects.
+
+    PreTeXt Guide for authors and publishers:
+
+    - https://pretextbook.org/documentation.html
+
+    PreTeXt CLI README for developers:
+
+    - https://github.com/PreTeXtBook/pretext-cli/
+
+    Use the `--help` option on any CLI command to learn more.
     """
     # set verbosity:
     if log.level == 10:
@@ -43,6 +55,9 @@ def main(targets):
     if utils.project_path() is not None:
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
+    else:
+        log.info("No existing PreTeXt project found.")
+        log.info("Run `pretext --help` for help.")
 
 
 # pretext new
@@ -111,26 +126,33 @@ def init():
 @click.option('-i', '--input', 'source', type=click.Path(),
               help='Path to main *.ptx file')
 @click.option('-o', '--output', type=click.Path(),
-              help='Directory to replace with build')
+              help='Directory to build files into')
 @click.option('-p', '--publication', type=click.Path(), default=None,
               help="Path to publication *.ptx file")
 @click.option('--stringparam', nargs=2, multiple=True, help="""
               Define a stringparam to use during processing.
               Usage: pretext build --stringparam foo bar --stringparam baz woo
               """)
-@click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc) using pretext script')
-@click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'png', 'pdf', 'eps', 'tex', 'all'], case_sensitive=False), help="Specify output format for generated images (svg, png, etc).")
+@click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc).')
+@click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'png', 'pdf', 'eps', 'tex', 'all'], case_sensitive=False), help="Specify output format for generated images")
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
-@click.option('-oa', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets)")
-@click.option('--pdf', is_flag=True, help='Compile LaTeX output to PDF using commandline pdflatex')
-@click.option('--clean', is_flag=True, help="Destory output's target directory before build to clean up previously built files.")
-def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets, pdf,clean):
+@click.option('-a', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets)")
+@click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
+def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets,clean):
     """
-    Process PreTeXt files into specified format.
+    Process [TARGET] into format specified by project.ptx.
+    Also accepts manual command-line options.
 
-    For html, images coded in source (latex-image, etc) are only processed using the --diagrams option.
+    For many formats, images coded in source (latex-image, etc) will only be processed
+    when using the --diagrams option.
 
-    If the project included WeBWorK exercises, these must be processed using the --webwork option.
+    If the project included WeBWorK exercises, these must be processed using the
+    --webwork option.
+
+    Certain builds may require installations not included with the CLI, or internet
+    access to external servers. Command-line paths
+    to non-Python executables may be set in project.ptx. For more details,
+    consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
     target_name = target
     # set up stringparams as dictionary:
@@ -164,7 +186,7 @@ def build(target, format, source, output, stringparam, publication, webwork, dia
     project.build(target_name,webwork,diagrams,diagrams_format,only_assets,clean)
 
 # pretext view
-@main.command(short_help="Preview built PreTeXt documents in your browser.")
+@main.command(short_help="Preview specified target in your browser.")
 @click.argument('target', required=False)
 @click.option(
     '-a',
@@ -221,7 +243,7 @@ def view(target,access,port,directory,watch,build):
         log.error(f"Target `{target_name}` could not be found.")
 
 # pretext publish
-@main.command(short_help="Prepares project for publishing on GitHub Pages.")
+@main.command(short_help="Publishes Git-managed project on GitHub Pages.")
 @click.argument('target', required=False)
 @click.option(
     '-m',

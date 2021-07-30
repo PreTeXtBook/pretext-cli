@@ -4,6 +4,19 @@ A package for authoring and building [PreTeXt](https://pretextbook.org) document
 
 - GitHub: <https://github.com/PreTeXtBook/pretext-cli/>
 
+## Documentation and examples for authors/publishers
+
+This README is written for the PreTeXt developer community.
+Documentation for PreTeXt authors and publishers is available at:
+
+- https://pretextbook.org/documentation.html
+
+Authors and publishers may also find the examples catalog useful as well:
+
+- https://pretextbook.org/examples.html
+
+---
+
 ## Installation
 
 ### Installing Python
@@ -58,8 +71,8 @@ commands with `python -m pretext` instead:
 python -m pretext --help
 ```
 
-Either way, the `--help` option will explain how to use all the different
-subcommands like `pretext new` and `pretext build`. Happy authoring!
+Either way, you're now ready to use the CLI, the `--help` option will explain how to use all the different
+subcommands like `pretext new` and `pretext build`.
 
 ## Development
 
@@ -171,6 +184,13 @@ To grab these updates from upstream, run:
 python scripts/update_core.py
 ```
 
+If you instead want to point to a local copy of `rbeezer/mathbook`,
+try this instead to set up symlinks:
+
+```
+python scripts/simlink_core.py path/to/mathbook
+```
+
 Updates to `templates/` must be zipped and moved into
 `pretext/static/templates`. This is done automatically by
 running:
@@ -194,7 +214,7 @@ See [VERSIONING.md](VERSIONING.md).
 
 ## About
 
-### Lead Contributors
+### PreTeXt-CLI Lead Developers
 - [Steven Clontz](https://clontz.org/)
 - [Oscar Levin](https://math.oscarlevin.com/)
 
