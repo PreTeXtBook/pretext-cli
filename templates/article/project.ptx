@@ -24,6 +24,12 @@
       <publication>publication/publication.ptx</publication>
       <output-dir>output/pdf</output-dir>
     </target>
+    <target name="subset">
+      <format>html</format>
+      <source>source/main-subset.ptx</source>
+      <publication>publication/publication.ptx</publication>
+      <output-dir>output/subset</output-dir>
+    </target>
   </targets>
   <executables>
       <tex>xelatex</tex>
