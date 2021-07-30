@@ -22,14 +22,11 @@ class Target():
         if project_path is None:
             project_path = os.getcwd()
         if xml_element is None:
-                static_dir = os.path.dirname(static.__file__)
-                template_xml = os.path.join(static_dir,"templates","project.ptx")
+                template_xml = static.path("templates","project.ptx")
                 xml_element = ET.parse(template_xml).getroot().find("targets/target")
-                publication = os.path.join(static_dir,"templates","publication.ptx")
+                publication_path = static.path("templates","publication.ptx")
                 for pub_ele in xml_element.xpath("publication"):
-                    xml_element.remove(pub_ele)
-                pub_ele = ET.SubElement(xml_element,"publication")
-                pub_ele.text = publication
+                    pub_ele.text = publication_path
         if xml_element.tag != "target":
             raise ValueError("xml_element must have tag `target` as root")
         # construct self.xml_element
@@ -128,8 +125,7 @@ class Project():
             if utils.project_path() is not None:
                 xml_element = ET.parse(os.path.join(utils.project_path(),"project.ptx")).getroot()
             else:
-                static_dir = os.path.dirname(static.__file__)
-                template_xml = os.path.join(static_dir,"templates","project.ptx")
+                template_xml = static.path("templates","project.ptx")
                 xml_element = ET.parse(template_xml).getroot()
         else:
             if xml_element.tag != "project":
