@@ -66,7 +66,7 @@ def diagrams(ptxfile, pub_file, output, params, formats):
         with utils.working_directory("."):
             core.asymptote_conversion(
                 xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats)
+                xmlid_root=None, dest_dir=image_output, outformat=formats, method='server')
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
                     os.path.join(output, 'preview'))
@@ -84,7 +84,7 @@ def diagrams(ptxfile, pub_file, output, params, formats):
         with utils.working_directory("."):
             core.youtube_thumbnail(
                 xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats)
+                xmlid_root=None, dest_dir=image_output)
 
 
 def webwork(ptxfile, pub_file, dest_dir, params, server_params):
