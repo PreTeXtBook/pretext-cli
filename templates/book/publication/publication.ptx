@@ -9,14 +9,10 @@
 
 
 <publication>
-  <source>
-  <!-- If you have WeBWorK problems in your project, replace the previous   -->
-  <!-- line with the next one that says where the "webwork-representations" -->
-  <!-- file lives (that is where it will be generated)                      -->
-  <!-- <source webwork-problems="../generated-assets/webwork/webwork-representations.ptx"> -->
-    <!-- Set where external assets and generated assets will be   -->
-    <!-- stored or created.  Directories are relative to the main -->
-    <!-- source PreTeXt file                                      -->
+  <!-- Set where external assets and generated assets will be   -->
+  <!-- stored or created.  Directories are relative to the main -->
+  <!-- source PreTeXt file                                      -->
+  <source webwork-problems="../generated-assets/webwork/webwork-representations.ptx">
     <directories external="../assets" generated="../generated-assets"/>
   </source>
 
