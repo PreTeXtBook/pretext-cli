@@ -2,6 +2,8 @@
 
 A package for authoring and building [PreTeXt](https://pretextbook.org) documents.
 
+- GitHub: <https://github.com/PreTeXtBook/pretext-cli/>
+
 ## Installation
 
 ### Installing Python
