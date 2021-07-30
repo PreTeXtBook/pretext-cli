@@ -24,6 +24,14 @@
       <publication>publication/publication.ptx</publication>
       <output-dir>output/pdf</output-dir>
     </target>
+    <!-- To quickly build the html of a subset of your project, edit main-subset.ptx
+        and run `pretext build subset` (or `view` with watch option) -->
+    <target name="subset">
+      <format>html</format>
+      <source>source/main-subset.ptx</source>
+      <publication>publication/publication.ptx</publication>
+      <output-dir>output/subset</output-dir>
+    </target>
   </targets>
   <executables>
       <tex>xelatex</tex>

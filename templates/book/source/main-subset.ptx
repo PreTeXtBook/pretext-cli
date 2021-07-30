@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <book xml:id="my-great-book">
+    <!-- The book needs a title and can have a subtitle  -->
+    <title>My Great Book</title>
+    <subtitle>Subset Preview</subtitle>
+
+    <!-- edit href to desired section below -->
+    <chapter>
+      <title>Placeholder Chapter</title>
+      <xi:include href="./sec_firstch-examples.ptx"/>
+    </chapter>
+
+    <!-- or replace with this include to get a full chapter
+    <xi:include href="./ch_first-chapter.ptx"/>
+    -->
+
+  </book>
+</pretext>
