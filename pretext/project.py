@@ -218,6 +218,7 @@ class Project():
                 shutil.rmtree(target.output_dir())
         #build in temporary directory so ptxcore doesn't complain
         with tempfile.TemporaryDirectory() as temp_dir:
+            log.info(f"Preparing to build into a temporary directory.")
             #build targets:
             if webwork:
                 # prepare params; for now assume only server is passed
@@ -251,7 +252,6 @@ class Project():
             if target.format()=='html' and not only_assets:
                 try:
                     builder.html(target.source(),target.publication(),temp_dir,target.stringparams())
-                    log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
                 except Exception as e:
                     log.debug(f"Critical error info:\n", exc_info=True)
                     log.critical(
@@ -263,7 +263,6 @@ class Project():
                     # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                     shutil.copytree(target.external_dir(),os.path.join(temp_dir,"external"))
                     shutil.copytree(target.generated_dir(),os.path.join(temp_dir,"generated"))
-                    log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
                 except Exception as e:
                     log.debug(f"Critical error info:\n", exc_info=True)
                     log.critical(
@@ -272,14 +271,15 @@ class Project():
             if target.format()=='pdf' and not only_assets:
                 try:
                     builder.pdf(target.source(),target.publication(),temp_dir,target.stringparams())
-                    log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
                 except Exception as e:
                     log.debug(f"Critical error info:\n", exc_info=True)
                     log.critical(
                         f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
                     return
             # build was successful, so copy contents of temporary directory to actual directory
+            log.info(f"\nCopying successful build from {temp_dir} into {target.output_dir()}.")
             shutil.copytree(temp_dir,target.output_dir(),dirs_exist_ok=True)
+            log.info(f"\nDone! Run `pretext view {target.name()}` to see the results.\n")
 
     def publish(self,target_name,commit_message="Update to PreTeXt project source."):
         target = self.target(target_name)
