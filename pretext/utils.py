@@ -10,7 +10,7 @@ import threading
 import watchdog.events, watchdog.observers, time
 from lxml import etree as ET
 
-from . import static, build
+from . import static
 
 # Get access to logger
 log = logging.getLogger('ptxlogger')

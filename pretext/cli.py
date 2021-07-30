@@ -1,18 +1,12 @@
 import click
 import click_logging
-import json
-from lxml import etree as ET
 import logging
-import sys
 import shutil
-import socket
-import subprocess
 import os, zipfile, requests, io
 import tempfile, shutil
-import git
+
 from . import utils, static
 from . import version as cli_version
-from . import build as builder
 from .static.pretext import pretext as core
 from .project import Target,Project
 
@@ -25,11 +19,12 @@ def raise_cli_error(message):
 
 
 #  Click command-line interface
-@click.group()
+@click.group(invoke_without_command=True)
 # Allow a verbosity command:
 @click_logging.simple_verbosity_option(log, help="Sets the severity of warnings: DEBUG for all; CRITICAL for almost none.  ERROR, WARNING, or INFO (default) are also options.")
 @click.version_option(cli_version(),message=cli_version())
-def main():
+@click.option('-t', '--targets', is_flag=True, help='Display list of build/view "targets" available in the project manifest.')
+def main(targets):
     """
     Command line tools for quickly creating, authoring, and building
     PreTeXt documents.
@@ -42,6 +37,9 @@ def main():
     else:
         verbosity = 1
     core.set_verbosity(verbosity)
+    if targets:
+        Project().print_target_names()
+        return
     if utils.project_path() is not None:
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
@@ -233,13 +231,3 @@ def publish(target):
     target_name = target
     project = Project()
     project.publish(target_name)
-
-## pretext debug
-# @main.command(short_help="just for testing")
-# def debug():
-#     import os
-#     from . import static, document, utils
-#     log.info("This is just for debugging and testing new features.")
-#     static_dir = os.path.dirname(static.__file__)
-#     xslfile = os.path.join(static_dir, 'xsl', 'pretext-html.xsl')
-#     print(xslfile)

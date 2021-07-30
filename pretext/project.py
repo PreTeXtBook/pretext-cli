@@ -1,5 +1,5 @@
 from lxml import etree as ET
-import os, sys, shutil
+import os, shutil
 import logging
 import git
 from . import static, utils
@@ -149,8 +149,12 @@ class Project():
     def targets(self):
         return [
             Target(xml_element=target_element,project_path=self.__project_path)
-            for target_element in xml_element().xpath("targets/target")
+            for target_element in self.xml_element().xpath("targets/target")
         ]
+    
+    def print_target_names(self):
+        for target in self.targets():
+            print(target.name())
 
     def target(self,name=None):
         if name is None:

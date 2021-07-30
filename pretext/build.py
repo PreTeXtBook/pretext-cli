@@ -1,11 +1,10 @@
 from lxml import etree as ET
 import logging
 import os
-import shutil
 import sys
 import pathlib
 
-from . import static, utils
+from . import utils
 from .static.pretext import pretext as core
 
 # Get access to logger
