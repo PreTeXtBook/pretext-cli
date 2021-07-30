@@ -229,7 +229,7 @@ class Project():
         if target.format()=='html' and not only_assets:
             try:
                 builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams())
-                log.info(f"\nSuccess! Run `pretext view {target_name}` to see the results.\n")
+                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
             except:
                 log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
@@ -241,7 +241,7 @@ class Project():
                 # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                 shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"))
                 shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"))
-                log.info(f"\nSuccess! Run `pretext view {target_name}` to see the results.\n")
+                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
             except:
                 log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
@@ -250,7 +250,7 @@ class Project():
         if target.format()=='pdf' and not only_assets:
             try:
                 builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams())
-                log.info(f"\nSuccess! Run `pretext view {target_name}` to see the results.\n")
+                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
             except Exception as e:
                 log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
