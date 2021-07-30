@@ -147,7 +147,7 @@ class Project():
             Target(xml_element=target_element,project_path=self.__project_path)
             for target_element in self.xml_element().xpath("targets/target")
         ]
-    
+
     def print_target_names(self):
         for target in self.targets():
             print(target.name())
@@ -258,7 +258,7 @@ class Project():
                     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
                 return
 
-    def publish(self,target_name):
+    def publish(self,target_name,commit_message="Update to PreTeXt project source."):
         target = self.target(target_name)
         if target.format() != "html":
             log.error("Only HTML format targets are supported.")
@@ -271,7 +271,7 @@ class Project():
         if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
             log.info("Updating project Git repository with latest changes to source.")
             repo.git.add(all=True)
-            repo.git.commit(message="Update to PreTeXt project source.")
+            repo.git.commit(message=commit_message)
         if not utils.directory_exists(target.output_dir()):
             log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build` first?")
             return
