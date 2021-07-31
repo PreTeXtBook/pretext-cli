@@ -176,13 +176,14 @@ class Project():
         directory = target.output_dir()
         if watch or build:
             log.info("Building target...")
-            watch_directory = target.source_dir()
             self.build(target_name)
+        if watch:
+            watch_directory = target.source_dir()
+        else:
+            watch_directory = None
         if not utils.directory_exists(target.output_dir()):
             log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build {target.name()}` first?")
             return
-        else:
-            watch_directory = None
         watch_callback=lambda:self.build(target_name)
         utils.run_server(directory,access,port,watch_directory,watch_callback)
 
