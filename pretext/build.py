@@ -46,7 +46,6 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
     # set format to all when appropriate
     if diagrams_format == 'all':
         formats[target_format] = {key: 'all' for key in formats[target_format]}
-    print(formats)
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for image types.
@@ -112,4 +111,3 @@ def webwork(ptxfile, pub_file, dest_dir, params, server_params):
         core.webwork_to_xml(
             xml_source=ptxfile, pub_file=None, stringparams=params,
             abort_early=True, server_params=server_params, dest_dir=dest_dir)
-
