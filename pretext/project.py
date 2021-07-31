@@ -186,7 +186,7 @@ class Project():
         watch_callback=lambda:self.build(target_name)
         utils.run_server(directory,access,port,watch_directory,watch_callback)
 
-    def build(self,target_name,webwork=False,diagrams=False,diagrams_format="svg",only_assets=False,clean=False):
+    def build(self,target_name,webwork=False,diagrams=False,diagrams_format='defaults',only_assets=False,clean=False):
         # prepre core PreTeXt pythons scripts
         self.init_ptxcore()
         # Check for xml syntax errors and quit if xml invalid:
@@ -239,13 +239,12 @@ class Project():
                 log.warning(
                     "The source has WeBWorK exercises, but you are not re(processing) these.  Run `pretext build` with the `-w` flag if updates are needed.")
             if diagrams:
-                builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), diagrams_format)
+                builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), target.format(), diagrams_format)
             else:
                 source_xml = target.source_xml()
                 if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
                     log.warning("The source has generated images (<latex-image/>, <asymptote/>, or <sageplot/>), "+
                                 "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-                # TODO: remove the elements that are not needed for latex.
                 if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
                     log.warning("The source has interactive elements or videos that need a preview to be generated, "+
                                 "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")

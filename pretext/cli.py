@@ -134,11 +134,11 @@ def init():
               Usage: pretext build --stringparam foo bar --stringparam baz woo
               """)
 @click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc).')
-@click.option('-df', '--diagrams-format', default='svg', type=click.Choice(['svg', 'png', 'pdf', 'eps', 'tex', 'all'], case_sensitive=False), help="Specify output format for generated images")
+@click.option('-df', '--diagrams-format', type=click.Choice(['defaults', 'all'], case_sensitive=False), default='defaults', help='Specify whether to build just the "defaults" formats or "all" formats based on output target.')
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('-a', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets)")
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
-def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets,clean):
+def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets, clean):
     """
     Process [TARGET] into format specified by project.ptx.
     Also accepts manual command-line options.
