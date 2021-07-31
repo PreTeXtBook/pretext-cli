@@ -20,6 +20,7 @@ def raise_cli_error(message):
 
 #  Click command-line interface
 @click.group(invoke_without_command=True)
+@click.pass_context
 # Allow a verbosity command:
 @click_logging.simple_verbosity_option(
     log,
@@ -27,7 +28,7 @@ def raise_cli_error(message):
 )
 @click.version_option(cli_version(),message=cli_version())
 @click.option('-t', '--targets', is_flag=True, help='Display list of build/view "targets" available in the project manifest.')
-def main(targets):
+def main(ctx,targets):
     """
     Command line tools for quickly creating, authoring, and building PreTeXt projects.
 
@@ -55,7 +56,7 @@ def main(targets):
     if utils.project_path() is not None:
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
-    else:
+    elif ctx.invoked_subcommand is None:
         log.info("No existing PreTeXt project found.")
         log.info("Run `pretext --help` for help.")
 
@@ -109,13 +110,21 @@ def init():
     directory_fullpath = os.path.abspath('.')
     if utils.project_path(directory_fullpath) is not None:
         log.warning(f"A project already exists in `{utils.project_path(directory_fullpath)}`.")
-        log.warning(f"No project manifest will be generated.")
+        log.warning(f"No project.ptx manifest will be generated.")
         return
-    log.info(f"Generating new PreTeXt manifest in `{directory_fullpath}`.")
-    manifest_path = static.path('templates', 'project.ptx')
-    project_ptx_path = os.path.join(directory_fullpath,"project.ptx")
-    shutil.copyfile(manifest_path,project_ptx_path)
-    log.info(f"Success! Open `{project_ptx_path}` to edit your manifest.")
+    template_manifest_path = static.path('templates', 'project.ptx')
+    project_manifest_path = os.path.join(directory_fullpath,"project.ptx")
+    log.info(f"Generating `{project_manifest_path}`.")
+    shutil.copyfile(template_manifest_path,project_manifest_path)
+    project_pub_path = os.path.join(directory_fullpath,"publication","publication.ptx")
+    template_pub_path = static.path('templates', 'publication.ptx')
+    if os.path.isfile(project_pub_path):
+        log.warning(f"A file already exists at {project_pub_path}, so no new publication file will be generated.")
+    else:
+        log.info(f"Generating `{project_pub_path}`.")
+        utils.ensure_directory(os.path.dirname(project_pub_path))
+        shutil.copyfile(template_pub_path,project_pub_path)
+    log.info(f"Success! Open `{project_manifest_path}` to edit your manifest.")
     log.info(f"Edit your <target/>s to point to your PreTeXt source and publication files.")
 
 # pretext build
