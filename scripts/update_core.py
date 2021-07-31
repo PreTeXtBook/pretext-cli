@@ -12,6 +12,8 @@ def remove(path):
 with open("pretext/static/CORE_COMMIT","r") as commitfile:
     commit = commitfile.readline().strip()
 
+print(f"Requesting rbeezer/mathbook commit {commit} from GitHub.")
+
 r = requests.get(f"https://github.com/rbeezer/mathbook/archive/{commit}.zip")
 archive = zipfile.ZipFile(io.BytesIO(r.content))
 with tempfile.TemporaryDirectory() as tmpdirname:
@@ -23,4 +25,4 @@ with tempfile.TemporaryDirectory() as tmpdirname:
             os.path.join("pretext","static",subdir),
         )
 
-print("Updated rbeezer/mathbook resources from GitHub.")
+print("Successfully updated rbeezer/mathbook resources from GitHub.")
