@@ -1,3 +1,4 @@
+from re import T
 from lxml import etree as ET
 import logging
 import os
@@ -35,13 +36,23 @@ def pdf(ptxfile,pub_file,output,stringparams):
                  None, dest_dir=output)
 
 # Function to build diagrams/images contained in source.
-def diagrams(ptxfile, pub_file, output, params, formats):
+def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
+    # Dictionary of formats for images based on source and target
+    formats = {
+        'pdf': {'latex-image' : None, 'sageplot': 'pdf', 'asymptote': 'pdf'},
+        'latex':  {'latex-image': None, 'sageplot': 'pdf', 'asymptote': 'pdf'},
+        'html': {'latex-image' : 'svg', 'sageplot': 'svg', 'asymptote': 'html'}
+               }
+    # set format to all when appropriate
+    if diagrams_format == 'all':
+        formats[target_format] = {key: 'all' for key in formats[target_format]}
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for image types.
     source_xml = ET.parse(ptxfile)
     source_xml.xinclude()
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0:
+
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0 and formats[target_format]['latex-image'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'latex-image'))
         utils.ensure_directory(image_output)
         log.info('Now generating latex-images\n\n')
@@ -49,16 +60,16 @@ def diagrams(ptxfile, pub_file, output, params, formats):
         with utils.working_directory("."):
             core.latex_image_conversion(
                 xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
-                xmlid_root=None, data_dir=None, dest_dir=image_output, outformat=formats)
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0:
+                xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['latex-image'])
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         utils.ensure_directory(image_output)
         log.info('Now generating sageplot images\n\n')
         with utils.working_directory("."):
             core.sage_conversion(
                 xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats)
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0:
+                xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['sageplot'])
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format]['asymptote']:
         image_output = os.path.abspath(
             os.path.join(output, 'asymptote'))
         utils.ensure_directory(image_output)
@@ -66,7 +77,7 @@ def diagrams(ptxfile, pub_file, output, params, formats):
         with utils.working_directory("."):
             core.asymptote_conversion(
                 xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats)
+                xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['asymptote'], method='server')
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
                     os.path.join(output, 'preview'))
@@ -84,7 +95,7 @@ def diagrams(ptxfile, pub_file, output, params, formats):
         with utils.working_directory("."):
             core.youtube_thumbnail(
                 xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats)
+                xmlid_root=None, dest_dir=image_output)
 
 
 def webwork(ptxfile, pub_file, dest_dir, params, server_params):
@@ -100,4 +111,3 @@ def webwork(ptxfile, pub_file, dest_dir, params, server_params):
         core.webwork_to_xml(
             xml_source=ptxfile, pub_file=None, stringparams=params,
             abort_early=True, server_params=server_params, dest_dir=dest_dir)
-
