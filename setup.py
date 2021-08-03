@@ -26,6 +26,7 @@ setuptools.setup(
        'click>=7.0',
        "pdfCropMargins",
        "click-logging",
+       "pdfCropMargins",
     ],
     url="https://github.com/PreTeXtBook/pretext-cli",
     packages=setuptools.find_packages(),
