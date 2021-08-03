@@ -30,5 +30,45 @@
     </p>
   </example>
   
+  <p>
+    Although the next things are not examples, they give examples of blocks that are not examples.  First a theorem.
+  </p>
+
+  <theorem xml:id="thm-example-theorem">
+    <title>Theorem Title</title>
+    <statement>
+      <p>
+        This is the statement of the theorem.
+      </p>
+    </statement>
+    <proof>
+      <p>
+        And this is its proof.
+      </p>
+    </proof>
+  </theorem>
+  
+  <corollary xml:id="cor-example-corollary">
+    <statement>
+      <p>
+        A corollary that doesn't need a proof.
+      </p>
+    </statement>
+  </corollary>
+
+  <p>
+    Perhaps at the end of the section, you want to summarize your important theorems.
+  </p>
+
+  <assemblage xml:id="assemblage-summary">
+    <title>Important Theorems</title>
+    <p>
+      List important results here.
+    </p>
+  </assemblage>
+
+  <p>
+    Of course, if you want more information, you might see <xref ref="thm-example-theorem"/>.
+  </p>
 </section>
 

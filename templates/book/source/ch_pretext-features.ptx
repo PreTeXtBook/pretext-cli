@@ -46,11 +46,10 @@
         description.</description>
       </image>
     </figure>
-    <figure xml:id="figure-tikz-electronics">
-      <caption>TikZ Electronics Diagram</caption>
-      <image xml:id="tikz-electronics">
-        <description>A pile of electronic components wired
-        together</description>
+    <figure xml:id="figure-tikz-example-diagram">
+      <caption>The graph <m>C_5</m> made by TikZ</caption>
+      <image xml:id="tikz-example-diagram" width="20%">
+        <description>A 5-cycle</description>
         <latex-image>
           \begin{tikzpicture}
             \coordinate (A) at (90+360/5:1);
