@@ -67,6 +67,8 @@
     </p>
   </assemblage>
 
-  Of course, if you want more information, you might see <xref ref="thm-example-theorem"/>.
+  <p>
+    Of course, if you want more information, you might see <xref ref="thm-example-theorem"/>.
+  </p>
 </section>
 
