@@ -64,7 +64,7 @@ def main(ctx,targets):
 # pretext new
 @main.command(short_help="Generates the necessary files for a new PreTeXt project.")
 @click.argument('template', default='book',
-              type=click.Choice(['book', 'article'], case_sensitive=False))
+              type=click.Choice(['book', 'article', 'hello'], case_sensitive=False))
 @click.option('-d', '--directory', type=click.Path(), default='new-pretext-project',
               help="Directory to create/use for the project.")
 @click.option('-u', '--url-template', type=click.STRING,
