@@ -16,23 +16,23 @@ def linux_path(path):
     p = pathlib.Path(path)
     return p.as_posix()
 
-def html(ptxfile,pub_file,output,stringparams):
+def html(ptxfile,pub_file,output,stringparams,custom_xsl):
     utils.ensure_directory(output)
     log.info(f"\nNow building HTML into {output}\n")
     with utils.working_directory("."):
-        core.html(ptxfile, linux_path(pub_file), stringparams, output)
+        core.html(ptxfile, linux_path(pub_file), stringparams, custom_xsl, output)
 
-def latex(ptxfile,pub_file,output,stringparams):
+def latex(ptxfile,pub_file,output,stringparams,custom_xsl):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
-        core.latex(ptxfile, linux_path(pub_file), stringparams, None, output)
+        core.latex(ptxfile, linux_path(pub_file), stringparams, custom_xsl, None, output)
 
-def pdf(ptxfile,pub_file,output,stringparams):
+def pdf(ptxfile,pub_file,output,stringparams,custom_xsl):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
-        core.pdf(ptxfile, linux_path(pub_file), stringparams,
+        core.pdf(ptxfile, linux_path(pub_file), stringparams, custom_xsl,
                  None, dest_dir=output)
 
 # Function to build diagrams/images contained in source.
