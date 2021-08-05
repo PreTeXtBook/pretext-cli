@@ -19,6 +19,7 @@ class Target():
                  publication=None,
                  output_dir=None,
                  stringparams=None,
+                 xsl_path=None,
                  project_path=None):
         if project_path is None:
             project_path = os.getcwd()
@@ -35,7 +36,7 @@ class Target():
         if name is not None:
             xml_element.set("name",name)
         # set subelements with text nodes
-        tag_pairs = [("format",format),("source",source),("publication",publication),("output-dir",output_dir)]
+        tag_pairs = [("format",format),("source",source),("publication",publication),("output-dir",output_dir),("xsl",xsl_path)]
         for tag,ele_text in tag_pairs:
             if ele_text is not None:
                 for tag_element in xml_element.xpath(tag):
