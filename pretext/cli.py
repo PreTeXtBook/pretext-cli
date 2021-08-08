@@ -276,10 +276,3 @@ def publish(target,commit_message):
     project = Project()
     project.publish(target_name,commit_message)
 
-
-@main.command(short_help="debugging")
-@click.option('-i', '--inxsl')
-@click.option('-o', '--output')
-def debug(inxsl, output):
-    log.info('starting debug')
-    utils.copy_fix_xsl(inxsl, output)
