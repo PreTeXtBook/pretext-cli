@@ -2,8 +2,6 @@ from re import T
 from lxml import etree as ET
 import logging
 import os
-import sys
-import pathlib
 
 from . import utils
 from .static.pretext import pretext as core
@@ -11,28 +9,23 @@ from .static.pretext import pretext as core
 # Get access to logger
 log = logging.getLogger('ptxlogger')
 
-def linux_path(path):
-    # hack to make core ptx happy
-    p = pathlib.Path(path)
-    return p.as_posix()
-
 def html(ptxfile,pub_file,output,stringparams,custom_xsl):
     utils.ensure_directory(output)
     log.info(f"\nNow building HTML into {output}\n")
     with utils.working_directory("."):
-        core.html(ptxfile, linux_path(pub_file), stringparams, custom_xsl, output)
+        core.html(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl, output)
 
 def latex(ptxfile,pub_file,output,stringparams,custom_xsl):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
-        core.latex(ptxfile, linux_path(pub_file), stringparams, custom_xsl, None, output)
+        core.latex(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl, None, output)
 
 def pdf(ptxfile,pub_file,output,stringparams,custom_xsl):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
-        core.pdf(ptxfile, linux_path(pub_file), stringparams, custom_xsl,
+        core.pdf(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl,
                  None, dest_dir=output)
 
 # Function to build diagrams/images contained in source.
@@ -67,7 +60,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         log.info('Now generating sageplot images\n\n')
         with utils.working_directory("."):
             core.sage_conversion(
-                xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
+                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['sageplot'])
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format]['asymptote']:
         image_output = os.path.abspath(
@@ -76,7 +69,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         log.info('Now generating asymptote images\n\n')
         with utils.working_directory("."):
             core.asymptote_conversion(
-                xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
+                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['asymptote'], method='server')
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
@@ -85,7 +78,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         log.info('Now generating preview images for interactives\n\n')
         with utils.working_directory("."):
             core.preview_images(
-                xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
+                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=None, dest_dir=image_output)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
         image_output = os.path.abspath(
@@ -94,7 +87,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         log.info('Now generating youtube previews\n\n')
         with utils.working_directory("."):
             core.youtube_thumbnail(
-                xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
+                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=None, dest_dir=image_output)
 
 
