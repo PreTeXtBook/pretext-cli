@@ -19,6 +19,7 @@ class Target():
                  publication=None,
                  output_dir=None,
                  stringparams=None,
+                 xsl_path=None,
                  project_path=None):
         if project_path is None:
             project_path = os.getcwd()
@@ -35,7 +36,7 @@ class Target():
         if name is not None:
             xml_element.set("name",name)
         # set subelements with text nodes
-        tag_pairs = [("format",format),("source",source),("publication",publication),("output-dir",output_dir)]
+        tag_pairs = [("format",format),("source",source),("publication",publication),("output-dir",output_dir),("xsl",xsl_path)]
         for tag,ele_text in tag_pairs:
             if ele_text is not None:
                 for tag_element in xml_element.xpath(tag):
@@ -120,6 +121,12 @@ class Target():
             sp_ele.get("key").strip(): sp_ele.get("value").strip()
             for sp_ele in self.xml_element().xpath("stringparam")
         }
+    
+    def xsl_path(self):
+        if self.xml_element().find("xsl") is not None:
+            return os.path.abspath(os.path.join(self.__project_path, self.xml_element().find("xsl").text.strip()))
+        else:
+            return None
 
 
 
@@ -220,6 +227,12 @@ class Project():
         #build in temporary directory so ptxcore doesn't complain
         with tempfile.TemporaryDirectory() as temp_dir:
             log.info(f"Preparing to build into a temporary directory.")
+            # copy custom xsl if used
+            custom_xsl = None
+            if target.xsl_path() is not None:
+                log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
+                utils.copy_fix_xsl(target.xsl_path(), temp_dir)
+                custom_xsl = os.path.join(temp_dir, os.path.basename(target.xsl_path()))
             #build targets:
             if webwork:
                 # prepare params; for now assume only server is passed
@@ -251,7 +264,7 @@ class Project():
                                 "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
             if target.format()=='html' and not only_assets:
                 try:
-                    builder.html(target.source(),target.publication(),temp_dir,target.stringparams())
+                    builder.html(target.source(),target.publication(),temp_dir,target.stringparams(),custom_xsl)
                 except Exception as e:
                     log.debug(f"Critical error info:\n", exc_info=True)
                     log.critical(
@@ -259,7 +272,7 @@ class Project():
                     return
             if target.format()=='latex' and not only_assets:
                 try:
-                    builder.latex(target.source(),target.publication(),temp_dir,target.stringparams())
+                    builder.latex(target.source(),target.publication(),temp_dir,target.stringparams(),custom_xsl)
                     # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                     shutil.copytree(target.external_dir(),os.path.join(temp_dir,"external"))
                     shutil.copytree(target.generated_dir(),os.path.join(temp_dir,"generated"))
@@ -270,7 +283,7 @@ class Project():
                     return
             if target.format()=='pdf' and not only_assets:
                 try:
-                    builder.pdf(target.source(),target.publication(),temp_dir,target.stringparams())
+                    builder.pdf(target.source(),target.publication(),temp_dir,target.stringparams(),custom_xsl)
                 except Exception as e:
                     log.debug(f"Critical error info:\n", exc_info=True)
                     log.critical(

@@ -138,6 +138,8 @@ def init():
               help='Directory to build files into')
 @click.option('-p', '--publication', type=click.Path(), default=None,
               help="Path to publication *.ptx file")
+@click.option('-x', '--xsl', type=click.Path(), default=None,
+              help="Path to custom xsl file")
 @click.option('--stringparam', nargs=2, multiple=True, help="""
               Define a stringparam to use during processing.
               Usage: pretext build --stringparam foo bar --stringparam baz woo
@@ -147,7 +149,7 @@ def init():
 @click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
 @click.option('-a', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets)")
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
-def build(target, format, source, output, stringparam, publication, webwork, diagrams, diagrams_format, only_assets, clean):
+def build(target, format, source, output, stringparam, xsl, publication, webwork, diagrams, diagrams_format, only_assets, clean):
     """
     Process [TARGET] into format specified by project.ptx.
     Also accepts manual command-line options.
@@ -190,7 +192,7 @@ def build(target, format, source, output, stringparam, publication, webwork, dia
         #overwrite target with commandline arguments, update project accordingly
         target = Target(xml_element=target.xml_element(),
                         format=format,source=source,output_dir=output,
-                        publication=publication,stringparams=stringparams)
+                        publication=publication,stringparams=stringparams,xsl_path=xsl)
         project = Project(xml_element=project.xml_element(),targets=[target])
     project.build(target_name,webwork,diagrams,diagrams_format,only_assets,clean)
 
@@ -273,3 +275,4 @@ def publish(target,commit_message):
     target_name = target
     project = Project()
     project.publish(target_name,commit_message)
+
