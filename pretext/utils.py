@@ -4,6 +4,7 @@ import json
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
 import shutil
+import pathlib
 import socketserver
 import socket
 import logging
@@ -33,6 +34,10 @@ def working_directory(path):
     finally:
         os.chdir(current_directory)
 
+def linux_path(path):
+    # hack to make core ptx and xsl:import happy
+    p = pathlib.Path(path)
+    return p.as_posix()
 
 def ensure_directory(path):
     """
@@ -232,7 +237,7 @@ def expand_pretext_href(lxml_element):
     Expands @pretext-href attributes to point to the distributed xsl directory.
     '''
     for ele in lxml_element.xpath('//*[@pretext-href]'):
-        ele.set('href',str(static.core_xsl(ele.get('pretext-href'),as_path=True)))
+        ele.set('href',str(linux_path(static.core_xsl(ele.get('pretext-href'),as_path=True))))
 
 def copy_fix_xsl(xsl_path, output_dir):
     xsl_dir = os.path.abspath(os.path.dirname(xsl_path))
