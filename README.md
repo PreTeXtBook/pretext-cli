@@ -74,6 +74,13 @@ python -m pretext --help
 Either way, you're now ready to use the CLI, the `--help` option will explain how to use all the different
 subcommands like `pretext new` and `pretext build`.
 
+### Upgrading PreTeXt-CLI
+If you have an existing installation and you want to upgrade to a more recent version, you can run:
+
+```
+python -m pip install --upgrade pretextbook
+```
+
 ## Development
 
 From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below command to clone the project.
