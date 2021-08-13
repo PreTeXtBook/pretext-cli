@@ -81,6 +81,15 @@ If you have an existing installation and you want to upgrade to a more recent ve
 python -m pip install --upgrade pretextbook
 ```
 
+### Importing PreTeXt-provided XSL into custom XSL
+
+When using the custom XSL CLI feature, PreTeXt XSL (e.g. `pretext-common.xsl`)
+may be imported by including the following line:
+
+```
+<xsl:import pretext-href="pretext-common.xsl"/>
+```
+
 ## Development
 
 From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below command to clone the project.
