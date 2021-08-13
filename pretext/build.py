@@ -52,7 +52,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         # call pretext-core's latex image module:
         with utils.working_directory("."):
             core.latex_image_conversion(
-                xml_source=ptxfile, pub_file=linux_path(pub_file), stringparams=params,
+                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['latex-image'])
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
