@@ -5,7 +5,7 @@ output
 generated-assets
 
 # error logs
-.error-schema.log
-error-schema.log
-.error-syntax.log
-error-syntax.log
+.error_schema.log
+error_schema.log
+.error_syntax.log
+error_syntax.log
