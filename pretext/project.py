@@ -224,15 +224,16 @@ class Project():
             else:
                 log.warning(f"Destorying directory {target.output_dir()} to clean previously built files.")
                 shutil.rmtree(target.output_dir())
+        #if custom xsl, copy it into a temporary directory (different from the building temporary directory)
+        custom_xsl = None
+        if target.xsl_path() is not None:
+            temp_xsl_dir = tempfile.mkdtemp()
+            log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
+            utils.copy_fix_xsl(target.xsl_path(), temp_xsl_dir)
+            custom_xsl = os.path.join(temp_xsl_dir, os.path.basename(target.xsl_path()))
         #build in temporary directory so ptxcore doesn't complain
         with tempfile.TemporaryDirectory() as temp_dir:
             log.info(f"Preparing to build into a temporary directory.")
-            # copy custom xsl if used
-            custom_xsl = None
-            if target.xsl_path() is not None:
-                log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
-                utils.copy_fix_xsl(target.xsl_path(), temp_dir)
-                custom_xsl = os.path.join(temp_dir, os.path.basename(target.xsl_path()))
             #build targets:
             if webwork:
                 # prepare params; for now assume only server is passed
@@ -293,6 +294,9 @@ class Project():
             log.info(f"\nCopying successful build from {temp_dir} into {target.output_dir()}.")
             shutil.copytree(temp_dir,target.output_dir(),dirs_exist_ok=True)
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
+        # remove temporary xsl directory if it was created:
+        if os.path.exists(temp_xsl_dir):
+            shutil.rmtree(temp_xsl_dir)
 
     def publish(self,target_name,commit_message="Update to PreTeXt project source."):
         target = self.target(target_name)
