@@ -226,6 +226,7 @@ class Project():
                 shutil.rmtree(target.output_dir())
         #if custom xsl, copy it into a temporary directory (different from the building temporary directory)
         custom_xsl = None
+        temp_xsl_dir = None
         if target.xsl_path() is not None:
             temp_xsl_dir = tempfile.mkdtemp()
             log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
@@ -295,7 +296,7 @@ class Project():
             shutil.copytree(temp_dir,target.output_dir(),dirs_exist_ok=True)
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
         # remove temporary xsl directory if it was created:
-        if os.path.exists(temp_xsl_dir):
+        if (temp_xsl_dir and os.path.exists(temp_xsl_dir)):
             shutil.rmtree(temp_xsl_dir)
 
     def publish(self,target_name,commit_message="Update to PreTeXt project source."):
