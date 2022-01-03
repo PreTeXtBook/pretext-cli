@@ -20,6 +20,7 @@ class Target():
                  output_dir=None,
                  stringparams=None,
                  xsl_path=None,
+                 xmlid_root=None,
                  project_path=None):
         if project_path is None:
             project_path = os.getcwd()
@@ -36,7 +37,14 @@ class Target():
         if name is not None:
             xml_element.set("name",name)
         # set subelements with text nodes
-        tag_pairs = [("format",format),("source",source),("publication",publication),("output-dir",output_dir),("xsl",xsl_path)]
+        tag_pairs = [
+            ("format",format),
+            ("source",source),
+            ("publication",publication),
+            ("output-dir",output_dir),
+            ("xsl",xsl_path),
+            ("xmlid-root",xmlid_root),
+        ]
         for tag,ele_text in tag_pairs:
             if ele_text is not None:
                 for tag_element in xml_element.xpath(tag):
@@ -127,6 +135,13 @@ class Target():
             return os.path.abspath(os.path.join(self.__project_path, self.xml_element().find("xsl").text.strip()))
         else:
             return None
+
+    def xmlid_root(self):
+        ele = self.xml_element().find("xmlid-root")
+        if ele is None:
+            return None
+        else:   
+            return ele.text.strip()
 
 
 
@@ -266,7 +281,7 @@ class Project():
                                 "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
             if target.format()=='html' and not only_assets:
                 try:
-                    builder.html(target.source(),target.publication(),temp_dir,target.stringparams(),custom_xsl)
+                    builder.html(target.source(),target.publication(),temp_dir,target.stringparams(),custom_xsl,target.xmlid_root())
                 except Exception as e:
                     log.debug(f"Critical error info:\n", exc_info=True)
                     log.critical(
