@@ -277,34 +277,22 @@ class Project():
             if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
                 log.warning("The source has interactive elements or videos that need a preview to be generated, "+
                             "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-        if (target.format()=='html' or target.format()=='html-zip') and not only_assets:
-            zipped = (target.format()=='html-zip')
-            try:
+        try:
+            if (target.format()=='html' or target.format()=='html-zip') and not only_assets:
+                zipped = (target.format()=='html-zip')
                 builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
-            except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
-                log.critical(
-                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                return
-        if target.format()=='latex' and not only_assets:
-            try:
+            elif target.format()=='latex' and not only_assets:
                 builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
                 # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                 shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"))
                 shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"))
-            except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
-                log.critical(
-                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                return
-        if target.format()=='pdf' and not only_assets:
-            try:
+            elif target.format()=='pdf' and not only_assets:
                 builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
-            except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
-                log.critical(
-                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                return
+        except Exception as e:
+            log.debug(f"Critical error info:\n", exc_info=True)
+            log.critical(
+                f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+            return
         # build was successful
         log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
         # remove temporary xsl directory if it was created:
