@@ -270,7 +270,7 @@ class Project():
                 log.warning(
                     "The source has WeBWorK exercises, but you are not re(processing) these.  Run `pretext build` with the `-w` flag if updates are needed.")
             if diagrams:
-                builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), target.format(), diagrams_format)
+                builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), target.format(), diagrams_format, target.xmlid_root())
             else:
                 source_xml = target.source_xml()
                 if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:

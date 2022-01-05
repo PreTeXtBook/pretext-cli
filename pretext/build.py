@@ -32,7 +32,7 @@ def pdf(ptxfile,pub_file,output,stringparams,custom_xsl):
                  None, dest_dir=output)
 
 # Function to build diagrams/images contained in source.
-def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
+def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root):
     # Dictionary of formats for images based on source and target
     formats = {
         'pdf': {'latex-image' : None, 'sageplot': 'pdf', 'asymptote': 'pdf'},
@@ -56,7 +56,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         with utils.working_directory("."):
             core.latex_image_conversion(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['latex-image'])
+                xmlid_root=xmlid_root, dest_dir=image_output, outformat=formats[target_format]['latex-image'])
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         utils.ensure_directory(image_output)
@@ -64,7 +64,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         with utils.working_directory("."):
             core.sage_conversion(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['sageplot'])
+                xmlid_root=xmlid_root, dest_dir=image_output, outformat=formats[target_format]['sageplot'])
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format]['asymptote']:
         image_output = os.path.abspath(
             os.path.join(output, 'asymptote'))
@@ -73,7 +73,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         with utils.working_directory("."):
             core.asymptote_conversion(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output, outformat=formats[target_format]['asymptote'], method='server')
+                xmlid_root=xmlid_root, dest_dir=image_output, outformat=formats[target_format]['asymptote'], method='server')
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
                     os.path.join(output, 'preview'))
@@ -82,7 +82,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         with utils.working_directory("."):
             core.preview_images(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output)
+                xmlid_root=xmlid_root, dest_dir=image_output)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
         image_output = os.path.abspath(
             os.path.join(output, 'youtube'))
@@ -91,7 +91,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format):
         with utils.working_directory("."):
             core.youtube_thumbnail(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=None, dest_dir=image_output)
+                xmlid_root=xmlid_root, dest_dir=image_output)
 
 
 def webwork(ptxfile, pub_file, dest_dir, params, server_params):
