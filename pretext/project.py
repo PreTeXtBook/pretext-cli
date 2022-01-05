@@ -277,9 +277,10 @@ class Project():
             if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
                 log.warning("The source has interactive elements or videos that need a preview to be generated, "+
                             "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-        if target.format()=='html' and not only_assets:
+        if (target.format()=='html' or target.format()=='html-zip') and not only_assets:
+            zipped = (target.format()=='html-zip')
             try:
-                builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root())
+                builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
             except Exception as e:
                 log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
