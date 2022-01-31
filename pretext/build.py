@@ -38,9 +38,9 @@ def pdf(ptxfile,pub_file,output,stringparams,custom_xsl):
 def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root):
     # Dictionary of formats for images based on source and target
     formats = {
-        'pdf': {'latex-image' : None, 'sageplot': 'pdf', 'asymptote': 'pdf'},
-        'latex':  {'latex-image': None, 'sageplot': 'pdf', 'asymptote': 'pdf'},
-        'html': {'latex-image' : 'svg', 'sageplot': 'svg', 'asymptote': 'html'}
+        'pdf': {'latex-image' : [None], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
+        'latex':  {'latex-image': [None], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
+        'html': {'latex-image' : ['svg'], 'sageplot': ['html','svg'], 'asymptote': ['html']}
                }
     # set format to all when appropriate
     if diagrams_format == 'all':
@@ -57,26 +57,29 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
         log.info('Now generating latex-images\n\n')
         # call pretext-core's latex image module:
         with utils.working_directory("."):
-            core.latex_image_conversion(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=xmlid_root, dest_dir=image_output, outformat=formats[target_format]['latex-image'])
+            for outformat in formats[target_format]['latex-image']:
+                core.latex_image_conversion(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         utils.ensure_directory(image_output)
         log.info('Now generating sageplot images\n\n')
         with utils.working_directory("."):
-            core.sage_conversion(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=xmlid_root, dest_dir=image_output, outformat=formats[target_format]['sageplot'])
+            for outformat in formats[target_format]['sageplot']:
+                core.sage_conversion(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format]['asymptote']:
         image_output = os.path.abspath(
             os.path.join(output, 'asymptote'))
         utils.ensure_directory(image_output)
         log.info('Now generating asymptote images\n\n')
         with utils.working_directory("."):
-            core.asymptote_conversion(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=xmlid_root, dest_dir=image_output, outformat=formats[target_format]['asymptote'], method='server')
+            for outformat in formats[target_format]['asymptote']:
+                core.asymptote_conversion(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method='server')
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
                     os.path.join(output, 'preview'))
