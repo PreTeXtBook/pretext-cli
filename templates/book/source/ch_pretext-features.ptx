@@ -37,7 +37,7 @@
       </solution>
     </example>
     <p>
-      Now a figure.
+      Now a few figures.
     </p>
     <figure>
       <caption>A frog</caption>
@@ -67,11 +67,21 @@
       </image>
     </figure>
     <figure xml:id="figure-sageplot-example-diagram">
-      <caption>The parabola <m>y=x^2</m> made by TikZ</caption>
-      <image xml:id="sageplot-example-diagram" width="20%">
+      <caption>The parabola <m>y=x^2</m> made by SageMath</caption>
+      <image xml:id="sageplot-example-diagram" width="50%">
         <description>A parabola</description>
         <sageplot>
           plot(x^2)
+        </sageplot>
+      </image>
+    </figure>
+    <figure xml:id="figure-sageplot3d-example-diagram">
+      <caption>The paraboloid <m>z=x^2+y^2</m> made by SageMath</caption>
+      <image xml:id="sageplot3d-example-diagram" width="80%">
+        <description>A paraboloid</description>
+        <sageplot variant="3d" aspect="1.0">
+          x,y = var('x y')
+          plot3d(x^2+y^2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
         </sageplot>
       </image>
     </figure>
