@@ -21,7 +21,8 @@ class Target():
                  stringparams=None,
                  xsl_path=None,
                  xmlid_root=None,
-                 project_path=None):
+                 project_path=None,
+                 pdf_method=None):
         if project_path is None:
             project_path = os.getcwd()
         if xml_element is None:
@@ -33,9 +34,11 @@ class Target():
         if xml_element.tag != "target":
             raise ValueError("xml_element must have tag `target` as root")
         # construct self.xml_element
-        # set name attribute
+        # set name and pdf-method attributes
         if name is not None:
             xml_element.set("name",name)
+        if pdf_method is not None:
+            xml_element.set("pdf-method",pdf_method)
         # set subelements with text nodes
         tag_pairs = [
             ("format",format),
@@ -68,6 +71,13 @@ class Target():
 
     def name(self):
         return self.xml_element().get("name").strip()
+
+    def pdf_method(self):
+        pdf_method = self.xml_element().get("pdf-method")
+        if pdf_method is not None:
+            return pdf_method.strip()
+        else:
+            return "xelatex" # default
 
     def format(self):
         return self.xml_element().find("format").text.strip()
@@ -268,7 +278,10 @@ class Project():
             log.warning(
                 "The source has WeBWorK exercises, but you are not re(processing) these.  Run `pretext build` with the `-w` flag if updates are needed.")
         if diagrams:
-            builder.diagrams(target.source(), target.publication(), target.generated_dir(), target.stringparams(), target.format(), diagrams_format, target.xmlid_root())
+            builder.diagrams(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.format(), diagrams_format, target.xmlid_root(), target.pdf_method(),
+            )
         else:
             source_xml = target.source_xml()
             if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
@@ -287,7 +300,7 @@ class Project():
                 shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"))
                 shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"))
             elif target.format()=='pdf' and not only_assets:
-                builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
+                builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
         except Exception as e:
             log.debug(f"Critical error info:\n", exc_info=True)
             log.critical(

@@ -27,15 +27,15 @@ def latex(ptxfile,pub_file,output,stringparams,custom_xsl):
     with utils.working_directory("."):
         core.latex(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl, None, output)
 
-def pdf(ptxfile,pub_file,output,stringparams,custom_xsl):
+def pdf(ptxfile,pub_file,output,stringparams,custom_xsl,pdf_method):
     utils.ensure_directory(output)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
         core.pdf(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl,
-                 None, dest_dir=output, method="xelatex")
+                 None, dest_dir=output, method=pdf_method)
 
 # Function to build diagrams/images contained in source.
-def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root):
+def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root, pdf_method):
     # Dictionary of formats for images based on source and target
     formats = {
         'pdf': {'latex-image' : [None], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
@@ -60,7 +60,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
             for outformat in formats[target_format]['latex-image']:
                 core.latex_image_conversion(
                     xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method="xelatex")
+                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method=pdf_method)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         utils.ensure_directory(image_output)
