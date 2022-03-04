@@ -145,7 +145,7 @@ docs-project/output
 docs-project/docs
 
 #pyproject?
-pyproject.toml
+#pyproject.toml
 
 #pretext-core
 pretext/static/pretext
@@ -153,3 +153,6 @@ pretext/static/schema
 pretext/static/xsl
 #shipped templates
 pretext/static/templates
+
+# emacs backup files
+*.bak

@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+# You can run `black plom` or `black plom --verbose`
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.pylint.master]
+errors-only = true
+output-format = "colorized"
+
