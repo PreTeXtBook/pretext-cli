@@ -18,14 +18,14 @@ setuptools.setup(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     install_requires=[
-       'lxml',
-       'python-slugify',
-       'requests',
-       'watchdog',
-       'GitPython',
-       'click>=7.0',
-       "pdfCropMargins",
-       "click-logging",
+        "lxml",
+        "python-slugify",
+        "requests",
+        "watchdog",
+        "GitPython",
+        "click>=7.0",
+        "pdfCropMargins",
+        "click-logging",
     ],
     url="https://github.com/PreTeXtBook/pretext-cli",
     packages=setuptools.find_packages(),
@@ -36,11 +36,11 @@ setuptools.setup(
     ],
     python_requires=f">={MINIMUM_PYTHON_VERSION}",
     entry_points={
-        'console_scripts': [
-            'pretext = pretext.cli:main',
+        "console_scripts": [
+            "pretext = pretext.cli:main",
         ],
     },
-    package_data = {
-        'pretext': ['static/*','static/*/*','static/*/*/*'],
+    package_data={
+        "pretext": ["static/*", "static/*/*", "static/*/*/*"],
     },
 )

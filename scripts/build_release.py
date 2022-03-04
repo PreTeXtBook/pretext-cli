@@ -1,4 +1,7 @@
-import subprocess, os, shutil
+import os
+import shutil
+import subprocess
+
 
 # grab verison number
 with open("pretext/static/VERSION") as f:
@@ -20,5 +23,5 @@ subprocess.run(["python", "setup.py", "sdist", "bdist_wheel"])
 # prompt user to upload to PyPI
 print("If all is successful, and you have the PyPI token saved to `.pypitoken`, run:")
 print()
-print(f"  python -m twine upload dist/* -u __token__ -p $(cat .pypitoken)")
+print("  python -m twine upload dist/* -u __token__ -p $(cat .pypitoken)")
 print()
