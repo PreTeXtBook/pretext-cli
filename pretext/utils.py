@@ -48,10 +48,8 @@ def ensure_directory(path):
     """
     If the directory doesn't exist yet, create it.
     """
-    try:
-        os.makedirs(path)
-    except FileExistsError:
-        pass
+    # towards a fix for issue #188
+    os.makedirs(path, exist_ok=False)
 
 
 def directory_exists(path):

@@ -297,7 +297,13 @@ class Project:
                 log.warning(
                     f"Destorying directory {target.output_dir()} to clean previously built files."
                 )
-                shutil.rmtree(target.output_dir())
+                # towards a fix for #188
+
+                def print_the_error(func, path, excinfo):
+                    # print errors using this callback
+                    print(f"Could not remove {path}. Attempting to continue")
+
+                shutil.rmtree(target.output_dir(), onerror=print_the_error)
         # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
         custom_xsl = None
         temp_xsl_dir = None
@@ -443,6 +449,7 @@ class Project:
             f"Preparing to publish the latest build located in `{target.output_dir()}`."
         )
         docs_path = os.path.join(self.__project_path, "docs")
+        # TODO - don't ignore the errors, print them instead?
         shutil.rmtree(docs_path, ignore_errors=True)
         shutil.copytree(target.output_dir(), docs_path)
         log.info(f"Latest build copied to `{docs_path}`.")
