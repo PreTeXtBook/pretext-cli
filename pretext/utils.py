@@ -76,6 +76,9 @@ def project_xml(dirpath=os.getcwd()):
         project_manifest = os.path.join(project_path(dirpath), 'project.ptx')
     return ET.parse(project_manifest)
 
+def project_xml_string(dirpath=os.getcwd()):
+    return ET.tostring(project_xml(dirpath), encoding='unicode')
+
 def target_xml(alias=None,dirpath=os.getcwd()):
     if alias is None:
         return project_xml().find("targets/target")

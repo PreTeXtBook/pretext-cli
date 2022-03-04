@@ -4,6 +4,7 @@ import logging
 import shutil
 import os, zipfile, requests, io
 import tempfile, shutil
+import platform
 
 from . import utils, static
 from . import version as cli_version
@@ -59,6 +60,35 @@ def main(ctx,targets):
     elif ctx.invoked_subcommand is None:
         log.info("No existing PreTeXt project found.")
         log.info("Run `pretext --help` for help.")
+
+
+# pretext support
+@main.command(short_help="Use when communicating with PreTeXt support.")
+def support():
+    """
+    Outputs useful information about your installation needed by
+    PreTeXt volunteers when requesting help on the pretext-support
+    Google Group.
+    """
+    log.info("")
+    log.info("Please share the following information when posting to the")
+    log.info("pretext-support Google Group.")
+    log.info("")
+    with open(static.path('VERSION'), 'r') as version_file:
+        log.info(f"PreTeXt-CLI version: {version_file.read().strip()}")
+    with open(static.path('CORE_COMMIT'), 'r') as commit_file:
+        log.info(f"PreTeXt core resources commit: {commit_file.read().strip()}")
+    log.info(f"OS: {platform.platform()}")
+    log.info(f"Python version: {platform.python_version()}")
+    log.info(f"Current working directory: {os.getcwd()}")
+    if utils.project_path() is not None:
+        log.info(f"PreTeXt project path: {utils.project_path()}")
+        log.info("")
+        log.info("Contents of project.ptx:")
+        log.info("------------------------")
+        log.info(utils.project_xml_string())
+    else:
+        log.info("No project.ptx found.")
 
 
 # pretext new
