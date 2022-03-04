@@ -1,0 +1,51 @@
+image: docker:20.10.12
+
+variables:
+  MYVER: '${CI_PROJECT_NAME:1}'
+  MYVERTAG: '${CI_COMMIT_TAG:1}'
+
+stages:
+  - static_analysis
+
+
+codespell:
+  image: python:3.10
+  stage: static_analysis
+  before_script:
+    - python3 -m pip install codespell
+  script:
+    - echo $MYVERTAG
+    - echo $MYVER
+    - codespell -S "*.png,*.po,.git,*.jpg,*.svg,*.csv" -f -H -x .codespell-ignorelines -I .codespell-ignorewords
+  allow_failure: true
+
+black:
+  stage: static_analysis
+  image: python:3.10
+  before_script:
+    - pip3 install "black~=21.10b"
+  script:
+    - black --check --diff .
+  allow_failure: true
+
+pylint:
+  stage: static_analysis
+  image: python:3.10
+  before_script:
+    - python3 -m pip install pylint
+  script:
+    - pylint .
+  allow_failure: true
+
+
+flake8:
+  stage: static_analysis
+  image: python:3.10
+  before_script:
+    - python3 -m pip install flake8
+  script:
+    # show all errors and warnings but don't fail
+    - flake8 --exit-zero
+    # fail test if any errors here
+    - flake8 --select E,W
+  allow_failure: true
