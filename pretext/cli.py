@@ -5,8 +5,9 @@ import logging
 import os
 import requests
 import shutil
-import tempfile
-import zipfile
+import os, zipfile, requests, io
+import tempfile, shutil
+import platform
 
 from . import utils, static
 from . import version as cli_version
@@ -68,6 +69,35 @@ def main(ctx, targets):
     elif ctx.invoked_subcommand is None:
         log.info("No existing PreTeXt project found.")
         log.info("Run `pretext --help` for help.")
+
+
+# pretext support
+@main.command(short_help="Use when communicating with PreTeXt support.")
+def support():
+    """
+    Outputs useful information about your installation needed by
+    PreTeXt volunteers when requesting help on the pretext-support
+    Google Group.
+    """
+    log.info("")
+    log.info("Please share the following information when posting to the")
+    log.info("pretext-support Google Group.")
+    log.info("")
+    with open(static.path('VERSION'), 'r') as version_file:
+        log.info(f"PreTeXt-CLI version: {version_file.read().strip()}")
+    with open(static.path('CORE_COMMIT'), 'r') as commit_file:
+        log.info(f"PreTeXt core resources commit: {commit_file.read().strip()}")
+    log.info(f"OS: {platform.platform()}")
+    log.info(f"Python version: {platform.python_version()}")
+    log.info(f"Current working directory: {os.getcwd()}")
+    if utils.project_path() is not None:
+        log.info(f"PreTeXt project path: {utils.project_path()}")
+        log.info("")
+        log.info("Contents of project.ptx:")
+        log.info("------------------------")
+        log.info(utils.project_xml_string())
+    else:
+        log.info("No project.ptx found.")
 
 
 # pretext new
@@ -143,34 +173,20 @@ def init():
     Generates the project manifest for a PreTeXt project in the current directory. This feature
     is mainly intended for updating existing projects to use this CLI.
     """
-    directory_fullpath = os.path.abspath(".")
-    if utils.project_path(directory_fullpath) is not None:
-        log.warning(
-            f"A project already exists in `{utils.project_path(directory_fullpath)}`."
-        )
-        log.warning("No project.ptx manifest will be generated.")
+    if utils.project_path() is not None:
+        log.warning(f"A project already exists in `{utils.project_path()}`.")
+        log.warning(f"No project.ptx manifest will be generated.")
         return
-    template_manifest_path = static.path("templates", "project.ptx")
-    project_manifest_path = os.path.join(directory_fullpath, "project.ptx")
+    template_manifest_path = static.path('templates', 'project.ptx')
+    project_manifest_path = os.path.abspath("project.ptx")
     log.info(f"Generating `{project_manifest_path}`.")
-    shutil.copyfile(template_manifest_path, project_manifest_path)
-    project_pub_path = os.path.join(
-        directory_fullpath, "publication", "publication.ptx"
-    )
-    template_pub_path = static.path("templates", "publication.ptx")
-    if os.path.isfile(project_pub_path):
-        log.warning(
-            f"A file already exists at {project_pub_path}, so no new publication file will be generated."
-        )
-    else:
-        log.info(f"Generating `{project_pub_path}`.")
-        utils.ensure_directory(os.path.dirname(project_pub_path))
-        shutil.copyfile(template_pub_path, project_pub_path)
-    log.info(f"Success! Open `{project_manifest_path}` to edit your manifest.")
-    log.info(
-        "Edit your <target/>s to point to your PreTeXt source and publication files."
-    )
-
+    shutil.copyfile(template_manifest_path,project_manifest_path)
+    log.info(f"Success! Open `{project_manifest_path}` to edit your project manifest.")
+    log.info(f"Edit your <target/>s to point to your main PreTeXt source file.")
+    project_pub_path = os.path.abspath(os.path.join("publication","publication.ptx"))
+    if not os.path.isfile(project_pub_path):
+        log.warning(f"Note that your publication file should be moved to `{project_pub_path}`, or")
+        log.warning(f"`{project_manifest_path}` should be updated to the location of your publication file.")
 
 # pretext build
 @main.command(short_help="Build specified target")

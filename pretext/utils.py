@@ -80,6 +80,8 @@ def project_xml(dirpath=os.getcwd()):
         project_manifest = os.path.join(project_path(dirpath), "project.ptx")
     return ET.parse(project_manifest)
 
+def project_xml_string(dirpath=os.getcwd()):
+    return ET.tostring(project_xml(dirpath), encoding='unicode')
 
 def target_xml(alias=None, dirpath=os.getcwd()):
     if alias is None:
@@ -226,8 +228,9 @@ def serve_forever(directory, access="private", port=8000):
         try:
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
-                url = url_for_access(access, port)
-                log.info(f"Server started at {url}\n")
+                url = url_for_access(access,port)
+                log.info(f"Server started at {url}")
+                log.info(f"(In a web browser, you may visit {url} to view output.)")
                 log.info("Use [Ctrl]+[C] to halt the server.\n")
                 httpd.serve_forever()
         except OSError:
