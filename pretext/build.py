@@ -10,7 +10,7 @@ from .static.pretext import pretext as core
 log = logging.getLogger('ptxlogger')
 
 def html(ptxfile,pub_file,output,stringparams,custom_xsl,xmlid_root,zipped=False):
-    utils.ensure_directory(output)
+    os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building HTML into {output}\n")
     if xmlid_root is not None:
         log.info(f"Only building @xml:id `{xmlid_root}`\n")
@@ -22,13 +22,13 @@ def html(ptxfile,pub_file,output,stringparams,custom_xsl,xmlid_root,zipped=False
         core.html(ptxfile, utils.linux_path(pub_file), stringparams, xmlid_root, file_format, custom_xsl, None, output)
 
 def latex(ptxfile,pub_file,output,stringparams,custom_xsl):
-    utils.ensure_directory(output)
+    os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
         core.latex(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl, None, output)
 
 def pdf(ptxfile,pub_file,output,stringparams,custom_xsl,pdf_method):
-    utils.ensure_directory(output)
+    os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building LaTeX into {output}\n")
     with utils.working_directory("."):
         core.pdf(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl,
@@ -53,7 +53,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
 
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0 and formats[target_format]['latex-image'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'latex-image'))
-        utils.ensure_directory(image_output)
+        os.makedirs(image_output, exist_ok=True)
         log.info('Now generating latex-images\n\n')
         # call pretext-core's latex image module:
         with utils.working_directory("."):
@@ -63,7 +63,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
                     xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method=pdf_method)
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
-        utils.ensure_directory(image_output)
+        os.makedirs(image_output, exist_ok=True)
         log.info('Now generating sageplot images\n\n')
         with utils.working_directory("."):
             for outformat in formats[target_format]['sageplot']:
@@ -73,7 +73,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format]['asymptote']:
         image_output = os.path.abspath(
             os.path.join(output, 'asymptote'))
-        utils.ensure_directory(image_output)
+        os.makedirs(image_output, exist_ok=True)
         log.info('Now generating asymptote images\n\n')
         with utils.working_directory("."):
             for outformat in formats[target_format]['asymptote']:
@@ -83,7 +83,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive[not(@preview)]"))> 0:
         image_output = os.path.abspath(
                     os.path.join(output, 'preview'))
-        utils.ensure_directory(image_output)
+        os.makedirs(image_output, exist_ok=True)
         log.info('Now generating preview images for interactives\n\n')
         with utils.working_directory("."):
             core.preview_images(
@@ -92,7 +92,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
         image_output = os.path.abspath(
             os.path.join(output, 'youtube'))
-        utils.ensure_directory(image_output)
+        os.makedirs(image_output, exist_ok=True)
         log.info('Now generating youtube previews\n\n')
         with utils.working_directory("."):
             core.youtube_thumbnail(
@@ -104,7 +104,7 @@ def webwork(ptxfile, pub_file, dest_dir, params, server_params):
     # Assume passed paths are absolute.
     # Set directory for WW representations.
     # dest_dir = os.path.join(dest_dir, outfile)
-    utils.ensure_directory(dest_dir)
+    os.makedirs(dest_dir, exist_ok=True)
     # call the webwork-to-xml routine from core
     # the fourth argument seems to be for debugging on the ptx core side
     # the fifth argument has to do with ww server config; here just use

@@ -39,15 +39,6 @@ def linux_path(path):
     p = pathlib.Path(path)
     return p.as_posix()
 
-def ensure_directory(path):
-    """
-    If the directory doesn't exist yet, create it.
-    """
-    try:
-        os.makedirs(path)
-    except FileExistsError:
-        pass
-
 
 def directory_exists(path):
     """

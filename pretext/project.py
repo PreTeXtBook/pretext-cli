@@ -223,15 +223,18 @@ class Project():
         self.xml_schema_validate(target_name)
         # Ensure directories for assets and generated assets to avoid errors when building:
         target = self.target(target_name)
-        utils.ensure_directory(target.external_dir())
-        utils.ensure_directory(target.generated_dir())
-        # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
+        os.makedirs(target.external_dir(), exist_ok=True)
+        os.makedirs(target.generated_dir(), exist_ok=True)
         if clean:
+            # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
             if Path(self.__project_path) not in Path(target.output_dir()).parents:
                 log.warning("Refusing to clean output directory that isn't a proper subdirectory of the project.")
             elif Path(target.output_dir()) in Path(os.path.join(target.source_dir(),"foo")).parents or \
                 Path(target.output_dir()) in Path(os.path.join(target.publication_dir(),"foo")).parents:
                 log.warning("Refusing to clean output directory that contains source or publication files.")
+            # handle request to clean directory that does not exist
+            elif not os.path.isdir(target.output_dir()):
+                log.warning(f"Directory {target.output_dir()} already does not exist, nothing to clean.")
             else:
                 log.warning(f"Destroying directory {target.output_dir()} to clean previously built files.")
                 shutil.rmtree(target.output_dir())
@@ -251,7 +254,7 @@ class Project():
             # handle this exactly as in webwork_to_xml (should this
             # be exported in the pretext core module?)
             webwork_output = os.path.join(target.generated_dir(),'webwork')
-            utils.ensure_directory(webwork_output)
+            os.makedirs(webwork_output, exist_ok=True)
             try:
                 server_url = target.stringparams()['server']
             except Exception as e:
