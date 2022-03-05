@@ -233,7 +233,7 @@ class Project():
                 Path(target.output_dir()) in Path(os.path.join(target.publication_dir(),"foo")).parents:
                 log.warning("Refusing to clean output directory that contains source or publication files.")
             else:
-                log.warning(f"Destorying directory {target.output_dir()} to clean previously built files.")
+                log.warning(f"Destroying directory {target.output_dir()} to clean previously built files.")
                 shutil.rmtree(target.output_dir())
         #if custom xsl, copy it into a temporary directory (different from the building temporary directory)
         custom_xsl = None
