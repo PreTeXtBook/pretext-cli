@@ -34,9 +34,8 @@
     </hint>
   </exercise>
   
-  <!-- For an example of WeBWorK, uncomment the next exercise and        -->
-  <!-- run `pretext build html -w`.  You must also specify where         -->
-  <!-- the "webwork-representations.ptx" file is in the publication file -->
+  <!-- For an example of WeBWorK, uncomment the next -->
+  <!-- exercise and run `pretext build html -w`.     -->
   <!-- <exercise>
     <webwork xml:id="webwork-add-numbers">
       <description>

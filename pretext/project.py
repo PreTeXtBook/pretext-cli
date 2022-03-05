@@ -123,14 +123,6 @@ class Target():
         rel_dir = dir_ele.get("generated")
         return os.path.join(self.source_dir(),rel_dir)
 
-    def webwork_representations_path(self):
-        dir_ele = self.publication_xml().find("source[@webwork-problems]")
-        if dir_ele is None:
-            log.debug("Publication file does not specify webwork-representation.ptx file")
-            return None
-        rel_dir = dir_ele.get("webwork-problems")
-        return os.path.join(self.source_dir(),rel_dir)
-
     def output_dir(self):
         return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("output-dir").text.strip()))
 
@@ -233,12 +225,6 @@ class Project():
         target = self.target(target_name)
         utils.ensure_directory(target.external_dir())
         utils.ensure_directory(target.generated_dir())
-        # Check for WeBWorK but not webwork-representations file:
-        if len(target.source_xml().xpath('//webwork'))>0:
-            if target.webwork_representations_path() is None:
-                log.warning(f'Your source contains WeBWorK exercises but you do not have a "webwork-representations" file specified in your publication file.  Modify your publication file and run `pretext build -w`.')
-            elif not os.path.isfile(target.webwork_representations_path()):
-                log.warning(f'Your source contains WeBWorK exercises the path to the "webwork-representations.ptx" file in your publication file does not point to a file. Run `pretext build -w` or modify your publication file.')
         # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
         if clean:
             if Path(self.__project_path) not in Path(target.output_dir()).parents:
@@ -274,7 +260,7 @@ class Project():
                 log.warning(f"No server name, {root_cause}.")
                 log.warning(f"Using default {server_url}")
             builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams(), server_url)
-        elif len(target.source_xml().xpath('//webwork')) > 0:
+        elif len(target.source_xml().xpath('//webwork[node()|@*]')) > 0:
             log.warning(
                 "The source has WeBWorK exercises, but you are not re(processing) these.  Run `pretext build` with the `-w` flag if updates are needed.")
         if diagrams:
