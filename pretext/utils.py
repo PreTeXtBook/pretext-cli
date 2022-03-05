@@ -193,8 +193,8 @@ def serve_forever(directory,access="private",port=8000):
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
                 url = url_for_access(access,port)
-                log.info(f"Server started at {url}")
-                log.info(f"(In a web browser, you may visit {url} to view output.)")
+                log.info(f"Success! Open the below url in a web browser to preview the most recent build of your project.")
+                log.info(url)
                 log.info("Use [Ctrl]+[C] to halt the server.\n")
                 httpd.serve_forever()
         except OSError:
