@@ -75,7 +75,9 @@ def support():
     log.info("pretext-support Google Group.")
     log.info("")
     with open(static.path('VERSION'), 'r') as version_file:
-        log.info(f"PreTeXt-CLI version: {version_file.read().strip()}")
+        version = version_file.read().strip()
+        log.info(f"PreTeXt-CLI version: {version}")
+        log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{version}/")
     with open(static.path('CORE_COMMIT'), 'r') as commit_file:
         log.info(f"PreTeXt core resources commit: {commit_file.read().strip()}")
     log.info(f"OS: {platform.platform()}")
