@@ -18,9 +18,11 @@ click_logging.basic_config(log)
 def raise_cli_error(message):
     raise click.UsageError(" ".join(message.split()))
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
 
 #  Click command-line interface
-@click.group(invoke_without_command=True)
+@click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 # Allow a verbosity command:
 @click_logging.simple_verbosity_option(
@@ -41,7 +43,8 @@ def main(ctx,targets):
 
     - https://github.com/PreTeXtBook/pretext-cli/
 
-    Use the `--help` option on any CLI command to learn more.
+    Use the `--help` option on any CLI command to learn more, for example,
+    `pretext build --help`.
     """
     # set verbosity:
     if log.level == 10:
@@ -63,7 +66,9 @@ def main(ctx,targets):
 
 
 # pretext support
-@main.command(short_help="Use when communicating with PreTeXt support.")
+@main.command(
+    short_help="Use when communicating with PreTeXt support.", 
+    context_settings=CONTEXT_SETTINGS)
 def support():
     """
     Outputs useful information about your installation needed by
@@ -94,7 +99,8 @@ def support():
 
 
 # pretext new
-@main.command(short_help="Generates the necessary files for a new PreTeXt project.")
+@main.command(short_help="Generates the necessary files for a new PreTeXt project.", 
+    context_settings=CONTEXT_SETTINGS)
 @click.argument('template', default='book',
               type=click.Choice(['book', 'article', 'hello'], case_sensitive=False))
 @click.option('-d', '--directory', type=click.Path(), default='new-pretext-project',
@@ -133,7 +139,8 @@ def new(template,directory,url_template):
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
 # pretext init
-@main.command(short_help="Generates the project manifest for a PreTeXt project in the current directory.")
+@main.command(short_help="Generates the project manifest for a PreTeXt project in the current directory.", 
+    context_settings=CONTEXT_SETTINGS)
 def init():
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
@@ -155,7 +162,8 @@ def init():
         log.warning(f"`{project_manifest_path}` should be updated to the location of your publication file.")
 
 # pretext build
-@main.command(short_help="Build specified target")
+@main.command(short_help="Build specified target", 
+    context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
 @click.option('-f', '--format', type=click.Choice(['html','latex','pdf']),
               help='Output format to build.')
@@ -224,7 +232,8 @@ def build(target, format, source, output, stringparam, xsl, publication, webwork
     project.build(target_name,webwork,diagrams,diagrams_format,only_assets,clean)
 
 # pretext view
-@main.command(short_help="Preview specified target in your browser.")
+@main.command(short_help="Preview specified target in your browser.", 
+    context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
 @click.option(
     '-a',
@@ -281,7 +290,8 @@ def view(target,access,port,directory,watch,build):
         log.error(f"Target `{target_name}` could not be found.")
 
 # pretext publish
-@main.command(short_help="Publishes Git-managed project on GitHub Pages.")
+@main.command(short_help="Publishes Git-managed project on GitHub Pages.", 
+    context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
 @click.option(
     '-m',
