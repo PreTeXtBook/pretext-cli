@@ -111,5 +111,5 @@ def webwork(ptxfile, pub_file, dest_dir, params, server_params):
     # the default/recommended config in PreTeXt Guide. But this is passed as one of the collection of stringparams, so set to None here.  Sams for the pub_file.
     with utils.working_directory("."):
         core.webwork_to_xml(
-            xml_source=ptxfile, pub_file=None, stringparams=params,
+            xml_source=ptxfile, pub_file=pub_file, stringparams=params,
             abort_early=True, server_params=server_params, dest_dir=dest_dir)
