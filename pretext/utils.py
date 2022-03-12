@@ -1,4 +1,5 @@
 import os
+import glob
 import random
 import json
 from contextlib import contextmanager
@@ -234,16 +235,27 @@ def expand_pretext_href(lxml_element):
     for ele in lxml_element.xpath('//*[@pretext-href]'):
         ele.set('href',str(linux_path(static.core_xsl(ele.get('pretext-href'),as_path=True))))
 
-def copy_fix_xsl(xsl_path, output_dir):
+def copy_fix_xsl(xsl_path: str, output_dir: str):
+    """
+    Copy relevant files that share a directory with `xsl_path`
+    while pre-processing the `.xsl` files.
+    """
     xsl_dir = os.path.abspath(os.path.dirname(xsl_path))
     output_dir = os.path.abspath(output_dir)
     with working_directory(xsl_dir):
-        for filename in os.listdir('.'):
+        for filename in glob.iglob('**', recursive=True):
+            output_path = os.path.join(output_dir, filename)
+            if not os.path.isfile(filename):
+                # glob lists both files and directories, but we only want to copy files.
+                continue
+            # Ensure the existence of the subdirectory our file is in before writing.
+            pathlib.Path(os.path.dirname(output_path)).mkdir(parents=True, exist_ok=True)
+
             if filename.endswith('.xsl'):
+                # Preprocess the .xsl files
                 lxml_element = ET.parse(filename)
                 expand_pretext_href(lxml_element)
-                output_path = os.path.join(output_dir, filename)
                 lxml_element.write(output_path)
-            elif filename.endswith('.ent'):
-                # an author might include a copy of the .ent file which should also be copied.
+            else:
+                # All other files are directly copied without pre-processing
                 shutil.copyfile(filename, os.path.join(output_dir, filename))
