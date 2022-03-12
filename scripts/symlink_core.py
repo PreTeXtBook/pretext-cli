@@ -15,4 +15,4 @@ for subdir in ['xsl','schema','pretext']:
     remove(link_path)
     os.symlink(original_path,link_path)
 
-print("Linked local rbeezer/mathbook ")
+print("Linked local pretext directory")

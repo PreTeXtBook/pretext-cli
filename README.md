@@ -193,18 +193,18 @@ need to be rebuilt by each user when pulled from GitHub.
 
 The file `pretext/static/CORE_COMMIT` tracks the upstream
 commit of core PreTeXt XSL/Python code we're developing against
-(from `rbeezer/mathbook`).
+(from `rbeezer/pretext`).
 To grab these updates from upstream, run:
 
 ```
 python scripts/update_core.py
 ```
 
-If you instead want to point to a local copy of `rbeezer/mathbook`,
+If you instead want to point to a local copy of `rbeezer/pretext`,
 try this instead to set up symlinks:
 
 ```
-python scripts/simlink_core.py path/to/mathbook
+python scripts/symlink_core.py path/to/pretext
 ```
 
 Updates to `templates/` must be zipped and moved into
@@ -235,5 +235,5 @@ See [VERSIONING.md](VERSIONING.md).
 - [Oscar Levin](https://math.oscarlevin.com/)
 
 ### About PreTeXt
-The development of [PreTeXt's core](https://github.com/rbeezer/mathbook)
+The development of [PreTeXt's core](https://github.com/PreTeXtBook/pretext)
 is led by [Rob Beezer](http://buzzard.ups.edu/).
