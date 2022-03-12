@@ -1,6 +1,6 @@
 import subprocess, os, shutil
 
-# grab verison number
+# grab version number
 with open("pretext/static/VERSION") as f:
     version = f.read().strip()
 
