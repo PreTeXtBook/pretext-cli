@@ -193,14 +193,14 @@ need to be rebuilt by each user when pulled from GitHub.
 
 The file `pretext/static/CORE_COMMIT` tracks the upstream
 commit of core PreTeXt XSL/Python code we're developing against
-(from `rbeezer/pretext`).
+(from `PreTeXtBook/pretext`).
 To grab these updates from upstream, run:
 
 ```
 python scripts/update_core.py
 ```
 
-If you instead want to point to a local copy of `rbeezer/pretext`,
+If you instead want to point to a local copy of `PreTeXtBook/pretext`,
 try this instead to set up symlinks:
 
 ```
