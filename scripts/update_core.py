@@ -8,7 +8,7 @@ def remove(path):
     elif os.path.isdir(path):
         shutil.rmtree(path)  # remove dir and all contains
 
-# grab copy of necessary rbeezer/mathbook files from specified commit
+# grab copy of necessary PreTeXtBook/pretext files from specified commit
 with open("pretext/static/CORE_COMMIT","r") as commitfile:
     commit = commitfile.readline().strip()
 
