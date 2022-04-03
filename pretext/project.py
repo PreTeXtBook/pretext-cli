@@ -2,7 +2,6 @@ from lxml import etree as ET
 import os, shutil
 import logging
 import tempfile
-import git
 from . import static, utils
 from . import build as builder
 from .static.pretext import pretext as core
@@ -302,6 +301,11 @@ class Project():
             shutil.rmtree(temp_xsl_dir)
 
     def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
+        try:
+            import git
+        except ImportError:
+            log.critical("Git must be installed to use this feature, but couldn't be found.")
+            return None
         target = self.target(target_name)
         if target.format() != "html":
             log.error("Only HTML format targets are supported.")
