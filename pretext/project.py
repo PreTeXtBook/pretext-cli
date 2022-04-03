@@ -301,7 +301,7 @@ class Project():
         if (temp_xsl_dir and os.path.exists(temp_xsl_dir)):
             shutil.rmtree(temp_xsl_dir)
 
-    def publish(self,target_name,commit_message="Update to PreTeXt project source."):
+    def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
         target = self.target(target_name)
         if target.format() != "html":
             log.error("Only HTML format targets are supported.")
@@ -318,16 +318,16 @@ class Project():
         if not utils.directory_exists(target.output_dir()):
             log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build` first?")
             return
-        log.info(f"Preparing to publish the latest build located in `{target.output_dir()}`.")
+        log.info(f"Preparing to deploy the latest build located in `{target.output_dir()}`.")
         docs_path = os.path.join(self.__project_path,"docs")
         shutil.rmtree(docs_path,ignore_errors=True)
         shutil.copytree(target.output_dir(),docs_path)
         log.info(f"Latest build copied to `{docs_path}`.")
         repo.git.add('docs')
         try:
-            repo.git.commit(message=f"Publish latest build of target {target.name()}.")
+            repo.git.commit(message=f"Deploy latest build of target {target.name()}.")
         except git.exc.GitCommandError:
-            log.warning("Latest build is the same as last published build.")
+            log.warning("Latest build is the same as last deployed build.")
             pass
         log.info("Pushing to GitHub. (Your password may be required below.)")
         try:
