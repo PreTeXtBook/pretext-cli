@@ -361,6 +361,8 @@ class Project():
         docs_path = os.path.join(self.__project_path,"docs")
         shutil.rmtree(docs_path,ignore_errors=True)
         shutil.copytree(target.output_dir(),docs_path)
+        with open(os.path.join(docs_path,'.nojekyll'), 'w') as fp:
+            pass
         log.info(f"Latest build copied to `{docs_path}`.")
         log.info("")
         repo.git.add('docs')
