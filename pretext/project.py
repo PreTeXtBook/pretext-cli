@@ -304,8 +304,8 @@ class Project():
         try:
             import git
         except ImportError:
-            log.critical("Git must be installed to use this feature, but couldn't be found.")
-            return None
+            log.error("Git must be installed to use this feature, but couldn't be found.")
+            return
         target = self.target(target_name)
         if target.format() != "html":
             log.error("Only HTML format targets are supported.")
@@ -313,34 +313,71 @@ class Project():
         try:
             repo = git.Repo(self.__project_path)
         except git.exc.InvalidGitRepositoryError:
-            log.error("Target's project must be under Git version control.")
+            log.info("Initializing project with Git.")
+            repo = git.Repo.init(self.__project_path)
+            repo.git.add(all=True)
+            repo.git.commit(message="Initial commit")
+            repo.heads.master.rename("main")
+            log.info("Success!")
+            log.info("")
+            log.info("If you haven't already, configure SSH with GitHub by following instructions at:")
+            log.info("    https://docs.github.com/en/authentication/connecting-to-github-with-ssh")
+            log.info("")
+            log.info("And if you haven't already, create a remote GitHub repository for this project at:")
+            log.info("    https://github.com/new")
+            log.info("(Do NOT check any \"initialize\" options.)")
+            log.info("Visit Settings > Pages on your new GitHub repository's page to enable GitHub Pages,")
+            log.info("selecting the `main` branch with the `/docs` folder.")
+            log.info("")
+            log.info("Then within your new repository homepage's \"Quick setup\" section select \"SSH\".")
+            log.info("And copy/paste your `git@github.com:YourUserName/repo-name.git` info below.")
+            ssh_info = input("Remote SSH info: ")
+            log.info("")
+            log.info("Attempting to connect to GitHub (your SSH password may be required)...")
+            try:
+                repo.create_remote("origin", url=ssh_info)
+                repo.git.push('--set-upstream', "origin", "main")
+            except git.exc.GitCommandError:
+                log.error(f"There was an issue connecting to GitHub via `{ssh_info}`")
+                log.error("Deploy was unsuccessful.")
+                return
+            log.info(f"Successfully connected to GitHub via `{ssh_info}`!")
+            log.info("")
+        if repo.active_branch.name != "main":
+            log.critical("The active Git branch is not set to `main`.")
+            log.critical("Please checkout the main branch to use this deploy utility.")
             return
         if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
-            log.info("Updating project Git repository with latest changes to source.")
+            log.info("Changes to project source since last commit detected.")
+            log.info("Add/committing these changes to local Git repository.")
+            log.info("")
             repo.git.add(all=True)
             repo.git.commit(message=commit_message)
         if not utils.directory_exists(target.output_dir()):
-            log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build` first?")
+            log.error(f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`.")
+            log.error(f"Try running `pretext build {target.name()}` first.")
             return
         log.info(f"Preparing to deploy the latest build located in `{target.output_dir()}`.")
         docs_path = os.path.join(self.__project_path,"docs")
         shutil.rmtree(docs_path,ignore_errors=True)
         shutil.copytree(target.output_dir(),docs_path)
         log.info(f"Latest build copied to `{docs_path}`.")
+        log.info("")
         repo.git.add('docs')
         try:
             repo.git.commit(message=f"Deploy latest build of target {target.name()}.")
         except git.exc.GitCommandError:
-            log.warning("Latest build is the same as last deployed build.")
+            log.warning("Latest build was already committed by Git (but may not have been deployed).")
             pass
-        log.info("Pushing to GitHub. (Your password may be required below.)")
+        log.info("Deploying to GitHub. (Your SSH password may be required.)")
         try:
             repo.git.push()
         except git.exc.GitCommandError:
-            log.error("Unable to push to GitHub.  Try running `git push` yourself.")
+            log.error("Unable to push to GitHub. Try running `git push` yourself.")
             return
-        log.info(f"Latest build successfully pushed to GitHub.")
-        log.info("(It may take a few seconds for GitHub Pages to reflect any changes.)")
+        log.info("")
+        log.info(f"Latest build successfully pushed to GitHub!")
+        log.info("Visit Settings > Pages on your GitHub repository's page to check deploy status.")
 
     def xml_source_is_valid(self,target_name):
         target = self.target(target_name)
