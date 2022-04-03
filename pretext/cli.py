@@ -135,6 +135,9 @@ def new(template,directory,url_template):
             archive.extract(filepath,path=tmpdirname)
         tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
+    # generate requirements.txt
+    with open(os.path.join(directory_fullpath,"requirements.txt"),"w") as f:
+        f.write(f"pretextbook == {cli_version()}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
@@ -155,6 +158,8 @@ def init():
     project_manifest_path = os.path.abspath("project.ptx")
     log.info(f"Generating `{project_manifest_path}`.")
     shutil.copyfile(template_manifest_path,project_manifest_path)
+    with open("requirements.txt","w") as f:
+        f.write(f"pretextbook == {cli_version()}")
     log.info(f"Success! Open `{project_manifest_path}` to edit your project manifest.")
     log.info(f"Edit your <target/>s to point to your main PreTeXt source file.")
     project_pub_path = os.path.abspath(os.path.join("publication","publication.ptx"))
