@@ -33,6 +33,15 @@
       <!-- edit this to change the section/chapter/etc. to build -->
       <xmlid-root>ch-first</xmlid-root>
     </target>
+    <!-- Custom XSL may invoke core PreTeXt by using pretext-href -->
+    <!-- Only files in the directory containing custom.xsl are used -->
+    <!-- <target name="custom">
+      <format>html</format>
+      <source>source/main.ptx</source>
+      <publication>publication/publication.ptx</publication>
+      <output-dir>output/custom</output-dir>
+      <xsl>path/to/your/custom.xsl</xsl>
+    </target> -->
   </targets>
   <executables>
       <latex>latex</latex>
