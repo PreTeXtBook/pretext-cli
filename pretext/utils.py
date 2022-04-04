@@ -146,11 +146,15 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
         self.last_trigger_at = time.time()-5
         self.callback = callback
     def on_any_event(self,event):
-        # only trigger at most every 5 seconds
-        if time.time() > self.last_trigger_at + 5:
-            self.last_trigger_at = time.time()
-            log.info(f"\nChanges to source detected.\n")
-            self.callback()
+        self.last_trigger_at = time.time()
+        # only run callback once triggers halt for a second
+        def timeout_callback(handler):
+            time.sleep(1.5)
+            if time.time() > handler.last_trigger_at + 1:
+                handler.last_trigger_at = time.time()
+                log.info("\nChanges to source detected.\n")
+                handler.callback()
+        threading.Thread(target=timeout_callback,args=(self,)).start()
 
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
