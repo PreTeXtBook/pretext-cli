@@ -104,18 +104,13 @@ def xml_syntax_is_valid(xmlfile):
     except IOError:
         log.error(f'The file {xmlfile} does not exist')
         return False
-
     # check for XML syntax errors
     except ET.XMLSyntaxError as err:
-        log.error('XML Syntax Error, see error_syntax.log. Quitting...')
-        with open('error_syntax.log', 'w') as error_log_file:
-            error_log_file.write(str(err.error_log))
+        log.error('XML Syntax Error caused build to fail:')
+        log.error(str(err.error_log))
         return False
     except ET.XIncludeError as err:
-        log.error(
-            'XML Syntax Error with instance of xinclude; see error_syntax.log. Quitting...')
-        with open('error_syntax.log', 'w') as error_log_file:
-            error_log_file.write(str(err.error_log))
+        log.error('XInclude Error caused build to fail:')
         return False
     return True
 
