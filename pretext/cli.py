@@ -135,8 +135,12 @@ def new(template,directory,url_template):
             archive.extract(filepath,path=tmpdirname)
         tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
+    # generate requirements.txt
+    with open(os.path.join(directory_fullpath,"requirements.txt"),"w") as f:
+        f.write(f"pretextbook == {cli_version()}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
+
 
 # pretext init
 @main.command(short_help="Generates the project manifest for a PreTeXt project in the current directory.", 
@@ -154,12 +158,15 @@ def init():
     project_manifest_path = os.path.abspath("project.ptx")
     log.info(f"Generating `{project_manifest_path}`.")
     shutil.copyfile(template_manifest_path,project_manifest_path)
+    with open("requirements.txt","w") as f:
+        f.write(f"pretextbook == {cli_version()}")
     log.info(f"Success! Open `{project_manifest_path}` to edit your project manifest.")
     log.info(f"Edit your <target/>s to point to your main PreTeXt source file.")
     project_pub_path = os.path.abspath(os.path.join("publication","publication.ptx"))
     if not os.path.isfile(project_pub_path):
         log.warning(f"Note that your publication file should be moved to `{project_pub_path}`, or")
         log.warning(f"`{project_manifest_path}` should be updated to the location of your publication file.")
+
 
 # pretext build
 @main.command(short_help="Build specified target", 
@@ -231,6 +238,7 @@ def build(target, format, source, output, stringparam, xsl, publication, webwork
         project = Project(xml_element=project.xml_element(),targets=[target])
     project.build(target_name,webwork,diagrams,diagrams_format,only_assets,clean)
 
+
 # pretext view
 @main.command(short_help="Preview specified target in your browser.", 
     context_settings=CONTEXT_SETTINGS)
@@ -289,8 +297,9 @@ def view(target,access,port,directory,watch,build):
     else:
         log.error(f"Target `{target_name}` could not be found.")
 
-# pretext publish
-@main.command(short_help="Publishes Git-managed project on GitHub Pages.", 
+
+# pretext deploy
+@main.command(short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
 @click.option(
@@ -301,15 +310,36 @@ def view(target,access,port,directory,watch,build):
     help="""
     Customize message to leave on Git commit for source updates.
     """)
-def publish(target,commit_message):
+def deploy(target,commit_message):
     """
-    Automates HTML publication of [TARGET] on GitHub Pages to make
-    the built document available to the general public.
+    Automatically deploys most recent build of [TARGET] to GitHub Pages,
+    making it available to the general public.
     Requires that your project is under Git version control
-    properly configured with GitHub and GitHub Pages. Pubilshed
+    properly configured with GitHub and GitHub Pages. Deployed
     files will live in `docs` subdirectory of project.
     """
     target_name = target
     project = Project()
-    project.publish(target_name,commit_message)
+    project.deploy(target_name,commit_message)
 
+# pretext publish
+@main.command(short_help="DEPRECATED: use deploy",
+    context_settings=CONTEXT_SETTINGS)
+@click.argument('target', required=False)
+@click.option(
+    '-m',
+    '--commit-message',
+    default="Update to PreTeXt project source.",
+    show_default=True,
+    help="""
+    Customize message to leave on Git commit for source updates.
+    """)
+@click.pass_context
+def publish(ctx,target,commit_message):
+    """
+    DEPRECATED in favor of `deploy` command. Will be
+    removed in a future version.
+    """
+    log.warning("`pretext publish` command is DEPRECATED and will be removed soon.")
+    log.warning("Use `pretext deploy` next time.")
+    ctx.forward(deploy)
