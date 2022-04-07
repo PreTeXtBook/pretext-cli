@@ -3,7 +3,7 @@
 <!-- first chapter.  Fill in and comment/uncomment to see how this -->
 <!-- works.                                                        -->
 
-<frontmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="frontmatter">
+<frontmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="meta_frontmatter">
   <titlepage>
     <author>
       <personname>Me</personname>
@@ -14,16 +14,17 @@
   </titlepage>
 
   <colophon>
+
     <website>
       <name><c>my-website.org</c></name>
-      <address>http://my.website.org</address>
+      <address>http://pretextbook.org</address>
     </website>
 
     <copyright>
       <!-- In addition to specifying the copyright holder, you should  -->
       <!-- include a license, such as the cc-by-sa license shown below -->
       <!-- so people reading your book know how they can use it.       -->
-      <year>2020<ndash/>2021</year>
+      <year>2020<ndash/>2022</year>
       <holder>Me</holder>
       <!-- <minilicense><image source="../images/by-sa.png" /></minilicense> -->
       <shortlicense>
@@ -35,7 +36,6 @@
           visual="creativecommons.org/licenses/by-sa/4.0">
           CreativeCommons.org</url>
       </shortlicense>
-
     </copyright>
 
   </colophon>
@@ -50,18 +50,23 @@
     <p>
       I would like to thank...
     </p>
-
   </acknowledgement>
 
-  <preface xml:id="preface">
+  <preface xml:id="meta_frontmatter-preface">
     <!-- You should be a little careful about what you put here -->
     <!-- Avoid elements that should have a number, for example  -->
     <p>
       About this book:
     </p>
-
   </preface>
 
   <!-- You can have more than one preface. -->
+  <preface>
+    <title>Not just that..</title>
+    <p>
+      I still have more to say!
+    </p>
+  </preface>
+
 </frontmatter>
 

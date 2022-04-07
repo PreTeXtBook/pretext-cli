@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<section xml:id="sec_firstch-examples" xmlns:xi="http://www.w3.org/2001/XInclude">
+<section xml:id="sec_first-examples" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Examples</title>
   
   <p>
@@ -34,7 +34,7 @@
     Although the next things are not examples, they give examples of blocks that are not examples.  First a theorem.
   </p>
 
-  <theorem xml:id="thm-example-theorem">
+  <theorem xml:id="thm_first-examples-theorem">
     <title>Theorem Title</title>
     <statement>
       <p>
@@ -48,7 +48,7 @@
     </proof>
   </theorem>
   
-  <corollary xml:id="cor-example-corollary">
+  <corollary xml:id="cor_first-examples-corollary">
     <statement>
       <p>
         A corollary that doesn't need a proof.
@@ -60,7 +60,7 @@
     Perhaps at the end of the section, you want to summarize your important theorems.
   </p>
 
-  <assemblage xml:id="assemblage-summary">
+  <assemblage xml:id="asm_first-examples-summary">
     <title>Important Theorems</title>
     <p>
       List important results here.
@@ -68,7 +68,7 @@
   </assemblage>
 
   <p>
-    Of course, if you want more information, you might see <xref ref="thm-example-theorem"/>.
+    Of course, if you want more information, you might see <xref ref="thm_first-examples-theorem"/>.
   </p>
 </section>
 

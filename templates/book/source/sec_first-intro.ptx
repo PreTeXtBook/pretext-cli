@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<section xml:id="sec_firstch-intro" xmlns:xi="http://www.w3.org/2001/XInclude">
+<section xml:id="sec_first-intro" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Introduction to First Chapter</title>
   <introduction>
     <p>
@@ -10,7 +10,7 @@
       Another paragraph of the introduction.
     </p>
   </introduction>
-  <subsection xml:id="subsec-a-subsection">
+  <subsection xml:id="subsec_a-subsection">
     <title>A subsection</title>
     <p>
       Content of the subsection.
@@ -20,7 +20,7 @@
     </p>
   </subsection>
 
-  <subsection xml:id="subsec-another-subsection">
+  <subsection xml:id="subsec_another-subsection">
     <title>Another Subsection</title>
     <p>
       Text with some math: <m>\sin(x) = \cos(x)</m> only for some values of <m>x</m>.

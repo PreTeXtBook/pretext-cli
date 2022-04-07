@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!-- This chapter will eventually contain a bunch of examples of pretext functionality. Useful for copy/paste examples of various things. -->
 
-<chapter xml:id="ch_pretext-features" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter xml:id="ch_features" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Examples of <pretext /> features</title>
   <introduction>
     <p>Below are examples of a lot of <pretext /> elements.</p>
   </introduction>
-  <section xml:id="sec_ptxfeat-blocks">
+  <section xml:id="sec_features-blocks">
     <title>Environments and Blocks</title>
     <p>Some text</p>
-    <theorem xml:id="thm-my-theorem">
+    <theorem xml:id="thm_features-blocks-my-theorem">
       <title>My Theorem</title>
       
       <statement>
@@ -48,12 +48,12 @@
         description.</description>
       </image>
     </figure>
-    <!-- <xi:include href="./figure-tikz.ptx" /> -->
-    <!-- <xi:include href="./figure-sage2d.ptx" /> -->
-    <!-- <xi:include href="./figure-sage3d.ptx" /> -->
-    <!-- <xi:include href="./figure-asymptote.ptx" /> -->
+    <!-- <xi:include href="./fig_tikz.ptx" /> -->
+    <!-- <xi:include href="./fig_sage2d.ptx" /> -->
+    <!-- <xi:include href="./fig_sage3d.ptx" /> -->
+    <!-- <xi:include href="./fig_asymptote.ptx" /> -->
   </section>
-  <section xml:id="section-2-2">
+  <section xml:id="sec_features-other">
     <title>Another section</title>
     <p>This will have more stuff</p>
   </section>

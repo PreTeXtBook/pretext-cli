@@ -13,5 +13,3 @@ node_modules
 # don't track error logs
 .error_schema.log
 error_schema.log
-.error_syntax.log
-error_syntax.log

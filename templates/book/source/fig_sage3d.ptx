@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<figure xml:id="fig_sage3d">
+  <caption>The paraboloid <m>z=x^2+y^2</m> made by SageMath</caption>
+  <image xml:id="sageplot3d-example-diagram" width="80%">
+    <description>A paraboloid</description>
+    <sageplot variant="3d" aspect="1.0">
+      x,y = var('x y')
+      plot3d(x^2+y^2,(x,-1,1),(y,-1,1), frame=False, color='purple', opacity=0.8)
+    </sageplot>
+  </image>
+</figure>

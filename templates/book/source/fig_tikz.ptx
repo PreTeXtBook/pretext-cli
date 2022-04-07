@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<figure xml:id="figure-tikz-example-diagram">
+<figure xml:id="fig_tikz">
     <caption>The graph <m>C_5</m> made by TikZ</caption>
-    <image xml:id="tikz-example-diagram" width="20%">
+    <image xml:id="fig_tikz-example-diagram" width="20%">
     <description>A 5-cycle</description>
     <latex-image>
         \begin{tikzpicture}

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<figure xml:id="fig_sage2d">
+  <caption>The parabola <m>y=x^2</m> made by SageMath</caption>
+  <image xml:id="sageplot-example-diagram" width="50%">
+    <description>A parabola</description>
+    <sageplot>
+      plot(x^2)
+    </sageplot>
+  </image>
+</figure>

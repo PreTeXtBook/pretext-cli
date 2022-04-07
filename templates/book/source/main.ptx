@@ -8,7 +8,7 @@
 <pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
 
   <!-- we first include a file which contains the docinfo element: -->
-  <xi:include href="./docinfo.ptx" />
+  <xi:include href="./meta_docinfo.ptx" />
 
   <!-- The <book> tags wrap all the content.  Change the @xml:id   -->
   <!-- to some short (non-spaced) description of your book         -->
@@ -21,13 +21,13 @@
 
     <!-- First a frontmatter for prefaces and such. Maybe comment  -->
     <!-- out for now and write this when the book is more complete -->
-    <xi:include href="./frontmatter.ptx" />
+    <xi:include href="./meta_frontmatter.ptx" />
 
     <!-- The first chapter will be bare bones to illustrate the    -->
     <!-- possible structure of the book.  Once you know what the   -->
     <!-- title of the chapter is, rename the file something based  -->
     <!-- on the title (ch-shorttitle.ptx) both here and on disk    -->
-    <xi:include href="./ch_first-chapter.ptx" />
+    <xi:include href="./ch_first.ptx" />
     <xi:include href="./ch_empty.ptx"/>
     <!-- Of course you will want to add more chapters as you proceed-->
 
@@ -35,9 +35,9 @@
     <!-- illustrate what pretext can do, plus links to more help.  -->
     <!-- We recommend keeping this handy, and commenting it out    -->
     <!-- when you show off your own work.                          -->
-    <xi:include href="./ch_pretext-features.ptx" />
+    <xi:include href="./ch_features.ptx" />
 
     <!-- Finaly we place the backmatter in its own file and inlcude-->
-    <xi:include href="./backmatter.ptx" />
+    <xi:include href="./meta_backmatter.ptx" />
   </book>
 </pretext>

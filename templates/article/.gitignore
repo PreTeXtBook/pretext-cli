@@ -1,11 +1,15 @@
-# unpublished builds
+# ensure this file is tracked
+!.gitignore
+
+# don't track unpublished builds
 output
 
-# assets generated from source
+# don't track assets generated from source
 generated-assets
 
-# error logs
+# don't track node packages
+node_modules
+
+# don't track error logs
 .error_schema.log
 error_schema.log
-.error_syntax.log
-error_syntax.log

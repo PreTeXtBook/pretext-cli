@@ -2,7 +2,7 @@
 <!-- Chapters are enclosed with <chapter> tags. Use xml:id to -->
 <!-- uniquely identify the chapter.  The @xmlns:xi attribute  -->
 <!-- is needed if you use xi:include in this file             -->
-<chapter xml:id="ch-first" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter xml:id="ch_first" xmlns:xi="http://www.w3.org/2001/XInclude">
 
 <!-- Change title when you have one: -->
   <title>My First Chapter</title>
@@ -16,9 +16,9 @@
   <!-- with organization to include them as separate files.      -->
   <!-- That way it is easy to include the section in a different -->
   <!-- chapter later if you change your mind about the order.    -->
-  <xi:include href="./sec_firstch-intro.ptx" />
-  <xi:include href="./sec_firstch-examples.ptx" />
+  <xi:include href="./sec_first-intro.ptx" />
+  <xi:include href="./sec_first-examples.ptx" />
 
   <!-- One or more of the sections of a chapter might be exercises-->
-  <xi:include href="./ex_firstch.ptx"/>
+  <xi:include href="./ex_first.ptx"/>
 </chapter>
