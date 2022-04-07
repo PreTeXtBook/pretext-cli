@@ -111,6 +111,7 @@ def xml_syntax_is_valid(xmlfile):
         return False
     except ET.XIncludeError as err:
         log.error('XInclude Error caused build to fail:')
+        log.error(str(err.error_log))
         return False
     return True
 
@@ -194,7 +195,7 @@ def serve_forever(directory,access="private",port=8000):
                 looking_for_port = False
                 url = url_for_access(access,port)
                 log.info(f"Success! Open the below url in a web browser to preview the most recent build of your project.")
-                log.info(url)
+                log.info("    "+url)
                 log.info("Use [Ctrl]+[C] to halt the server.\n")
                 httpd.serve_forever()
         except OSError:
