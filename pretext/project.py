@@ -315,6 +315,16 @@ class Project():
         except git.exc.InvalidGitRepositoryError:
             log.info("Initializing project with Git.")
             repo = git.Repo.init(self.__project_path)
+            try:
+                repo.config_reader().get_value("user", "name")
+                repo.config_reader().get_value("user", "email")
+            except:
+                log.info("Setting up name/email configuration for Git...")
+                name = input("Type a name to use with Git: ")
+                email = input("Type your GitHub email to use with Git: ")
+                with repo.config_writer() as w:
+                    w.set_value("user", "name", name)
+                    w.set_value("user", "email", email)
             repo.git.add(all=True)
             repo.git.commit(message="Initial commit")
             repo.heads.master.rename("main")
