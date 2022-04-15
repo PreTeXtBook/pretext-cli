@@ -91,6 +91,7 @@ may be imported by including the following line:
 ```
 
 ## Development
+**Note.** The remainder of this documentation is intended only for those interested in contributing to the developement of this project.  Anyone who simply wishes to *use* the PreTeXt-CLI can stop reading here. 
 
 From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below command to clone the project.
 
