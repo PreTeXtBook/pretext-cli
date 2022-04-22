@@ -90,7 +90,10 @@ may be imported by including the following line:
 <xsl:import pretext-href="pretext-common.xsl"/>
 ```
 
+---
+
 ## Development
+**Note.** The remainder of this documentation is intended only for those interested in contributing to the developement of this project.  Anyone who simply wishes to *use* the PreTeXt-CLI can stop reading here. 
 
 From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below command to clone the project.
 
@@ -215,7 +218,7 @@ running:
 python scripts/zip_templates.py
 ```
 
-## Packaging
+### Packaging
 
 See <https://packaging.python.org/tutorials/packaging-projects/>.
 Inside a virtual environment:
@@ -224,9 +227,11 @@ Inside a virtual environment:
 python scripts/build_release.py
 ```
 
-## Versioning
+### Versioning
 
 See [VERSIONING.md](VERSIONING.md).
+
+---
 
 ## About
 
