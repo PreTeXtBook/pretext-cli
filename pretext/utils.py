@@ -30,10 +30,12 @@ def working_directory(path):
     """
     current_directory=os.getcwd()
     os.chdir(path)
+    log.debug(f"Now working in directory {path}")
     try:
         yield
     finally:
         os.chdir(current_directory)
+        log.debug(f"Successfully changed directory back to {current_directory}")
 
 def linux_path(path):
     # hack to make core ptx and xsl:import happy
@@ -245,6 +247,7 @@ def copy_fix_xsl(xsl_path: str, output_dir: str):
     with working_directory(xsl_dir):
         for filename in glob.iglob('**', recursive=True):
             output_path = os.path.join(output_dir, filename)
+            log.debug(f'Copying {filename} to {output_path}')
             if not os.path.isfile(filename):
                 # glob lists both files and directories, but we only want to copy files.
                 continue
