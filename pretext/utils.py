@@ -237,28 +237,25 @@ def expand_pretext_href(lxml_element):
     for ele in lxml_element.xpath('//*[@pretext-href]'):
         ele.set('href',str(linux_path(static.core_xsl(ele.get('pretext-href'),as_path=True))))
 
-def copy_fix_xsl(xsl_path: str, output_dir: str):
+def copy_expanded_xsl(xsl_path: str, output_dir: str):
     """
     Copy relevant files that share a directory with `xsl_path`
     while pre-processing the `.xsl` files.
     """
     xsl_dir = os.path.abspath(os.path.dirname(xsl_path))
     output_dir = os.path.abspath(output_dir)
-    with working_directory(xsl_dir):
-        for filename in glob.iglob('**', recursive=True):
-            output_path = os.path.join(output_dir, filename)
-            log.debug(f'Copying {filename} to {output_path}')
-            if not os.path.isfile(filename):
-                # glob lists both files and directories, but we only want to copy files.
-                continue
-            # Ensure the existence of the subdirectory our file is in before writing.
-            pathlib.Path(os.path.dirname(output_path)).mkdir(parents=True, exist_ok=True)
-
-            if filename.endswith('.xsl'):
-                # Preprocess the .xsl files
-                lxml_element = ET.parse(filename)
-                expand_pretext_href(lxml_element)
-                lxml_element.write(output_path)
-            else:
-                # All other files are directly copied without pre-processing
-                shutil.copyfile(filename, os.path.join(output_dir, filename))
+    log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
+    shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
+    # expand each xsl file
+    with working_directory(output_dir):
+        for filename in glob.iglob('**',recursive=True):
+            # glob lists both files and directories, but we only want to copy files.
+            if os.path.isfile(filename) and filename.endswith('.xsl'):
+                log.debug(f"Expanding and copying {filename}")
+                try:
+                    lxml_element = ET.parse(filename)
+                    expand_pretext_href(lxml_element)
+                    lxml_element.write(filename)
+                # maybe an xsl file is malformed, but let's continue in case it's unused
+                except Exception as e:
+                    log.warning(f"Hit error `{e}` when expanding {filename}, continuing anyway...")

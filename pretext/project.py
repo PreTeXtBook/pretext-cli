@@ -243,7 +243,7 @@ class Project():
         if target.xsl_path() is not None:
             temp_xsl_dir = tempfile.mkdtemp()
             log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
-            utils.copy_fix_xsl(target.xsl_path(), temp_xsl_dir)
+            utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_dir)
             custom_xsl = os.path.join(temp_xsl_dir, os.path.basename(target.xsl_path()))
         log.info(f"Preparing to build into {target.output_dir()}.")
         #build targets:
