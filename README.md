@@ -81,14 +81,41 @@ If you have an existing installation and you want to upgrade to a more recent ve
 python -m pip install --upgrade pretextbook
 ```
 
-### Importing PreTeXt-provided XSL into custom XSL
+### Custom XSL
 
-When using the custom XSL CLI feature, PreTeXt XSL (e.g. `pretext-common.xsl`)
-may be imported by including the following line:
+Custom XSL is not encouraged for most authors, but (for example) developers working
+bleeding-edge XSL from core PreTeXt may want to call XSL different from that
+which is shipped with a fixed version of the CLI. This may be accomplished by
+adding an `<xsl/>` element to your target with a relative (to `project.ptx`) or
+absolute path to the desired XSL. *(Note: this XSL must only import
+other XSL files in the same directory or within subdirectories.)*
+
+For example:
+
+```
+<target name="html">
+  <format>html</format>
+  <source>source/main.ptx</source>
+  <publication>publication/publication.ptx</publication>
+  <output-dir>output/html</output-dir>
+  <xsl>../pretext/xsl/pretext-html.xsl</xsl>
+</target>
+```
+
+If your custom XSL file needs to import the XSL
+shipped with the CLI (e.g. `pretext-common.xsl`), then use the `@pretext-href`
+attribute in your custom XSL's `<xsl:import/>` as follows:
 
 ```
 <xsl:import pretext-href="pretext-common.xsl"/>
 ```
+
+The CLI will treat this as follows:
+
+```
+<xsl:import href="/path/to/cli/xsl/on/your/disk/pretext-common.xsl"/>
+```
+
 
 ---
 
