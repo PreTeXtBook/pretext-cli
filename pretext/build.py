@@ -100,16 +100,13 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
                 xmlid_root=xmlid_root, dest_dir=image_output)
 
 
-def webwork(ptxfile, pub_file, dest_dir, params, server_params):
+def webwork(ptxfile, pub_file, dest_dir, params):
     # Assume passed paths are absolute.
     # Set directory for WW representations.
-    # dest_dir = os.path.join(dest_dir, outfile)
     os.makedirs(dest_dir, exist_ok=True)
     # call the webwork-to-xml routine from core
-    # the fourth argument seems to be for debugging on the ptx core side
-    # the fifth argument has to do with ww server config; here just use
-    # the default/recommended config in PreTeXt Guide. But this is passed as one of the collection of stringparams, so set to None here.  Sams for the pub_file.
+    # (server info will be inferred from `publication/webwork/@server`)
     with utils.working_directory("."):
         core.webwork_to_xml(
             xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-            abort_early=True, server_params=server_params, dest_dir=dest_dir)
+            abort_early=True, dest_dir=dest_dir)

@@ -248,23 +248,13 @@ class Project():
         log.info(f"Preparing to build into {target.output_dir()}.")
         #build targets:
         if webwork:
-            # prepare params; for now assume only server is passed
-            # see documentation of pretext core webwork_to_xml
-            # handle this exactly as in webwork_to_xml (should this
-            # be exported in the pretext core module?)
             webwork_output = os.path.join(target.generated_dir(),'webwork')
             os.makedirs(webwork_output, exist_ok=True)
-            try:
-                server_url = target.stringparams()['server']
-            except Exception as e:
-                root_cause = str(e)
-                server_url = "https://webwork-ptx.aimath.org"
-                log.warning(f"No server name, {root_cause}.")
-                log.warning(f"Using default {server_url}")
-            builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams(), server_url)
+            builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams())
         elif len(target.source_xml().xpath('//webwork[node()|@*]')) > 0:
             log.warning(
-                "The source has WeBWorK exercises, but you are not re(processing) these.  Run `pretext build` with the `-w` flag if updates are needed.")
+                "The source has WeBWorK exercises, but you are not (re)processing these. "+
+                "Run `pretext build` with the `-w` flag if updates are needed.")
         if diagrams:
             builder.diagrams(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
