@@ -109,4 +109,4 @@ def webwork(ptxfile, pub_file, dest_dir, params):
     with utils.working_directory("."):
         core.webwork_to_xml(
             xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-            abort_early=True, dest_dir=dest_dir)
+            abort_early=True, dest_dir=dest_dir, server_params=None)
