@@ -58,7 +58,7 @@
   <section xml:id="webwork">
     <title><webwork /> Minimal Section</title>
     <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -w</c>.</p>
-    <exercise>
+    <!-- <exercise>
       <webwork>
         <pg-code>
           $a = Compute(random(1, 9, 1));
@@ -84,6 +84,6 @@
           </p>
         </solution>
       </webwork>
-    </exercise>
+    </exercise> -->
   </section>
 </chapter>
