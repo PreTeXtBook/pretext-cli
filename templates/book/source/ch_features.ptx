@@ -38,8 +38,6 @@
     </example>
     <p>
       Now a figure.
-      (Uncomment the source to include Tikz, SagePlot, and Asymptote examples
-      built with <c>pretext build -d</c>.)
     </p>
     <figure>
       <caption>A frog</caption>
@@ -48,13 +46,44 @@
         description.</description>
       </image>
     </figure>
+    <p>
+      In your source, uncomment any of the figures below to try building various
+      types of images (Tikz, SageMath, Asymptote) with <c>pretext build -d</c>.
+    </p>
     <!-- <xi:include href="./fig_tikz.ptx" /> -->
     <!-- <xi:include href="./fig_sage2d.ptx" /> -->
     <!-- <xi:include href="./fig_sage3d.ptx" /> -->
     <!-- <xi:include href="./fig_asymptote.ptx" /> -->
   </section>
-  <section xml:id="sec_features-other">
-    <title>Another section</title>
-    <p>This will have more stuff</p>
+  <section xml:id="webwork">
+    <title><webwork /> Minimal Section</title>
+    <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -w</c>.</p>
+    <exercise>
+      <webwork>
+        <pg-code>
+          $a = Compute(random(1, 9, 1));
+          $b = Compute(random(1, 9, 1));
+          $c = $a + $b;
+        </pg-code>
+        <statement>
+          <p>
+            Compute the sum of <m><var name="$a" /></m> and <m><var name="$b" /></m>:
+          </p>
+          <p>
+            <m><var name="$a" /> + <var name="$b" /> =</m> <var name="$c" width="5" />
+          </p>
+        </statement>
+        <hint>
+          <p>
+            Add <m><var name="$a" /></m> and <m><var name="$b" /></m> together.
+          </p>
+        </hint>
+        <solution>
+          <p>
+            <m><var name="$a" /> + <var name="$b" /> = <var name="$c" /></m>.
+          </p>
+        </solution>
+      </webwork>
+    </exercise>
   </section>
 </chapter>
