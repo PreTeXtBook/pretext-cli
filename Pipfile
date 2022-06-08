@@ -12,6 +12,3 @@ secretstorage = {markers = "sys_platform == 'linux'", version = ">=3"}
 
 [packages]
 pretextbook = {editable = true,path = "."}
-
-[requires]
-python_version = "3.8.5"
