@@ -296,6 +296,7 @@ class Project():
         except ImportError:
             log.error("Git must be installed to use this feature, but couldn't be found.")
             return
+        log.info("")
         target = self.target(target_name)
         if target.format() != "html":
             log.error("Only HTML format targets are supported.")
@@ -317,31 +318,8 @@ class Project():
                     w.set_value("user", "email", email)
             repo.git.add(all=True)
             repo.git.commit(message="Initial commit")
-            repo.heads.master.rename("main")
-            log.info("Success!")
-            log.info("")
-            log.info("If you haven't already, configure SSH with GitHub by following instructions at:")
-            log.info("    https://docs.github.com/en/authentication/connecting-to-github-with-ssh")
-            log.info("")
-            log.info("And if you haven't already, create a remote GitHub repository for this project at:")
-            log.info("    https://github.com/new")
-            log.info("(Do NOT check any \"initialize\" options.)")
-            log.info("Visit Settings > Pages on your new GitHub repository's page to enable GitHub Pages,")
-            log.info("selecting the `main` branch with the `/docs` folder.")
-            log.info("")
-            log.info("Then within your new repository homepage's \"Quick setup\" section select \"SSH\".")
-            log.info("And copy/paste your `git@github.com:YourUserName/repo-name.git` info below.")
-            ssh_info = input("Remote SSH info: ")
-            log.info("")
-            log.info("Attempting to connect to GitHub (your SSH password may be required)...")
-            try:
-                repo.create_remote("origin", url=ssh_info)
-                repo.git.push('--set-upstream', "origin", "main")
-            except git.exc.GitCommandError:
-                log.error(f"There was an issue connecting to GitHub via `{ssh_info}`")
-                log.error("Deploy was unsuccessful.")
-                return
-            log.info(f"Successfully connected to GitHub via `{ssh_info}`!")
+            repo.active_branch.rename("main")
+            log.info("Successfully initialized new Git repository!")
             log.info("")
         if repo.active_branch.name != "main":
             log.critical("The active Git branch is not set to `main`.")
@@ -358,9 +336,12 @@ class Project():
             log.error(f"Try running `pretext build {target.name()}` first.")
             return
         log.info(f"Preparing to deploy the latest build located in `{target.output_dir()}`.")
+        log.info("")
         docs_path = os.path.join(self.__project_path,"docs")
+        # copy latest build to docs
         shutil.rmtree(docs_path,ignore_errors=True)
         shutil.copytree(target.output_dir(),docs_path)
+        # add empty .nojekyll for ghpages
         with open(os.path.join(docs_path,'.nojekyll'), 'w') as fp:
             pass
         log.info(f"Latest build copied to `{docs_path}`.")
@@ -370,16 +351,60 @@ class Project():
             repo.git.commit(message=f"Deploy latest build of target {target.name()}.")
         except git.exc.GitCommandError:
             log.warning("Latest build was already committed by Git (but may not have been deployed).")
-            pass
-        log.info("Deploying to GitHub. (Your SSH password may be required.)")
+            log.info("")
         try:
-            repo.git.push()
+            origin = repo.remotes.origin
+        except AttributeError:
+            log.warning("Remote GitHub repository is not yet configured.")
+            log.info("")
+            log.info("And if you haven't already, create a remote GitHub repository for this project at:")
+            log.info("    https://github.com/new")
+            log.info("(Do NOT check any \"initialize\" options.)")
+            log.info("Then provide your GitHub info below:")
+            log.info("")
+            username = input("Your GitHub username (e.g. JaneDoe): ").strip()
+            reponame = input("Your GitHub repo name (e.g. my-great-book-repo): ").strip()
+            ssh_info = f"git@github.com:{username}/{reponame}.git"
+            repo.create_remote("origin", url=ssh_info)
+            origin = repo.remotes.origin
+            log.info("")
+        log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
+        log.info("(Your SSH password may be required.)")
+        log.info("")
+        try:
+            repo_user = origin.url.split(":")[1].split("/")[0]
+            repo_name = origin.url.split(":")[1].split("/")[1][:-4]
+            repo_url = f"https://github.com/{repo_user}/{repo_name}/"
+            pages_url = f"https://{repo_user}.github.io/{repo_name}/"
+        except:
+            repo_url = "(error finding repo URL)"
+        try:
+            origin.push(refspec="main:main")
         except git.exc.GitCommandError:
-            log.error("Unable to push to GitHub. Try running `git push` yourself.")
+            log.warning(f"There was an issue connecting to GitHub repository located at {repo_url}")
+            log.info("")
+            log.info("If you haven't already, configure SSH with GitHub by following instructions at:")
+            log.info("    https://docs.github.com/en/authentication/connecting-to-github-with-ssh")
+            log.info("Then try to deploy again.")
+            log.info("")
+            log.info(f"If `{origin.url}` doesn't match your GitHub repository,")
+            log.info("use `git remote remove origin` on the command line then try to deploy again.")
+            log.info("")
+            log.error("Deploy was unsuccessful.")
             return
         log.info("")
-        log.info(f"Latest build successfully pushed to GitHub!")
-        log.info("Visit Settings > Pages on your GitHub repository's page to check deploy status.")
+        log.info("Latest build successfully pushed to GitHub!")
+        log.info("")
+        log.info("Visit")
+        log.info(f"    {repo_url}settings/pages")
+        log.info("to enable GitHub Pages, selecting the `main` branch with the `/docs` folder.")
+        log.info("")
+        log.info("Visit")
+        log.info(f"    {repo_url}deployments")
+        log.info("to check on the status of your GitHub Pages deployment.")
+        log.info("")
+        log.info("Your built project will soon be available to the public at:")
+        log.info(f"    {pages_url}")
 
     def xml_source_is_valid(self,target_name):
         target = self.target(target_name)
