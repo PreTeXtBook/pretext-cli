@@ -377,7 +377,8 @@ class Project():
             repo_url = f"https://github.com/{repo_user}/{repo_name}/"
             pages_url = f"https://{repo_user}.github.io/{repo_name}/"
         except:
-            repo_url = "(error finding repo URL)"
+            repo_url = f"(unable to find GitHub URL from {origin.url})"
+            pages_url = f"(unable to find GitHub Pages URL from {origin.url})"
         try:
             origin.push(refspec="main:main")
         except git.exc.GitCommandError:
