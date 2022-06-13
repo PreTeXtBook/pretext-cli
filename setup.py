@@ -6,9 +6,6 @@ with open("README.md", "r") as readme_file:
 with open("pretext/static/VERSION", "r") as version_file:
     VERSION = version_file.read().strip()
 
-with open(".python-version") as mpv_file:
-    MINIMUM_PYTHON_VERSION = mpv_file.read().strip()
-
 setuptools.setup(
     name="pretextbook",
     version=VERSION,
