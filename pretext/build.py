@@ -38,8 +38,8 @@ def pdf(ptxfile,pub_file,output,stringparams,custom_xsl,pdf_method):
 def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root, pdf_method):
     # Dictionary of formats for images based on source and target
     formats = {
-        'pdf': {'latex-image' : [None], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
-        'latex':  {'latex-image': [None], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
+        'pdf': {'latex-image' : [], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
+        'latex':  {'latex-image': [], 'sageplot': ['pdf','png'], 'asymptote': ['pdf']},
         'html': {'latex-image' : ['svg'], 'sageplot': ['html','svg'], 'asymptote': ['html']}
                }
     # set format to all when appropriate
@@ -51,7 +51,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
     source_xml = ET.parse(ptxfile)
     source_xml.xinclude()
 
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0 and formats[target_format]['latex-image'] is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0 and len(formats[target_format]['latex-image']) > 0:
         image_output = os.path.abspath(os.path.join(output, 'latex-image'))
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating latex-images\n\n')
@@ -61,7 +61,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
                 core.latex_image_conversion(
                     xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                     xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method=pdf_method)
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format]['sageplot'] is not None:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and len(formats[target_format]['sageplot']) > 0:
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating sageplot images\n\n')
@@ -70,7 +70,7 @@ def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, 
                 core.sage_conversion(
                     xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                     xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat)
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format]['asymptote']:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and len(formats[target_format]['asymptote']) > 0:
         image_output = os.path.abspath(
             os.path.join(output, 'asymptote'))
         os.makedirs(image_output, exist_ok=True)
