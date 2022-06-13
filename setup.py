@@ -17,7 +17,7 @@ setuptools.setup(
     install_requires=[
        'lxml',
        'python-slugify',
-       'requests',
+       'requests>=2.28',
        'watchdog',
        'GitPython',
        'click>=7.0',
@@ -29,7 +29,6 @@ setuptools.setup(
             "setuptools",
             "wheel",
             "twine",
-            "requests",
             "secretstorage",
         ]
     },
