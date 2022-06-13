@@ -27,6 +27,15 @@ setuptools.setup(
        "pdfCropMargins",
        "click-logging",
     ],
+    extras_require={
+        'dev': [
+            "setuptools",
+            "wheel",
+            "twine",
+            "requests",
+            "secretstorage",
+        ]
+    },
     url="https://github.com/PreTeXtBook/pretext-cli",
     packages=setuptools.find_packages(),
     classifiers=[
@@ -34,7 +43,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=f">={MINIMUM_PYTHON_VERSION}",
+    python_requires=f">=3.8.5",
     entry_points={
         'console_scripts': [
             'pretext = pretext.cli:main',

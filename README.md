@@ -120,9 +120,12 @@ The CLI will treat this as follows:
 ---
 
 ## Development
-**Note.** The remainder of this documentation is intended only for those interested in contributing to the developement of this project.  Anyone who simply wishes to *use* the PreTeXt-CLI can stop reading here. 
+**Note.** The remainder of this documentation is intended only for those interested
+in contributing to the developement of this project.  Anyone who simply wishes to
+*use* the PreTeXt-CLI can stop reading here. 
 
-From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below command to clone the project.
+From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below
+command to clone the project.
 
 ```bash
 git clone [REPO_URL]
@@ -140,80 +143,53 @@ matches this version.
 
 The `pyenv` tool for Linux automates the process of running the correct
 version of Python when working on this project (even if you have
-other versions of Python installed on your system).
+other versions of Python installed on your system). Then
+`pyenv-virtualenv` sets up an appropriate virtual environment for
+development.
 
 - https://github.com/pyenv/pyenv#installation
+- https://github.com/pyenv/pyenv-virtualenv#installation
 
-```bash
-$ pyenv install "$(cat .python-version)"
-    # installs version set in `.python-version`
-$ which python
-/home/user/.pyenv/shims/python
-$ python -V
-Python (version set in `.python-version`)
+Run the following, replacing `PYTHON_VERSION` with the version in
+`setup.py`.
+
 ```
+pyenv install PYTHON_VERSION
+pyenv virtualenv PYTHON_VERSION pretext-cli
+```
+
+The virtual environment for this project can be activated automatically in
+directories with a `.python-version` file with the contents `pretext-cli` by following
+instructions at https://github.com/pyenv/pyenv-virtualenv#activate-virtualenv.
+Or use `pyenv activate pretext-cli` and `pyenv deactivate` to do this manually.
+
+Now to install the in-development package into the virtual environment.
+
+```
+pyenv virtualenvs # should show `* pretext-cli` (note the `*`)
+python -V # should show version from setup.py
+python -m pip install --upgrade pip
+python -m pip install -e .[dev] # run from root of repo
+```
+
+FIXME: currently all pretext commands must be run with `python -m pretext`
+with this setup.
 
 #### Steps on Windows
 
-In windows, you can either use the bash shell and follow the directions above, or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation).  In the latter case, make sure to follow all the installation instructions, including the **Finish the installation**.  Then proceed to follow the directions above to install the version of python in `.python-version`.  Finally, you may then need to manually add that version of python to your path.
-
-### Managing packages and virtual environments
-
-Install `pipenv` to manage your Python packages:
-
-```bash
-python -m pip install --upgrade pip
-python -m pip install pipenv
-```
-
-Then all additional dependencies can be installed into
-a virtual environment as follows:
-
-```bash
-$ python -m pipenv --rm
-    # destroy any outdated environment
-$ git pull
-    # ensures your build versions locked by Pipfile.lock
-$ python -m pipenv install --dev
-    # creates virtual environment and installs dependencies
-```
-
-Then use `python -m pipenv shell` to enter the virtual environment directly.
-
-```
-$ python -m pipenv shell
-Launching subshell in virtual environment…
-$ cd
-$ pretext new
-Generating new PreTeXt project in `/home/user/new-pretext-project` using `book` template.
-```
-
-You can also use `python -m pipenv run [CMD]` for quick runs outside the virtual
-environment, e.g.:
-
-```
-$ python -m pipenv run pretext new
-```
+In windows, you can either use the bash shell and follow the directions above,
+or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation).  In
+the latter case, make sure to follow all the installation instructions, including
+the **Finish the installation**.  Then proceed to follow the directions above to
+install the version of python in `.python-version`.  Finally, you may then need
+to manually add that version of python to your path.
 
 ### Updating dependencies
 
 To add dependencies for the package, edit `setup.py`. then run
 
 ```
-python -m pipenv update
-```
-
-To add dependencies for the development environment
-(those not needed to use the packaged CLI), use
-
-```
-python -m pipenv install [package] --dev
-```
-
-To update dependencies added by other contributors, use
-
-```
-python -m pipenv sync
+python -m pip install --upgrade -e .[dev] # run from root of repo
 ```
 
 ### Syncing untracked updates
