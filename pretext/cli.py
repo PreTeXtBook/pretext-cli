@@ -58,6 +58,11 @@ def main(ctx,targets):
         Project().print_target_names()
         return
     if utils.project_path() is not None:
+        # create file handler which logs even debug messages
+        fh = logging.FileHandler(os.path.join(utils.project_path(),'cli.log'), mode='w')
+        fh.setLevel(logging.DEBUG)
+        log.addHandler(fh)
+        # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
         if utils.requirements_version() is None:
