@@ -22,6 +22,7 @@ setuptools.setup(
        'GitPython',
        'click>=7.0',
        "pdfCropMargins",
+       "pypdf2==1.28.4",
        "click-logging",
     ],
     extras_require={
