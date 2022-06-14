@@ -239,56 +239,52 @@ class Project():
                 shutil.rmtree(target.output_dir())
         #if custom xsl, copy it into a temporary directory (different from the building temporary directory)
         custom_xsl = None
-        temp_xsl_dir = None
-        if target.xsl_path() is not None:
-            temp_xsl_dir = tempfile.mkdtemp()
-            log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
-            utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_dir)
-            custom_xsl = os.path.join(temp_xsl_dir, os.path.basename(target.xsl_path()))
-        log.info(f"Preparing to build into {target.output_dir()}.")
-        #build targets:
-        if webwork:
-            webwork_output = os.path.join(target.generated_dir(),'webwork')
-            os.makedirs(webwork_output, exist_ok=True)
-            builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams())
-        elif len(target.source_xml().xpath('//webwork[node()|@*]')) > 0:
-            log.warning(
-                "The source has WeBWorK exercises, but you are not (re)processing these. "+
-                "Run `pretext build` with the `-w` flag if updates are needed.")
-        if diagrams:
-            builder.diagrams(
-                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.format(), diagrams_format, target.xmlid_root(), target.pdf_method(),
-            )
-        else:
-            source_xml = target.source_xml()
-            if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
-                log.warning("The source has generated images (<latex-image/>, <asymptote/>, or <sageplot/>), "+
-                            "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-            if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
-                log.warning("The source has interactive elements or videos that need a preview to be generated, "+
-                            "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-        try:
-            if (target.format()=='html' or target.format()=='html-zip') and not only_assets:
-                zipped = (target.format()=='html-zip')
-                builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
-            elif target.format()=='latex' and not only_assets:
-                builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
-                # core script doesn't put a copy of images in output for latex builds, so we do it instead here
-                shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"),dirs_exist_ok=True)
-                shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"),dirs_exist_ok=True)
-            elif target.format()=='pdf' and not only_assets:
-                builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
-        except Exception as e:
-            log.debug(f"Critical error info:\n", exc_info=True)
-            log.critical(
-                f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-            return
-        # build was successful
-        log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-        # remove temporary xsl directory if it was created:
-        if (temp_xsl_dir and os.path.exists(temp_xsl_dir)):
-            shutil.rmtree(temp_xsl_dir)
+        with tempfile.TemporaryDirectory() as temp_xsl_dir:
+            if target.xsl_path() is not None:
+                log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
+                utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_dir)
+                custom_xsl = os.path.join(temp_xsl_dir, os.path.basename(target.xsl_path()))
+            log.info(f"Preparing to build into {target.output_dir()}.")
+            #build targets:
+            if webwork:
+                webwork_output = os.path.join(target.generated_dir(),'webwork')
+                os.makedirs(webwork_output, exist_ok=True)
+                builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams())
+            elif len(target.source_xml().xpath('//webwork[node()|@*]')) > 0:
+                log.warning(
+                    "The source has WeBWorK exercises, but you are not (re)processing these. "+
+                    "Run `pretext build` with the `-w` flag if updates are needed.")
+            if diagrams:
+                builder.diagrams(
+                    target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                    target.format(), diagrams_format, target.xmlid_root(), target.pdf_method(),
+                )
+            else:
+                source_xml = target.source_xml()
+                if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
+                    log.warning("The source has generated images (<latex-image/>, <asymptote/>, or <sageplot/>), "+
+                                "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
+                if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
+                    log.warning("The source has interactive elements or videos that need a preview to be generated, "+
+                                "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
+            try:
+                if (target.format()=='html' or target.format()=='html-zip') and not only_assets:
+                    zipped = (target.format()=='html-zip')
+                    builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
+                elif target.format()=='latex' and not only_assets:
+                    builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
+                    # core script doesn't put a copy of images in output for latex builds, so we do it instead here
+                    shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"),dirs_exist_ok=True)
+                    shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"),dirs_exist_ok=True)
+                elif target.format()=='pdf' and not only_assets:
+                    builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
+            except Exception as e:
+                log.debug(f"Critical error info:\n", exc_info=True)
+                log.critical(
+                    f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+                return
+            # build was successful
+            log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
 
     def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
         try:
