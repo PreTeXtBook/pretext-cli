@@ -16,7 +16,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     install_requires=[
        'lxml==4.*',
-       'python-slugify==6.1.2',
+       'python-slugify==6.*',
        'requests>=2.28,<3',
        'watchdog==2.*',
        'GitPython==3.*',
