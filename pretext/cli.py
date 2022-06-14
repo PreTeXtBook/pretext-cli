@@ -60,9 +60,19 @@ def main(ctx,targets):
     if utils.project_path() is not None:
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         os.chdir(utils.project_path())
-    elif ctx.invoked_subcommand is None:
+        if utils.requirements_version() is None:
+            log.warning("Project's CLI version could not be detected from `requirements.txt`.")
+        elif utils.requirements_version() != cli_version():
+            log.warning(f"Using CLI version {cli_version()} but project's `requirements.txt`")
+            log.warning(f"is configured to use {utils.requirements_version()}. Consider either installing")
+            log.warning(f"CLI version {utils.requirements_version()} or updating `requirements.txt` to {cli_version()}.")
+        else:
+            log.debug(f"CLI version {cli_version()} matches requirements.txt {utils.requirements_version()}.")
+    else:
         log.info("No existing PreTeXt project found.")
+    if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
+    log.info("")
 
 
 # pretext support

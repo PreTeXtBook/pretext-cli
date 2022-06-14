@@ -70,6 +70,17 @@ def project_xml(dirpath=os.getcwd()):
         project_manifest = os.path.join(project_path(dirpath), 'project.ptx')
     return ET.parse(project_manifest)
 
+def requirements_version(dirpath=os.getcwd()):
+    try:
+        with open(os.path.join(project_path(dirpath),'requirements.txt'),'r') as f:
+            for line in f.readlines():
+                if 'pretextbook' in line:
+                    return line.split("==")[1].strip()
+    except Exception as e:
+        log.debug("Could not read `requirements.txt`:")
+        log.debug(e)
+        return None
+
 def project_xml_string(dirpath=os.getcwd()):
     return ET.tostring(project_xml(dirpath), encoding='unicode')
 
