@@ -2,6 +2,7 @@ import click
 import click_logging
 import logging
 import shutil
+import datetime
 import os, zipfile, requests, io
 import tempfile, shutil
 import platform
@@ -155,27 +156,53 @@ def new(template,directory,url_template):
 # pretext init
 @main.command(short_help="Generates the project manifest for a PreTeXt project in the current directory.", 
     context_settings=CONTEXT_SETTINGS)
-def init():
+@click.option('-f', '--force', is_flag=True, 
+              help="Force initialization of project even if project.ptx exists. Duplicate files will be created with timestamps for comparison")
+def init(force):
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
     is mainly intended for updating existing projects to use this CLI.
     """
-    if utils.project_path() is not None:
+    if utils.project_path() is not None and not force:
         log.warning(f"A project already exists in `{utils.project_path()}`.")
-        log.warning(f"No project.ptx manifest will be generated.")
+        log.warning(f"No project.ptx manifest will be generated.  Use `pretext init -f` to force re-initialization.")
         return
+    timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
     template_manifest_path = static.path('templates', 'project.ptx')
     project_manifest_path = os.path.abspath("project.ptx")
+    if os.path.isfile(project_manifest_path):
+        project_manifest_path = os.path.abspath('project-'+timestamp+'.ptx')
+        log.warning(
+            f"You already have a project.ptx file at, so the one suggested by PreTeXt will been created as {project_manifest_path} for comparison.\n")
     log.info(f"Generating `{project_manifest_path}`.")
     shutil.copyfile(template_manifest_path,project_manifest_path)
-    with open("requirements.txt","w") as f:
+    # Create requirements.txt
+    requirements_path = os.path.abspath('requirements.txt')
+    if os.path.isfile(requirements_path):
+        requirements_path = os.path.abspath('requirments-'+timestamp+'.txt')
+        log.warning(f"You already have a requirements.txt file; the one suggested by PreTeXt will be created as {requirements_path} for comparison.\n")
+    with open(requirements_path,"w") as f:
         f.write(f"pretextbook == {cli_version()}")
-    log.info(f"Success! Open `{project_manifest_path}` to edit your project manifest.")
+    # Create publication file if one doesn't exist: 
+    template_pub_path = static.path('templates','publication.ptx')
+    project_pub_path = os.path.abspath(os.path.join('publication','publication.ptx'))
+    if os.path.isfile(project_pub_path):
+        project_pub_path = os.path.abspath(os.path.join('publication','publication-'+timestamp+'.ptx'))
+        log.warning(
+            f"You already have a publication file, so the one suggested by PreTeXt will been created as {project_pub_path} for comparison.\n")
+    shutil.copy(template_pub_path, project_pub_path)
+    log.info(f"Publication file created at {project_pub_path}.  If you use another publication file, move it or update {project_manifest_path} to point to the location of the file (and delete the new publication file).")
+    # Create .gitignore if one doesn't exist
+    template_gitignore_path = static.path('templates','.gitignore')
+    project_gitignore_path = os.path.abspath(".gitignore")
+    if os.path.isfile(project_gitignore_path):
+        project_gitignore_path = os.path.abspath(".gitignore-"+timestamp)
+        log.warning(f"You already have a .gitignore file, so the one suggested by PreTeXt will be created at {project_gitignore_path} for comparison.\n") 
+    shutil.copyfile(template_gitignore_path,project_gitignore_path)
+    log.info(f"Created .gitignore file.\n")
+    # End by reporting success
+    log.info(f"Success! Open {project_manifest_path} to edit your project manifest.")
     log.info(f"Edit your <target/>s to point to your main PreTeXt source file.")
-    project_pub_path = os.path.abspath(os.path.join("publication","publication.ptx"))
-    if not os.path.isfile(project_pub_path):
-        log.warning(f"Note that your publication file should be moved to `{project_pub_path}`, or")
-        log.warning(f"`{project_manifest_path}` should be updated to the location of your publication file.")
 
 
 # pretext build
