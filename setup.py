@@ -16,13 +16,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     install_requires=[
        'lxml==4.*',
-       'python-slugify==6.*',
        'requests>=2.28,<3',
        'watchdog==2.*',
        'GitPython==3.*',
-       'click==7.*',
-       "pdfCropMargins==1.*",
-       "pypdf2==1.*",
+       'click==8.*',
+       "pdfCropMargins>=1.0.6,<2",
        "click-logging==1.*",
     ],
     extras_require={
