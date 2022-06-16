@@ -2,7 +2,7 @@ from lxml import etree as ET
 import os, shutil
 import logging
 import tempfile
-from . import static, utils
+from . import static, utils, generate
 from . import build as builder
 from .static.pretext import pretext as core
 from pathlib import Path
@@ -170,6 +170,8 @@ class Project():
                 targets_element.append(target.xml_element())
         self.__xml_element = xml_element
         self.__project_path = project_path
+        # prepre core PreTeXt pythons scripts
+        self.init_ptxcore()
 
     def xml_element(self):
         return self.__xml_element
@@ -210,9 +212,7 @@ class Project():
         watch_callback=lambda:self.build(target_name)
         utils.run_server(directory,access,port,watch_directory,watch_callback)
 
-    def build(self,target_name,webwork=False,diagrams=False,diagrams_format='defaults',only_assets=False,clean=False):
-        # prepre core PreTeXt pythons scripts
-        self.init_ptxcore()
+    def build(self,target_name,clean=False):
         # Check for xml syntax errors and quit if xml invalid:
         if not self.xml_source_is_valid(target_name):
             return
@@ -245,38 +245,16 @@ class Project():
                 utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_dir)
                 custom_xsl = os.path.join(temp_xsl_dir, os.path.basename(target.xsl_path()))
             log.info(f"Preparing to build into {target.output_dir()}.")
-            #build targets:
-            if webwork:
-                webwork_output = os.path.join(target.generated_dir(),'webwork')
-                os.makedirs(webwork_output, exist_ok=True)
-                builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams())
-            elif len(target.source_xml().xpath('//webwork[node()|@*]')) > 0:
-                log.warning(
-                    "The source has WeBWorK exercises, but you are not (re)processing these. "+
-                    "Run `pretext build` with the `-w` flag if updates are needed.")
-            if diagrams:
-                builder.diagrams(
-                    target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                    target.format(), diagrams_format, target.xmlid_root(), target.pdf_method(),
-                )
-            else:
-                source_xml = target.source_xml()
-                if target.format()=="html" and len(source_xml.xpath('//asymptote|//latex-image|//sageplot')) > 0:
-                    log.warning("The source has generated images (<latex-image/>, <asymptote/>, or <sageplot/>), "+
-                                "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
-                if target.format()=="latex" and len(source_xml.xpath('//asymptote|//sageplot|//video[@youtube]|//interactive[not(@preview)]')) > 0:
-                    log.warning("The source has interactive elements or videos that need a preview to be generated, "+
-                                "but these will not be (re)built. Run `pretext build` with the `-d` flag if updates are needed.")
             try:
-                if (target.format()=='html' or target.format()=='html-zip') and not only_assets:
+                if (target.format()=='html' or target.format()=='html-zip'):
                     zipped = (target.format()=='html-zip')
                     builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
-                elif target.format()=='latex' and not only_assets:
+                elif target.format()=='latex':
                     builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
                     # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                     shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"),dirs_exist_ok=True)
                     shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"),dirs_exist_ok=True)
-                elif target.format()=='pdf' and not only_assets:
+                elif target.format()=='pdf':
                     builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
             except Exception as e:
                 log.debug(f"Critical error info:\n", exc_info=True)
@@ -285,6 +263,46 @@ class Project():
                 return
             # build was successful
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
+    
+    def generate(self,target_name,asset_list=None,all_formats=False):
+        if asset_list is None:
+            asset_list = []
+            gen_all = True
+        else:
+            gen_all = False
+        target = self.target(target_name)
+        os.makedirs(target.generated_dir(), exist_ok=True)
+        #build targets:
+        if gen_all or "webwork" in asset_list:
+            webwork_output = os.path.join(target.generated_dir(),'webwork')
+            generate.webwork(
+                target.source(), target.publication(), webwork_output, target.stringparams()
+            )
+        if gen_all or "latex-image" in asset_list:
+            generate.latex_image(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.format(), target.xmlid_root(), target.pdf_method(), all_formats
+            )
+        if gen_all or "asymptote" in asset_list:
+            generate.asymptote(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.format(), target.xmlid_root(), all_formats
+            )
+        if gen_all or "sageplot" in asset_list:
+            generate.sageplot(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.format(), target.xmlid_root(), all_formats
+            )
+        if gen_all or "interactive" in asset_list:
+            generate.interactive(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.xmlid_root(),
+            )
+        if gen_all or "youtube" in asset_list:
+            generate.youtube(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.xmlid_root(),
+            )
 
     def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
         try:
