@@ -2,7 +2,7 @@ from lxml import etree as ET
 import os, shutil
 import logging
 import tempfile
-from . import static, utils
+from . import static, utils, generate
 from . import build as builder
 from .static.pretext import pretext as core
 from pathlib import Path
@@ -249,7 +249,7 @@ class Project():
             if webwork:
                 webwork_output = os.path.join(target.generated_dir(),'webwork')
                 os.makedirs(webwork_output, exist_ok=True)
-                builder.webwork(target.source(), target.publication(), webwork_output, target.stringparams())
+                generate.webwork(target.source(), target.publication(), webwork_output, target.stringparams())
             elif len(target.source_xml().xpath('//webwork[node()|@*]')) > 0:
                 log.warning(
                     "The source has WeBWorK exercises, but you are not (re)processing these. "+

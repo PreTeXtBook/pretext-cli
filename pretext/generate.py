@@ -120,3 +120,15 @@ def youtube(ptxfile, pub_file, output, params, xmlid_root):
             core.youtube_thumbnail(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=xmlid_root, dest_dir=image_output)
+
+# generate webwork assets
+def webwork(ptxfile, pub_file, dest_dir, params):
+    # Assume passed paths are absolute.
+    # Set directory for WW representations.
+    os.makedirs(dest_dir, exist_ok=True)
+    # call the webwork-to-xml routine from core
+    # (server info will be inferred from `publication/webwork/@server`)
+    with utils.working_directory("."):
+        core.webwork_to_xml(
+            xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+            abort_early=True, dest_dir=dest_dir, server_params=None)
