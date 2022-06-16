@@ -48,7 +48,7 @@
     </figure>
     <p>
       In your source, uncomment any of the figures below to try building various
-      types of images (Tikz, SageMath, Asymptote) with <c>pretext build -d</c>.
+      types of images (Tikz, SageMath, Asymptote) with <c>pretext build -g all</c>.
     </p>
     <!-- <xi:include href="./fig_tikz.ptx" /> -->
     <!-- <xi:include href="./fig_sage2d.ptx" /> -->
@@ -57,8 +57,8 @@
   </section>
   <section xml:id="webwork">
     <title><webwork /> Minimal Section</title>
-    <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -w</c>.</p>
-    <!-- <exercise>
+    <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -g webwork</c>.</p>
+    <exercise>
       <webwork>
         <pg-code>
           $a = Compute(random(1, 9, 1));
@@ -84,12 +84,12 @@
           </p>
         </solution>
       </webwork>
-    </exercise> -->
+    </exercise>
   </section>
   <section xml:id="youtube">
     <title>YouTube Example</title>
     <p>In your source, uncomment the line below to include a YouTube video.</p>
-    <p>Use <c>pretext build -d</c> to generate its thumbnail (useful for PDF).</p>
+    <p>Use <c>pretext build -g youtube</c> to generate its thumbnail (useful for PDF).</p>
     <!-- <video youtube="dQw4w9WgXcQ"/> -->
   </section>
 </chapter>
