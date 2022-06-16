@@ -86,4 +86,10 @@
       </webwork>
     </exercise> -->
   </section>
+  <section xml:id="youtube">
+    <title>YouTube Example</title>
+    <p>In your source, uncomment the line below to include a YouTube video.</p>
+    <p>Use <c>pretext build -d</c> to generate its thumbnail (useful for PDF).</p>
+    <!-- <video youtube="dQw4w9WgXcQ"/> -->
+  </section>
 </chapter>
