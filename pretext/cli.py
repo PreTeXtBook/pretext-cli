@@ -244,7 +244,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     Also accepts manual command-line options.
 
     If using certain elements (webwork, latex-image, etc.) then
-    using `--generate-assets` may be necessary for a successful build. Generated
+    using `--generate` may be necessary for a successful build. Generated
     assets are cached so they need not be regenerated in subsequent builds unless
     they are changed.
 
@@ -295,6 +295,36 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     else:
         log.warning("Assets like latex-images will not be generated (previously generated assets will be used if they exist).")
     project.build(target_name,clean)
+
+# pretext generate
+@main.command(short_help="Generate assets for specified target", 
+    context_settings=CONTEXT_SETTINGS)
+@click.argument('target', required=False)
+@click.option(
+    '-a', '--assets', default="ALL",
+    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube'], case_sensitive=False), 
+    help='Generate ALL or specific assets')
+@click.option('--all-formats', is_flag=True, default=False, 
+    help='Generate all possible asset formats rather than the defaults for the given target.')
+def generate(target, assets, all_formats):
+    """
+    Generate assets for the specified target. Asset "generation" is typically
+    slower and performed less frequently than "building" a project, but is
+    required for many PreTeXt features such as latex-image.
+
+    Certain assets may require installations not included with the CLI, or internet
+    access to external servers. Command-line paths
+    to non-Python executables may be set in project.ptx. For more details,
+    consult the PreTeXt Guide: https://pretextbook.org/documentation.html
+    """
+    project = Project()
+    target_name = target
+    if assets == 'ALL':
+        log.info("Genearting all assets in default formats.")
+        project.generate(target_name)
+    else:
+        log.info(f"Generating only {assets} assets.")
+        project.generate(target_name,asset_list=[generate])
 
 
 # pretext view
@@ -381,7 +411,7 @@ def deploy(target,commit_message):
     project.deploy(target_name,commit_message)
 
 # pretext publish
-@main.command(short_help="DEPRECATED: use deploy",
+@main.command(short_help="OBSOLETE: use deploy",
     context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
 @click.option(
@@ -395,9 +425,8 @@ def deploy(target,commit_message):
 @click.pass_context
 def publish(ctx,target,commit_message):
     """
-    DEPRECATED in favor of `deploy` command. Will be
+    OBSOLETE in favor of `deploy` command. Will be
     removed in a future version.
     """
-    log.warning("`pretext publish` command is DEPRECATED and will be removed soon.")
-    log.warning("Use `pretext deploy` next time.")
-    ctx.forward(deploy)
+    log.error("`pretext publish` command is OBSOLETE.")
+    log.error("Use `pretext deploy` next time.")
