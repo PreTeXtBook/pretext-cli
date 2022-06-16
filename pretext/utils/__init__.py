@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import pathlib
 import logging
 
-from .. import static
+from ..static.pretext import pretext as core
 from .server import *
 from .xml import *
 
@@ -52,3 +52,11 @@ def requirements_version(dirpath=os.getcwd()):
         log.debug("Could not read `requirements.txt`:")
         log.debug(e)
         return None
+
+def check_executable(exec_name):
+    try:
+        exec_cmd = core.get_executable_cmd(exec_name)[0]
+        log.debug(f"PTX-CLI: Executable command {exec_name} found at {exec_cmd}")
+        return exec_cmd
+    except OSError as e:
+        log.debug(e)

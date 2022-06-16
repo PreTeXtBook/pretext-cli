@@ -110,6 +110,13 @@ def support():
         log.info("Contents of project.ptx:")
         log.info("------------------------")
         log.info(utils.project_xml_string())
+        log.info("------------------------")
+        project = Project()
+        project.init_ptxcore()
+        for exec_name in project.executables():
+            if utils.check_executable(exec_name) is None:
+                log.warning(
+                    f"Unable to locate the command for <{exec_name}> on your system.")
     else:
         log.info("No project.ptx found.")
 
