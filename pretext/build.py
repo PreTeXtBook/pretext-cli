@@ -3,7 +3,7 @@ from lxml import etree as ET
 import logging
 import os
 
-from . import utils, generate
+from . import utils
 from .static.pretext import pretext as core
 
 # Get access to logger
