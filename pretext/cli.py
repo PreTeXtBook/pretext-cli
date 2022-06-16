@@ -228,27 +228,35 @@ def init(force):
               Define a stringparam to use during processing.
               Usage: pretext build --stringparam foo bar --stringparam baz woo
               """)
-@click.option('-d', '--diagrams', is_flag=True, help='Regenerate images coded in source (latex-image, etc).')
-@click.option('-df', '--diagrams-format', type=click.Choice(['defaults', 'all'], case_sensitive=False), default='defaults', help='Specify whether to build just the "defaults" formats or "all" formats based on output target.')
-@click.option('-w', '--webwork', is_flag=True, default=False, help='Reprocess WeBWorK exercises, creating fresh webwork-representations.ptx file')
-@click.option('-a', '--only-assets', is_flag=True, default=False, help="Produce requested diagrams (-d) or webwork (-w) but not main build target (useful for large projects that only need to update assets)")
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
-def build(target, format, source, output, stringparam, xsl, publication, webwork, diagrams, diagrams_format, only_assets, clean):
+@click.option(
+    '-g', '--generate',
+    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube'], case_sensitive=False), 
+    help='Generate ALL or specific assets in default formats before build')
+@click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
+@click.option('-df', '--diagrams-format', type=click.Choice(['defaults', 'all'], case_sensitive=False), default='defaults', help='OBSOLETE. Use `pretext generate` for this feature')
+@click.option('-w', '--webwork', is_flag=True, default=False, help='OBSOLETE. Use --generate')
+@click.option('-a', '--only-assets', is_flag=True, default=False, help='OBSOLETE. Use `pretext generate` for this feature')
+def build(target, format, source, output, stringparam, xsl, publication, clean, generate, 
+    webwork, diagrams, diagrams_format, only_assets,):
     """
     Process [TARGET] into format specified by project.ptx.
     Also accepts manual command-line options.
 
-    For many formats, images coded in source (latex-image, etc) will only be processed
-    when using the --diagrams option.
-
-    If the project included WeBWorK exercises, these must be processed using the
-    --webwork option.
+    If using certain elements (webwork, latex-image, etc.) then
+    using `--generate-assets` may be necessary for a successful build. Generated
+    assets are cached so they need not be regenerated in subsequent builds unless
+    they are changed.
 
     Certain builds may require installations not included with the CLI, or internet
     access to external servers. Command-line paths
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+    if diagrams or diagrams_format!="defaults" or only_assets or webwork:
+        log.error("Command used an asset option that is now obsolete. Assets are now generated with `--generate`.")
+        log.error("Cancelling build. Check `--help` for details.")
+        return
     target_name = target
     # set up stringparams as dictionary:
     if len(stringparam) > 0:
@@ -278,7 +286,15 @@ def build(target, format, source, output, stringparam, xsl, publication, webwork
                         format=format,source=source,output_dir=output,
                         publication=publication,stringparams=stringparams,xsl_path=xsl)
         project = Project(xml_element=project.xml_element(),targets=[target])
-    project.build(target_name,webwork,diagrams,diagrams_format,only_assets,clean)
+    if generate == 'ALL':
+        log.info("Genearting all assets in default formats.")
+        project.generate(target_name)
+    elif generate is not None:
+        log.warning(f"Generating only {generate} assets.")
+        project.generate(target_name,asset_list=[generate])
+    else:
+        log.warning("Assets like latex-images will not be generated (previously generated assets will be used if they exist).")
+    project.build(target_name,clean)
 
 
 # pretext view

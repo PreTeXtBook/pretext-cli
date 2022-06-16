@@ -33,11 +33,3 @@ def pdf(ptxfile,pub_file,output,stringparams,custom_xsl,pdf_method):
     with utils.working_directory("."):
         core.pdf(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl,
                  None, dest_dir=output, method=pdf_method)
-
-# Function to build diagrams/images contained in source.
-def diagrams(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root, pdf_method):
-    generate.latex_image(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root, pdf_method)
-    generate.sageplot(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root)
-    generate.asymptote(ptxfile, pub_file, output, params, target_format, diagrams_format, xmlid_root)
-    generate.interactive(ptxfile, pub_file, output, params, xmlid_root)
-    generate.youtube(ptxfile, pub_file, output, params, xmlid_root)
