@@ -10,12 +10,20 @@ for template_directory in glob.iglob('templates/*'):
                 temporary_directory,
                 dirs_exist_ok=True,
             )
-            copied_project_ptx = os.path.join(copied_directory,'project.ptx')
-            if not os.path.isfile(copied_project_ptx):
-                shutil.copyfile(
-                    'templates/project.ptx',
-                    copied_project_ptx,
-                )
+            template_files = ['project.ptx', '.gitignore']
+            for template_file in template_files:
+                copied_template_file = os.path.join(copied_directory, template_file)
+                if not os.path.isfile(copied_template_file):
+                    shutil.copyfile(
+                        'templates/'+template_file,
+                        copied_template_file,
+                    )
+            # copied_project_ptx = os.path.join(copied_directory,'project.ptx')
+            # if not os.path.isfile(copied_project_ptx):
+            #     shutil.copyfile(
+            #         'templates/project.ptx',
+            #         copied_project_ptx,
+            #     )
             template_zip_basename = os.path.basename(template_directory)
             shutil.make_archive(
                 os.path.join('pretext','static','templates',template_zip_basename),
