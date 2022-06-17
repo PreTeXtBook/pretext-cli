@@ -22,7 +22,6 @@ setuptools.setup(
        'click==8.*',
        "pdfCropMargins>=1.0.6,<2",
        "click-logging==1.*",
-       "runestone==6.*",
     ],
     extras_require={
         'dev': [
