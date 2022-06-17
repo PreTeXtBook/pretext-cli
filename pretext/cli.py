@@ -238,7 +238,7 @@ def init(force):
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
 @click.option(
     '-g', '--generate',
-    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube'], case_sensitive=False), 
+    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens'], case_sensitive=False), 
     help='Generate ALL or specific assets in default formats before build')
 @click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
 @click.option('-df', '--diagrams-format', type=click.Choice(['defaults', 'all'], case_sensitive=False), default='defaults', help='OBSOLETE. Use `pretext generate` for this feature')

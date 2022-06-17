@@ -303,6 +303,11 @@ class Project():
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
                 target.xmlid_root(),
             )
+        if gen_all or "codelens" in asset_list:
+            generate.codelens(
+                target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
+                target.xmlid_root(),
+            )
 
     def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
         try:

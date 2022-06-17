@@ -58,7 +58,7 @@
   <section xml:id="webwork">
     <title><webwork /> Minimal Section</title>
     <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -g webwork</c>.</p>
-    <exercise>
+    <!-- <exercise>
       <webwork>
         <pg-code>
           $a = Compute(random(1, 9, 1));
@@ -84,12 +84,46 @@
           </p>
         </solution>
       </webwork>
-    </exercise>
+    </exercise> -->
   </section>
   <section xml:id="youtube">
     <title>YouTube Example</title>
     <p>In your source, uncomment the line below to include a YouTube video.</p>
     <p>Use <c>pretext build -g youtube</c> to generate its thumbnail (useful for PDF).</p>
     <!-- <video youtube="dQw4w9WgXcQ"/> -->
+  </section>
+  <section xml:id="codelens">
+    <title>Codelens Example</title>
+    <p>In your source, uncomment the line below to include an interactive Python program.</p>
+    <p>Use <c>pretext build -g codelens</c> to generate files necessary for interactivity.</p>
+    <!-- <listing xml:id="sieve-python">
+      <caption>Finding primes</caption>
+      <program xml:id="sieve-codelens-python" interactive="codelens" language="python">
+        <input><![CDATA[
+def SieveOfEratosthenes(n):
+    # array of type boolean with True values in it
+    prime = [True for i in range(n + 1)]
+    p = 2
+    while (p * p <= n):
+      # If it remain unchanged it is prime
+      if (prime[p] == True):
+          # updating all the multiples
+          for i in range(p * 2, n + 1, p):
+            prime[i] = False
+      p += 1
+    prime[0]= False
+    prime[1]= False
+    # Print
+    for p in range(n + 1):
+      if prime[p]:
+          print (p,end=" ")
+# main
+if __name__=='__main__':
+    n = 20
+    print ("The prime numbers smaller than or equal to", n,"is")
+    SieveOfEratosthenes(n)
+      ]]></input>
+      </program>
+    </listing> -->
   </section>
 </chapter>

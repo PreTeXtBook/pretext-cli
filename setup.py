@@ -16,12 +16,13 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     install_requires=[
        'lxml==4.*',
-       'requests>=2.28,<3',
+       'requests==2.*',
        'watchdog==2.*',
        'GitPython==3.*',
        'click==8.*',
        "pdfCropMargins>=1.0.6,<2",
        "click-logging==1.*",
+       "runestone==6.*",
     ],
     extras_require={
         'dev': [

@@ -145,3 +145,21 @@ def webwork(ptxfile, pub_file, output, params):
                 abort_early=True, dest_dir=ww_output, server_params=None)
     else:
         log.warning("No webwork elements found.")
+
+# generate codelens trace assets
+def codelens(ptxfile, pub_file, output, params, xmlid_root):
+    # We assume passed paths are absolute.
+    # parse source so we can check for webwork.
+    source_xml = ET.parse(ptxfile)
+    source_xml.xinclude()
+    if len(source_xml.xpath("//program[@interactive = 'codelens']")) > 0:
+        trace_output = os.path.abspath(
+            os.path.join(output, 'trace'))
+        os.makedirs(trace_output, exist_ok=True)
+        log.info('Now generating codelens trace\n\n')
+        with utils.working_directory("."):
+            core.tracer(
+                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                xmlid_root=xmlid_root, dest_dir=trace_output,)
+    else:
+        log.warning("No program elements using codelens found.")
