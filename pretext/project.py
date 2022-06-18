@@ -196,18 +196,16 @@ class Project():
         else:
             return None
 
-    def view(self,target_name,access,port,watch=False,build=False):
+    def view(self,target_name,access,port,watch=False):
         target = self.target(target_name)
         directory = target.output_dir()
-        if watch or build:
-            log.info("Building target...")
-            self.build(target_name)
         if watch:
             watch_directory = target.source_dir()
         else:
             watch_directory = None
         if not utils.directory_exists(target.output_dir()):
-            log.error(f"The directory `{target.output_dir()}` does not exist. Maybe try `pretext build {target.name()}` first?")
+            log.error(f"The directory `{target.output_dir()}` does not exist.")
+            log.error(f"Run `pretext build {target}` to build your project before viewing.")
             return
         watch_callback=lambda:self.build(target_name)
         utils.run_server(directory,access,port,watch_directory,watch_callback)

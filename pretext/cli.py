@@ -237,15 +237,16 @@ def init(force):
               """)
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
 @click.option(
-    '-g', '--generate',
+    '-g', '--generate', is_flag=True, 
+    help='Generate assets in default formats before build')
+@click.option(
+    '-a', '--assets', default="ALL",
     type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens'], case_sensitive=False), 
-    help='Generate ALL or specific assets in default formats before build')
+    help='If generating, choose to generate ALL or specific assets')
 @click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
-@click.option('-df', '--diagrams-format', type=click.Choice(['defaults', 'all'], case_sensitive=False), default='defaults', help='OBSOLETE. Use `pretext generate` for this feature')
 @click.option('-w', '--webwork', is_flag=True, default=False, help='OBSOLETE. Use --generate')
-@click.option('-a', '--only-assets', is_flag=True, default=False, help='OBSOLETE. Use `pretext generate` for this feature')
-def build(target, format, source, output, stringparam, xsl, publication, clean, generate, 
-    webwork, diagrams, diagrams_format, only_assets,):
+def build(target, format, source, output, stringparam, xsl, publication, clean, generate, assets,
+    webwork, diagrams,):
     """
     Process [TARGET] into format specified by project.ptx.
     Also accepts manual command-line options.
@@ -260,8 +261,9 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
-    if diagrams or diagrams_format!="defaults" or only_assets or webwork:
-        log.error("Command used an asset option that is now obsolete. Assets are now generated with `--generate`.")
+    if diagrams or webwork:
+        log.error("Command used an asset option that is now obsolete.")
+        log.error("Assets are now generated with `pretext generate` or `pretext build -g`.")
         log.error("Cancelling build. Check `--help` for details.")
         return
     target_name = target
@@ -293,14 +295,15 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
                         format=format,source=source,output_dir=output,
                         publication=publication,stringparams=stringparams,xsl_path=xsl)
         project = Project(xml_element=project.xml_element(),targets=[target])
-    if generate == 'ALL':
+    if generate and assets=='ALL':
         log.info("Genearting all assets in default formats.")
         project.generate(target_name)
-    elif generate is not None:
-        log.warning(f"Generating only {generate} assets.")
-        project.generate(target_name,asset_list=[generate])
+    elif generate:
+        log.warning(f"Generating only {assets} assets.")
+        project.generate(target_name,asset_list=[assets])
     else:
-        log.warning("Assets like latex-images will not be generated (previously generated assets will be used if they exist).")
+        log.warning("Assets like latex-images will not be regenerated for this build")
+        log.warning("(previously generated assets will be used if they exist).")
     project.build(target_name,clean)
 
 # pretext generate
@@ -375,22 +378,30 @@ def generate(target, assets, all_formats):
 @click.option('-b', '--build', is_flag=True, help="""
     Run a build before starting server.
     """)
-def view(target,access,port,directory,watch,build):
+@click.option('-g', '--generate', is_flag=True, help="""
+    Generate all assets before starting server.
+    """)
+def view(target,access,port,directory,watch,build,generate):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
     """
-    target_name=target
     if directory is not None:
         utils.run_server(directory,access,port)
         return
-    else:
-        project = Project()
-        target = project.target(name=target_name)
-    if target is not None:
-        project.view(target_name,access,port,watch,build)
-    else:
+    target_name=target
+    project = Project()
+    target = project.target(name=target_name)
+    if target is None:
         log.error(f"Target `{target_name}` could not be found.")
+        return
+    if generate:
+        log.info("Generating all assets in default formats.")
+        project.generate(target_name)
+    if build or watch:
+        log.info("Building target.")
+        project.build(target_name)
+    project.view(target_name,access,port,watch)
 
 
 # pretext deploy
