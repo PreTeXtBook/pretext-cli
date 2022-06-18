@@ -255,9 +255,9 @@ class Project():
                 elif target.format()=='pdf':
                     builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
             except Exception as e:
-                log.debug(f"Critical error info:\n", exc_info=True)
                 log.critical(
                     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
                 return
             # build was successful
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")

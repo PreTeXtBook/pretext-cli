@@ -32,9 +32,13 @@ def latex_image(ptxfile, pub_file, output, params, target_format, xmlid_root, pd
         # call pretext-core's latex image module:
         with utils.working_directory("."):
             for outformat in formats[target_format]:
-                core.latex_image_conversion(
-                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method=pdf_method)
+                try:
+                    core.latex_image_conversion(
+                        xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                        xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method=pdf_method)
+                except Exception as e:
+                    log.critical(e)
+                    log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No latex-image elements found.")
 
@@ -61,10 +65,14 @@ def sageplot(ptxfile, pub_file, output, params, target_format, xmlid_root, all_f
         # Check for external requirements
         utils.check_asset_execs('sageplot', formats[target_format])
         with utils.working_directory("."):
-            for outformat in formats[target_format]:
-                core.sage_conversion(
-                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat)
+            try:
+                for outformat in formats[target_format]:
+                    core.sage_conversion(
+                        xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                        xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat)
+            except Exception as e:
+                log.critical(e)
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No sageplot elements found.")
 
@@ -89,10 +97,14 @@ def asymptote(ptxfile, pub_file, output, params, target_format, xmlid_root, all_
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating asymptote images\n\n')
         with utils.working_directory("."):
-            for outformat in formats[target_format]:
-                core.asymptote_conversion(
-                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                    xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method='server')
+            try:
+                for outformat in formats[target_format]:
+                    core.asymptote_conversion(
+                        xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                        xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method='server')
+            except Exception as e:
+                log.critical(e)
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No asymptote elements found.")
 
@@ -110,9 +122,13 @@ def interactive(ptxfile, pub_file, output, params, xmlid_root):
         # Check for external requirements
         utils.check_asset_execs('interactive', formats[target_format])
         with utils.working_directory("."):
-            core.preview_images(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=xmlid_root, dest_dir=image_output)
+            try:
+                core.preview_images(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    xmlid_root=xmlid_root, dest_dir=image_output)
+            except Exception as e:
+                log.critical(e)
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No interactive elements found.")
 
@@ -128,9 +144,13 @@ def youtube(ptxfile, pub_file, output, params, xmlid_root):
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating youtube previews\n\n')
         with utils.working_directory("."):
-            core.youtube_thumbnail(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=xmlid_root, dest_dir=image_output)
+            try:
+                core.youtube_thumbnail(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    xmlid_root=xmlid_root, dest_dir=image_output)
+            except Exception as e:
+                log.critical(e)
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No video@youtube elements found.")
 
@@ -146,9 +166,13 @@ def webwork(ptxfile, pub_file, output, params):
         os.makedirs(ww_output, exist_ok=True)
         log.info('Now generating webwork representation\n\n')
         with utils.working_directory("."):
-            core.webwork_to_xml(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                abort_early=True, dest_dir=ww_output, server_params=None)
+            try:
+                core.webwork_to_xml(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    abort_early=True, dest_dir=ww_output, server_params=None)
+            except Exception as e:
+                log.critical(e)
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No webwork elements found.")
 
@@ -164,8 +188,12 @@ def codelens(ptxfile, pub_file, output, params, xmlid_root):
         os.makedirs(trace_output, exist_ok=True)
         log.info('Now generating codelens trace\n\n')
         with utils.working_directory("."):
-            core.tracer(
-                xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
-                xmlid_root=xmlid_root, dest_dir=trace_output,)
+            try:
+                core.tracer(
+                    xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
+                    xmlid_root=xmlid_root, dest_dir=trace_output,)
+            except Exception as e:
+                log.critical(e)
+                log.debug(f"Critical error info:\n****\n", exc_info=True)
     else:
         log.info("Note: No program elements using codelens found.")
