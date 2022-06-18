@@ -27,6 +27,8 @@ def latex_image(ptxfile, pub_file, output, params, target_format, xmlid_root, pd
         image_output = os.path.abspath(os.path.join(output, 'latex-image'))
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating latex-images\n\n')
+        # Check for external requirements
+        utils.check_asset_execs('latex-image', formats[target_format])
         # call pretext-core's latex image module:
         with utils.working_directory("."):
             for outformat in formats[target_format]:
@@ -34,7 +36,7 @@ def latex_image(ptxfile, pub_file, output, params, target_format, xmlid_root, pd
                     xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                     xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method=pdf_method)
     else:
-        log.warning("No latex-image elements found.")
+        log.info("Note: No latex-image elements found.")
 
 # generate sageplot assets
 def sageplot(ptxfile, pub_file, output, params, target_format, xmlid_root, all_formats=False):
@@ -56,13 +58,15 @@ def sageplot(ptxfile, pub_file, output, params, target_format, xmlid_root, all_f
         image_output = os.path.abspath(os.path.join(output, 'sageplot'))
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating sageplot images\n\n')
+        # Check for external requirements
+        utils.check_asset_execs('sageplot', formats[target_format])
         with utils.working_directory("."):
             for outformat in formats[target_format]:
                 core.sage_conversion(
                     xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                     xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat)
     else:
-        log.warning("No sageplot elements found.")
+        log.info("Note: No sageplot elements found.")
 
 # generate asymptote assets
 def asymptote(ptxfile, pub_file, output, params, target_format, xmlid_root, all_formats=False):
@@ -90,7 +94,7 @@ def asymptote(ptxfile, pub_file, output, params, target_format, xmlid_root, all_
                     xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                     xmlid_root=xmlid_root, dest_dir=image_output, outformat=outformat, method='server')
     else:
-        log.warning("No asymptote elements found.")
+        log.info("Note: No asymptote elements found.")
 
 # generate interactive preview assets
 def interactive(ptxfile, pub_file, output, params, xmlid_root):
@@ -103,12 +107,14 @@ def interactive(ptxfile, pub_file, output, params, xmlid_root):
                     os.path.join(output, 'preview'))
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating preview images for interactives\n\n')
+        # Check for external requirements
+        utils.check_asset_execs('interactive', formats[target_format])
         with utils.working_directory("."):
             core.preview_images(
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=xmlid_root, dest_dir=image_output)
     else:
-        log.warning("No interactive elements found.")
+        log.info("Note: No interactive elements found.")
 
 # generate youtube thumbnail assets
 def youtube(ptxfile, pub_file, output, params, xmlid_root):
@@ -126,7 +132,7 @@ def youtube(ptxfile, pub_file, output, params, xmlid_root):
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=xmlid_root, dest_dir=image_output)
     else:
-        log.warning("No video@youtube elements found.")
+        log.info("Note: No video@youtube elements found.")
 
 # generate webwork assets
 def webwork(ptxfile, pub_file, output, params):
@@ -144,7 +150,7 @@ def webwork(ptxfile, pub_file, output, params):
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 abort_early=True, dest_dir=ww_output, server_params=None)
     else:
-        log.warning("No webwork elements found.")
+        log.info("Note: No webwork elements found.")
 
 # generate codelens trace assets
 def codelens(ptxfile, pub_file, output, params, xmlid_root):
@@ -162,4 +168,4 @@ def codelens(ptxfile, pub_file, output, params, xmlid_root):
                 xml_source=ptxfile, pub_file=utils.linux_path(pub_file), stringparams=params,
                 xmlid_root=xmlid_root, dest_dir=trace_output,)
     else:
-        log.warning("No program elements using codelens found.")
+        log.info("Note: No program elements using codelens found.")
