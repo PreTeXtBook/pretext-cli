@@ -1,4 +1,4 @@
-import requests, zipfile, io, shutil, tempfile, os
+import requests, zipfile, io, shutil, tempfile, os, pretext
 
 def remove(path):
     """ param <path> could either be relative or absolute. """
@@ -9,8 +9,7 @@ def remove(path):
         shutil.rmtree(path)  # remove dir and all contains
 
 # grab copy of necessary PreTeXtBook/pretext files from specified commit
-with open("pretext/static/CORE_COMMIT","r") as commitfile:
-    commit = commitfile.readline().strip()
+commit = pretext.CORE_COMMIT
 
 print(f"Requesting core PreTeXtBook/pretext commit {commit} from GitHub.")
 

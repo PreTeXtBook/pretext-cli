@@ -1,10 +1,6 @@
-import subprocess, os, shutil
+import subprocess, os, shutil, pretext
 
-# grab version number
-with open("pretext/static/VERSION") as f:
-    version = f.read().strip()
-
-print(f"Building package for version {version}.")
+print(f"Building package for version {pretext.VERSION}.")
 
 print("Removing any old builds...")
 if os.path.isdir("dist"):
