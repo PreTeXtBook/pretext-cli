@@ -67,12 +67,12 @@ def main(ctx,targets):
         os.chdir(utils.project_path())
         if utils.requirements_version() is None:
             log.warning("Project's CLI version could not be detected from `requirements.txt`.")
-        elif utils.requirements_version() != cli_version():
-            log.warning(f"Using CLI version {cli_version()} but project's `requirements.txt`")
+        elif utils.requirements_version() != VERSION:
+            log.warning(f"Using CLI version {VERSION} but project's `requirements.txt`")
             log.warning(f"is configured to use {utils.requirements_version()}. Consider either installing")
-            log.warning(f"CLI version {utils.requirements_version()} or updating `requirements.txt` to {cli_version()}.")
+            log.warning(f"CLI version {utils.requirements_version()} or updating `requirements.txt` to {VERSION}.")
         else:
-            log.debug(f"CLI version {cli_version()} matches requirements.txt {utils.requirements_version()}.")
+            log.debug(f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}.")
     else:
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
@@ -94,10 +94,8 @@ def support():
     log.info("Please share the following information when posting to the")
     log.info("pretext-support Google Group.")
     log.info("")
-    with open(static.path('VERSION'), 'r') as version_file:
-        version = version_file.read().strip()
-        log.info(f"PreTeXt-CLI version: {version}")
-        log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{version}/")
+    log.info(f"PreTeXt-CLI version: {VERSION}")
+    log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{VERSION}/")
     log.info(f"PreTeXt core resources commit: {CORE_COMMIT}")
     log.info(f"OS: {platform.platform()}")
     log.info(f"Python version: {platform.python_version()}")
@@ -158,7 +156,7 @@ def new(template,directory,url_template):
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
     # generate requirements.txt
     with open(os.path.join(directory_fullpath,"requirements.txt"),"w") as f:
-        f.write(f"pretextbook == {cli_version()}")
+        f.write(f"pretextbook == {VERSION}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
 
@@ -192,7 +190,7 @@ def init(force):
         requirements_path = os.path.abspath('requirments-'+timestamp+'.txt')
         log.warning(f"You already have a requirements.txt file; the one suggested by PreTeXt will be created as {requirements_path} for comparison.\n")
     with open(requirements_path,"w") as f:
-        f.write(f"pretextbook == {cli_version()}")
+        f.write(f"pretextbook == {VERSION}")
     # Create publication file if one doesn't exist: 
     template_pub_path = static.path('templates','publication.ptx')
     project_pub_path = os.path.abspath(os.path.join('publication','publication.ptx'))
