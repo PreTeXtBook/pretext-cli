@@ -13,5 +13,5 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-VERSION = "0.7.3.dev0"
+VERSION = "0.7.3.b0"
 CORE_COMMIT = "188c6666bf5a9c173a515ad632729b1286240b7e"
