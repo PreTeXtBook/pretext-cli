@@ -13,8 +13,5 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from . import static
-
-def version():
-    with open(static.path('VERSION'), 'r') as version_file:
-        return version_file.read().strip()
+VERSION = "0.7.1dev0"
+CORE_COMMIT = "188c6666bf5a9c173a515ad632729b1286240b7e"

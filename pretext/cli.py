@@ -7,10 +7,9 @@ import os, zipfile, requests, io
 import tempfile, shutil
 import platform
 
-from . import utils, static
-from . import version as cli_version
+from . import utils, static, VERSION, CORE_COMMIT
 from .static.pretext import pretext as core
-from .project import Target,Project
+from .project import Target, Project
 
 
 log = logging.getLogger('ptxlogger')
@@ -30,7 +29,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
     log,
     help="Sets the severity of log messaging: DEBUG for all, INFO (default) for most, then WARNING, ERROR, and CRITICAL for decreasing verbosity."
 )
-@click.version_option(cli_version(),message=cli_version())
+@click.version_option(VERSION,message=VERSION)
 @click.option('-t', '--targets', is_flag=True, help='Display list of build/view "targets" available in the project manifest.')
 def main(ctx,targets):
     """
@@ -99,8 +98,7 @@ def support():
         version = version_file.read().strip()
         log.info(f"PreTeXt-CLI version: {version}")
         log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{version}/")
-    with open(static.path('CORE_COMMIT'), 'r') as commit_file:
-        log.info(f"PreTeXt core resources commit: {commit_file.read().strip()}")
+    log.info(f"PreTeXt core resources commit: {CORE_COMMIT}")
     log.info(f"OS: {platform.platform()}")
     log.info(f"Python version: {platform.python_version()}")
     log.info(f"Current working directory: {os.getcwd()}")
