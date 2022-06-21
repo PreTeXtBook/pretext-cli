@@ -1,4 +1,4 @@
-import subprocess, pretext, git, sys
+import subprocess, git, sys
 import build_package
 
 def main(level='patch'):
@@ -14,6 +14,7 @@ def main(level='patch'):
 
     build_package.main()
 
+    import pretext
     print(f"Publishing stable {pretext.VERSION}")
 
     # Publish stable
