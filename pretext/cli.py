@@ -300,6 +300,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     else:
         log.warning("Assets like latex-images will not be regenerated for this build")
         log.warning("(previously generated assets will be used if they exist).")
+        log.warning("To generate these assets before building, run `pretext build -g`.")
     project.build(target_name,clean)
 
 # pretext generate
