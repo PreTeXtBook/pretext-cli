@@ -353,7 +353,7 @@ class Project():
                 return
         if not utils.directory_exists(target.output_dir()):
             log.error(f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`.")
-            log.error(f"Try running `pretext view {target.name()} -b` to preview your project first.")
+            log.error(f"Try running `pretext view {target.name()} -b` to build and preview your project first.")
             return
         log.info(f"Using latest build located in `{target.output_dir()}`.")
         log.info("")
