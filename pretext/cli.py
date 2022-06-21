@@ -15,9 +15,6 @@ from .project import Target, Project
 log = logging.getLogger('ptxlogger')
 click_logging.basic_config(log)
 
-def raise_cli_error(message):
-    raise click.UsageError(" ".join(message.split()))
-
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
