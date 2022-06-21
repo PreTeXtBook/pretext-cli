@@ -27,8 +27,8 @@ def main(level='patch'):
     # Add/commit/push change
     repo.git.add("pyproject.toml")
     repo.index.commit("Bump version to new alpha")
-    repo.remote.origin.push()
-    repo.remote.origin.push(tag.path)
+    repo.remotes.origin.push()
+    repo.remotes.origin.push(tag.path)
 
 if __name__ == '__main__':
     try:

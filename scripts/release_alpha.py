@@ -15,14 +15,14 @@ def main():
 
     # Tag + push
     tag = repo.create_tag(f"v{pretext.VERSION}")
-    repo.remote.origin.push(tag.path)
+    repo.remotes.origin.push(tag.path)
 
     # Bump alpha version
     subprocess.run(["poetry", "version", "prerelease"])
     # Add/commit/push change
     repo.git.add("pyproject.toml")
     repo.index.commit("Bump version to new alpha")
-    repo.remote.origin.push()
+    repo.remotes.origin.push()
 
 if __name__ == '__main__':
     main()
