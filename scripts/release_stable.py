@@ -10,7 +10,7 @@ def main(level='patch'):
     subprocess.run(["poetry", "version", level])
     # Add/commit change
     repo.git.add("pyproject.toml")
-    repo.index.commit("Bump version to new alpha")
+    repo.index.commit(f"Bump version to new {level}")
 
     build_package.main()
 
