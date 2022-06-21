@@ -309,7 +309,7 @@ class Project():
 
     def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
         try:
-            import git
+            import git, ghp_import
         except ImportError:
             log.error("Git must be installed to use this feature, but couldn't be found.")
             return
@@ -338,10 +338,8 @@ class Project():
             repo.active_branch.rename("main")
             log.info("Successfully initialized new Git repository!")
             log.info("")
-        if repo.active_branch.name != "main":
-            log.critical("The active Git branch is not set to `main`.")
-            log.critical("Please checkout the main branch to use this deploy utility.")
-            return
+        log.info(f"Preparing to deploy from active `{repo.active_branch.name}` git branch.")
+        log.info("")
         if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
             log.info("Changes to project source since last commit detected.")
             log.info("Add/committing these changes to local Git repository.")
@@ -350,25 +348,10 @@ class Project():
             repo.git.commit(message=commit_message)
         if not utils.directory_exists(target.output_dir()):
             log.error(f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`.")
-            log.error(f"Try running `pretext build {target.name()}` first.")
+            log.error(f"Try running `pretext view {target.name()} -b` to preview your project first.")
             return
-        log.info(f"Preparing to deploy the latest build located in `{target.output_dir()}`.")
+        log.info(f"Using latest build located in `{target.output_dir()}`.")
         log.info("")
-        docs_path = os.path.join(self.__project_path,"docs")
-        # copy latest build to docs
-        shutil.rmtree(docs_path,ignore_errors=True)
-        shutil.copytree(target.output_dir(),docs_path)
-        # add empty .nojekyll for ghpages
-        with open(os.path.join(docs_path,'.nojekyll'), 'w') as fp:
-            pass
-        log.info(f"Latest build copied to `{docs_path}`.")
-        log.info("")
-        repo.git.add('docs')
-        try:
-            repo.git.commit(message=f"Deploy latest build of target {target.name()}.")
-        except git.exc.GitCommandError:
-            log.warning("Latest build was already committed by Git (but may not have been deployed).")
-            log.info("")
         try:
             origin = repo.remotes.origin
         except AttributeError:
@@ -385,6 +368,13 @@ class Project():
             repo.create_remote("origin", url=ssh_info)
             origin = repo.remotes.origin
             log.info("")
+        log.info(f"Commiting your latest build to the `gh-pages` branch.")
+        log.info("")
+        ghp_import.ghp_import(
+            target.output_dir(), 
+            mesg=f"Latest build of target {target.name()}.",
+            nojekyll=True
+        )
         log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
         log.info("(Your SSH password may be required.)")
         log.info("")
@@ -397,7 +387,8 @@ class Project():
             repo_url = f"(unable to find GitHub URL from {origin.url})"
             pages_url = f"(unable to find GitHub Pages URL from {origin.url})"
         try:
-            origin.push(refspec="main:main")
+            origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
+            origin.push(refspec=f"gh-pages:gh-pages")
         except git.exc.GitCommandError:
             log.warning(f"There was an issue connecting to GitHub repository located at {repo_url}")
             log.info("")
@@ -413,12 +404,12 @@ class Project():
         log.info("")
         log.info("Latest build successfully pushed to GitHub!")
         log.info("")
-        log.info("Visit")
+        log.info("To enable GitHub Pages, visit")
         log.info(f"    {repo_url}settings/pages")
-        log.info("to enable GitHub Pages, selecting the `main` branch with the `/docs` folder.")
+        log.info("selecting the `gh-pages` branch with the `/ (root)` folder.")
         log.info("")
         log.info("Visit")
-        log.info(f"    {repo_url}deployments")
+        log.info(f"    {repo_url}actions/")
         log.info("to check on the status of your GitHub Pages deployment.")
         log.info("")
         log.info("Your built project will soon be available to the public at:")
