@@ -1,4 +1,4 @@
-import subprocess, pretext, git
+import subprocess, pretext, git, sys
 import build_package
 
 def main(level='patch'):
