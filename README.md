@@ -242,11 +242,25 @@ poetry run python scripts/zip_templates.py
 
 ### Packaging
 
-TODO
+To check if a successful build is possible:
 
-### Versioning
+```
+poetry run python scripts/build_package.py
+```
 
-See [VERSIONING.md](VERSIONING.md).
+To publish a new alpha release, first add/commit any changes. Then
+the following handles bumping versions, publishing to PyPI,
+and associated Git management.
+
+```
+poetry run python scripts/release_alpha.py
+```
+
+Publishing a stable release is similar:
+
+```
+poetry run python scripts/release_stable.py
+```
 
 ---
 
