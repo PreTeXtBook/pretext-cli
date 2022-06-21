@@ -259,7 +259,9 @@ poetry run python scripts/release_alpha.py
 Publishing a stable release is similar:
 
 ```
-poetry run python scripts/release_stable.py
+poetry run python scripts/release_stable.py # patch +0.+0.+1
+poetry run python scripts/release_stable.py minor # +0.+1.0
+poetry run python scripts/release_stable.py major # +1.0.0
 ```
 
 ---
