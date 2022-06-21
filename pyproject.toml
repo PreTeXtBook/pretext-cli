@@ -5,7 +5,7 @@ packages = [
 ]
 version = "0.7.5-alpha.1"
 description = "A package to author, build, and deploy PreTeXt projects."
-readme = README.md
+readme = "README.md"
 authors = ["PreTeXtBook.org <steven.clontz+PreTeXt@gmail.com>"]
 license = "GPL-3.0-or-later"
 include = [
