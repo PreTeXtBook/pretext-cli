@@ -6,22 +6,21 @@ A package for authoring and building [PreTeXt](https://pretextbook.org) document
 
 ## Documentation and examples for authors/publishers
 
-This README is written for the PreTeXt developer community.
-Documentation for PreTeXt authors and publishers is available at:
+Most documentation for PreTeXt authors and publishers is available at:
 
-- https://pretextbook.org/documentation.html
+- <https://pretextbook.org/doc/guide/html/>
 
 Authors and publishers may also find the examples catalog useful as well:
 
-- https://pretextbook.org/examples.html
+- <https://pretextbook.org/examples.html>
 
----
+We have a few notes below (TODO: publish these in the Guide).
 
-## Installation
+### Installation
 
-### Installing Python
+#### Installing Python
 
-PreTeXt-CLI requires the Python version specified in `.python-version`.
+PreTeXt-CLI requires the Python version specified in `pyproject.toml`.
 
 To check your version, type this into your terminal or command prompt:
 
@@ -44,7 +43,7 @@ If you don't have a compatible Python available, try one of these:
 - https://github.com/pyenv/pyenv#installation (Mac/Linux)
 - https://github.com/pyenv-win/pyenv-win#installation (Windows)
 
-### Installing PreTeXt-CLI
+#### Installing PreTeXt-CLI
 
 Once you've confirmed that you're using a valid version of Python, just
 run (replacing `python` with `python3` if necessary):
@@ -74,14 +73,14 @@ python -m pretext --help
 Either way, you're now ready to use the CLI, the `--help` option will explain how to use all the different
 subcommands like `pretext new` and `pretext build`.
 
-### Upgrading PreTeXt-CLI
+#### Upgrading PreTeXt-CLI
 If you have an existing installation and you want to upgrade to a more recent version, you can run:
 
 ```
 python -m pip install --upgrade pretextbook
 ```
 
-### Custom XSL
+#### Custom XSL
 
 Custom XSL is not encouraged for most authors, but (for example) developers working
 bleeding-edge XSL from core PreTeXt may want to call XSL different from that
@@ -134,46 +133,60 @@ cd pretext-cli
 
 ### Using a valid Python installation
 
-Developers and contributors are highly encouraged to install the exact
-version of Python that is specified in `.python-version`. All instructions
-assume that the Python on your path (e.g. the result of `python -V`)
-matches this version.
+Developers and contributors must install a
+version of Python that matching the requirements in `pyproject.toml`.
 
-#### Using pyenv (Mac/Linux)
+#### Using pyenv and poetry (Mac/Linux)
 
 The `pyenv` tool for Linux automates the process of running the correct
 version of Python when working on this project (even if you have
-other versions of Python installed on your system). Then
-`pyenv-virtualenv` sets up an appropriate virtual environment for
-development.
+other versions of Python installed on your system).
 
 - https://github.com/pyenv/pyenv#installation
-- https://github.com/pyenv/pyenv-virtualenv#installation
 
-Run the following, replacing `PYTHON_VERSION` with the version in
-`setup.py`.
+Run the following, replacing `PYTHON_VERSION` with your desired version.
 
 ```
 pyenv install PYTHON_VERSION
-pyenv virtualenv PYTHON_VERSION pretext-cli
 ```
 
-The virtual environment for this project can be activated automatically in
-directories with a `.python-version` file with the contents `pretext-cli` by following
-instructions at https://github.com/pyenv/pyenv-virtualenv#activate-virtualenv.
-Or use `pyenv activate pretext-cli` and `pyenv deactivate` to do this manually.
+Then follow these instructions to install `poetry`.
 
-Now to install the in-development package into the virtual environment.
+- https://python-poetry.org/docs/#installation
+    - Note 2022/06/21: you may ignore "This installer is deprecated". See
+      [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
+
+Then you should be able to install dependencies into a virtual environment
+with this command.
 
 ```
-pyenv virtualenvs # should show `* pretext-cli` (note the `*`)
-python -V # should show version from setup.py
-python -m pip install --upgrade pip
-python -m pip install -e .[dev] # run from root of repo
+poetry install
 ```
 
-FIXME: currently all pretext commands must be run with `python -m pretext`
-with this setup.
+Then to use the in-development package, you can either enter a poetry shell:
+
+```
+pretext --version # returns system version
+poetry shell
+pretext --version # returns version being developed
+exit
+pretext --version # returns system version
+```
+
+Or use the runner (as long as you remain within the package directory):
+
+```
+pretext --version             # returns system version
+poetry run pretext --version  # returns version being developed
+```
+
+If you run `echo 'alias pr="poetry run"' >> ~/.bashrc` then restart your
+shell, this becomes less of a mouthful:
+
+```
+pretext --version     # returns system version
+pr pretext --version  # returns version being developed
+```
 
 #### Steps on Windows
 
@@ -181,15 +194,21 @@ In windows, you can either use the bash shell and follow the directions above,
 or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation).  In
 the latter case, make sure to follow all the installation instructions, including
 the **Finish the installation**.  Then proceed to follow the directions above to
-install the version of python in `.python-version`.  Finally, you may then need
+install a version of python matching `.pyproject.toml`.  Finally, you may then need
 to manually add that version of python to your path.
 
 ### Updating dependencies
 
-To add dependencies for the package, edit `setup.py`. then run
+To add dependencies for the package, run
 
 ```
-python -m pip install --upgrade -e .[dev] # run from root of repo
+poetry add DEPENDENCY-NAME
+```
+
+If someone else has added a dependency:
+
+```
+poetry install
 ```
 
 ### Syncing untracked updates
@@ -197,20 +216,20 @@ python -m pip install --upgrade -e .[dev] # run from root of repo
 Updates to certain files tracked to the repository will
 need to be rebuilt by each user when pulled from GitHub.
 
-The file `pretext/static/CORE_COMMIT` tracks the upstream
+The file `pretext/__init__.py` tracks the upstream
 commit of core PreTeXt XSL/Python code we're developing against
 (from `PreTeXtBook/pretext`).
 To grab these updates from upstream, run:
 
 ```
-python scripts/update_core.py
+poetry run python scripts/update_core.py
 ```
 
 If you instead want to point to a local copy of `PreTeXtBook/pretext`,
 try this instead to set up symlinks:
 
 ```
-python scripts/symlink_core.py path/to/pretext
+poetry run python scripts/symlink_core.py path/to/pretext
 ```
 
 Updates to `templates/` must be zipped and moved into
@@ -218,17 +237,12 @@ Updates to `templates/` must be zipped and moved into
 running:
 
 ```
-python scripts/zip_templates.py
+poetry run python scripts/zip_templates.py
 ```
 
 ### Packaging
 
-See <https://packaging.python.org/tutorials/packaging-projects/>.
-Inside a virtual environment:
-
-```
-python scripts/build_release.py
-```
+TODO
 
 ### Versioning
 

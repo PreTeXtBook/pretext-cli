@@ -13,5 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-VERSION = "0.7.4dev0"
+from pathlib import Path
+from single_version import get_version
+VERSION = get_version('pretextbook', Path(__file__).parent.parent)
+
 CORE_COMMIT = "188c6666bf5a9c173a515ad632729b1286240b7e"

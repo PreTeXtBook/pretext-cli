@@ -8,11 +8,18 @@ def remove(path):
     elif os.path.isdir(path):
         shutil.rmtree(path)  # remove dir and all contains
 
-mathbook_path = sys.argv[1]
-for subdir in ['xsl','schema','pretext']:
-    original_path = os.path.abspath(os.path.join(mathbook_path,subdir))
-    link_path = os.path.join('pretext','static',subdir)
-    remove(link_path)
-    os.symlink(original_path,link_path)
+def main(mathbook_path="../pretext"):
+    for subdir in ['xsl','schema','pretext']:
+        original_path = os.path.abspath(os.path.join(mathbook_path,subdir))
+        link_path = os.path.join('pretext','static',subdir)
+        remove(link_path)
+        os.symlink(original_path,link_path)
 
-print("Linked local core pretext directory")
+    print(f"Linked local core pretext directory `{mathbook_path}`")
+
+if __name__ == '__main__':
+    try:
+        mathbook_path = sys.argv[1]
+    except IndexError:
+        mathbook_path = "../pretext"
+    main(mathbook_path)
