@@ -280,8 +280,10 @@ def check_executable(exec_name):
     except OSError as e:
         log.debug(e)
 
-def check_asset_execs(element, outformats):
+def check_asset_execs(element, outformats=None):
     # outformats is assumed to be a list of formats.
+    if outformats is None:
+        outformats = []
     # Note that asymptote is done via server, so doesn't require asy.  We could check for an internet connection here for that and webwork, etc.
     log.debug(f"trying to check assets for {element} and output format {outformats}")
     # Create list of executables needed based on output format

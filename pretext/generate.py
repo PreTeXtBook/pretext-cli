@@ -120,7 +120,7 @@ def interactive(ptxfile, pub_file, output, params, xmlid_root):
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating preview images for interactives\n\n')
         # Check for external requirements
-        utils.check_asset_execs('interactive', formats[target_format])
+        utils.check_asset_execs('interactive')
         with utils.working_directory("."):
             try:
                 core.preview_images(
