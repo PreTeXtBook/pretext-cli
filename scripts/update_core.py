@@ -8,20 +8,24 @@ def remove(path):
     elif os.path.isdir(path):
         shutil.rmtree(path)  # remove dir and all contains
 
-# grab copy of necessary PreTeXtBook/pretext files from specified commit
-commit = pretext.CORE_COMMIT
+def main():
+    # grab copy of necessary PreTeXtBook/pretext files from specified commit
+    commit = pretext.CORE_COMMIT
 
-print(f"Requesting core PreTeXtBook/pretext commit {commit} from GitHub.")
+    print(f"Requesting core PreTeXtBook/pretext commit {commit} from GitHub.")
 
-r = requests.get(f"https://github.com/PreTeXtBook/pretext/archive/{commit}.zip")
-archive = zipfile.ZipFile(io.BytesIO(r.content))
-with tempfile.TemporaryDirectory() as tmpdirname:
-    archive.extractall(tmpdirname)
-    for subdir in ['xsl','pretext','schema']:
-        remove(os.path.join("pretext","static",subdir))
-        shutil.copytree(
-            os.path.join(tmpdirname,f"pretext-{commit}",subdir),
-            os.path.join("pretext","static",subdir),
-        )
+    r = requests.get(f"https://github.com/PreTeXtBook/pretext/archive/{commit}.zip")
+    archive = zipfile.ZipFile(io.BytesIO(r.content))
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        archive.extractall(tmpdirname)
+        for subdir in ['xsl','pretext','schema']:
+            remove(os.path.join("pretext","static",subdir))
+            shutil.copytree(
+                os.path.join(tmpdirname,f"pretext-{commit}",subdir),
+                os.path.join("pretext","static",subdir),
+            )
 
-print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
+    print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
+
+if __name__ == '__main__':
+    main()
