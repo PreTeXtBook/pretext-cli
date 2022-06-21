@@ -307,13 +307,13 @@ class Project():
                 target.xmlid_root(),
             )
 
-    def deploy(self,target_name,commit_message="Update to PreTeXt project source."):
+    def deploy(self,target_name,update_source):
         try:
             import git, ghp_import
         except ImportError:
             log.error("Git must be installed to use this feature, but couldn't be found.")
+            log.error("Visit https://github.com/git-guides/install-git for assistance.")
             return
-        log.info("")
         target = self.target(target_name)
         if target.format() != "html":
             log.error("Only HTML format targets are supported.")
@@ -342,10 +342,15 @@ class Project():
         log.info("")
         if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
             log.info("Changes to project source since last commit detected.")
-            log.info("Add/committing these changes to local Git repository.")
-            log.info("")
-            repo.git.add(all=True)
-            repo.git.commit(message=commit_message)
+            if update_source:
+                log.info("Add/committing these changes to local Git repository.")
+                log.info("")
+                repo.git.add(all=True)
+                repo.git.commit(message="Update to PreTeXt project source.")
+            else:
+                log.error("Either add and commit these changes with Git, or run")
+                log.error("`pretext deploy -u` to have these changes updated automatically.")
+                return
         if not utils.directory_exists(target.output_dir()):
             log.error(f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`.")
             log.error(f"Try running `pretext view {target.name()} -b` to preview your project first.")

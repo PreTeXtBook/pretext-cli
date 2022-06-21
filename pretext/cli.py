@@ -404,15 +404,8 @@ def view(target,access,port,directory,watch,build,generate):
 @main.command(short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
-@click.option(
-    '-m',
-    '--commit-message',
-    default="Update to PreTeXt project source.",
-    show_default=True,
-    help="""
-    Customize message to leave on Git commit for source updates.
-    """)
-def deploy(target,commit_message):
+@click.option('-u', '--update_source', is_flag=True, required=False)
+def deploy(target,update_source):
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
@@ -422,7 +415,7 @@ def deploy(target,commit_message):
     """
     target_name = target
     project = Project()
-    project.deploy(target_name,commit_message)
+    project.deploy(target_name,update_source)
 
 # pretext publish
 @main.command(short_help="OBSOLETE: use deploy",
