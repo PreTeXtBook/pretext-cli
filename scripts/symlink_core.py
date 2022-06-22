@@ -1,25 +1,19 @@
-import sys,os,shutil
+import sys, shutil
+from pathlib import Path
+import pretext.utils
 
-def remove(path):
-    """ param <path> could either be relative or absolute. """
-    # https://stackoverflow.com/a/41789397
-    if os.path.isfile(path) or os.path.islink(path):
-        os.remove(path)  # remove the file
-    elif os.path.isdir(path):
-        shutil.rmtree(path)  # remove dir and all contains
-
-def main(mathbook_path="../pretext"):
+def main(mathbook_path=Path("../pretext")):
     for subdir in ['xsl','schema','pretext']:
-        original_path = os.path.abspath(os.path.join(mathbook_path,subdir))
-        link_path = os.path.join('pretext','static',subdir)
-        remove(link_path)
-        os.symlink(original_path,link_path)
+        original_path = (mathbook_path/subdir).resolve()
+        link_path = Path('pretext')/'static'/subdir
+        pretext.utils.remove_path(link_path)
+        link_path.symlink_to(original_path)
 
     print(f"Linked local core pretext directory `{mathbook_path}`")
 
 if __name__ == '__main__':
     try:
-        mathbook_path = sys.argv[1]
+        mathbook_path = Path(sys.argv[1])
     except IndexError:
-        mathbook_path = "../pretext"
+        mathbook_path = Path("../pretext")
     main(mathbook_path)

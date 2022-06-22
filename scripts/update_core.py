@@ -1,28 +1,21 @@
-import requests, zipfile, io, shutil, tempfile, os, pretext
-
-def remove(path):
-    """ param <path> could either be relative or absolute. """
-    # https://stackoverflow.com/a/41789397
-    if os.path.isfile(path) or os.path.islink(path):
-        os.remove(path)  # remove the file
-    elif os.path.isdir(path):
-        shutil.rmtree(path)  # remove dir and all contains
+import requests, zipfile, io, shutil, tempfile, os
+from pretext import CORE_COMMIT, utils
+from pathlib import Path
 
 def main():
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
-    commit = pretext.CORE_COMMIT
 
-    print(f"Requesting core PreTeXtBook/pretext commit {commit} from GitHub.")
+    print(f"Requesting core PreTeXtBook/pretext commit {CORE_COMMIT} from GitHub.")
 
-    r = requests.get(f"https://github.com/PreTeXtBook/pretext/archive/{commit}.zip")
+    r = requests.get(f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip")
     archive = zipfile.ZipFile(io.BytesIO(r.content))
     with tempfile.TemporaryDirectory() as tmpdirname:
         archive.extractall(tmpdirname)
         for subdir in ['xsl','pretext','schema']:
-            remove(os.path.join("pretext","static",subdir))
+            utils.remove_path(Path("pretext")/"static"/subdir)
             shutil.copytree(
-                os.path.join(tmpdirname,f"pretext-{commit}",subdir),
-                os.path.join("pretext","static",subdir),
+                Path(tmpdirname)/f"pretext-{CORE_COMMIT}"/subdir,
+                Path("pretext")/"static"/subdir,
             )
 
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
