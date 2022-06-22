@@ -306,7 +306,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
 @click.argument('target', required=False)
 @click.option(
     '-a', '--assets', default="ALL",
-    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube'], case_sensitive=False), 
+    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens'], case_sensitive=False), 
     help='Generate ALL or specific assets')
 @click.option('--all-formats', is_flag=True, default=False, 
     help='Generate all possible asset formats rather than the defaults for the given target.')
@@ -328,7 +328,7 @@ def generate(target, assets, all_formats):
         project.generate(target_name)
     else:
         log.info(f"Generating only {assets} assets.")
-        project.generate(target_name,asset_list=[generate])
+        project.generate(target_name,asset_list=[assets])
 
 
 # pretext view
