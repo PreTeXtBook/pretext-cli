@@ -9,7 +9,7 @@ readme = README.md
 authors = ["PreTeXtBook.org <steven.clontz+PreTeXt@gmail.com>"]
 license = "GPL-3.0-or-later"
 include = [
-    "pretext/static/pretext/*", 
+    "pretext/static/pretext/**/*",
     "pretext/static/schema/*", 
     "pretext/static/templates/*", 
     "pretext/static/xsl/**/*"
