@@ -6,6 +6,7 @@ from . import static, utils, generate
 from . import build as builder
 from .static.pretext import pretext as core
 from pathlib import Path
+from typing import Optional
 
 log = logging.getLogger('ptxlogger')
 
@@ -23,7 +24,7 @@ class Target():
                  project_path=None,
                  pdf_method=None):
         if project_path is None:
-            project_path = os.getcwd()
+            project_path = Path()
         if xml_element is None:
             template_xml = static.path("templates","project.ptx")
             xml_element = ET.parse(template_xml).getroot().find("targets/target")
@@ -68,62 +69,62 @@ class Target():
     def xml_element(self):
         return self.__xml_element
 
-    def name(self):
+    def name(self) -> str:
         return self.xml_element().get("name").strip()
 
-    def pdf_method(self):
+    def pdf_method(self) -> str:
         pdf_method = self.xml_element().get("pdf-method")
         if pdf_method is not None:
             return pdf_method.strip()
         else:
             return "xelatex" # default
 
-    def format(self):
+    def format(self) -> str:
         return self.xml_element().find("format").text.strip()
 
-    def source(self):
-        return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("source").text.strip()))
+    def source(self) -> Path:
+        return (Path(self.__project_path)/self.xml_element().find("source").text.strip()).resolve()
 
-    def source_dir(self):
-        return os.path.dirname(self.source())
+    def source_dir(self) -> Path:
+        return Path(self.source()).parent
 
     def source_xml(self):
         ele_tree = ET.parse(self.source())
         ele_tree.xinclude()
         return ele_tree.getroot()
 
-    def publication(self):
-        return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("publication").text.strip()))
+    def publication(self) -> Path:
+        return (Path(self.__project_path)/self.xml_element().find("publication").text.strip()).resolve()
 
-    def publication_dir(self):
-        return os.path.dirname(self.publication())
+    def publication_dir(self) -> Path:
+        return self.publication().parent
 
-    def publication_rel_from_source(self):
-        return os.path.relpath(self.publication(),self.source_dir())
+    def publication_rel_from_source(self) -> Path:
+        return self.publication().relative_to(self.source_dir())
 
     def publication_xml(self):
         ele_tree = ET.parse(self.publication())
         ele_tree.xinclude()
         return ele_tree.getroot()
 
-    def external_dir(self):
+    def external_dir(self) -> Path:
         dir_ele = self.publication_xml().find("source/directories")
         if dir_ele is None:
             log.error("Publication file does not specify asset directories.")
             return None
         rel_dir = dir_ele.get("external")
-        return os.path.join(self.source_dir(),rel_dir)
+        return self.source_dir()/rel_dir
 
-    def generated_dir(self):
+    def generated_dir(self) -> Path:
         dir_ele = self.publication_xml().find("source/directories")
         if dir_ele is None:
             log.error("Publication file does not specify asset directories.")
             return None
         rel_dir = dir_ele.get("generated")
-        return os.path.join(self.source_dir(),rel_dir)
+        return self.source_dir()/rel_dir
 
-    def output_dir(self):
-        return os.path.abspath(os.path.join(self.__project_path,self.xml_element().find("output-dir").text.strip()))
+    def output_dir(self) -> Path:
+        return (Path(self.__project_path)/self.xml_element().find("output-dir").text.strip()).resolve()
 
     def stringparams(self):
         return {
@@ -131,9 +132,9 @@ class Target():
             for sp_ele in self.xml_element().xpath("stringparam")
         }
     
-    def xsl_path(self):
+    def xsl_path(self) -> Optional[Path]:
         if self.xml_element().find("xsl") is not None:
-            return os.path.abspath(os.path.join(self.__project_path, self.xml_element().find("xsl").text.strip()))
+            return (Path(self.__project_path)/self.xml_element().find("xsl").text.strip()).resolve()
         else:
             return None
 
@@ -152,10 +153,10 @@ class Project():
                  targets=None,
                  project_path=None):
         if project_path is None:
-            project_path = os.getcwd()
+            project_path = Path()
         if xml_element is None:
             if utils.project_path() is not None:
-                xml_element = ET.parse(os.path.join(utils.project_path(),"project.ptx")).getroot()
+                xml_element = ET.parse(utils.project_path()/"project.ptx").getroot()
             else:
                 template_xml = static.path("templates","project.ptx")
                 xml_element = ET.parse(template_xml).getroot()
@@ -186,7 +187,7 @@ class Project():
         for target in self.targets():
             print(target.name())
 
-    def target(self,name=None):
+    def target(self,name=None) -> Target:
         if name is None:
             target_element=self.xml_element().find("targets/target")
         else:
@@ -224,13 +225,13 @@ class Project():
         os.makedirs(target.generated_dir(), exist_ok=True)
         if clean:
             # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
-            if Path(self.__project_path) not in Path(target.output_dir()).parents:
+            if Path(self.__project_path) not in target.output_dir().parents:
                 log.warning("Refusing to clean output directory that isn't a proper subdirectory of the project.")
-            elif Path(target.output_dir()) in Path(os.path.join(target.source_dir(),"foo")).parents or \
-                Path(target.output_dir()) in Path(os.path.join(target.publication_dir(),"foo")).parents:
+            elif target.output_dir() in (target.source_dir()/"foo").parents or \
+                target.output_dir() in (target.publication_dir()/"foo").parents:
                 log.warning("Refusing to clean output directory that contains source or publication files.")
             # handle request to clean directory that does not exist
-            elif not os.path.isdir(target.output_dir()):
+            elif not target.output_dir().exists():
                 log.warning(f"Directory {target.output_dir()} already does not exist, nothing to clean.")
             else:
                 log.warning(f"Destroying directory {target.output_dir()} to clean previously built files.")
@@ -238,20 +239,21 @@ class Project():
         #if custom xsl, copy it into a temporary directory (different from the building temporary directory)
         custom_xsl = None
         with tempfile.TemporaryDirectory() as temp_xsl_dir:
+            temp_xsl_path = Path(temp_xsl_dir)
             if target.xsl_path() is not None:
                 log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
                 utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_dir)
-                custom_xsl = os.path.join(temp_xsl_dir, os.path.basename(target.xsl_path()))
+                custom_xsl = temp_xsl_path/target.xsl_path().name
             log.info(f"Preparing to build into {target.output_dir()}.")
             try:
                 if (target.format()=='html' or target.format()=='html-zip'):
                     zipped = (target.format()=='html-zip')
-                    builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
+                    builder.html(target.source().as_posix(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
                 elif target.format()=='latex':
                     builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
                     # core script doesn't put a copy of images in output for latex builds, so we do it instead here
-                    shutil.copytree(target.external_dir(),os.path.join(target.output_dir(),"external"),dirs_exist_ok=True)
-                    shutil.copytree(target.generated_dir(),os.path.join(target.output_dir(),"generated"),dirs_exist_ok=True)
+                    shutil.copytree(target.external_dir(),target.output_dir()/"external",dirs_exist_ok=True)
+                    shutil.copytree(target.generated_dir(),target.output_dir()/"generated",dirs_exist_ok=True)
                 elif target.format()=='pdf':
                     builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
             except Exception as e:
@@ -272,7 +274,7 @@ class Project():
         os.makedirs(target.generated_dir(), exist_ok=True)
         #build targets:
         if gen_all or "webwork" in asset_list:
-            webwork_output = os.path.join(target.generated_dir(),'webwork')
+            webwork_output = target.generated_dir()/'webwork'
             generate.webwork(
                 target.source(), target.publication(), webwork_output, target.stringparams()
             )
