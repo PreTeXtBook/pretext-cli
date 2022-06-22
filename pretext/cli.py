@@ -162,53 +162,67 @@ def new(template,directory,url_template):
 # pretext init
 @main.command(short_help="Generates the project manifest for a PreTeXt project in the current directory.", 
     context_settings=CONTEXT_SETTINGS)
-@click.option('-f', '--force', is_flag=True, 
-              help="Force initialization of project even if project.ptx exists. Duplicate files will be created with timestamps for comparison")
-def init(force):
+@click.option('-r', '--refresh', is_flag=True, 
+              help="Refresh initialization of project even if project.ptx exists.")
+def init(refresh):
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
     is mainly intended for updating existing projects to use this CLI.
+
+    If --refresh is used, files will be generated even if the project has already been initalized.
+    Existing files won't be overwritten; a copy of the fresh initialized file will be created
+    with a timestamp in its filename for comparison.
     """
-    if utils.project_path() is not None and not force:
+    if utils.project_path() is not None and not refresh:
         log.warning(f"A project already exists in `{utils.project_path()}`.")
-        log.warning(f"No project.ptx manifest will be generated.  Use `pretext init -f` to force re-initialization.")
+        log.warning(f"Use `pretext init --refresh` to refresh initialization of an existing project.")
         return
     timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
     template_manifest_path = static.path('templates', 'project.ptx')
     project_manifest_path = Path("project.ptx").resolve()
     if project_manifest_path.is_file():
         project_manifest_path = Path(f'project-{timestamp}.ptx').resolve()
-        log.warning(
-            f"You already have a project.ptx file at, so the one suggested by PreTeXt will been created as {project_manifest_path} for comparison.\n")
-    log.info(f"Generating `{project_manifest_path}`.")
+        log.warning(f"You already have a project file at {Path('project.ptx').resolve()}.")
+        log.warning(f"A default project file has been created as {project_manifest_path} for comparison.")
+    log.info(f"Generated project file at `{project_manifest_path}`.")
+    log.info("")
     shutil.copyfile(template_manifest_path,project_manifest_path)
     # Create requirements.txt
     requirements_path = Path('requirements.txt').resolve()
-    if requirements_path.is_path():
+    if requirements_path.exists():
         requirements_path = Path(f'requirements-{timestamp}.txt').resolve()
-        log.warning(f"You already have a requirements.txt file; the one suggested by PreTeXt will be created as {requirements_path} for comparison.\n")
+        log.warning(f"You already have a requirements.txt file at {Path('requirements.txt').resolve()}`.")
+        log.warning(f"The one suggested by PreTeXt will be created as {requirements_path} for comparison.")
     with open(requirements_path,"w") as f:
         f.write(f"pretextbook == {VERSION}")
+    log.info(f"Generated requirements file at {requirements_path}.")
+    log.info("")
     # Create publication file if one doesn't exist: 
     template_pub_path = static.path('templates','publication.ptx')
-    project_pub_path = (Path('publication')/'publication.ptx').resolve()
-    if project_pub_path.is_file():
+    pub_dir_path = Path('publication')
+    if not pub_dir_path.exists():
+        pub_dir_path.mkdir()
+    project_pub_path = (pub_dir_path/'publication.ptx').resolve()
+    if project_pub_path.exists():
         project_pub_path = (Path('publication')/f'publication-{timestamp}.ptx').resolve()
-        log.warning(
-            f"You already have a publication file, so the one suggested by PreTeXt will been created as {project_pub_path} for comparison.\n")
-    shutil.copy(template_pub_path, project_pub_path)
-    log.info(f"Publication file created at {project_pub_path}.  If you use another publication file, move it or update {project_manifest_path} to point to the location of the file (and delete the new publication file).")
+        log.warning(f"You already have a publication file at {(Path('publication')/'publication.ptx').resolve()}.")
+        log.warning(f"A default project file has been created as {project_pub_path} for comparison.")
+    shutil.copyfile(template_pub_path, project_pub_path)
+    log.info(f"Generated publication file at {project_pub_path}.")
+    log.info("")
     # Create .gitignore if one doesn't exist
     template_gitignore_path = static.path('templates','.gitignore')
     project_gitignore_path = Path(".gitignore").resolve()
-    if project_gitignore_path.is_file():
+    if project_gitignore_path.exists():
         project_gitignore_path = Path(f".gitignore-{timestamp}").resolve()
-        log.warning(f"You already have a .gitignore file, so the one suggested by PreTeXt will be created at {project_gitignore_path} for comparison.\n") 
+        log.warning(f"You already have a gitignore file at {Path('.gitignore').resolve()}.")
+        log.warning(f"A default project file has been created as {project_gitignore_path} for comparison.")
     shutil.copyfile(template_gitignore_path,project_gitignore_path)
-    log.info(f"Created .gitignore file.\n")
+    log.info(f"Generated .gitignore file at {project_gitignore_path}.")
+    log.info("")
     # End by reporting success
-    log.info(f"Success! Open {project_manifest_path} to edit your project manifest.")
-    log.info(f"Edit your <target/>s to point to your main PreTeXt source file.")
+    log.info(f"Success! Open project.ptx to edit your project manifest.")
+    log.info(f"Edit your <target/>s to point to the location of your PreTeXt source files.")
 
 
 # pretext build

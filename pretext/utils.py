@@ -44,7 +44,7 @@ def project_path(dirpath:Optional[Path]=None) -> Path:
         dirpath = Path() # current directory
     if (dirpath/"project.ptx").is_file():
         # we're at the project root
-        return dirpath
+        return dirpath.resolve()
     if dirpath.parent == dirpath:
         # cannot ascend higher, no project found
         return None
