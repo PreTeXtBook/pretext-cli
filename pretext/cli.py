@@ -8,8 +8,7 @@ import tempfile, shutil
 import platform
 from pathlib import Path
 
-from . import utils, static, VERSION, CORE_COMMIT
-from .static.pretext import pretext as core
+from . import utils, static, VERSION, CORE_COMMIT, core
 from .project import Target, Project
 
 

@@ -3,11 +3,15 @@ from pathlib import Path
 import pretext.utils
 
 def main(mathbook_path=Path("../pretext")):
-    for subdir in ['xsl','schema','pretext']:
+    for subdir in ['xsl','schema']:
         original_path = (mathbook_path/subdir).resolve()
         link_path = Path('pretext')/'static'/subdir
         pretext.utils.remove_path(link_path)
         link_path.symlink_to(original_path)
+    original_path = (mathbook_path/"pretext"/"pretext.py").resolve()
+    link_path = Path('pretext')/'core'/"pretext.py"
+    pretext.utils.remove_path(link_path)
+    link_path.symlink_to(original_path)
 
     print(f"Linked local core pretext directory `{mathbook_path}`")
 

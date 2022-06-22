@@ -1,10 +1,9 @@
 from lxml import etree as ET
 import os
 import logging
-from . import utils
+from . import utils, core
 from pathlib import Path
 from typing import Optional
-from .static.pretext import pretext as core
 
 # Get access to logger
 log = logging.getLogger('ptxlogger')

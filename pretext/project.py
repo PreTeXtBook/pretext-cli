@@ -2,9 +2,8 @@ from lxml import etree as ET
 import os, shutil
 import logging
 import tempfile
-from . import static, utils, generate
+from . import static, utils, generate, core
 from . import build as builder
-from .static.pretext import pretext as core
 from pathlib import Path
 from typing import Optional
 
@@ -248,7 +247,7 @@ class Project():
             try:
                 if (target.format()=='html' or target.format()=='html-zip'):
                     zipped = (target.format()=='html-zip')
-                    builder.html(target.source().as_posix(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
+                    builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
                 elif target.format()=='latex':
                     builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
                     # core script doesn't put a copy of images in output for latex builds, so we do it instead here

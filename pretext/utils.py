@@ -14,8 +14,7 @@ import watchdog.events, watchdog.observers, time
 from typing import Optional
 from lxml import etree as ET
 
-from . import static
-from .static.pretext import pretext as core
+from . import static, core
 
 # Get access to logger
 log = logging.getLogger('ptxlogger')

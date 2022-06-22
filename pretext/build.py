@@ -5,8 +5,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from . import utils
-from .static.pretext import pretext as core
+from . import utils, core
 
 # Get access to logger
 log = logging.getLogger('ptxlogger')

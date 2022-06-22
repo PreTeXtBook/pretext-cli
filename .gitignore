@@ -133,8 +133,10 @@ cython_debug/
 # Hide PyPI token
 .pypitoken
 
-#pretext-core
+#pretext-core deprecated
 pretext/static/pretext
+#pretext-core
+pretext/core/pretext.py
 pretext/static/schema
 pretext/static/xsl
 #shipped templates
