@@ -2,6 +2,8 @@ from re import T
 from lxml import etree as ET
 import logging
 import os
+from pathlib import Path
+from typing import Optional
 
 from . import utils
 from .static.pretext import pretext as core
@@ -9,7 +11,7 @@ from .static.pretext import pretext as core
 # Get access to logger
 log = logging.getLogger('ptxlogger')
 
-def html(ptxfile,pub_file,output,stringparams,custom_xsl,xmlid_root,zipped=False):
+def html(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path],xmlid_root,zipped=False):
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building HTML into {output}\n")
     if xmlid_root is not None:
@@ -18,30 +20,53 @@ def html(ptxfile,pub_file,output,stringparams,custom_xsl,xmlid_root,zipped=False
         file_format = 'zip'
     else:
         file_format = 'html'
-    with utils.working_directory("."):
+    with utils.working_directory(Path()): # ensure working directory is preserved
         try:
-            core.html(ptxfile, utils.linux_path(pub_file), stringparams, xmlid_root, file_format, custom_xsl, None, output)
+            core.html(
+                ptxfile.as_posix(),
+                pub_file.as_posix(),
+                stringparams,
+                xmlid_root,
+                file_format,
+                custom_xsl and custom_xsl.as_posix(), # pass None or posix string
+                None,
+                output.as_posix()
+            )
         except Exception as e:
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
 
-def latex(ptxfile,pub_file,output,stringparams,custom_xsl):
+def latex(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path]):
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building LaTeX into {output}\n")
-    with utils.working_directory("."):
+    with utils.working_directory(Path()): # ensure working directory is preserved
         try:
-            core.latex(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl, None, output)
+            core.latex(
+                ptxfile.as_posix(), 
+                pub_file.as_posix(), 
+                stringparams, 
+                custom_xsl and custom_xsl.as_posix(), # pass None or posix string
+                None, 
+                output.as_posix()
+            )
         except Exception as e:
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
 
-def pdf(ptxfile,pub_file,output,stringparams,custom_xsl,pdf_method):
+def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path],pdf_method:str):
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building LaTeX into {output}\n")
-    with utils.working_directory("."):
+    with utils.working_directory(Path()): # ensure working directory is preserved
         try:
-            core.pdf(ptxfile, utils.linux_path(pub_file), stringparams, custom_xsl,
-                 None, dest_dir=output, method=pdf_method)
+            core.pdf(
+                ptxfile.as_posix(), 
+                pub_file.as_posix(), 
+                stringparams, 
+                custom_xsl and custom_xsl.as_posix(), # pass None or posix string
+                None, 
+                dest_dir=output.as_posix(), 
+                method=pdf_method
+            )
         except Exception as e:
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)

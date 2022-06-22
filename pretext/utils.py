@@ -5,12 +5,13 @@ import json
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
 import shutil
-import pathlib
+from pathlib import Path
 import socketserver
 import socket
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
+from typing import Optional
 from lxml import etree as ET
 
 from . import static
@@ -20,7 +21,7 @@ from .static.pretext import pretext as core
 log = logging.getLogger('ptxlogger')
 
 @contextmanager
-def working_directory(path):
+def working_directory(path:Path):
     """
     Temporarily change the current working directory.
 
@@ -29,7 +30,7 @@ def working_directory(path):
         do_things()   # working in the given path
     do_other_things() # back to original path
     """
-    current_directory=os.getcwd()
+    current_directory=Path()
     os.chdir(path)
     log.debug(f"Now working in directory {path}")
     try:
@@ -38,42 +39,34 @@ def working_directory(path):
         os.chdir(current_directory)
         log.debug(f"Successfully changed directory back to {current_directory}")
 
-def linux_path(path):
-    # hack to make core ptx and xsl:import happy
-    p = pathlib.Path(path)
-    return p.as_posix()
-
-
-def directory_exists(path):
-    """
-    Checks if the directory exists.
-    """
-    return os.path.exists(path)
-
-
 # Grabs project directory based on presence of `project.ptx`
-def project_path(dirpath=os.getcwd()):
-    if os.path.isfile(os.path.join(dirpath,'project.ptx')):
+def project_path(dirpath:Optional[Path]=None) -> Path:
+    if dirpath==None:
+        dirpath = Path() # current directory
+    if (dirpath/"project.ptx").is_file():
         # we're at the project root
         return dirpath
-    parentpath = os.path.dirname(dirpath)
-    if parentpath == dirpath:
+    if dirpath.parent == dirpath:
         # cannot ascend higher, no project found
         return None
     else:
         # check parent instead
-        return project_path(dirpath=parentpath)
+        return project_path(dirpath=dirpath.parent)
 
-def project_xml(dirpath=os.getcwd()):
+def project_xml(dirpath:Optional[Path]=None) -> Path:
+    if dirpath==None:
+        dirpath = Path() # current directory
     if project_path(dirpath) is None:
         project_manifest = static.path('templates','project.ptx')
     else:
-        project_manifest = os.path.join(project_path(dirpath), 'project.ptx')
+        project_manifest = project_path(dirpath) / 'project.ptx'
     return ET.parse(project_manifest)
 
-def requirements_version(dirpath=os.getcwd()):
+def requirements_version(dirpath:Optional[Path]=None) -> str:
+    if dirpath==None:
+        dirpath = Path() # current directory
     try:
-        with open(os.path.join(project_path(dirpath),'requirements.txt'),'r') as f:
+        with open(project_path(dirpath) / 'requirements.txt','r') as f:
             for line in f.readlines():
                 if 'pretextbook' in line:
                     return line.split("==")[1].strip()
@@ -82,12 +75,16 @@ def requirements_version(dirpath=os.getcwd()):
         log.debug(e)
         return None
 
-def project_xml_string(dirpath=os.getcwd()):
+def project_xml_string(dirpath:Optional[Path]=None) -> str:
+    if dirpath==None:
+        dirpath = Path() # current directory
     return ET.tostring(project_xml(dirpath), encoding='unicode')
 
-def target_xml(alias=None,dirpath=os.getcwd()):
+def target_xml(alias:Optional[str]=None,dirpath:Optional[Path]=None) -> ET.Element:
+    if dirpath==None:
+        dirpath = Path() # current directory
     if alias is None:
-        return project_xml().find("targets/target")
+        return project_xml().find("targets/target") # first target
     xpath = f'targets/target[@name="{alias}"]'
     matches = project_xml().xpath(xpath)
     if len(matches) == 0:
@@ -95,15 +92,8 @@ def target_xml(alias=None,dirpath=os.getcwd()):
         return None
     return project_xml().xpath(xpath)[0]
 
-def text_from_project_xml(xpath,default=None):
-    matches = project_xml().xpath(xpath)
-    if len(matches) > 0:
-        return matches[0].text.strip()
-    else:
-        return default
-
 #check xml syntax
-def xml_syntax_is_valid(xmlfile):
+def xml_syntax_is_valid(xmlfile:Path) -> bool:
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
@@ -129,7 +119,7 @@ def xml_syntax_is_valid(xmlfile):
         return False
     return True
 
-def xml_source_validates_against_schema(xmlfile):
+def xml_source_validates_against_schema(xmlfile:Path) -> bool:
     #get path to RelaxNG schema file:
     schemarngfile = static.path('schema','pretext.rng')
 
@@ -174,19 +164,19 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
 def binding_for_access(access="private"):
-    if os.path.isfile("/home/user/.smc/info.json") or access=="public":
+    if Path("/home/user/.smc/info.json").is_file() or access=="public":
         return "0.0.0.0"
     else:
         return "localhost"
 def url_for_access(access="private",port=8000):
-    if os.path.isfile("/home/user/.smc/info.json"):
+    if Path("/home/user/.smc/info.json").is_file():
         project_id = json.loads(open('/home/user/.smc/info.json').read())['project_id']
         return f"https://cocalc.com/{project_id}/server/{port}/"
     elif access=='public':
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
         return f"http://localhost:{port}"
-def serve_forever(directory,access="private",port=8000):
+def serve_forever(directory:Path,access="private",port=8000):
     log.info(f"Now starting a server to preview directory `{directory}`.\n")
     binding = binding_for_access(access)
     class RequestHandler(SimpleHTTPRequestHandler):
@@ -217,7 +207,7 @@ def serve_forever(directory,access="private",port=8000):
             port = random.randint(49152,65535)
             log.warning(f"Trying port {port} instead.\n")
 
-def run_server(directory,access,port,watch_directory=None,watch_callback=lambda:None):
+def run_server(directory:Path,access:str,port:int,watch_directory:Optional[Path]=None,watch_callback=lambda:None):
     binding = binding_for_access(access)
     threading.Thread(target=lambda: serve_forever(directory,access,port),daemon=True).start()
     if watch_directory is not None:
@@ -239,40 +229,41 @@ NSMAP = {
     "xi": "http://www.w3.org/2001/XInclude",
     "xml": "http://www.w3.org/XML/1998/namespace",
 }
-def nstag(prefix,suffix):
+def nstag(prefix:str,suffix:str) -> str:
     return "{" + NSMAP[prefix] + "}" + suffix
 
-def expand_pretext_href(lxml_element):
+def expand_pretext_href(lxml_element:ET.Element):
     '''
     Expands @pretext-href attributes to point to the distributed xsl directory.
     '''
     for ele in lxml_element.xpath('//*[@pretext-href]'):
-        ele.set('href',str(linux_path(static.core_xsl(ele.get('pretext-href'),as_path=True))))
+        ele.set('href',Path(static.core_xsl(ele.get('pretext-href'),as_path=True)).as_posix())
 
-def copy_expanded_xsl(xsl_path: str, output_dir: str):
+def copy_expanded_xsl(xsl_path: Path, output_dir: Path):
     """
     Copy relevant files that share a directory with `xsl_path`
     while pre-processing the `.xsl` files.
     """
-    xsl_dir = os.path.abspath(os.path.dirname(xsl_path))
-    output_dir = os.path.abspath(output_dir)
+    xsl_dir = xsl_path.parent.resolve()
+    output_dir = output_dir.resolve()
     log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
     # expand each xsl file
     with working_directory(output_dir):
         for filename in glob.iglob('**',recursive=True):
+            filepath = Path(filename)
             # glob lists both files and directories, but we only want to copy files.
-            if os.path.isfile(filename) and filename.endswith('.xsl'):
-                log.debug(f"Expanding and copying {filename}")
+            if filepath.is_file() and filepath.suffix =='.xsl':
+                log.debug(f"Expanding and copying {filepath}")
                 try:
-                    lxml_element = ET.parse(filename)
+                    lxml_element = ET.parse(filepath)
                     expand_pretext_href(lxml_element)
-                    lxml_element.write(filename)
+                    lxml_element.write(filepath)
                 # maybe an xsl file is malformed, but let's continue in case it's unused
                 except Exception as e:
-                    log.warning(f"Hit error `{e}` when expanding {filename}, continuing anyway...")
+                    log.warning(f"Failed to expand {filename} due to {e}, continuing anyway...")
 
-def check_executable(exec_name):
+def check_executable(exec_name:str):
     try:
         exec_cmd = core.get_executable_cmd(exec_name)[0]
         log.debug(f"PTX-CLI: Executable command {exec_name} found at {exec_cmd}")

@@ -6,6 +6,7 @@ import datetime
 import os, zipfile, requests, io
 import tempfile, shutil
 import platform
+from pathlib import Path
 
 from . import utils, static, VERSION, CORE_COMMIT
 from .static.pretext import pretext as core
@@ -56,11 +57,12 @@ def main(ctx,targets):
         return
     if utils.project_path() is not None:
         # create file handler which logs even debug messages
-        fh = logging.FileHandler(os.path.join(utils.project_path(),'cli.log'), mode='w')
+        fh = logging.FileHandler(utils.project_path()/'cli.log', mode='w')
         fh.setLevel(logging.DEBUG)
         log.addHandler(fh)
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
+        # permanently change working directory for rest of processs
         os.chdir(utils.project_path())
         if utils.requirements_version() is None:
             log.warning("Project's CLI version could not be detected from `requirements.txt`.")
@@ -96,7 +98,7 @@ def support():
     log.info(f"PreTeXt core resources commit: {CORE_COMMIT}")
     log.info(f"OS: {platform.platform()}")
     log.info(f"Python version: {platform.python_version()}")
-    log.info(f"Current working directory: {os.getcwd()}")
+    log.info(f"Current working directory: {Path()}")
     if utils.project_path() is not None:
         log.info(f"PreTeXt project path: {utils.project_path()}")
         log.info("")
@@ -129,7 +131,7 @@ def new(template,directory,url_template):
     Supports `pretext new book` (default) and `pretext new article`,
     or generating from URL with `pretext new --url-template [URL]`.
     """
-    directory_fullpath = os.path.abspath(directory)
+    directory_fullpath = Path(directory).resolve()
     if utils.project_path(directory_fullpath) is not None:
         log.warning(f"A project already exists in `{utils.project_path(directory_fullpath)}`.")
         log.warning(f"No new project will be generated.")
@@ -142,17 +144,17 @@ def new(template,directory,url_template):
         template_path = static.path('templates', f'{template}.zip')
         archive = zipfile.ZipFile(template_path)
     # find (first) project.ptx to use as root of template
-    filenames = [os.path.basename(filepath) for filepath in archive.namelist()]
+    filenames = [Path(filepath).name for filepath in archive.namelist()]
     project_ptx_index = filenames.index('project.ptx')
-    project_ptx_path = archive.namelist()[project_ptx_index]
-    project_dir_path = os.path.dirname(project_ptx_path)
+    project_ptx_path = Path(archive.namelist()[project_ptx_index])
+    project_dir_path = project_ptx_path.parent
     with tempfile.TemporaryDirectory() as tmpdirname:
-        for filepath in [filepath for filepath in archive.namelist() if filepath.startswith(project_dir_path)]:
+        for filepath in [filepath for filepath in archive.namelist() if project_dir_path in Path(filepath).parents]:
             archive.extract(filepath,path=tmpdirname)
-        tmpsubdirname = os.path.join(tmpdirname,project_dir_path)
+        tmpsubdirname = Path(tmpdirname)/project_dir_path
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
     # generate requirements.txt
-    with open(os.path.join(directory_fullpath,"requirements.txt"),"w") as f:
+    with open(directory_fullpath/"requirements.txt","w") as f:
         f.write(f"pretextbook == {VERSION}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
@@ -174,34 +176,34 @@ def init(force):
         return
     timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
     template_manifest_path = static.path('templates', 'project.ptx')
-    project_manifest_path = os.path.abspath("project.ptx")
-    if os.path.isfile(project_manifest_path):
-        project_manifest_path = os.path.abspath('project-'+timestamp+'.ptx')
+    project_manifest_path = Path("project.ptx").resolve()
+    if project_manifest_path.is_file():
+        project_manifest_path = Path(f'project-{timestamp}.ptx').resolve()
         log.warning(
             f"You already have a project.ptx file at, so the one suggested by PreTeXt will been created as {project_manifest_path} for comparison.\n")
     log.info(f"Generating `{project_manifest_path}`.")
     shutil.copyfile(template_manifest_path,project_manifest_path)
     # Create requirements.txt
-    requirements_path = os.path.abspath('requirements.txt')
-    if os.path.isfile(requirements_path):
-        requirements_path = os.path.abspath('requirments-'+timestamp+'.txt')
+    requirements_path = Path('requirements.txt').resolve()
+    if requirements_path.is_path():
+        requirements_path = Path(f'requirements-{timestamp}.txt').resolve()
         log.warning(f"You already have a requirements.txt file; the one suggested by PreTeXt will be created as {requirements_path} for comparison.\n")
     with open(requirements_path,"w") as f:
         f.write(f"pretextbook == {VERSION}")
     # Create publication file if one doesn't exist: 
     template_pub_path = static.path('templates','publication.ptx')
-    project_pub_path = os.path.abspath(os.path.join('publication','publication.ptx'))
-    if os.path.isfile(project_pub_path):
-        project_pub_path = os.path.abspath(os.path.join('publication','publication-'+timestamp+'.ptx'))
+    project_pub_path = (Path('publication')/'publication.ptx').resolve()
+    if project_pub_path.is_file():
+        project_pub_path = (Path('publication')/f'publication-{timestamp}.ptx').resolve()
         log.warning(
             f"You already have a publication file, so the one suggested by PreTeXt will been created as {project_pub_path} for comparison.\n")
     shutil.copy(template_pub_path, project_pub_path)
     log.info(f"Publication file created at {project_pub_path}.  If you use another publication file, move it or update {project_manifest_path} to point to the location of the file (and delete the new publication file).")
     # Create .gitignore if one doesn't exist
     template_gitignore_path = static.path('templates','.gitignore')
-    project_gitignore_path = os.path.abspath(".gitignore")
-    if os.path.isfile(project_gitignore_path):
-        project_gitignore_path = os.path.abspath(".gitignore-"+timestamp)
+    project_gitignore_path = Path(".gitignore").resolve()
+    if project_gitignore_path.is_file():
+        project_gitignore_path = Path(f".gitignore-{timestamp}").resolve()
         log.warning(f"You already have a .gitignore file, so the one suggested by PreTeXt will be created at {project_gitignore_path} for comparison.\n") 
     shutil.copyfile(template_gitignore_path,project_gitignore_path)
     log.info(f"Created .gitignore file.\n")
