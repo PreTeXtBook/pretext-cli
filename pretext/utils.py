@@ -181,7 +181,7 @@ def serve_forever(directory:Path,access="private",port=8000):
     binding = binding_for_access(access)
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=directory, **kwargs)
+            super().__init__(*args, directory=directory.as_posix(), **kwargs)
         """HTTP request handler with no caching"""
         def end_headers(self):
             self.send_my_headers()

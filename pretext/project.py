@@ -196,7 +196,7 @@ class Project():
         else:
             return None
 
-    def view(self,target_name,access,port,watch=False):
+    def view(self,target_name:str,access:str,port:int,watch:bool=False):
         target = self.target(target_name)
         directory = target.output_dir()
         if watch:

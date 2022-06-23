@@ -384,13 +384,13 @@ def generate(target, assets, all_formats):
 @click.option('-g', '--generate', is_flag=True, help="""
     Generate all assets before starting server.
     """)
-def view(target,access,port,directory,watch,build,generate):
+def view(target:str,access:str,port:int,directory:str,watch:bool,build:bool,generate:bool):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
     """
     if directory is not None:
-        utils.run_server(directory,access,port)
+        utils.run_server(Path(directory),access,port)
         return
     target_name=target
     project = Project()

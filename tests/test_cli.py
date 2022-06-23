@@ -1,6 +1,8 @@
-import subprocess, os, glob, shutil, time, signal
+import subprocess, os, glob, shutil, time, signal, platform, random
 from tempfile import TemporaryDirectory
 from pathlib import Path
+from contextlib import contextmanager
+import requests
 import pretext
 
 EXAMPLES_DIR = Path(__file__).parent/'examples'
@@ -8,6 +10,17 @@ EXAMPLES_DIR = Path(__file__).parent/'examples'
 def pretext_new_cd() -> None:
     subprocess.run(["pretext","new"])
     os.chdir(Path("new-pretext-project"))
+
+@contextmanager
+def pretext_view(*args):
+    process = subprocess.Popen(['pretext','view']+list(args))
+    time.sleep(1)
+    try:
+        yield process
+    finally:
+        process.send_signal(signal.SIGINT)
+        time.sleep(1)
+        assert process.poll()==0
 
 def cmd_works(*args) -> bool:
     return subprocess.run(args).returncode == 0
@@ -65,8 +78,11 @@ def test_generate(tmp_path:Path):
 
 def test_view(tmp_path:Path):
     os.chdir(tmp_path)
-    process = subprocess.Popen(['pretext','view','-d','.'])
-    time.sleep(1)
-    process.send_signal(signal.SIGINT)
-    time.sleep(1)
-    assert process.poll()==0
+    port = random.randint(10_000, 65_636)
+    with pretext_view('-d','.','-p',f'{port}'):
+        assert requests.get(f'http://localhost:{port}/').status_code == 200
+    port+=1
+    pretext_new_cd()
+    subprocess.run(['pretext','build'])
+    with pretext_view('-p',f'{port}'):
+        assert requests.get(f'http://localhost:{port}/').status_code == 200
