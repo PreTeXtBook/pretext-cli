@@ -38,6 +38,7 @@ jobs:
       run:  |
         python -m poetry install
         python -m poetry run python scripts/update_core.py
+        python -m poetry run python scripts/zip_templates.py
 
     - name: Test with pytest
       run: |
