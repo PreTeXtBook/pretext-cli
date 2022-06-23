@@ -3,7 +3,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 import pretext
 
-EXAMPLES_DIR = Path(__file__).parent/'ptx'
+EXAMPLES_DIR = Path(__file__).parent/'examples'
 
 def pretext_new_cd() -> None:
     subprocess.run(["pretext","new"])
