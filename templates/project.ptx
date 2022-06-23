@@ -32,7 +32,7 @@
       <stringparam key="debug.skip-knowls" value="yes"/>
       <!-- edit this to change the section/chapter/etc. to include
            in your subset build -->
-      <xmlid-root>ch-first</xmlid-root>
+      <xmlid-root>ch_first</xmlid-root>
     </target>
   </targets>
   <executables>

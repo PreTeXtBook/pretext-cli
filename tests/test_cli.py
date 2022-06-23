@@ -43,6 +43,8 @@ def test_build(tmp_path:Path):
     pretext_new_cd()
     assert cmd_works('pretext', 'build', 'web')
     assert (Path('output')/'web').exists()
+    assert cmd_works('pretext', 'build', 'subset')
+    assert (Path('output')/'subset').exists()
     assert cmd_works('pretext', 'build', 'print-latex')
     assert (Path('output')/'print-latex').exists()
     assert cmd_works('pretext', 'build', '-g')
