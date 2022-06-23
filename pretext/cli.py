@@ -43,14 +43,6 @@ def main(ctx,targets):
     Use the `--help` option on any CLI command to learn more, for example,
     `pretext build --help`.
     """
-    # set verbosity:
-    if log.level == 10:
-        verbosity = 2
-    elif log.level == 50:
-        verbosity = 0
-    else:
-        verbosity = 1
-    core.set_verbosity(verbosity)
     if targets:
         Project().print_target_names()
         return
@@ -58,6 +50,8 @@ def main(ctx,targets):
         # create file handler which logs even debug messages
         fh = logging.FileHandler(utils.project_path()/'cli.log', mode='w')
         fh.setLevel(logging.DEBUG)
+        file_log_format = logging.Formatter('%(levelname)-8s:  %(message)s')
+        fh.setFormatter(file_log_format)
         log.addHandler(fh)
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
