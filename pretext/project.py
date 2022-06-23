@@ -64,6 +64,11 @@ class Target():
         # construction is done!
         self.__xml_element = xml_element
         self.__project_path = project_path
+        # ensure assets directories exist as assumed by core PreTeXt
+        if self.external_dir() is not None:
+            os.makedirs(self.external_dir(), exist_ok=True)
+        if self.generated_dir() is not None:
+            os.makedirs(self.generated_dir(), exist_ok=True)
 
     def xml_element(self):
         return self.__xml_element
@@ -106,7 +111,7 @@ class Target():
         ele_tree.xinclude()
         return ele_tree.getroot()
 
-    def external_dir(self) -> Path:
+    def external_dir(self) -> Optional[Path]:
         dir_ele = self.publication_xml().find("source/directories")
         if dir_ele is None:
             log.error("Publication file does not specify asset directories.")
@@ -114,7 +119,7 @@ class Target():
         rel_dir = dir_ele.get("external")
         return self.source_dir()/rel_dir
 
-    def generated_dir(self) -> Path:
+    def generated_dir(self) -> Optional[Path]:
         dir_ele = self.publication_xml().find("source/directories")
         if dir_ele is None:
             log.error("Publication file does not specify asset directories.")
@@ -220,8 +225,6 @@ class Project():
         self.xml_schema_validate(target_name)
         # Ensure directories for assets and generated assets to avoid errors when building:
         target = self.target(target_name)
-        os.makedirs(target.external_dir(), exist_ok=True)
-        os.makedirs(target.generated_dir(), exist_ok=True)
         if clean:
             # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
             if Path(self.__project_path) not in target.output_dir().parents:
@@ -270,7 +273,6 @@ class Project():
         else:
             gen_all = False
         target = self.target(target_name)
-        os.makedirs(target.generated_dir(), exist_ok=True)
         #build targets:
         if gen_all or "webwork" in asset_list:
             webwork_output = target.generated_dir()/'webwork'

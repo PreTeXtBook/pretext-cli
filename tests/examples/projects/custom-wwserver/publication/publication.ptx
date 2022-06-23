@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<publication>
+    <!-- directories are relative to the main source PreTeXt file -->
+    <source>
+        <directories external="../assets" generated="../generated-assets"/>
+    </source>
+    <webwork server="https://webwork-dev.aimath.org"/>
+</publication>
