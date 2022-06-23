@@ -1,4 +1,4 @@
-import subprocess, os, glob, shutil
+import subprocess, os, glob, shutil, time, signal
 from tempfile import TemporaryDirectory
 from pathlib import Path
 import pretext
@@ -62,3 +62,11 @@ def test_generate(tmp_path:Path):
     shutil.copyfile(EXAMPLES_DIR/'asymptote.ptx',Path('source')/'main.ptx')
     assert cmd_works('pretext','generate','web','-a','asymptote')
     assert (Path('generated-assets')/'asymptote'/'test.html').exists()
+
+def test_view(tmp_path:Path):
+    os.chdir(tmp_path)
+    process = subprocess.Popen(['pretext','view','-d','.'])
+    time.sleep(1)
+    process.send_signal(signal.SIGINT)
+    time.sleep(1)
+    assert process.poll()==0
