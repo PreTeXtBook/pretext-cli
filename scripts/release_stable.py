@@ -1,4 +1,5 @@
 import subprocess, git, sys
+import pretext
 import build_package
 
 def main(level='patch'):
@@ -6,6 +7,8 @@ def main(level='patch'):
     if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
         raise Exception("Must commit outstanding changes to project source.")
 
+    alpha_version = pretext.VERSION
+    stable_version = alpha_version.split('-')[0]
     # Bump stable version
     subprocess.run(["poetry", "version", level])
     # Add/commit change
@@ -14,14 +17,13 @@ def main(level='patch'):
 
     build_package.main()
 
-    import pretext
-    print(f"Publishing stable {pretext.VERSION}")
+    print(f"Publishing stable {stable_version}")
 
     # Publish stable
     subprocess.run(["poetry", "publish"])
 
     # Tag
-    tag = repo.create_tag(f"v{pretext.VERSION}")
+    tag = repo.create_tag(f"v{stable_version}")
 
     # Bump alpha version
     subprocess.run(["poetry", "version", "prerelease"])
