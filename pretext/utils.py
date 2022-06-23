@@ -41,10 +41,10 @@ def working_directory(path:Path):
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath:Optional[Path]=None) -> Path:
     if dirpath==None:
-        dirpath = Path() # current directory
+        dirpath = Path().resolve() # current directory
     if (dirpath/"project.ptx").is_file():
         # we're at the project root
-        return dirpath.resolve()
+        return dirpath
     if dirpath.parent == dirpath:
         # cannot ascend higher, no project found
         return None
