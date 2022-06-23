@@ -35,7 +35,9 @@ jobs:
 
     - name: Install dependencies
       shell: bash
-      run: python -m poetry install
+      run:  |
+        python -m poetry install
+        python -m poetry python scripts/update_core.py
 
     - name: Test with pytest
       run: |
