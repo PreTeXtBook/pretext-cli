@@ -226,20 +226,6 @@ ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive
 @main.command(short_help="Build specified target", 
     context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
-@click.option('-f', '--format', type=click.Choice(['html','latex','pdf']),
-              help='Output format to build.')
-@click.option('-i', '--input', 'source', type=click.Path(),
-              help='Path to main *.ptx file')
-@click.option('-o', '--output', type=click.Path(),
-              help='Directory to build files into')
-@click.option('-p', '--publication', type=click.Path(), default=None,
-              help="Path to publication *.ptx file")
-@click.option('-x', '--xsl', type=click.Path(), default=None,
-              help="Path to custom xsl file")
-@click.option('--stringparam', nargs=2, multiple=True, help="""
-              Define a stringparam to use during processing.
-              Usage: pretext build --stringparam foo bar --stringparam baz woo
-              """)
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
 @click.option(
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
@@ -247,11 +233,22 @@ ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive
     help='If generating, specific assets that should be generated')
 @click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
 @click.option('-w', '--webwork', is_flag=True, default=False, help='OBSOLETE. Use --generate')
+@click.option('-f', '--format', type=click.Choice(['html','latex','pdf']),
+              help='OBSOLETE. Update your project.ptx target instead.')
+@click.option('-i', '--input', 'source', type=click.Path(),
+              help='OBSOLETE. Update your project.ptx target instead.')
+@click.option('-o', '--output', type=click.Path(),
+              help='OBSOLETE. Update your project.ptx target instead.')
+@click.option('-p', '--publication', type=click.Path(), default=None,
+              help='OBSOLETE. Update your project.ptx target instead.')
+@click.option('-x', '--xsl', type=click.Path(), default=None,
+              help='OBSOLETE. Update your project.ptx target instead.')
+@click.option('--stringparam', nargs=2, multiple=True,
+              help='OBSOLETE. Update your project.ptx target instead.')
 def build(target, format, source, output, stringparam, xsl, publication, clean, generate,
     webwork, diagrams,):
     """
-    Process [TARGET] into format specified by project.ptx.
-    Also accepts manual command-line options.
+    Build [TARGET] according to settings specified by project.ptx.
 
     If using certain elements (webwork, latex-image, etc.) then
     using `--generate` may be necessary for a successful build. Generated
@@ -264,9 +261,14 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
     if diagrams or webwork:
-        log.error("Command used an asset option that is now obsolete.")
-        log.error("Assets are now generated with `pretext generate` or `pretext build -g`.")
-        log.error("Cancelling build. Check `--help` for details.")
+        log.critical("Command used an asset option that is now obsolete.")
+        log.critical("Assets are now generated with `pretext generate` or `pretext build -g`.")
+        log.critical("Cancelling build. Check `--help` for details.")
+        return
+    if source or output or format or len(stringparam)>0 or xsl:
+        log.critical("Customizing target settings on the command line is no longer supported")
+        log.critical("Edit your `project.ptx` instead.")
+        log.critical("Cancelling build. Check `--help` for details.")
         return
     target_name = target
     # set up stringparams as dictionary:
@@ -275,28 +277,18 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     else:
         stringparams = None
     if utils.project_path() is None:
-        log.warning(f"No project.ptx manifest was found. Run `pretext init` to generate one.")
-        log.warning("Continuing using commandline arguments.")
-        if publication is None:
-              pass
-        target = Target(name=format,format=format,source=source,output_dir=output,
-                        publication=publication,stringparams=stringparams)
-        project = Project(targets=[target])
-    else:
-        project = Project()
-        if target_name is None:
-            log.info(f"Since no build target was supplied, the first target of the "+
-                     "project.ptx manifest will be built.")
-        target = project.target(name=target_name)
-        if target is None:
-            log.critical("Build target could not be found in project.ptx manifest.")
-            log.critical("Exiting without completing task.")
-            return
-        #overwrite target with commandline arguments, update project accordingly
-        target = Target(xml_element=target.xml_element(),
-                        format=format,source=source,output_dir=output,
-                        publication=publication,stringparams=stringparams,xsl_path=xsl)
-        project = Project(xml_element=project.xml_element(),targets=[target])
+        log.critical("No project.ptx manifest was found.")
+        log.critical("Use `pretext new` to create a new project or `pretext init` to update existing project for use with the CLI.")
+        return
+    project = Project()
+    if target_name is None:
+        log.info(f"Since no build target was supplied, the first target of the "+
+                    "project.ptx manifest will be built.")
+    target = project.target(name=target_name)
+    if target is None:
+        log.critical("Build target could not be found in project.ptx manifest.")
+        log.critical("Exiting without completing task.")
+        return
     if generate=='ALL':
         log.info("Genearting all assets in default formats.")
         project.generate(target_name)
