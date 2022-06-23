@@ -14,4 +14,4 @@ def pretext_new_cd() -> None:
 def test_custom_webwork_server(tmp_path:Path):
     shutil.copytree(EXAMPLES_DIR/'projects'/'custom-wwserver',tmp_path/'custom')
     os.chdir(tmp_path/'custom')
-    assert 'webwork-dev' in str(subprocess.run(["pretext","generate","-a","webwork"], capture_output=True).stdout)
+    assert 'webwork-dev' in str(subprocess.run(["pretext","generate","webwork"], capture_output=True).stdout)

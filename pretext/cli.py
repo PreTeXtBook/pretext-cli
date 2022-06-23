@@ -8,6 +8,7 @@ import tempfile, shutil
 import platform
 from pathlib import Path
 import sys
+from typing import Optional
 
 from . import utils, static, VERSION, CORE_COMMIT, core
 from .project import Target, Project
@@ -219,6 +220,7 @@ def init(refresh):
     log.info(f"Success! Open project.ptx to edit your project manifest.")
     log.info(f"Edit your <target/>s to point to the location of your PreTeXt source files.")
 
+ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens']
 
 # pretext build
 @main.command(short_help="Build specified target", 
@@ -240,15 +242,12 @@ def init(refresh):
               """)
 @click.option('--clean', is_flag=True, help="Destroy output's target directory before build to clean up previously built files")
 @click.option(
-    '-g', '--generate', is_flag=True, 
-    help='Generate assets in default formats before build')
-@click.option(
-    '-a', '--assets', default="ALL",
-    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens'], case_sensitive=False), 
-    help='If generating, choose to generate ALL or specific assets')
+    '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
+    type=click.Choice(ASSETS, case_sensitive=False), 
+    help='If generating, specific assets that should be generated')
 @click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
 @click.option('-w', '--webwork', is_flag=True, default=False, help='OBSOLETE. Use --generate')
-def build(target, format, source, output, stringparam, xsl, publication, clean, generate, assets,
+def build(target, format, source, output, stringparam, xsl, publication, clean, generate,
     webwork, diagrams,):
     """
     Process [TARGET] into format specified by project.ptx.
@@ -298,12 +297,12 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
                         format=format,source=source,output_dir=output,
                         publication=publication,stringparams=stringparams,xsl_path=xsl)
         project = Project(xml_element=project.xml_element(),targets=[target])
-    if generate and assets=='ALL':
+    if generate=='ALL':
         log.info("Genearting all assets in default formats.")
         project.generate(target_name)
-    elif generate:
-        log.warning(f"Generating only {assets} assets.")
-        project.generate(target_name,asset_list=[assets])
+    elif generate is not None:
+        log.warning(f"Generating only {generate} assets.")
+        project.generate(target_name,asset_list=[generate])
     else:
         log.warning("Assets like latex-images will not be regenerated for this build")
         log.warning("(previously generated assets will be used if they exist).")
@@ -313,16 +312,15 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
 # pretext generate
 @main.command(short_help="Generate assets for specified target", 
     context_settings=CONTEXT_SETTINGS)
-@click.argument('target', required=False)
+@click.argument('assets', default="ALL",
+    type=click.Choice(ASSETS, case_sensitive=False))
 @click.option(
-    '-a', '--assets', default="ALL",
-    type=click.Choice(['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens'], case_sensitive=False), 
-    help='Generate ALL or specific assets')
+    '-t', '--target', type=click.STRING, help="Name of target to generate assets for (uses default target if not specified).")
 @click.option('--all-formats', is_flag=True, default=False, 
     help='Generate all possible asset formats rather than the defaults for the given target.')
-def generate(target, assets, all_formats):
+def generate(assets:str, target:Optional[str], all_formats:bool):
     """
-    Generate assets for the specified target. Asset "generation" is typically
+    Generate specified (or all) assets for the default target. Asset "generation" is typically
     slower and performed less frequently than "building" a project, but is
     required for many PreTeXt features such as latex-image.
 
@@ -382,10 +380,11 @@ def generate(target, assets, all_formats):
 @click.option('-b', '--build', is_flag=True, help="""
     Run a build before starting server.
     """)
-@click.option('-g', '--generate', is_flag=True, help="""
-    Generate all assets before starting server.
-    """)
-def view(target:str,access:str,port:int,directory:str,watch:bool,build:bool,generate:bool):
+@click.option(
+    '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
+    type=click.Choice(ASSETS, case_sensitive=False), 
+    help='If generating, specific assets that should be generated')
+def view(target:str,access:str,port:int,directory:str,watch:bool,build:bool,generate:Optional[str]):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
@@ -399,9 +398,12 @@ def view(target:str,access:str,port:int,directory:str,watch:bool,build:bool,gene
     if target is None:
         log.error(f"Target `{target_name}` could not be found.")
         return
-    if generate:
+    if generate == "ALL":
         log.info("Generating all assets in default formats.")
         project.generate(target_name)
+    elif generate is not None:
+        log.warning(f"Generating only {generate} assets.")
+        project.generate(target_name,asset_list=[generate])
     if build or watch:
         log.info("Building target.")
         project.build(target_name)

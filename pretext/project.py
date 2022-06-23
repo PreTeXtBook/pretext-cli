@@ -217,6 +217,10 @@ class Project():
         utils.run_server(directory,access,port,watch_directory,watch_callback)
 
     def build(self,target_name,clean=False):
+        target = self.target(target_name)
+        if target is None:
+            log.error(f"Target {target_name} not found.")
+            return
         # Check for xml syntax errors and quit if xml invalid:
         if not self.xml_source_is_valid(target_name):
             return
@@ -224,8 +228,6 @@ class Project():
             return
         # Validate xml against schema; continue with warning if invalid:
         self.xml_schema_validate(target_name)
-        # Ensure directories for assets and generated assets to avoid errors when building:
-        target = self.target(target_name)
         if clean:
             # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
             if Path(self.__project_path) not in target.output_dir().parents:
@@ -274,6 +276,9 @@ class Project():
         else:
             gen_all = False
         target = self.target(target_name)
+        if target is None:
+            log.error(f"Target `{target_name}` not found.")
+            return
         #build targets:
         if gen_all or "webwork" in asset_list:
             webwork_output = target.generated_dir()/'webwork'
