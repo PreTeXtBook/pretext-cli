@@ -1,4 +1,5 @@
 from lxml import etree as ET
+from lxml.etree import Element
 import os, shutil
 import logging
 import tempfile
@@ -21,7 +22,7 @@ class Target():
         if self.generated_dir() is not None:
             os.makedirs(self.generated_dir(), exist_ok=True)
 
-    def xml_element(self):
+    def xml_element(self) -> Element:
         return self.__xml_element
 
     def project_path(self):
@@ -83,6 +84,13 @@ class Target():
 
     def output_dir(self) -> Path:
         return (Path(self.__project_path)/self.xml_element().find("output-dir").text.strip()).resolve()
+    
+    def port(self) -> int:
+        view_ele = self.xml_element().find("view")
+        if view_ele is not None and view_ele.get("port") is not None:
+            return int(view_ele.get("port"))
+        else:
+            return 8000
 
     def stringparams(self):
         return {
@@ -114,7 +122,7 @@ class Project():
         # prepre core PreTeXt python scripts
         self.init_ptxcore()
 
-    def xml_element(self):
+    def xml_element(self) -> Element:
         return self.__xml_element
 
     def targets(self):

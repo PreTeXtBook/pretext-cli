@@ -349,8 +349,7 @@ def generate(assets:str, target:Optional[str], all_formats:bool):
 @click.option(
     '-p',
     '--port',
-    default=8000,
-    show_default=True,
+    type=click.INT,
     help="""
     Choose which port to use for the local server.
     """)
@@ -376,17 +375,19 @@ def generate(assets:str, target:Optional[str], all_formats:bool):
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
     type=click.Choice(ASSETS, case_sensitive=False), 
     help='If generating, specific assets that should be generated')
-def view(target:str,access:str,port:int,directory:str,watch:bool,build:bool,generate:Optional[str]):
+def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build:bool,generate:Optional[str]):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
     """
     if directory is not None:
+        port = port or 8000
         utils.run_server(Path(directory),access,port)
         return
     target_name=target
     project = Project()
     target = project.target(name=target_name)
+    port = port or target.port()
     if target is None:
         log.error(f"Target `{target_name}` could not be found.")
         return
