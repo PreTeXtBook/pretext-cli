@@ -1,6 +1,7 @@
 import requests, zipfile, io, shutil, tempfile, os
-from pretext import CORE_COMMIT, utils
+from pretext import CORE_COMMIT
 from pathlib import Path
+from remove_path import remove_path
 
 def main():
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
@@ -12,12 +13,12 @@ def main():
     with tempfile.TemporaryDirectory() as tmpdirname:
         archive.extractall(tmpdirname)
         for subdir in ['xsl','schema']:
-            utils.remove_path(Path("pretext")/"static"/subdir)
+            remove_path(Path("pretext")/"static"/subdir)
             shutil.copytree(
                 Path(tmpdirname)/f"pretext-{CORE_COMMIT}"/subdir,
                 Path("pretext")/"static"/subdir,
             )
-        utils.remove_path(Path("pretext")/"core"/"pretext.py")
+        remove_path(Path("pretext")/"core"/"pretext.py")
         shutil.copyfile(
             Path(tmpdirname)/f"pretext-{CORE_COMMIT}"/"pretext"/"pretext.py",
             Path("pretext")/"core"/"pretext.py",
