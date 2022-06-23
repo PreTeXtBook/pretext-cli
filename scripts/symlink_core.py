@@ -1,6 +1,5 @@
 import sys, shutil
 from pathlib import Path
-import pretext.utils
 from remove_path import remove_path
 
 def main(mathbook_path=Path("../pretext")):
