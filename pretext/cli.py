@@ -7,6 +7,7 @@ import os, zipfile, requests, io
 import tempfile, shutil
 import platform
 from pathlib import Path
+import sys
 
 from . import utils, static, VERSION, CORE_COMMIT, core
 from .project import Target, Project

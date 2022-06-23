@@ -3,6 +3,7 @@ from lxml import etree as ET
 import logging
 import os
 from pathlib import Path
+import sys
 from typing import Optional
 
 from . import utils, core
@@ -34,6 +35,7 @@ def html(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional
         except Exception as e:
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed to build html.  Exiting...')
 
 def latex(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path]):
     os.makedirs(output, exist_ok=True)
@@ -51,6 +53,7 @@ def latex(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optiona
         except Exception as e:
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed to build latex.  Exiting...')
 
 def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path],pdf_method:str):
     os.makedirs(output, exist_ok=True)
@@ -69,3 +72,4 @@ def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[
         except Exception as e:
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed to build pdf.  Exiting...')

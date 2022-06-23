@@ -3,6 +3,7 @@ import os
 import logging
 from . import utils, core
 from pathlib import Path
+import sys
 from typing import Optional
 
 # Get access to logger
@@ -46,6 +47,7 @@ def latex_image(ptxfile:Path, pub_file:Path, output:Path, params, target_format,
                 except Exception as e:
                     log.critical(e)
                     log.debug(f"Critical error info:\n****\n", exc_info=True)
+                    sys.exit('Failed to generate latex-image elements.  Exiting...')
     else:
         log.info("Note: No latex-image elements found.")
 
@@ -85,6 +87,7 @@ def sageplot(ptxfile:Path, pub_file:Path, output:Path, params, target_format, xm
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
+                sys.exit('Failed to generate sageplot elements.  Exiting...')
     else:
         log.info("Note: No sageplot elements found.")
 
@@ -122,6 +125,7 @@ def asymptote(ptxfile:Path, pub_file:Path, output:Path, params, target_format, x
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
+                sys.exit('Failed to generate asymptote elements.  Exiting...')
     else:
         log.info("Note: No asymptote elements found.")
 
@@ -149,6 +153,7 @@ def interactive(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
+                sys.exit('Failed to generate interactive element previews.  Exiting...')
     else:
         log.info("Note: No interactive elements found.")
 
@@ -174,6 +179,7 @@ def youtube(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
+                sys.exit('Failed to genereate youtube video previews.  Exiting...')
     else:
         log.info("Note: No video@youtube elements found.")
 
@@ -200,6 +206,7 @@ def webwork(ptxfile:Path, pub_file:Path, output:Path, params):
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
+                sys.exit('Failed to generate webwork-representations file.  Exiting...')
     else:
         log.info("Note: No webwork elements found.")
 
@@ -225,5 +232,6 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
+                sys.exit('Failed to generate codelense trace.  Exiting...')
     else:
         log.info("Note: No program elements using codelens found.")
