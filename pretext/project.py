@@ -203,7 +203,7 @@ class Project():
             watch_directory = target.source_dir()
         else:
             watch_directory = None
-        if not utils.directory_exists(target.output_dir()):
+        if not target.output_dir().exists():
             log.error(f"The directory `{target.output_dir()}` does not exist.")
             log.error(f"Run `pretext build {target}` to build your project before viewing.")
             return
@@ -352,7 +352,7 @@ class Project():
                 log.error("Either add and commit these changes with Git, or run")
                 log.error("`pretext deploy -u` to have these changes updated automatically.")
                 return
-        if not utils.directory_exists(target.output_dir()):
+        if not target.output_dir().exists():
             log.error(f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`.")
             log.error(f"Try running `pretext view {target.name()} -b` to build and preview your project first.")
             return
