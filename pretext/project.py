@@ -11,60 +11,10 @@ from typing import Optional
 log = logging.getLogger('ptxlogger')
 
 class Target():
-    def __init__(self,
-                 xml_element=None,
-                 name=None,
-                 format=None,
-                 source=None,
-                 publication=None,
-                 output_dir=None,
-                 stringparams=None,
-                 xsl_path=None,
-                 xmlid_root=None,
-                 project_path=None,
-                 pdf_method=None):
-        if project_path is None:
-            project_path = Path()
-        if xml_element is None:
-            template_xml = static.path("templates","project.ptx")
-            xml_element = ET.parse(template_xml).getroot().find("targets/target")
-            publication_path = static.path("templates","publication.ptx")
-            for pub_ele in xml_element.xpath("publication"):
-                pub_ele.text = publication_path
-        if xml_element.tag != "target":
-            raise ValueError("xml_element must have tag `target` as root")
-        # construct self.xml_element
-        # set name and pdf-method attributes
-        if name is not None:
-            xml_element.set("name",name)
-        if pdf_method is not None:
-            xml_element.set("pdf-method",pdf_method)
-        # set subelements with text nodes
-        tag_pairs = [
-            ("format",format),
-            ("source",source),
-            ("publication",publication),
-            ("output-dir",output_dir),
-            ("xsl",xsl_path),
-            ("xmlid-root",xmlid_root),
-        ]
-        for tag,ele_text in tag_pairs:
-            if ele_text is not None:
-                for tag_element in xml_element.xpath(tag):
-                    xml_element.remove(tag_element)
-                tag_element = ET.SubElement(xml_element,tag)
-                tag_element.text = ele_text.strip()
-        # set several stringparam subelements with key/value attributes
-        if stringparams is not None:
-            for sp_element in xml_element.xpath("stringparam"):
-                xml_element.remove(sp_element)
-            for key,val in stringparams.items():
-                sp_element = ET.SubElement(xml_element,"stringparam")
-                sp_element.set("key",key.strip())
-                sp_element.set("value", val.strip())
+    def __init__(self,xml_element,project_path):
         # construction is done!
         self.__xml_element = xml_element
-        self.__project_path = project_path
+        self.__project_path = Path(project_path).resolve()
         # ensure assets directories exist as assumed by core PreTeXt
         if self.external_dir() is not None:
             os.makedirs(self.external_dir(), exist_ok=True)
@@ -73,6 +23,9 @@ class Target():
 
     def xml_element(self):
         return self.__xml_element
+
+    def project_path(self):
+        return self.__project_path
 
     def name(self) -> str:
         return self.xml_element().get("name").strip()
@@ -88,7 +41,7 @@ class Target():
         return self.xml_element().find("format").text.strip()
 
     def source(self) -> Path:
-        return (Path(self.__project_path)/self.xml_element().find("source").text.strip()).resolve()
+        return (self.project_path()/self.xml_element().find("source").text.strip())
 
     def source_dir(self) -> Path:
         return Path(self.source()).parent
@@ -99,7 +52,7 @@ class Target():
         return ele_tree.getroot()
 
     def publication(self) -> Path:
-        return (Path(self.__project_path)/self.xml_element().find("publication").text.strip()).resolve()
+        return (self.project_path()/self.xml_element().find("publication").text.strip())
 
     def publication_dir(self) -> Path:
         return self.publication().parent
@@ -153,30 +106,12 @@ class Target():
 
 
 class Project():
-    def __init__(self,
-                 xml_element=None,
-                 targets=None,
-                 project_path=None):
-        if project_path is None:
-            project_path = Path()
-        if xml_element is None:
-            if utils.project_path() is not None:
-                xml_element = ET.parse(utils.project_path()/"project.ptx").getroot()
-            else:
-                template_xml = static.path("templates","project.ptx")
-                xml_element = ET.parse(template_xml).getroot()
-        else:
-            if xml_element.tag != "project":
-                raise ValueError("xml_element must have tag `project` as root")
-        if targets is not None:
-            for targets_element in xml_element.xpath("targets"):
-                xml_element.remove(targets_element)
-            targets_element = ET.SubElement(xml_element,"targets")
-            for target in targets:
-                targets_element.append(target.xml_element())
+    def __init__(self,project_path=None):
+        project_path = project_path or utils.project_path()
+        xml_element = ET.parse(project_path/"project.ptx").getroot()
         self.__xml_element = xml_element
         self.__project_path = project_path
-        # prepre core PreTeXt pythons scripts
+        # prepre core PreTeXt python scripts
         self.init_ptxcore()
 
     def xml_element(self):
@@ -198,7 +133,7 @@ class Project():
         else:
             target_element=self.xml_element().find(f'targets/target[@name="{name}"]')
         if target_element is not None:
-            return Target(xml_element=target_element)
+            return Target(xml_element=target_element,project_path=self.__project_path)
         else:
             return None
 
