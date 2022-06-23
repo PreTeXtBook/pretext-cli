@@ -5,6 +5,7 @@ import tempfile
 from . import static, utils, generate, core
 from . import build as builder
 from pathlib import Path
+import sys
 from typing import Optional
 
 log = logging.getLogger('ptxlogger')
@@ -262,7 +263,7 @@ class Project():
                 log.critical(
                     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
-                return
+                sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
             # build was successful
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
     
