@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
 import shutil
 from pathlib import Path
+import platform
 import socketserver
 import socket
 import logging
