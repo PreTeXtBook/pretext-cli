@@ -3,7 +3,7 @@ name = "pretextbook"
 packages = [
     { include = "pretext" },
 ]
-version = "0.7.7"
+version = "0.7.8-alpha.0"
 description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 authors = ["PreTeXtBook.org <steven.clontz+PreTeXt@gmail.com>"]
