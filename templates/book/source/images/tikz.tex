@@ -1,0 +1,12 @@
+\begin{tikzpicture}
+    \coordinate (A) at (90+360/5:1);
+    \coordinate (B) at (90+2*360/5:1);
+    \coordinate (C) at (90+3*360/5:1);
+    \coordinate (D) at (90+4*360/5:1);
+    \coordinate (E) at (90:1);
+
+    \draw (A) -- (B) -- (C) -- (D) -- (E) -- (A);
+    \foreach \x in {(A), (B), (C), (D), (E)}{
+        \fill \x circle (2pt);
+    }
+\end{tikzpicture}

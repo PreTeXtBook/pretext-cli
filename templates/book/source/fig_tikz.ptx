@@ -1,21 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<figure xml:id="fig_tikz">
+<figure xml:id="fig_tikz" xmlns:xi="http://www.w3.org/2001/XInclude">
     <caption>The graph <m>C_5</m> made by TikZ</caption>
     <image xml:id="fig_tikz-example-diagram" width="20%">
     <description>A 5-cycle</description>
     <latex-image>
-        \begin{tikzpicture}
-        \coordinate (A) at (90+360/5:1);
-        \coordinate (B) at (90+2*360/5:1);
-        \coordinate (C) at (90+3*360/5:1);
-        \coordinate (D) at (90+4*360/5:1);
-        \coordinate (E) at (90:1);
-
-        \draw (A) -- (B) -- (C) -- (D) -- (E) -- (A);
-        \foreach \x in {(A), (B), (C), (D), (E)}{
-            \fill \x circle (2pt);
-        }
-        \end{tikzpicture}
+      <xi:include href="images/tikz.tex" parse="text"/>
     </latex-image>
     </image>
 </figure>
