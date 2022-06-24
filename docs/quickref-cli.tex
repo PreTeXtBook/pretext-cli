@@ -132,7 +132,28 @@ If your book has any WeBWorK, latex-image, asymptote, sageplot, interactive, etc
 
 %*********************************************
 \hr\textbf{Project Manifest}
-The file {\verb|project.ptx|} describes your build targets.  Each target has a \emph{name} (e.g. "print-latex") that you build with {\verb|pretext build print-latex|}
+The file {\verb|project.ptx|} describes your build targets.  Each target has a \emph{name} (e.g. "print-latex") that you build or view with, e.g. {\verb|pretext build print-latex|} or generate assets for with, e.g. {\verb|pretext generate webwork -t print-latex|}.  
+
+Structure of a target:
+\begin{verbatim}
+  <target name="web">
+    <format>html</format>
+    <source>source/main.ptx</source>
+    <publication>publication/publication.ptx</publication>
+    <output-dir>output/web</output-dir>
+  </target>
+\end{verbatim}
+{\ex \verb|<format>|} can be html, latex, or pdf\\
+{\ex \verb|<source>|} is the path to the root ptx document\\
+{\ex \verb|<publication>|} is the path to the publication file\\
+{\ex \verb|<output-dir>|} is the path the the folder that will hold output\\
+Other optional elements:\\
+{\ex \verb|<stringparam key="..." value="..."/>|}: allows for setting the value of string parameters\\
+{\ex \verb|<xmlid-root>ch-first</xmlid-root>|}: used to restrict build to a subset of the source, starting with the element with xml:id "ch-first"\\ 
+{\ex \verb|<xsl>xsl/custom-xsl.xsl</xsl>|}: used to build with a custom xsl file.  In that file, import the standard xsl with, e.g.\\ {\verb|<xsl:import pretext-href="pretext-common.xsl"/>|}
+
+
+
 
 
 %*********************************************
@@ -147,10 +168,35 @@ Information about the publication file goes here.
 
 
 \columnbreak
+\sect{Common PreTeXt source tags}
 
-\hr\textbf{Examples}
+\hr\textbf{Blocks/Environments}
+Example:
+\begin{verbatim}
+<theorem>
+  <title>My Title</title>
+  <statement>
+    <p>
+      Statement of theorem.
+    </p>
+  </statement>
+  <proof>
+    <p>
+      The proof.
+    </p>
+  </proof>
+</theorem>
+\end{verbatim}
+Theorem-like: {\ex\verb|<theorem>|}, {\ex\verb|<algorithm>|}, {\ex\verb|<claim>|}, {\ex\verb|<corollary>|}, {\ex\verb|<fact>|}, {\ex\verb|<identity>|}, {\ex\verb|<lemma>|}, {\ex\verb|<proposition>|}.\\
+Example-like: {\ex\verb|<example>|}, {\ex\verb|<problem>|}, {\ex\verb|<question>|}.\\
+Axiom-like: {\ex\verb|<assumption>|}, {\ex\verb|<axiom>|}, {\ex\verb|<conjecture>|}, {\ex\verb|<heuristic>|}, {\ex\verb|<hypothesis>|}, {\ex\verb|<principle>|}.\\
+Remark-like: {\ex\verb|<remark>|}, {\ex\verb|<convention>|}, {\ex\verb|<insight>|}, {\ex\verb|<note>|}, {\ex\verb|<observation>|}, {\ex\verb|<warning>|}.\\
+Project-like: {\ex\verb|<project>|}, {\ex\verb|<activity>|}, {\ex\verb|<exploration>|}, {\ex\verb|<investigation>|}.\\
 
-Examples go here.
+Other common blocks:\\
+{\ex\verb|<definition>|}\\
+{\ex\verb|<exercise>|}\\
+{\ex\verb|<task>|}: a division of an exercise or project-like\\
 
 
 
