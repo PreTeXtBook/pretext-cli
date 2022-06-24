@@ -177,7 +177,11 @@ def url_for_access(access="private",port=8000):
     else:
         return f"http://localhost:{port}"
 def serve_forever(directory:Path,access="private",port=8000):
-    log.info(f"Now starting a server to preview directory `{directory}`.\n")
+    log.info(f"Now preparing local server to preview directory `{directory}`.")
+    log.info("  (Reminder: use `pretext deploy` to deploy your built project to a public")
+    log.info("  GitHub Pages site that can be shared with readers who cannot access your")
+    log.info("  personal computer.)")
+    log.info("")
     binding = binding_for_access(access)
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
