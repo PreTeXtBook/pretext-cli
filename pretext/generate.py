@@ -155,9 +155,10 @@ def interactive(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
                     dest_dir=image_output.as_posix(),
                 )
             except Exception as e:
-                log.critical(e)
+                log.error("Failed to generate interactive element previews. Check debug log for info.")
+                log.debug(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to generate interactive element previews.  Exiting...')
+                log.warning('Continuing...')
     else:
         log.info("Note: No interactive elements found.")
 
@@ -224,6 +225,12 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
     for _ in range(20):
         source_xml.xinclude()
     if len(source_xml.xpath("//program[@interactive = 'codelens']")) > 0:
+        try:
+            import runestone
+        except ImportError:
+            log.error("Runestone components are not installed. Skipping codelens trace.")
+            log.error("")
+            return
         trace_output = (output/'trace').resolve()
         os.makedirs(trace_output, exist_ok=True)
         log.info('Now generating codelens trace\n\n')

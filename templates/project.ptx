@@ -12,7 +12,7 @@
       <publication>publication/publication.ptx</publication>
       <output-dir>output/web</output-dir>
     </target>
-    <target name="print" pdf-method="pdflatex">
+    <target name="print" pdf-method="xelatex">
       <format>pdf</format>
       <source>source/main.ptx</source>
       <publication>publication/publication.ptx</publication>

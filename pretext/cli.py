@@ -61,10 +61,11 @@ def main(ctx,targets):
         os.chdir(utils.project_path())
         if utils.requirements_version() is None:
             log.warning("Project's CLI version could not be detected from `requirements.txt`.")
+            log.warning("Try `pretext init --refresh` to produce a compatible file.")
         elif utils.requirements_version() != VERSION:
             log.warning(f"Using CLI version {VERSION} but project's `requirements.txt`")
             log.warning(f"is configured to use {utils.requirements_version()}. Consider either installing")
-            log.warning(f"CLI version {utils.requirements_version()} or updating `requirements.txt` to {VERSION}.")
+            log.warning(f"CLI version {utils.requirements_version()} or changing `requirements.txt` to match {VERSION}.")
         else:
             log.debug(f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}.")
     else:

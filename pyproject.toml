@@ -3,7 +3,7 @@ name = "pretextbook"
 packages = [
     { include = "pretext" },
 ]
-version = "0.7.7-alpha.4"
+version = "0.7.7-alpha.7"
 description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 authors = ["PreTeXtBook.org <steven.clontz+PreTeXt@gmail.com>"]
@@ -17,15 +17,15 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.8.5"
-lxml = "^4.9.0"
-requests = "^2.28.0"
-watchdog = "^2.1.9"
-GitPython = "^3.1.27"
-click = "^8.0.0"
+lxml = "^4.0"
+requests = "^2.0"
+watchdog = "^2.0"
+GitPython = "^3.0"
+click = "^8.0"
 pdfCropMargins = "^1.0.8"
-click-logging = "^1.0.1"
-ghp-import = "^2.1.0"
-single-version = "^1.5.1"
+click-logging = "^1.0"
+ghp-import = "^2.0"
+single-version = "^1.0"
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
