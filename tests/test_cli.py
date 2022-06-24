@@ -109,3 +109,4 @@ def test_custom_xsl(tmp_path:Path):
     shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',tmp_path/'custom')
     os.chdir(tmp_path/'custom')
     assert cmd_works('pretext','build')
+    assert (Path('output')/'test').exists()

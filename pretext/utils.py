@@ -252,6 +252,8 @@ def copy_expanded_xsl(xsl_path: Path, output_dir: Path):
     output_dir = output_dir.resolve()
     log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
+    if not (Path(output_dir)/'entities.ent').exists():
+        shutil.copyfile(static.path('xsl/entities.ent'),Path(output_dir)/'entities.ent')
     # expand each xsl file
     with working_directory(output_dir):
         for filename in glob.iglob('**',recursive=True):
