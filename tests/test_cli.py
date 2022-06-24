@@ -83,6 +83,9 @@ def test_generate(tmp_path:Path):
     assert cmd_works('pretext','generate','asymptote')
     assert (Path('generated-assets')/'asymptote'/'test.html').exists()
     os.remove(Path('generated-assets')/'asymptote'/'test.html')
+    assert cmd_works('pretext','generate','-x','test')
+    assert (Path('generated-assets')/'asymptote'/'test.html').exists()
+    os.remove(Path('generated-assets')/'asymptote'/'test.html')
     assert cmd_works('pretext','generate','asymptote', '-t', 'web')
     assert (Path('generated-assets')/'asymptote'/'test.html').exists()
 

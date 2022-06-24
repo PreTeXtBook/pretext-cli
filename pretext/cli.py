@@ -308,9 +308,11 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     type=click.Choice(ASSETS, case_sensitive=False))
 @click.option(
     '-t', '--target', type=click.STRING, help="Name of target to generate assets for (uses default target if not specified).")
+@click.option(
+    '-x', '--xmlid', type=click.STRING, help="xml:id of element to be generated.")
 @click.option('--all-formats', is_flag=True, default=False, 
     help='Generate all possible asset formats rather than the defaults for the given target.')
-def generate(assets:str, target:Optional[str], all_formats:bool):
+def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[str]):
     """
     Generate specified (or all) assets for the default target. Asset "generation" is typically
     slower and performed less frequently than "building" a project, but is
@@ -325,10 +327,10 @@ def generate(assets:str, target:Optional[str], all_formats:bool):
     target_name = target
     if assets == 'ALL':
         log.info("Genearting all assets in default formats.")
-        project.generate(target_name)
+        project.generate(target_name,xmlid=xmlid)
     else:
         log.info(f"Generating only {assets} assets.")
-        project.generate(target_name,asset_list=[assets])
+        project.generate(target_name,asset_list=[assets],xmlid=xmlid)
 
 
 # pretext view

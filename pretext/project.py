@@ -212,13 +212,14 @@ class Project():
             # build was successful
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
     
-    def generate(self,target_name,asset_list=None,all_formats=False):
+    def generate(self,target_name,asset_list=None,all_formats=False,xmlid=None):
         if asset_list is None:
             asset_list = []
             gen_all = True
         else:
             gen_all = False
         target = self.target(target_name)
+        xmlid = xmlid or target.xmlid_root()
         if target is None:
             log.error(f"Target `{target_name}` not found.")
             return
@@ -231,32 +232,32 @@ class Project():
         if gen_all or "latex-image" in asset_list:
             generate.latex_image(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.format(), target.xmlid_root(), target.pdf_method(), all_formats
+                target.format(), xmlid, target.pdf_method(), all_formats
             )
         if gen_all or "asymptote" in asset_list:
             generate.asymptote(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.format(), target.xmlid_root(), all_formats
+                target.format(), xmlid, all_formats
             )
         if gen_all or "sageplot" in asset_list:
             generate.sageplot(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.format(), target.xmlid_root(), all_formats
+                target.format(), xmlid, all_formats
             )
         if gen_all or "interactive" in asset_list:
             generate.interactive(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.xmlid_root(),
+                xmlid,
             )
         if gen_all or "youtube" in asset_list:
             generate.youtube(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.xmlid_root(),
+                xmlid,
             )
         if gen_all or "codelens" in asset_list:
             generate.codelens(
                 target.source(), target.publication(), target.generated_dir(), target.stringparams(), 
-                target.xmlid_root(),
+                xmlid,
             )
 
     def deploy(self,target_name,update_source):
