@@ -224,6 +224,12 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
     for _ in range(20):
         source_xml.xinclude()
     if len(source_xml.xpath("//program[@interactive = 'codelens']")) > 0:
+        try:
+            import runestone
+        except ImportError:
+            log.error("Runestone components are not installed. Skipping codelens trace.")
+            log.error("")
+            return
         trace_output = (output/'trace').resolve()
         os.makedirs(trace_output, exist_ok=True)
         log.info('Now generating codelens trace\n\n')
