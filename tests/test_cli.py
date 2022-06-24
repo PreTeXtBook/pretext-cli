@@ -104,3 +104,8 @@ def test_view(tmp_path:Path):
     pretext_new_cd("2")
     with pretext_view('-p',f'{port}','-b','-g'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
+
+def test_custom_xsl(tmp_path:Path):
+    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',tmp_path/'custom')
+    os.chdir(tmp_path/'custom')
+    assert cmd_works('pretext','build')

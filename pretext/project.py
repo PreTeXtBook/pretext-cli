@@ -190,7 +190,7 @@ class Project():
             temp_xsl_path = Path(temp_xsl_dir)
             if target.xsl_path() is not None:
                 log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
-                utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_dir)
+                utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_path)
                 custom_xsl = temp_xsl_path/target.xsl_path().name
             log.info(f"Preparing to build into {target.output_dir()}.")
             try:
