@@ -24,7 +24,8 @@ def latex_image(ptxfile:Path, pub_file:Path, output:Path, params, target_format,
     # set images directory
     # parse source so we can check for latex-image.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0 and formats[target_format] is not None:
         image_output = (output/'latex-image').resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -66,7 +67,8 @@ def sageplot(ptxfile:Path, pub_file:Path, output:Path, params, target_format, xm
     # set images directory
     # parse source so we can check for sageplot.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0 and formats[target_format] is not None:
         image_output = (output/'sageplot').resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -105,7 +107,8 @@ def asymptote(ptxfile:Path, pub_file:Path, output:Path, params, target_format, x
     # We assume passed paths are absolute.
     # parse source so we can check for asymptote.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0 and formats[target_format] is not None:
         image_output = (output/'asymptote').resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -134,7 +137,8 @@ def interactive(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
     # We assume passed paths are absolute.
     # parse source so we can check for interactives.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0:
         image_output = (output/'preview').resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -162,7 +166,8 @@ def youtube(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
     # We assume passed paths are absolute.
     # parse source so we can check for videos.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
         image_output = (output/'youtube').resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -188,7 +193,8 @@ def webwork(ptxfile:Path, pub_file:Path, output:Path, params):
     # We assume passed paths are absolute.
     # parse source so we can check for webwork.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath('//webwork[node()|@*]')) > 0:
         ww_output = (output/'webwork').resolve()
         os.makedirs(ww_output, exist_ok=True)
@@ -215,7 +221,8 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
     # We assume passed paths are absolute.
     # parse source so we can check for webwork.
     source_xml = ET.parse(ptxfile)
-    source_xml.xinclude()
+    for _ in range(20):
+        source_xml.xinclude()
     if len(source_xml.xpath("//program[@interactive = 'codelens']")) > 0:
         trace_output = (output/'trace').resolve()
         os.makedirs(trace_output, exist_ok=True)
