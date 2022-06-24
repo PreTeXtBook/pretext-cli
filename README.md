@@ -115,6 +115,8 @@ The CLI will treat this as follows:
 <xsl:import href="/path/to/cli/xsl/on/your/disk/pretext-common.xsl"/>
 ```
 
+If you use PreTeXt's `entities.ent` it will be made available for you at the same path
+as the custom XSL you specified (unless you provide your own).
 
 ---
 

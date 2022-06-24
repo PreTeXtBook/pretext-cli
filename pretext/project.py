@@ -154,7 +154,7 @@ class Project():
             watch_directory = None
         if not target.output_dir().exists():
             log.error(f"The directory `{target.output_dir()}` does not exist.")
-            log.error(f"Run `pretext build {target}` to build your project before viewing.")
+            log.error(f"Run `pretext view {target.name()} -b` to build your project before viewing.")
             return
         watch_callback=lambda:self.build(target_name)
         utils.run_server(directory,access,port,watch_directory,watch_callback)
