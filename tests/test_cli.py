@@ -17,7 +17,7 @@ def pretext_new_cd(dir="foobar") -> None:
 @contextmanager
 def pretext_view(*args):
     process = subprocess.Popen([PTX_CMD,'view']+list(args))
-    time.sleep(5) # stall for possible build
+    time.sleep(3) # stall for possible build
     try:
         yield process
     finally:
