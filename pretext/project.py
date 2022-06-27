@@ -186,37 +186,32 @@ class Project():
                 shutil.rmtree(target.output_dir())
         #if custom xsl, copy it into a temporary directory (different from the building temporary directory)
         custom_xsl = None
+        if target.xsl_path() is not None:
+            temp_xsl_path = Path(tempfile.mkdtemp())
+            log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
+            utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_path)
+            custom_xsl = temp_xsl_path/target.xsl_path().name
+        log.info(f"Preparing to build into {target.output_dir()}.")
         try:
-            with tempfile.TemporaryDirectory() as temp_xsl_dir:
-                temp_xsl_path = Path(temp_xsl_dir)/"xsl"
-                if target.xsl_path() is not None:
-                    log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
-                    utils.copy_expanded_xsl(target.xsl_path(), temp_xsl_path)
-                    custom_xsl = temp_xsl_path/target.xsl_path().name
-                log.info(f"Preparing to build into {target.output_dir()}.")
-                try:
-                    if (target.format()=='html' or target.format()=='html-zip'):
-                        zipped = (target.format()=='html-zip')
-                        builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
-                    elif target.format()=='latex':
-                        builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
-                        # core script doesn't put a copy of images in output for latex builds, so we do it instead here
-                        shutil.copytree(target.external_dir(),target.output_dir()/"external",dirs_exist_ok=True)
-                        shutil.copytree(target.generated_dir(),target.output_dir()/"generated",dirs_exist_ok=True)
-                    elif target.format()=='pdf':
-                        builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
-                except Exception as e:
-                    log.critical(
-                        f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-                    log.debug(f"Critical error info:\n****\n", exc_info=True)
-                    sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
-                # build was successful
-                log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-        except PermissionError as e:
-            if e.winerror == 32: # known issue with cleanup on Windows https://github.com/python/cpython/issues/86962
-                pass
-            else:
-                raise e
+            if (target.format()=='html' or target.format()=='html-zip'):
+                zipped = (target.format()=='html-zip')
+                builder.html(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.xmlid_root(),zipped)
+            elif target.format()=='latex':
+                builder.latex(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl)
+                # core script doesn't put a copy of images in output for latex builds, so we do it instead here
+                shutil.copytree(target.external_dir(),target.output_dir()/"external",dirs_exist_ok=True)
+                shutil.copytree(target.generated_dir(),target.output_dir()/"generated",dirs_exist_ok=True)
+            elif target.format()=='pdf':
+                builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
+        except Exception as e:
+            log.critical(
+                f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
+            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
+        # build was successful
+        log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
+        if custom_xsl is not None:
+            shutil.rmtree(custom_xsl.parent, ignore_errors=True) #errors may occur in Windows so we do the best we can
     
     def generate(self,target_name,asset_list=None,all_formats=False,xmlid=None):
         if asset_list is None:
