@@ -96,14 +96,12 @@ def test_view(tmp_path:Path):
 
 def test_custom_xsl(tmp_path:Path,script_runner):
     custom_path = tmp_path/'custom'
-    custom_path.mkdir()
     shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',custom_path)
     assert script_runner.run(PTX_CMD,'build', cwd=custom_path).success
     assert (custom_path/'output'/'test').exists()
 
 def test_custom_webwork_server(tmp_path:Path,script_runner):
     custom_path = tmp_path/'custom'
-    custom_path.mkdir()
     shutil.copytree(EXAMPLES_DIR/'projects'/'custom-wwserver',custom_path)
     result = script_runner.run(PTX_CMD,'generate','webwork', cwd=custom_path)
     assert result.success
