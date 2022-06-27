@@ -15,7 +15,7 @@ def pretext_new_cd(dir="foobar") -> None:
     os.chdir(Path(dir))
 
 @contextmanager
-def pretext_view(*args,script_runner=None):
+def pretext_view(*args):
     process = subprocess.Popen([PTX_CMD,'view']+list(args))
     time.sleep(1)
     try:
@@ -95,14 +95,18 @@ def test_view(tmp_path:Path):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
 
 def test_custom_xsl(tmp_path:Path,script_runner):
-    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',tmp_path, dirs_exist_ok=True)
-    assert script_runner.run(PTX_CMD,'build', cwd=tmp_path).success
-    assert (tmp_path/'output'/'test').exists()
+    custom_path = tmp_path/'custom'
+    custom_path.mkdir()
+    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',custom_path)
+    assert script_runner.run(PTX_CMD,'build', cwd=custom_path).success
+    assert (custom_path/'output'/'test').exists()
 
 def test_custom_webwork_server(tmp_path:Path,script_runner):
-    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-wwserver',tmp_path, dirs_exist_ok=True)
-    result = script_runner.run(PTX_CMD,'generate','webwork', cwd=tmp_path)
+    custom_path = tmp_path/'custom'
+    custom_path.mkdir()
+    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-wwserver',custom_path)
+    result = script_runner.run(PTX_CMD,'generate','webwork', cwd=custom_path)
     assert result.success
     assert 'webwork-dev' in result.stdout
-    result = script_runner.run(PTX_CMD,'build', cwd=tmp_path)
+    result = script_runner.run(PTX_CMD,'build', cwd=custom_path)
     assert result.success
