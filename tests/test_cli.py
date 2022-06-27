@@ -1,8 +1,8 @@
-import subprocess, os, shutil, time, signal, platform, random
+import subprocess, os, shutil, time, signal, platform, random, sys
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from contextlib import contextmanager
-import requests
+import requests, pytest
 import pretext
 
 EXAMPLES_DIR = Path(__file__).parent/'examples'
@@ -12,7 +12,7 @@ def pretext_new_cd(dir="foobar") -> None:
     os.chdir(Path(dir))
 
 @contextmanager
-def pretext_view(*args):
+def pretext_view(*args,script_runner=None):
     process = subprocess.Popen(['pretext','view']+list(args))
     time.sleep(1)
     try:
@@ -65,20 +65,20 @@ def test_init(tmp_path:Path,script_runner):
     assert len([*tmp_path.glob('.gitignore-*')]) > 0
     assert len([*tmp_path.glob('publication/publication-*.ptx')]) > 0
 
-def test_generate(tmp_path:Path):
-    os.chdir(tmp_path)
-    subprocess.run(['pretext', 'init'])
-    Path('source').mkdir()
-    shutil.copyfile(EXAMPLES_DIR/'asymptote.ptx',Path('source')/'main.ptx')
-    assert cmd_works('pretext','generate','asymptote')
-    assert (Path('generated-assets')/'asymptote'/'test.html').exists()
-    os.remove(Path('generated-assets')/'asymptote'/'test.html')
-    assert cmd_works('pretext','generate','-x','test')
-    assert (Path('generated-assets')/'asymptote'/'test.html').exists()
-    os.remove(Path('generated-assets')/'asymptote'/'test.html')
-    assert cmd_works('pretext','generate','asymptote', '-t', 'web')
-    assert (Path('generated-assets')/'asymptote'/'test.html').exists()
+def test_generate(tmp_path:Path,script_runner):
+    assert script_runner.run('pretext', 'init', cwd=tmp_path).success
+    (tmp_path/'source').mkdir()
+    shutil.copyfile(EXAMPLES_DIR/'asymptote.ptx',tmp_path/'source'/'main.ptx')
+    assert script_runner.run('pretext','generate','asymptote', cwd=tmp_path).success
+    assert (tmp_path/'generated-assets'/'asymptote'/'test.html').exists()
+    os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
+    assert script_runner.run('pretext','generate','-x', 'test', cwd=tmp_path).success
+    assert (tmp_path/'generated-assets'/'asymptote'/'test.html').exists()
+    os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
+    assert script_runner.run('pretext','generate','asymptote','-t', 'web', cwd=tmp_path).success
+    os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
 
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Test not compatible with Windows")
 def test_view(tmp_path:Path):
     os.chdir(tmp_path)
     port = random.randint(10_000, 65_636)
@@ -95,8 +95,16 @@ def test_view(tmp_path:Path):
     with pretext_view('-p',f'{port}','-b','-g'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
 
-def test_custom_xsl(tmp_path:Path):
-    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',tmp_path/'custom')
-    os.chdir(tmp_path/'custom')
-    assert cmd_works('pretext','build')
-    assert (Path('output')/'test').exists()
+def test_custom_xsl(tmp_path:Path,script_runner):
+    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',tmp_path, dirs_exist_ok=True)
+    assert script_runner.run('pretext','build', cwd=tmp_path).success
+    assert (tmp_path/'output'/'test').exists()
+
+def test_custom_webwork_server(tmp_path:Path,script_runner):
+    shutil.copytree(EXAMPLES_DIR/'projects'/'custom-wwserver',tmp_path, dirs_exist_ok=True)
+    result = script_runner.run('pretext','generate','webwork', cwd=tmp_path)
+    assert result.success
+    assert 'webwork-dev' in result.stdout
+    result = script_runner.run('pretext','build', cwd=tmp_path)
+    assert result.success
+
