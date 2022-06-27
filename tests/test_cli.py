@@ -80,15 +80,15 @@ def test_generate(tmp_path:Path,script_runner):
 
 def test_view(tmp_path:Path):
     os.chdir(tmp_path)
-    port = random.randint(10_000, 65_636)
+    port = random.randint(10_000, 65_536)
     with pretext_view('-d','.','-p',f'{port}'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
-    port = random.randint(10_000, 65_636)
+    port = random.randint(10_000, 65_536)
     pretext_new_cd("1")
     subprocess.run(['pretext','build'])
     with pretext_view('-p',f'{port}'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
-    port = random.randint(10_000, 65_636)
+    port = random.randint(10_000, 65_536)
     os.chdir(tmp_path)
     pretext_new_cd("2")
     with pretext_view('-p',f'{port}','-b','-g'):
