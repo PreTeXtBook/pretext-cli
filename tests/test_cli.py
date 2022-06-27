@@ -1,4 +1,4 @@
-import subprocess, os, glob, shutil, time, signal, platform, random
+import subprocess, os, shutil, time, signal, platform, random
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from contextlib import contextmanager
@@ -25,55 +25,45 @@ def pretext_view(*args):
 def cmd_works(*args) -> bool:
     return subprocess.run(args).returncode == 0
 
-def test_entry_points():
-    assert cmd_works('pretext', '-h')
-    assert cmd_works('python', '-m', 'pretext', '-h')
+def test_entry_points(script_runner):
+    ret = script_runner.run('pretext', '-h')
+    assert ret.success
+    assert subprocess.run(['python', '-m', 'pretext', '-h']).returncode == 0
 
-def test_version():
-    cp = subprocess.run(['pretext', '--version'], capture_output=True, text=True)
-    assert cp.stdout.strip() == pretext.VERSION
+def test_version(script_runner):
+    ret = script_runner.run('pretext', '--version')
+    assert ret.stdout.strip() == pretext.VERSION
 
-def test_new(tmp_path:Path):
-    os.chdir(tmp_path)
-    assert cmd_works('pretext', 'new', '-d', 'foobar')
-    assert (Path('foobar')/'project.ptx').exists()
+def test_new(tmp_path:Path,script_runner):
+    assert script_runner.run('pretext', 'new', cwd=tmp_path).success
+    assert (tmp_path/'new-pretext-project'/'project.ptx').exists()
 
-def test_build(tmp_path:Path):
-    os.chdir(tmp_path)
-    pretext_new_cd()
-    assert cmd_works('pretext', 'build', 'web')
-    assert (Path('output')/'web').exists()
-    assert cmd_works('pretext', 'build', 'subset')
-    assert (Path('output')/'subset').exists()
-    assert cmd_works('pretext', 'build', 'print-latex')
-    assert (Path('output')/'print-latex').exists()
-    assert cmd_works('pretext', 'build', '-g')
-    assert (Path('generated-assets')).exists()
-    os.removedirs(Path('generated-assets'))
-    assert cmd_works('pretext', 'build', '-g', 'webwork')
-    assert (Path('generated-assets')).exists()
+def test_build(tmp_path:Path,script_runner):
+    assert script_runner.run('pretext', 'new', '-d', '.', cwd=tmp_path).success
+    assert script_runner.run('pretext', 'build', 'web', cwd=tmp_path).success
+    assert (tmp_path/'output'/'web').exists()
+    assert script_runner.run('pretext', 'build', 'subset', cwd=tmp_path).success
+    assert (tmp_path/'output'/'subset').exists()
+    assert script_runner.run('pretext', 'build', 'print-latex', cwd=tmp_path).success
+    assert (tmp_path/'output'/'print-latex').exists()
+    assert script_runner.run('pretext', 'build', '-g', cwd=tmp_path).success
+    assert (tmp_path/'generated-assets').exists()
+    os.removedirs(tmp_path/'generated-assets')
+    assert script_runner.run('pretext', 'build', '-g', 'webwork', cwd=tmp_path).success
+    assert (tmp_path/'generated-assets').exists()
 
-def test_init(tmp_path:Path):
-    os.chdir(tmp_path)
-    fresh = Path('fresh').resolve()
-    fresh.mkdir()
-    refresh = Path('refresh').resolve()
-    refresh.mkdir()
-    os.chdir(fresh)
-    assert cmd_works('pretext', 'init')
-    assert Path('project.ptx').exists()
-    assert Path('requirements.txt').exists()
-    assert Path('.gitignore').exists()
-    assert Path('publication/publication.ptx').exists()
-    os.chdir(refresh)
-    pretext_new_cd()
-    assert cmd_works('pretext', 'init')
-    assert len(glob.glob('project-*.ptx')) == 0 # need to refresh
-    assert subprocess.run(['pretext', 'init', '-r']).returncode == 0
-    assert len(glob.glob('project-*.ptx')) > 0
-    assert len(glob.glob('requirements-*.txt')) > 0
-    assert len(glob.glob('.gitignore-*')) > 0
-    assert len(glob.glob('publication/publication-*.ptx')) > 0
+def test_init(tmp_path:Path,script_runner):
+    assert script_runner.run('pretext', 'init', cwd=tmp_path).success
+    assert (tmp_path/'project.ptx').exists()
+    assert (tmp_path/'requirements.txt').exists()
+    assert (tmp_path/'.gitignore').exists()
+    assert (tmp_path/'publication'/'publication.ptx').exists()
+    assert len([*tmp_path.glob('project-*.ptx')]) == 0 # need to refresh
+    assert script_runner.run('pretext', 'init', '-r', cwd=tmp_path).success
+    assert len([*tmp_path.glob('project-*.ptx')]) > 0
+    assert len([*tmp_path.glob('requirements-*.txt')]) > 0
+    assert len([*tmp_path.glob('.gitignore-*')]) > 0
+    assert len([*tmp_path.glob('publication/publication-*.ptx')]) > 0
 
 def test_generate(tmp_path:Path):
     os.chdir(tmp_path)
