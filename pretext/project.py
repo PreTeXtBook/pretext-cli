@@ -1,7 +1,7 @@
 from lxml import etree as ET
 from lxml.etree import Element
 import os, shutil
-import logging
+import logging, time
 import tempfile
 from . import static, utils, generate, core
 from . import build as builder
@@ -210,6 +210,7 @@ class Project():
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
                 sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
             # build was successful
+            time.sleep(2) #FIXME hack to make sure windows has released resources before cleaning up temporary directory
             log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
     
     def generate(self,target_name,asset_list=None,all_formats=False,xmlid=None):
