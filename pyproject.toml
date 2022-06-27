@@ -17,15 +17,15 @@ include = [
 
 [tool.poetry.dependencies]
 python = "^3.8.5"
-lxml = "^4.0"
-requests = "^2.0"
-watchdog = "^2.0"
-GitPython = "^3.0"
-click = "^8.0"
+lxml = "^4.8"
+requests = "^2"
+watchdog = "^2"
+GitPython = "^3"
+click = "^8"
 pdfCropMargins = "^1.0.8"
-click-logging = "^1.0"
-ghp-import = "^2.0"
-single-version = "^1.0"
+click-logging = "^1"
+ghp-import = "^2"
+single-version = "^1"
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
