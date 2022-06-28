@@ -13,6 +13,13 @@
       <output-dir>output/test</output-dir>
       <xsl>xsl/custom.xsl</xsl>
     </target>
+    <target name="test-deprecated">
+      <format>html</format>
+      <source>source/main.ptx</source>
+      <publication>publication/publication.ptx</publication>
+      <output-dir>output/test-deprecated</output-dir>
+      <xsl>xsl/custom-deprecated.xsl</xsl>
+    </target>
   </targets>
   <executables>
     <latex>latex</latex>

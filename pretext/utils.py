@@ -236,24 +236,25 @@ NSMAP = {
 def nstag(prefix:str,suffix:str) -> str:
     return "{" + NSMAP[prefix] + "}" + suffix
 
-def expand_pretext_href(lxml_element:ET.Element):
+def expand_pretext_href(lxml_element:ET.Element): #DEPRECATED as of 0.7.8
     '''
     Expands @pretext-href attributes to point to the distributed xsl directory.
     '''
     for ele in lxml_element.xpath('//*[@pretext-href]'):
-        ele.set('href',Path(static.core_xsl(ele.get('pretext-href'),as_path=True)).as_posix())
+        ele.set('href',(Path('.')/'core'/ele.get('pretext-href')).as_posix())
 
-def copy_expanded_xsl(xsl_path: Path, output_dir: Path):
+def copy_custom_xsl(xsl_path: Path, output_dir: Path):
     """
-    Copy relevant files that share a directory with `xsl_path`
-    while pre-processing the `.xsl` files.
+    Copy relevant files that share a directory with `xsl_path`.
+    Pre-processing the `.xsl` files to point to subdirectory for graceful deprecation.
     """
     xsl_dir = xsl_path.parent.resolve()
     output_dir = output_dir.resolve()
     log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
-    if not (Path(output_dir)/'entities.ent').exists():
+    if not (Path(output_dir)/'entities.ent').exists(): # TODO stop this as it's copied in subdirectory
         shutil.copyfile(static.path('xsl/entities.ent'),Path(output_dir)/'entities.ent')
+    shutil.copytree(static.core_xsl_dir_path(),output_dir/"core")
     # expand each xsl file
     with working_directory(output_dir):
         for filename in glob.iglob('**',recursive=True):

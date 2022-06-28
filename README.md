@@ -102,21 +102,23 @@ For example:
 ```
 
 If your custom XSL file needs to import the XSL
-shipped with the CLI (e.g. `pretext-common.xsl`), then use the `@pretext-href`
-attribute in your custom XSL's `<xsl:import/>` as follows:
+shipped with the CLI (e.g. `pretext-common.xsl`), then use a `./core/`
+prefix in your custom XSL's `xsl:import@href` as follows:
 
 ```
-<xsl:import pretext-href="pretext-common.xsl"/>
+<xsl:import href="./core/pretext-common.xsl"/>
 ```
 
-The CLI will treat this as follows:
+Similarly, `entities.ent` may be used:
 
 ```
-<xsl:import href="/path/to/cli/xsl/on/your/disk/pretext-common.xsl"/>
+<!DOCTYPE xsl:stylesheet [
+    <!ENTITY % entities SYSTEM "./core/entities.ent">
+    %entities;
+]>
 ```
 
-If you use PreTeXt's `entities.ent` it will be made available for you at the same path
-as the custom XSL you specified (unless you provide your own).
+*Note: previously this was achieved with a `pretext-href` attribute - this is now deprecated and will be removed in a future release.*
 
 ---
 

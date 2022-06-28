@@ -5,10 +5,11 @@
 #   import importlib.resources as pkg_resources
 
 import os
+from pathlib import Path
 from lxml import etree as ET
 from . import __file__ as STATIC_PATH
 
-def path(*args):
+def path(*args): #TODO make pathlib.Path
     """
     Returns absolute path to files in the static folder of the distribution.
     """
@@ -17,9 +18,12 @@ def path(*args):
         *args
     ))
 
-def core_xsl(*args,as_path=False):
+def core_xsl(*args,as_path=False): #TODO deprecate
     xsl_path = path("xsl",*args)
     if as_path:
         return xsl_path
     else:
         return ET.parse(xsl_path)
+
+def core_xsl_dir_path():
+    return Path(__file__).parent/'xsl'
