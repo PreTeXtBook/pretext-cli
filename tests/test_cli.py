@@ -73,21 +73,21 @@ def test_generate(tmp_path:Path,script_runner):
     assert script_runner.run(PTX_CMD,'generate','asymptote','-t', 'web', cwd=tmp_path).success
     os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
 
-def test_view(tmp_path:Path):
+def test_view(tmp_path:Path,script_runner):
     os.chdir(tmp_path)
     port = random.randint(10_000, 65_536)
     with pretext_view('-d','.','-p',f'{port}'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
-    port = random.randint(10_000, 65_536)
-    subprocess.run([PTX_CMD,"new","-d",'1'])
+    assert script_runner.run(PTX_CMD,"new","-d",'1').success
     os.chdir(Path('1'))
-    subprocess.run(['pretext','build'])
+    assert script_runner.run(PTX_CMD,'build').success
+    port = random.randint(10_000, 65_536)
     with pretext_view('-p',f'{port}'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
-    port = random.randint(10_000, 65_536)
     os.chdir(tmp_path)
-    subprocess.run([PTX_CMD,"new","-d",'2'])
+    assert script_runner.run(PTX_CMD,"new","-d",'2').success
     os.chdir(Path('2'))
+    port = random.randint(10_000, 65_536)
     with pretext_view('-p',f'{port}','-b','-g'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
 
