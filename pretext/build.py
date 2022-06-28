@@ -23,7 +23,7 @@ def html(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional
     with utils.working_directory(Path()): # ensure working directory is preserved
         try:
             core.html(
-                ptxfile.as_posix(),
+                ptxfile,
                 pub_file.as_posix(),
                 stringparams,
                 xmlid_root,
@@ -43,7 +43,7 @@ def latex(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optiona
     with utils.working_directory(Path()): # ensure working directory is preserved
         try:
             core.latex(
-                ptxfile.as_posix(), 
+                ptxfile, 
                 pub_file.as_posix(), 
                 stringparams, 
                 custom_xsl and custom_xsl.as_posix(), # pass None or posix string
@@ -61,7 +61,7 @@ def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[
     with utils.working_directory(Path()): # ensure working directory is preserved
         try:
             core.pdf(
-                ptxfile.as_posix(), 
+                ptxfile, 
                 pub_file.as_posix(), 
                 stringparams, 
                 custom_xsl and custom_xsl.as_posix(), # pass None or posix string

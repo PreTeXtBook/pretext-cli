@@ -37,7 +37,7 @@ def latex_image(ptxfile:Path, pub_file:Path, output:Path, params, target_format,
             for outformat in formats[target_format]:
                 try:
                     core.latex_image_conversion(
-                        xml_source=ptxfile.as_posix(), 
+                        xml_source=ptxfile, 
                         pub_file=pub_file.as_posix(), 
                         stringparams=params,
                         xmlid_root=xmlid_root, 
@@ -79,7 +79,7 @@ def sageplot(ptxfile:Path, pub_file:Path, output:Path, params, target_format, xm
             try:
                 for outformat in formats[target_format]:
                     core.sage_conversion(
-                        xml_source=ptxfile.as_posix(),
+                        xml_source=ptxfile,
                         pub_file=pub_file.as_posix(),
                         stringparams=params,
                         xmlid_root=xmlid_root,
@@ -117,7 +117,7 @@ def asymptote(ptxfile:Path, pub_file:Path, output:Path, params, target_format, x
             try:
                 for outformat in formats[target_format]:
                     core.asymptote_conversion(
-                        xml_source=ptxfile.as_posix(),
+                        xml_source=ptxfile,
                         pub_file=pub_file.as_posix(),
                         stringparams=params,
                         xmlid_root=xmlid_root,
@@ -148,7 +148,7 @@ def interactive(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
         with utils.working_directory(Path()):
             try:
                 core.preview_images(
-                    xml_source=ptxfile.as_posix(),
+                    xml_source=ptxfile,
                     pub_file=pub_file.as_posix(),
                     stringparams=params,
                     xmlid_root=xmlid_root,
@@ -176,7 +176,7 @@ def youtube(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
         with utils.working_directory(Path()):
             try:
                 core.youtube_thumbnail(
-                    xml_source=ptxfile.as_posix(),
+                    xml_source=ptxfile,
                     pub_file=pub_file.as_posix(),
                     stringparams=params,
                     xmlid_root=xmlid_root,
@@ -203,7 +203,7 @@ def webwork(ptxfile:Path, pub_file:Path, output:Path, params):
         with utils.working_directory(Path()):
             try:
                 core.webwork_to_xml(
-                    xml_source=ptxfile.as_posix(),
+                    xml_source=ptxfile,
                     pub_file=pub_file.as_posix(),
                     stringparams=params,
                     abort_early=True,
@@ -237,7 +237,7 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
         with utils.working_directory(Path()):
             try:
                 core.tracer(
-                    xml_source=ptxfile.as_posix(),
+                    xml_source=ptxfile,
                     pub_file=pub_file.as_posix(),
                     stringparams=params,
                     xmlid_root=xmlid_root,
