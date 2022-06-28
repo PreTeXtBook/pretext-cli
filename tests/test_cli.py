@@ -10,10 +10,6 @@ EXAMPLES_DIR = Path(__file__).parent/'examples'
 PTX_CMD = shutil.which("pretext")
 PY_CMD = sys.executable
 
-def pretext_new_cd(dir="foobar") -> None:
-    subprocess.run([PTX_CMD,"new","-d",dir])
-    os.chdir(Path(dir))
-
 @contextmanager
 def pretext_view(*args):
     process = subprocess.Popen([PTX_CMD,'view']+list(args))
@@ -21,12 +17,8 @@ def pretext_view(*args):
     try:
         yield process
     finally:
-        if 'win' in sys.platform:
-            process.send_signal(signal.CTRL_C_EVENT)
-        else:
-            process.send_signal(signal.SIGINT)
-        time.sleep(1)
-        assert process.poll()==0
+        process.terminate()
+        process.wait()
 
 def test_entry_points(script_runner):
     ret = script_runner.run(PTX_CMD, '-h')
@@ -87,13 +79,15 @@ def test_view(tmp_path:Path):
     with pretext_view('-d','.','-p',f'{port}'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
     port = random.randint(10_000, 65_536)
-    pretext_new_cd("1")
+    subprocess.run([PTX_CMD,"new","-d",'1'])
+    os.chdir(Path('1'))
     subprocess.run(['pretext','build'])
     with pretext_view('-p',f'{port}'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
     port = random.randint(10_000, 65_536)
     os.chdir(tmp_path)
-    pretext_new_cd("2")
+    subprocess.run([PTX_CMD,"new","-d",'2'])
+    os.chdir(Path('2'))
     with pretext_view('-p',f'{port}','-b','-g'):
         assert requests.get(f'http://localhost:{port}/').status_code == 200
 
