@@ -21,7 +21,10 @@ def pretext_view(*args):
     try:
         yield process
     finally:
-        process.send_signal(signal.SIGINT)
+        if 'win' in sys.platform:
+            process.send_signal(signal.CTRL_C_EVENT)
+        else:
+            process.send_signal(signal.SIGINT)
         time.sleep(1)
         assert process.poll()==0
 
