@@ -131,6 +131,12 @@ class Project():
             for target_element in self.xml_element().xpath("targets/target")
         ]
 
+    def target_names(self):
+        names = []
+        for target in self.targets():
+            names.append(target.name())
+        return names
+
     def print_target_names(self):
         for target in self.targets():
             print(target.name())
