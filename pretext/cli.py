@@ -288,6 +288,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     target = project.target(name=target_name)
     if target is None:
         log.critical("Build target could not be found in project.ptx manifest.")
+        log.critical(f"Possible build targets are: {project.target_names()}")
         log.critical("Exiting without completing task.")
         return
     if generate=='ALL':
