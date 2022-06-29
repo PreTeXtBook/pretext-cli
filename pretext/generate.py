@@ -246,6 +246,6 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
             except Exception as e:
                 log.critical(e)
                 log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to generate codelense trace.  Exiting...')
+                sys.exit('Failed to generate codelens trace.  Exiting...')
     else:
         log.info("Note: No program elements using codelens found.")
