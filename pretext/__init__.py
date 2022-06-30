@@ -17,4 +17,4 @@ from pathlib import Path
 from single_version import get_version
 VERSION = get_version('pretextbook', Path(__file__).parent.parent)
 
-CORE_COMMIT = "a2b4f42c31a16498434c8fa96439371de5d1d5bb"
+CORE_COMMIT = "cdd5a5333a3332a48cae1e3289c4461520c7476e"
