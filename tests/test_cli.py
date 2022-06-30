@@ -107,3 +107,8 @@ def test_custom_webwork_server(tmp_path:Path,script_runner):
     assert 'webwork-dev' in result.stdout
     result = script_runner.run(PTX_CMD,'-v','debug','build', cwd=custom_path)
     assert result.success
+
+def test_slideshow(tmp_path:Path,script_runner):
+    assert script_runner.run(PTX_CMD,'-v','debug', 'new', 'slideshow', '-d', '.', cwd=tmp_path).success
+    assert script_runner.run(PTX_CMD,'-v','debug', 'build', 'web', cwd=tmp_path).success
+    assert (tmp_path/'output'/'web'/'slides.html').exists()

@@ -254,7 +254,6 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
     if not (Path(output_dir)/'entities.ent').exists(): # TODO stop this as it's copied in subdirectory
         shutil.copyfile(static.path('xsl/entities.ent'),Path(output_dir)/'entities.ent')
-    shutil.copytree(static.core_xsl_dir_path(),output_dir/"core")
     # expand each xsl file
     with working_directory(output_dir):
         for filename in glob.iglob('**',recursive=True):
@@ -269,6 +268,7 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
                 # maybe an xsl file is malformed, but let's continue in case it's unused
                 except Exception as e:
                     log.warning(f"Failed to expand {filename} due to {e}, continuing anyway...")
+    shutil.copytree(static.core_xsl_dir_path(),output_dir/"core")
 
 def check_executable(exec_name:str):
     try:

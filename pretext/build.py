@@ -73,3 +73,22 @@ def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
             sys.exit('Failed to build pdf.  Exiting...')
+
+
+def custom(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Path,output_filename:Optional[str]=None):
+    os.makedirs(output, exist_ok=True)
+    if output_filename is not None:
+        output_filepath = output/output_filename
+        output_dir = None
+        log.info(f"\nNow building with custom {custom_xsl} into {output_filepath}\n")
+    else:
+        output_filepath = None
+        output_dir = output
+        log.info(f"\nNow building with custom {custom_xsl} into {output}\n")
+    with utils.working_directory(Path()): # ensure working directory is preserved
+        try:
+            core.xsltproc(custom_xsl, ptxfile, output_filepath, output_dir=output_dir, stringparams=stringparams)
+        except Exception as e:
+            log.critical(e)
+            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed custom build.  Exiting...')

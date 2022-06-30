@@ -84,6 +84,12 @@ class Target():
 
     def output_dir(self) -> Path:
         return (Path(self.__project_path)/self.xml_element().find("output-dir").text.strip()).resolve()
+
+    def output_filename(self) -> Optional[str]:
+        if self.xml_element().find("output-filename") is None:
+            return None
+        else:
+            return self.xml_element().find("output-filename").text.strip()
     
     def port(self) -> int:
         view_ele = self.xml_element().find("view")
@@ -209,6 +215,10 @@ class Project():
                 shutil.copytree(target.generated_dir(),target.output_dir()/"generated",dirs_exist_ok=True)
             elif target.format()=='pdf':
                 builder.pdf(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.pdf_method())
+            elif target.format()=='custom':
+                if custom_xsl is None:
+                    raise Exception("Must specify custom XSL for custom build.")
+                builder.custom(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.output_filename())
         except Exception as e:
             log.critical(
                 f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
