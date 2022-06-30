@@ -296,8 +296,6 @@ def check_asset_execs(element, outformats=None):
             required_execs.append('pdfeps')
     if element == "sageplot":
         required_execs = ['sage']
-    if element == "interactive":
-        required_execs = ['pageres']
     install_hints = {
         'xelatex':{
             'Windows': 'See https://pretextbook.org/doc/guide/html/windows-cli-software.html',

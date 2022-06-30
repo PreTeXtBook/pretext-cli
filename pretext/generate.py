@@ -134,6 +134,8 @@ def asymptote(ptxfile:Path, pub_file:Path, output:Path, params, target_format, x
 
 # generate interactive preview assets
 def interactive(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
+    log.warning("Interactive preview generation is temporarily unavailable.")
+    return
     # We assume passed paths are absolute.
     # parse source so we can check for interactives.
     source_xml = ET.parse(ptxfile)
@@ -143,8 +145,6 @@ def interactive(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
         image_output = (output/'preview').resolve()
         os.makedirs(image_output, exist_ok=True)
         log.info('Now generating preview images for interactives\n\n')
-        # Check for external requirements
-        utils.check_asset_execs('interactive')
         with utils.working_directory(Path()):
             try:
                 core.preview_images(

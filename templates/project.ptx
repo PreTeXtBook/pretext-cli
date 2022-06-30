@@ -44,7 +44,6 @@
       <sage>sage</sage>
       <pdfpng>convert</pdfpng>
       <pdfeps>pdftops</pdfeps>
-      <pageres>pageres</pageres>
       <node>node</node>
       <liblouis>file2brl</liblouis>
     </executables>
