@@ -92,3 +92,51 @@ def custom(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Path,o
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
             sys.exit('Failed custom build.  Exiting...')
+
+#build (non Kindle) ePub:
+def epub(ptxfile,pub_file:Path,output:Path,stringparams):
+    os.makedirs(output, exist_ok=True)
+    try:
+        utils.npm_install()
+    except Exception as e:
+        log.debug(e)
+        sys.exit("Unable to build epub because node packages are not installed.  Exiting...")
+    log.info(f"\nNow building ePub into {output}\n")
+    with utils.working_directory("."):
+        try:
+            core.epub(
+                ptxfile, 
+                pub_file.as_posix(),
+                out_file=None, #will be derived from source
+                dest_dir=output.as_posix(), 
+                math_format="svg", 
+                stringparams=stringparams)
+        except Exception as e:
+            log.critical(e)
+            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed to build epub.  Exiting...')
+
+
+#build Kindle ePub:
+def kindle(ptxfile,pub_file:Path,output:Path,stringparams):
+    os.makedirs(output, exist_ok=True)
+    try:
+        utils.npm_install()
+    except Exception as e:
+        log.critical(e)
+        sys.exit("Unable to build Kindle ePub because node packages are not installed.  Exiting...")
+    log.info(f"\nNow building Kindle ePub into {output}\n")
+    with utils.working_directory("."):
+        try:
+            core.epub(
+                ptxfile, 
+                pub_file.as_posix(), 
+                out_file=None, #will be derived from source
+                dest_dir=output.as_posix(), 
+                math_format="kindle", 
+                stringparams=stringparams)
+        except Exception as e:
+            log.critical(e)
+            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed to build kindle ebook.  Exiting...')
+

@@ -1,3 +1,4 @@
+from asyncio import subprocess
 import os
 import glob
 import random
@@ -9,6 +10,7 @@ from pathlib import Path
 import platform
 import socketserver
 import socket
+import subprocess
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
@@ -328,6 +330,16 @@ def check_asset_execs(element, outformats=None):
             log.warning(f"In order to generate {element} into formats {outformats}, you must have {required_exec} installed, but this appears to be missing or configured incorrectly in pretext.ptx")
             #print installation hints based on operating system and missing program.
             log.info(install_hints[required_exec][platform.system()])
+
+def npm_install():
+    with working_directory(static.path("script", "mjsre")):
+        log.info("Attempting to install/update required node packages.")
+        try:
+            subprocess.run('npm install', shell=True)
+        except Exception as e:
+            log.critical("Unable to install required npm packages.  Please see the documentation.")
+            log.critical(e)
+            log.debug("", exc_info=True)
 
 def remove_path(path:Path):
     if path.is_file() or path.is_symlink():

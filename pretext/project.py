@@ -219,6 +219,10 @@ class Project():
                 if custom_xsl is None:
                     raise Exception("Must specify custom XSL for custom build.")
                 builder.custom(target.source(),target.publication(),target.output_dir(),target.stringparams(),custom_xsl,target.output_filename())
+            elif target.format()=='epub':
+                builder.epub(target.source(),target.publication(),target.output_dir(),target.stringparams())
+            elif target.format()=='kindle':
+                builder.kindle(target.source(),target.publication(),target.output_dir(),target.stringparams())
         except Exception as e:
             log.critical(
                 f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
