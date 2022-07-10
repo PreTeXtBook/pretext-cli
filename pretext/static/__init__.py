@@ -28,7 +28,7 @@ def path(*args) -> Path:
     return local_base_path.joinpath(*args)
 
 def install_static(local_base_path):
-    static_zip = (Path(STATIC_PATH).parent).joinpath("static.zip")
+    static_zip = Path(STATIC_PATH).parent.joinpath("static.zip")
     with zipfile.ZipFile(static_zip,"r") as zip:
         zip.extractall(local_base_path)
     # Write the current commit to local file
@@ -43,13 +43,3 @@ def templates_path(*args): #TODO make pathlib.Path
     """
     return (Path(STATIC_PATH).parent).joinpath("templates",
         *args)
-
-def core_xsl(*args,as_path=False): #TODO deprecate
-    xsl_path = path("xsl",*args)
-    if as_path:
-        return xsl_path
-    else:
-        return ET.parse(xsl_path)
-
-def core_xsl_dir_path():
-    return Path(__file__).parent/'xsl'
