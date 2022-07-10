@@ -7,7 +7,6 @@ import os, zipfile, requests, io
 import tempfile, shutil
 import platform
 from pathlib import Path
-import sys
 from typing import Optional
 
 from . import utils, static, VERSION, CORE_COMMIT, core
@@ -137,7 +136,7 @@ def new(template,directory,url_template):
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
     else:
-        template_path = static.path('templates', f'{template}.zip')
+        template_path = static.templates_path(f'{template}.zip')
         archive = zipfile.ZipFile(template_path)
     # find (first) project.ptx to use as root of template
     filenames = [Path(filepath).name for filepath in archive.namelist()]
@@ -175,7 +174,7 @@ def init(refresh):
         log.warning(f"Use `pretext init --refresh` to refresh initialization of an existing project.")
         return
     timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-    template_manifest_path = static.path('templates', 'project.ptx')
+    template_manifest_path = static.templates_path('project.ptx')
     project_manifest_path = Path("project.ptx").resolve()
     if project_manifest_path.is_file():
         project_manifest_path = Path(f'project-{timestamp}.ptx').resolve()
@@ -195,7 +194,7 @@ def init(refresh):
     log.info(f"Generated requirements file at {requirements_path}.")
     log.info("")
     # Create publication file if one doesn't exist: 
-    template_pub_path = static.path('templates','publication.ptx')
+    template_pub_path = static.templates_path('publication.ptx')
     pub_dir_path = Path('publication')
     if not pub_dir_path.exists():
         pub_dir_path.mkdir()
@@ -208,7 +207,7 @@ def init(refresh):
     log.info(f"Generated publication file at {project_pub_path}.")
     log.info("")
     # Create .gitignore if one doesn't exist
-    template_gitignore_path = static.path('templates','.gitignore')
+    template_gitignore_path = static.templates_path('.gitignore')
     project_gitignore_path = Path(".gitignore").resolve()
     if project_gitignore_path.exists():
         project_gitignore_path = Path(f".gitignore-{timestamp}").resolve()

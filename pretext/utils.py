@@ -12,6 +12,7 @@ import socket
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
+import zipfile
 from typing import Optional
 from lxml import etree as ET
 

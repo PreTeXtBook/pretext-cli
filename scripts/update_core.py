@@ -1,26 +1,30 @@
 import requests, zipfile, io, shutil, tempfile, os
 from pretext import CORE_COMMIT
 from pathlib import Path
+import os
 from remove_path import remove_path
 
 def main():
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
 
     print(f"Requesting core PreTeXtBook/pretext commit {CORE_COMMIT} from GitHub.")
-
+    pretext_dir = Path("pretext").resolve()
     r = requests.get(f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip")
     archive = zipfile.ZipFile(io.BytesIO(r.content))
     with tempfile.TemporaryDirectory() as tmpdirname:
         archive.extractall(tmpdirname)
-        for subdir in ['xsl','schema']:
-            remove_path(Path("pretext")/"static"/subdir)
+        print("Creating zip of static folders")
+        # Copy required folders to a single folder to be zipped:
+        for subdir in ['xsl','schema','script', 'css']:
             shutil.copytree(
                 Path(tmpdirname)/f"pretext-{CORE_COMMIT}"/subdir,
-                Path("pretext")/"static"/subdir,
+                Path(tmpdirname)/"static"/subdir
             )
-        remove_path(Path("pretext")/"core"/"pretext.py")
+        shutil.make_archive("pretext/static/static", 'zip', Path(tmpdirname)/"static")
+        print("Copying new version of pretext.py to core directory")
+        remove_path(pretext_dir/"core"/"pretext.py")
         shutil.copyfile(
-            Path(tmpdirname)/f"pretext-{CORE_COMMIT}"/"pretext"/"pretext.py",
+            Path(tmpdirname).resolve()/f"pretext-{CORE_COMMIT}"/"pretext"/"pretext.py",
             Path("pretext")/"core"/"pretext.py",
         )
 
