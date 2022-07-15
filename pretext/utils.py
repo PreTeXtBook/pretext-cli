@@ -12,6 +12,7 @@ import socket
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
+import zipfile
 from typing import Optional
 from lxml import etree as ET
 
@@ -268,7 +269,7 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
                 # maybe an xsl file is malformed, but let's continue in case it's unused
                 except Exception as e:
                     log.warning(f"Failed to expand {filename} due to {e}, continuing anyway...")
-    shutil.copytree(static.core_xsl_dir_path(),output_dir/"core")
+    shutil.copytree(static.path('xsl'),output_dir/"core")
 
 def check_executable(exec_name:str):
     try:

@@ -139,6 +139,7 @@ pretext/static/pretext
 pretext/core/pretext.py
 pretext/static/schema
 pretext/static/xsl
+pretext/static/static.zip
 #shipped templates
 pretext/static/templates
 
