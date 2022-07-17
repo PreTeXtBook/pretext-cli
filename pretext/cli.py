@@ -277,8 +277,8 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     else:
         stringparams = None
     if utils.project_path() is None:
-        log.critical("No project.ptx manifest was found.")
-        log.critical("Use `pretext new` to create a new project or `pretext init` to update existing project for use with the CLI.")
+        log.critical("Before you can build your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
+        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
         return
     project = Project()
     if target_name is None:
@@ -324,6 +324,10 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+    if utils.project_path() is None:
+        log.critical("Before you can generate assets for your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
+        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+        return
     project = Project()
     target_name = target
     if assets == 'ALL':
@@ -383,6 +387,11 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
     """
+    # Easter egg to spin up a local server at a specified directory:
+    if utils.project_path() is None:
+        log.critical("Before you can view your PreTeXt output, you must be in a (sub)directory initialized with a project.ptx manifest.")
+        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+        return
     if directory is not None:
         port = port or 8000
         utils.run_server(Path(directory),access,port)
@@ -419,6 +428,10 @@ def deploy(target,update_source):
     properly configured with GitHub and GitHub Pages. Deployed
     files will live in `docs` subdirectory of project.
     """
+    if utils.project_path() is None:
+        log.critical("Before you can deploy your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
+        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+        return
     target_name = target
     project = Project()
     project.deploy(target_name,update_source)
