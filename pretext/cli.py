@@ -385,7 +385,7 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     type=click.Choice(ASSETS, case_sensitive=False), 
     help='Generate all or specific assets before viewing')
 @click.option(
-    '--no_launch', is_flag=True,
+    '--no-launch', is_flag=True,
     help='By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.'
 )
 def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build:bool,generate:Optional[str],no_launch:bool):
