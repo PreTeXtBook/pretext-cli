@@ -158,7 +158,7 @@ class Project():
         else:
             return None
 
-    def view(self,target_name:str,access:str,port:int,watch:bool=False):
+    def view(self,target_name:str,access:str,port:int,watch:bool=False, no_launch:bool=False):
         target = self.target(target_name)
         directory = target.output_dir()
         if watch:
@@ -171,11 +171,14 @@ class Project():
             return
         watch_callback=lambda:self.build(target_name)
         if target.format() == 'html':
-            utils.run_server(directory,access,port,watch_directory,watch_callback)
+            utils.run_server(directory,access,port,watch_directory,watch_callback,no_launch)
         else:
-            outputfile = sorted(Path(directory).glob("*.*"))[0]
-            log.info(f"Attempting to open {outputfile} using default viewer for {target.format()} files.")
-            webbrowser.open_new_tab(outputfile)
+            if no_launch:
+                log.info(f"Output can be viewed by navigating to {directory}")
+            else:
+                outputfile = sorted(Path(directory).glob("*.*"))[0]
+                log.info(f"Attempting to open {outputfile} using default viewer for {target.format()} files.")
+                webbrowser.open(outputfile)
 
     def build(self,target_name,clean=False):
         target = self.target(target_name)

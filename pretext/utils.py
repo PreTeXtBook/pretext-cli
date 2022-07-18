@@ -180,7 +180,7 @@ def url_for_access(access="private",port=8000):
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
         return f"http://localhost:{port}"
-def serve_forever(directory:Path,access="private",port=8000):
+def serve_forever(directory:Path,access="private",port=8000,no_launch:bool=False):
     log.info(f"Now preparing local server to preview directory `{directory}`.")
     log.info("  (Reminder: use `pretext deploy` to deploy your built project to a public")
     log.info("  GitHub Pages site that can be shared with readers who cannot access your")
@@ -208,8 +208,9 @@ def serve_forever(directory:Path,access="private",port=8000):
                 url = url_for_access(access,port)
                 log.info(f"Success! The most recent build of your project can be viewed in a web browser at the following url:")
                 log.info("    "+url)
-                log.info(f"This page should open in a new tab automatically.")
-                webbrowser.open_new_tab(url)
+                if not no_launch:
+                    log.info(f"This page should open in a new tab automatically.")
+                    webbrowser.open(url)
                 log.info("Use [Ctrl]+[C] to halt the server.\n")
                 httpd.serve_forever()
         except OSError:
@@ -217,9 +218,9 @@ def serve_forever(directory:Path,access="private",port=8000):
             port = random.randint(49152,65535)
             log.warning(f"Trying port {port} instead.\n")
 
-def run_server(directory:Path,access:str,port:int,watch_directory:Optional[Path]=None,watch_callback=lambda:None):
+def run_server(directory:Path,access:str,port:int,watch_directory:Optional[Path]=None,watch_callback=lambda:None, no_launch:bool=False):
     binding = binding_for_access(access)
-    threading.Thread(target=lambda: serve_forever(directory,access,port),daemon=True).start()
+    threading.Thread(target=lambda: serve_forever(directory,access,port,no_launch),daemon=True).start()
     if watch_directory is not None:
         log.info(f"\nWatching for changes in `{watch_directory}` ...\n")
         event_handler = HTMLRebuildHandler(watch_callback)
