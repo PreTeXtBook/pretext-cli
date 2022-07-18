@@ -330,6 +330,12 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
         return
     project = Project()
     target_name = target
+    target = project.target(name=target_name)
+    if target is None:
+        log.critical("Target for generating assets could not be found in project.ptx manifest.")
+        log.critical(f"Possible targets are: {project.target_names()}")
+        log.critical("Exiting without generating any assets.")
+        return
     if assets == 'ALL':
         log.info("Genearting all assets in default formats.")
         project.generate(target_name,xmlid=xmlid)
@@ -401,6 +407,11 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
     target_name=target
     project = Project()
     target = project.target(name=target_name)
+    if target is None:
+        log.critical("View target could not be found in project.ptx manifest.")
+        log.critical(f"Possible targets are: {project.target_names()}")
+        log.critical("Exiting.")
+        return
     port = port or target.port()
     if target is None:
         log.error(f"Target `{target_name}` could not be found.")
@@ -436,6 +447,12 @@ def deploy(target,update_source):
         return
     target_name = target
     project = Project()
+    target = project.target(name=target_name)
+    if target is None or target.format() != "html":
+        log.critical("Target could not be found in project.ptx manifest.")
+        log.critical(f"Possible targets to deploy are: {project.target_names('html')}") #only list targets with html format.
+        log.critical("Exiting without completing task.")
+        return
     project.deploy(target_name,update_source)
 
 # pretext publish

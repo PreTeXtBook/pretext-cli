@@ -137,10 +137,12 @@ class Project():
             for target_element in self.xml_element().xpath("targets/target")
         ]
 
-    def target_names(self):
+    def target_names(self, *args):
+        # Optional arguments are formats: returns list of targets that have that format.
         names = []
         for target in self.targets():
-            names.append(target.name())
+            if not args or target.format() in args:
+                names.append(target.name())
         return names
 
     def print_target_names(self):
@@ -173,9 +175,6 @@ class Project():
 
     def build(self,target_name,clean=False):
         target = self.target(target_name)
-        if target is None:
-            log.error(f"Target {target_name} not found.")
-            return
         # Check for xml syntax errors and quit if xml invalid:
         if not self.xml_source_is_valid(target_name):
             return
@@ -289,7 +288,7 @@ class Project():
             log.error("Visit https://github.com/git-guides/install-git for assistance.")
             return
         target = self.target(target_name)
-        if target.format() != "html":
+        if target.format() != "html": #redundent for CLI
             log.error("Only HTML format targets are supported.")
             return
         try:
