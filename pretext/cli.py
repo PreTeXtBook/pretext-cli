@@ -339,7 +339,7 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
 
 
 # pretext view
-@main.command(short_help="Preview specified target in your browser.", 
+@main.command(short_help="Preview specified target based on its format.",
     context_settings=CONTEXT_SETTINGS)
 @click.argument('target', required=False)
 @click.option(
@@ -349,7 +349,8 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     default='private',
     show_default=True,
     help="""
-    Choose whether or not to allow other computers on your local network
+    If running a local server,
+    choose whether or not to allow other computers on your local network
     to access your documents using your IP address. (Ignored when used
     in CoCalc, which works automatically.)
     """)
@@ -358,14 +359,15 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     '--port',
     type=click.INT,
     help="""
-    Choose which port to use for the local server.
+    If running a local server,
+    choose which port to use.
     """)
 @click.option(
     '-d',
     '--directory',
     type=click.Path(),
     help="""
-    Serve files from provided directory
+    Run local server for provided directory (does not require a PreTeXt project)
     """)
 @click.option('-w', '--watch', is_flag=True, help="""
     Run a build before starting server, and then
@@ -376,25 +378,25 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     subsets of projects.
     """)
 @click.option('-b', '--build', is_flag=True, help="""
-    Run a build before starting server.
+    Run a build before viewing.
     """)
 @click.option(
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
     type=click.Choice(ASSETS, case_sensitive=False), 
-    help='If generating, specific assets that should be generated')
+    help='Generate all or specific assets before viewing')
 def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build:bool,generate:Optional[str]):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
     """
     # Easter egg to spin up a local server at a specified directory:
-    if utils.project_path() is None:
-        log.critical("Before you can view your PreTeXt output, you must be in a (sub)directory initialized with a project.ptx manifest.")
-        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
-        return
     if directory is not None:
         port = port or 8000
         utils.run_server(Path(directory),access,port)
+        return
+    if utils.project_path() is None:
+        log.critical("Before you can view your PreTeXt output, you must be in a (sub)directory initialized with a project.ptx manifest.")
+        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
         return
     target_name=target
     project = Project()
