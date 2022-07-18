@@ -12,7 +12,7 @@ PY_CMD = sys.executable
 
 @contextmanager
 def pretext_view(*args):
-    process = subprocess.Popen([PTX_CMD,'-v','debug','view', '--no_launch']+list(args))
+    process = subprocess.Popen([PTX_CMD,'-v','debug','view', '--no-launch']+list(args))
     time.sleep(3) # stall for possible build
     try:
         yield process
