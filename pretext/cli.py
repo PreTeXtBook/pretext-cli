@@ -390,7 +390,11 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
     type=click.Choice(ASSETS, case_sensitive=False), 
     help='Generate all or specific assets before viewing')
-def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build:bool,generate:Optional[str]):
+@click.option(
+    '--no-launch', is_flag=True,
+    help='By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.'
+)
+def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build:bool,generate:Optional[str],no_launch:bool):
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
@@ -398,7 +402,7 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
     # Easter egg to spin up a local server at a specified directory:
     if directory is not None:
         port = port or 8000
-        utils.run_server(Path(directory),access,port)
+        utils.run_server(Path(directory),access,port,no_launch=no_launch)
         return
     if utils.project_path() is None:
         log.critical("Before you can view your PreTeXt output, you must be in a (sub)directory initialized with a project.ptx manifest.")
@@ -425,7 +429,7 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
     if build or watch:
         log.info("Building target.")
         project.build(target_name)
-    project.view(target_name,access,port,watch)
+    project.view(target_name,access,port,watch,no_launch)
 
 
 # pretext deploy
