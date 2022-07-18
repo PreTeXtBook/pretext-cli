@@ -244,6 +244,23 @@ running:
 poetry run python scripts/zip_templates.py
 ```
 
+### Testing
+
+Sets are contained in `tests/`. To run all tests:
+
+```
+poetry run pytest
+```
+
+To run a specific test, say `test_name` inside `test_file.py`:
+
+```
+poetry run pytest -k name
+```
+
+Tests are automatically run by GitHub Actions when pushing to identify
+regressions.
+
 ### Packaging
 
 To check if a successful build is possible:
