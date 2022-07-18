@@ -73,7 +73,8 @@ def test_generate(tmp_path:Path,script_runner):
     assert script_runner.run(PTX_CMD,'-v','debug','generate','asymptote','-t', 'web', cwd=tmp_path).success
     os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
 
-def test_view(tmp_path:Path,script_runner):
+def test_view(tmp_path:Path,script_runner,mocker):
+    mocker.patch('webbrowser.open_new_tab')
     os.chdir(tmp_path)
     port = random.randint(10_000, 65_536)
     with pretext_view('-d','.','-p',f'{port}'):
