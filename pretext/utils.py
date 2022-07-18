@@ -15,6 +15,7 @@ import logging
 import threading
 import watchdog.events, watchdog.observers, time
 import zipfile
+import webbrowser
 from typing import Optional
 from lxml import etree as ET
 
@@ -205,8 +206,10 @@ def serve_forever(directory:Path,access="private",port=8000):
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
                 url = url_for_access(access,port)
-                log.info(f"Success! Open the below url in a web browser to preview the most recent build of your project.")
+                log.info(f"Success! The most recent build of your project can be viewed in a web browser at the following url:")
                 log.info("    "+url)
+                log.info(f"This page should open in a new tab automatically.")
+                webbrowser.open_new_tab(url)
                 log.info("Use [Ctrl]+[C] to halt the server.\n")
                 httpd.serve_forever()
         except OSError:

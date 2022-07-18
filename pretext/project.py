@@ -8,6 +8,7 @@ from . import build as builder
 from pathlib import Path
 import sys
 from typing import Optional
+import webbrowser
 
 log = logging.getLogger('ptxlogger')
 
@@ -169,7 +170,12 @@ class Project():
             log.error(f"Run `pretext view {target.name()} -b` to build your project before viewing.")
             return
         watch_callback=lambda:self.build(target_name)
-        utils.run_server(directory,access,port,watch_directory,watch_callback)
+        if target.format() == 'html':
+            utils.run_server(directory,access,port,watch_directory,watch_callback)
+        else:
+            outputfile = sorted(Path(directory).glob("*.*"))[0]
+            log.info(f"Attempting to open {outputfile} using default viewer for {target.format()} files.")
+            webbrowser.open_new_tab(outputfile)
 
     def build(self,target_name,clean=False):
         target = self.target(target_name)
