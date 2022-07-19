@@ -16,6 +16,8 @@ def latex_image(ptxfile:Path, pub_file:Path, output:Path, params, target_format,
         'pdf': None,
         'latex':  None,
         'html': ['svg'],
+        'epub': ['svg'],
+        'kindle': ['png'],
     }
     # set overwrite formats to all when appropriate
     if all_formats:
@@ -59,6 +61,8 @@ def sageplot(ptxfile:Path, pub_file:Path, output:Path, params, target_format, xm
         'pdf': ['pdf','png'],
         'latex':  ['pdf','png'],
         'html': ['html','svg'],
+        'epub': ['svg'],
+        'kindle': ['png'],
     }
     # set overwrite formats to all when appropriate
     if all_formats:
@@ -100,6 +104,8 @@ def asymptote(ptxfile:Path, pub_file:Path, output:Path, params, target_format, x
         'pdf': ['pdf'],
         'latex':  ['pdf'],
         'html': ['html'],
+        'epub': ['svg'],
+        'kindle': ['png'],
     }
     # set overwrite formats to all when appropriate
     if all_formats:
