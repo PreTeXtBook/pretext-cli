@@ -276,9 +276,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
         stringparams = {p[0] : p[1] for p in stringparam}
     else:
         stringparams = None
-    if utils.project_path() is None:
-        log.critical("Before you can build your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
-        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+    if utils.no_project(task="build"):
         return
     project = Project()
     if target_name is None:
@@ -286,9 +284,8 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
                     "project.ptx manifest will be built.")
     target = project.target(name=target_name)
     if target is None:
-        log.critical("Build target could not be found in project.ptx manifest.")
-        log.critical(f"Possible build targets are: {project.target_names()}")
-        log.critical("Exiting without completing task.")
+        utils.show_target_hints(target_name, project, task="build")
+        log.critical("Exiting without completing build.")
         return
     if generate=='ALL':
         log.info("Genearting all assets in default formats.")
@@ -324,16 +321,13 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
-    if utils.project_path() is None:
-        log.critical("Before you can generate assets for your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
-        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+    if utils.no_project(task="generate assets for"):
         return
     project = Project()
     target_name = target
     target = project.target(name=target_name)
     if target is None:
-        log.critical("Target for generating assets could not be found in project.ptx manifest.")
-        log.critical(f"Possible targets are: {project.target_names()}")
+        utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without generating any assets.")
         return
     if assets == 'ALL':
@@ -404,22 +398,16 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
         port = port or 8000
         utils.run_server(Path(directory),access,port,no_launch=no_launch)
         return
-    if utils.project_path() is None:
-        log.critical("Before you can view your PreTeXt output, you must be in a (sub)directory initialized with a project.ptx manifest.")
-        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+    if utils.no_project(task="view the output for"):
         return
     target_name=target
     project = Project()
     target = project.target(name=target_name)
     if target is None:
-        log.critical("View target could not be found in project.ptx manifest.")
-        log.critical(f"Possible targets are: {project.target_names()}")
+        utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
         return
     port = port or target.port()
-    if target is None:
-        log.error(f"Target `{target_name}` could not be found.")
-        return
     if generate == "ALL":
         log.info("Generating all assets in default formats.")
         project.generate(target_name)
@@ -445,16 +433,14 @@ def deploy(target,update_source):
     properly configured with GitHub and GitHub Pages. Deployed
     files will live in `docs` subdirectory of project.
     """
-    if utils.project_path() is None:
-        log.critical("Before you can deploy your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
-        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+    if utils.no_project(task="deploy"):
         return
     target_name = target
     project = Project()
     target = project.target(name=target_name)
     if target is None or target.format() != "html":
         log.critical("Target could not be found in project.ptx manifest.")
-        log.critical(f"Possible targets to deploy are: {project.target_names('html')}") #only list targets with html format.
+        log.critical(f"Possible html targets to deploy are: {project.target_names('html')}") #only list targets with html format.
         log.critical("Exiting without completing task.")
         return
     project.deploy(target_name,update_source)
