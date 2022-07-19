@@ -10,9 +10,8 @@ authors = ["PreTeXtBook.org <steven.clontz+PreTeXt@gmail.com>"]
 license = "GPL-3.0-or-later"
 include = [
     "pretext/core/pretext.py",
-    "pretext/static/schema/*", 
-    "pretext/static/templates/*", 
-    "pretext/static/xsl/**/*"
+    "pretext/core/resources.zip",
+    "pretext/templates/resources",
 ]
 
 [tool.poetry.dependencies]

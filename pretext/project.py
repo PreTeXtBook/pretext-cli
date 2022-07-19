@@ -3,7 +3,7 @@ from lxml.etree import Element
 import os, shutil
 import logging, time
 import tempfile
-from . import static, utils, generate, core
+from . import utils, generate, core
 from . import build as builder
 from pathlib import Path
 import sys

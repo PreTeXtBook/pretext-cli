@@ -2,7 +2,7 @@ import shutil, glob, tempfile
 from pathlib import Path
 
 def main():
-    static_template_path = Path('pretext')/'static'/'templates'
+    static_template_path = Path('pretext')/'templates'/'resources'
     print(f'Zipping templates from source into `{static_template_path}`.')
 
     for template_directory in glob.iglob('templates/*'):
@@ -34,6 +34,8 @@ def main():
             Path('templates')/f,
             static_template_path/f
         )
+    with open(static_template_path/"__init__.py","w") as _:
+        pass
 
     print(f'Templates successfully zipped into `{static_template_path}`.')
 

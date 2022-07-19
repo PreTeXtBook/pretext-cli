@@ -9,7 +9,7 @@ import platform
 from pathlib import Path
 from typing import Optional
 
-from . import utils, static, VERSION, CORE_COMMIT, core
+from . import utils, templates, VERSION, CORE_COMMIT, core
 from .project import Target, Project
 
 
@@ -136,8 +136,8 @@ def new(template,directory,url_template):
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
     else:
-        template_path = static.templates_path(f'{template}.zip')
-        archive = zipfile.ZipFile(template_path)
+        with templates.resource_path(f'{template}.zip') as template_path:
+            archive = zipfile.ZipFile(template_path)
     # find (first) project.ptx to use as root of template
     filenames = [Path(filepath).name for filepath in archive.namelist()]
     project_ptx_index = filenames.index('project.ptx')
@@ -174,15 +174,15 @@ def init(refresh):
         log.warning(f"Use `pretext init --refresh` to refresh initialization of an existing project.")
         return
     timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-    template_manifest_path = static.templates_path('project.ptx')
-    project_manifest_path = Path("project.ptx").resolve()
-    if project_manifest_path.is_file():
-        project_manifest_path = Path(f'project-{timestamp}.ptx').resolve()
-        log.warning(f"You already have a project file at {Path('project.ptx').resolve()}.")
-        log.warning(f"A default project file has been created as {project_manifest_path} for comparison.")
-    log.info(f"Generated project file at `{project_manifest_path}`.")
-    log.info("")
-    shutil.copyfile(template_manifest_path,project_manifest_path)
+    with templates.resource_path('project.ptx') as template_manifest_path:
+        project_manifest_path = Path("project.ptx").resolve()
+        if project_manifest_path.is_file():
+            project_manifest_path = Path(f'project-{timestamp}.ptx').resolve()
+            log.warning(f"You already have a project file at {Path('project.ptx').resolve()}.")
+            log.warning(f"A default project file has been created as {project_manifest_path} for comparison.")
+        log.info(f"Generated project file at `{project_manifest_path}`.")
+        log.info("")
+        shutil.copyfile(template_manifest_path,project_manifest_path)
     # Create requirements.txt
     requirements_path = Path('requirements.txt').resolve()
     if requirements_path.exists():
@@ -194,26 +194,26 @@ def init(refresh):
     log.info(f"Generated requirements file at {requirements_path}.")
     log.info("")
     # Create publication file if one doesn't exist: 
-    template_pub_path = static.templates_path('publication.ptx')
-    pub_dir_path = Path('publication')
-    if not pub_dir_path.exists():
-        pub_dir_path.mkdir()
-    project_pub_path = (pub_dir_path/'publication.ptx').resolve()
-    if project_pub_path.exists():
-        project_pub_path = (Path('publication')/f'publication-{timestamp}.ptx').resolve()
-        log.warning(f"You already have a publication file at {(Path('publication')/'publication.ptx').resolve()}.")
-        log.warning(f"A default project file has been created as {project_pub_path} for comparison.")
-    shutil.copyfile(template_pub_path, project_pub_path)
-    log.info(f"Generated publication file at {project_pub_path}.")
-    log.info("")
+    with templates.resource_path("publication.ptx") as template_pub_path:
+        pub_dir_path = Path('publication')
+        if not pub_dir_path.exists():
+            pub_dir_path.mkdir()
+        project_pub_path = (pub_dir_path/'publication.ptx').resolve()
+        if project_pub_path.exists():
+            project_pub_path = (Path('publication')/f'publication-{timestamp}.ptx').resolve()
+            log.warning(f"You already have a publication file at {(Path('publication')/'publication.ptx').resolve()}.")
+            log.warning(f"A default project file has been created as {project_pub_path} for comparison.")
+        shutil.copyfile(template_pub_path, project_pub_path)
+        log.info(f"Generated publication file at {project_pub_path}.")
+        log.info("")
     # Create .gitignore if one doesn't exist
-    template_gitignore_path = static.templates_path('.gitignore')
-    project_gitignore_path = Path(".gitignore").resolve()
-    if project_gitignore_path.exists():
-        project_gitignore_path = Path(f".gitignore-{timestamp}").resolve()
-        log.warning(f"You already have a gitignore file at {Path('.gitignore').resolve()}.")
-        log.warning(f"A default project file has been created as {project_gitignore_path} for comparison.")
-    shutil.copyfile(template_gitignore_path,project_gitignore_path)
+    with templates.resource_path('.gitignore') as template_gitignore_path:
+        project_gitignore_path = Path(".gitignore").resolve()
+        if project_gitignore_path.exists():
+            project_gitignore_path = Path(f".gitignore-{timestamp}").resolve()
+            log.warning(f"You already have a gitignore file at {Path('.gitignore').resolve()}.")
+            log.warning(f"A default project file has been created as {project_gitignore_path} for comparison.")
+        shutil.copyfile(template_gitignore_path,project_gitignore_path)
     log.info(f"Generated .gitignore file at {project_gitignore_path}.")
     log.info("")
     # End by reporting success

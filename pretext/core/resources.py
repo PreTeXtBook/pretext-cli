@@ -1,15 +1,5 @@
-# eventually we need to refactor ala
-#   https://docs.python.org/3/library/importlib.html#module-importlib.resources
-# But for practical purposes the CLI is realized as actual files in the filesystem, so we'll
-# assume this for now
-#   import importlib.resources as pkg_resources
-
-import os
 from pathlib import Path
-from lxml import etree as ET
-import zipfile
-from . import __file__ as STATIC_PATH
-from .. import utils
+import zipfile, importlib.resources
 from .. import CORE_COMMIT
 
 def path(*args) -> Path:
@@ -18,17 +8,17 @@ def path(*args) -> Path:
     local_commit_file = Path(local_base_path)/".commit"
     if not Path.is_file(local_commit_file):
         print("Static pretext files do not appear to be installed.  Installing now.")
-        install_static(local_base_path)
+        install(local_base_path)
     # check that the static core_commit matches current core_commit
     with open(local_commit_file, "r") as f:
-        static_commit = f.readline()
+        static_commit = f.readline().strip()
     if static_commit != CORE_COMMIT:
         print("Static pretext files are out of date.  Installing them now.")
-        install_static(local_base_path)
+        install(local_base_path)
     return local_base_path.joinpath(*args)
 
-def install_static(local_base_path):
-    static_zip = Path(STATIC_PATH).parent.joinpath("static.zip")
+def install(local_base_path):
+    static_zip = importlib.resources.path("pretext.core","resources.zip")
     with zipfile.ZipFile(static_zip,"r") as zip:
         zip.extractall(local_base_path)
     # Write the current commit to local file
@@ -36,10 +26,3 @@ def install_static(local_base_path):
         f.write(CORE_COMMIT)
     print(f"Static files required for pretext have now been installed to {local_base_path}")
     return
-
-def templates_path(*args): #TODO make pathlib.Path
-    """
-    Returns absolute path to files in the static folder of the distribution.
-    """
-    return (Path(STATIC_PATH).parent).joinpath("templates",
-        *args)
