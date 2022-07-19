@@ -340,6 +340,16 @@ def check_asset_execs(element, outformats=None):
             #print installation hints based on operating system and missing program.
             log.info(install_hints[required_exec][platform.system()])
 
+def no_project(task:str) -> bool:
+    '''
+    Standard messages to be displayed when no project.ptx is found, customized by the "task" to be preformed.
+    '''
+    if project_path() is None:
+        log.critical(f"Before you can {task} your PreTeXt project, you must be in a (sub)directory initialized with a project.ptx manifest.")
+        log.critical("Move to such a directory, use `pretext new` to create a new project, or `pretext init` to update existing project for use with the CLI.")
+        return True
+    return False
+
 def npm_install():
     with working_directory(static.path("script", "mjsre")):
         log.info("Attempting to install/update required node packages.")
