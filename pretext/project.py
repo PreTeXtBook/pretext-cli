@@ -172,13 +172,19 @@ class Project():
             log.error(f"Run `pretext view {target.name()} -b` to build your project before viewing.")
             return
         watch_callback=lambda:self.build(target_name)
-        if target.format() == 'html':
+        if utils.cocalc_project_id() is not None:
+            if target.format() in ['html', 'pdf']:
+                utils.run_server(directory,access,port,watch_directory,watch_callback,no_launch)
+            else:
+                log.info(f"Output can be viewed by navigating to {directory}")
+        elif target.format() == 'html':
             utils.run_server(directory,access,port,watch_directory,watch_callback,no_launch)
         else:
-            if no_launch:
+            outputfiles = list(Path(directory).glob("*.*"))
+            if len(outputfiles) > 1 or no_launch:
                 log.info(f"Output can be viewed by navigating to {directory}")
             else:
-                outputfile = sorted(Path(directory).glob("*.*"))[0]
+                outputfile = outputfiles[0]
                 log.info(f"Attempting to open {outputfile} using default viewer for {target.format()} files.")
                 webbrowser.open(outputfile)
 
