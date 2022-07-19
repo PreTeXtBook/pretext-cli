@@ -350,6 +350,24 @@ def no_project(task:str) -> bool:
         return True
     return False
 
+def show_target_hints(target_name:str, project, task:str):
+    '''
+    This will give the user hints about why they have provided a bad target and make helpful suggestions for them to fix the problem.  We will only run this function when the target_name is not the name in any target in project.ptx.
+    '''
+    # just in case this was called in the wrong place:
+    if project.target(name=target_name) is not None:
+        return
+    # Otherwise continue with hints:
+    log.critical(f'There is not a target named "{target_name}" in the project.ptx manifest.')
+    if target_name in ['html', 'pdf', 'latex','epub','kindle']:
+        target_formats = project.target_names(target_name)
+        if len(target_formats) > 0:
+            log.info(f"However, the targets {target_formats} have {target_name} as their format.  Did you mean to {task} one of those?")
+        if target_name in ['epub', 'kindle']:
+            log.info(f"Instructions for setting up a target with the {target_name} format, including the external programs required, can be found in the PreTeXt guide: https://pretextbook.org/doc/guide/html/epub.html")
+    else:
+        log.info(f"The available targets to {task} are: {project.target_names()}")
+
 def npm_install():
     with working_directory(static.path("script", "mjsre")):
         log.info("Attempting to install/update required node packages.")
