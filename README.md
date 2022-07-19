@@ -223,10 +223,10 @@ need to be rebuilt by each user when pulled from GitHub.
 The file `pretext/__init__.py` tracks the upstream
 commit of core PreTeXt XSL/Python code we're developing against
 (from `PreTeXtBook/pretext`).
-To grab these updates from upstream, run:
+To fetch these updates from upstream, run:
 
 ```
-poetry run python scripts/update_core.py
+poetry run python scripts/fetch_core.py
 ```
 
 If you instead want to point to a local copy of `PreTeXtBook/pretext`,
@@ -237,7 +237,7 @@ poetry run python scripts/symlink_core.py path/to/pretext
 ```
 
 Updates to `templates/` must be zipped and moved into
-`pretext/static/templates`. This is done automatically by
+`pretext/templates/resources`. This is done automatically by
 running:
 
 ```

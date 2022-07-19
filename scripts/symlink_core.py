@@ -1,23 +1,24 @@
 import sys, shutil
 from pathlib import Path
 from remove_path import remove_path
+import pretext.core.resources
 
-def main(mathbook_path=Path("../pretext")):
-    for subdir in ['xsl','schema']:
-        original_path = (mathbook_path/subdir).resolve()
-        link_path = Path('pretext')/'static'/subdir
+def main(core_path:Path=Path("../pretext")):
+    for subdir in ['xsl','schema','script', 'css']:
+        original_path = (core_path/subdir).resolve()
+        link_path = pretext.core.resources.path(subdir)
         remove_path(link_path)
         link_path.symlink_to(original_path)
-    original_path = (mathbook_path/"pretext"/"pretext.py").resolve()
+    original_path = (core_path/"pretext"/"pretext.py").resolve()
     link_path = Path('pretext')/'core'/"pretext.py"
     remove_path(link_path)
     link_path.symlink_to(original_path)
 
-    print(f"Linked local core pretext directory `{mathbook_path}`")
+    print(f"Linked local core pretext directory `{core_path}`")
 
 if __name__ == '__main__':
     try:
-        mathbook_path = Path(sys.argv[1])
+        core_path = Path(sys.argv[1])
     except IndexError:
-        mathbook_path = Path("../pretext")
-    main(mathbook_path)
+        core_path = Path("../pretext")
+    main(core_path)
