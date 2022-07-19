@@ -361,8 +361,10 @@ def show_target_hints(target_name:str, project, task:str):
     log.critical(f'There is not a target named "{target_name}" in the project.ptx manifest.')
     if target_name in ['html', 'pdf', 'latex','epub','kindle']:
         target_formats = project.target_names(target_name)
-        if len(target_formats) > 0:
-            log.info(f"However, the targets {target_formats} have {target_name} as their format.  Did you mean to {task} one of those?")
+        if len(target_formats) == 1:
+            log.info(f"However, the target {target_formats[0]} has the target{target_name} as its format.  Did you mean to {task} that?")
+        elif len(target_formats) > 1:
+            log.info(f"However, the targets {target_formats} have target{target_name} as their format.  Did you mean to {task} one of those?")
         if target_name in ['epub', 'kindle']:
             log.info(f"Instructions for setting up a target with the {target_name} format, including the external programs required, can be found in the PreTeXt guide: https://pretextbook.org/doc/guide/html/epub.html")
     else:
