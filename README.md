@@ -73,6 +73,14 @@ python -m pretext --help
 Either way, you're now ready to use the CLI, the `--help` option will explain how to use all the different
 subcommands like `pretext new` and `pretext build`.
 
+#### External dependencies
+
+We install as much as we can with the `pip install` command, but depending on your machine
+you may require some extra software:
+
+- [TeXLive](https://www.tug.org/texlive/)
+- [pdftoppm/Ghostscript](https://github.com/abarker/pdfCropMargins/blob/master/doc/installing_pdftoppm_and_ghostscript.rst)
+
 #### Upgrading PreTeXt-CLI
 If you have an existing installation and you want to upgrade to a more recent version, you can run:
 
