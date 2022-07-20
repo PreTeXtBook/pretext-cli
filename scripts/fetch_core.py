@@ -20,7 +20,7 @@ def main():
                 Path(tmpdirname)/f"pretext-{CORE_COMMIT}"/subdir,
                 Path(tmpdirname)/"static"/subdir
             )
-        shutil.make_archive("pretext/static/static", 'zip', Path(tmpdirname)/"static")
+        shutil.make_archive("pretext/core/resources", 'zip', Path(tmpdirname)/"static")
         print("Copying new version of pretext.py to core directory")
         remove_path(pretext_dir/"core"/"pretext.py")
         shutil.copyfile(

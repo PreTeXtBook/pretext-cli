@@ -19,7 +19,7 @@ import webbrowser
 from typing import Optional
 from lxml import etree as ET
 
-from . import static, core
+from . import core
 
 # Get access to logger
 log = logging.getLogger('ptxlogger')
@@ -58,13 +58,14 @@ def project_path(dirpath:Optional[Path]=None) -> Path:
         return project_path(dirpath=dirpath.parent)
 
 def project_xml(dirpath:Optional[Path]=None) -> Path:
-    if dirpath==None:
+    if dirpath is None:
         dirpath = Path() # current directory
     if project_path(dirpath) is None:
-        project_manifest = static.path('templates','project.ptx')
+        with templates.resource_path('project.ptx') as project_manifest:
+            return ET.parse(project_manifest)
     else:
         project_manifest = project_path(dirpath) / 'project.ptx'
-    return ET.parse(project_manifest)
+        return ET.parse(project_manifest)
 
 def requirements_version(dirpath:Optional[Path]=None) -> str:
     if dirpath==None:
@@ -125,7 +126,7 @@ def xml_syntax_is_valid(xmlfile:Path) -> bool:
 
 def xml_source_validates_against_schema(xmlfile:Path) -> bool:
     #get path to RelaxNG schema file:
-    schemarngfile = static.path('schema','pretext.rng')
+    schemarngfile = core.resources.path('schema','pretext.rng')
 
     # Open schemafile for validation:
     relaxng = ET.RelaxNG(file=schemarngfile)
@@ -265,7 +266,7 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
     log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
     if not (Path(output_dir)/'entities.ent').exists(): # TODO stop this as it's copied in subdirectory
-        shutil.copyfile(static.path('xsl/entities.ent'),Path(output_dir)/'entities.ent')
+        shutil.copyfile(core.resources.path('xsl/entities.ent'),Path(output_dir)/'entities.ent')
     # expand each xsl file
     with working_directory(output_dir):
         for filename in glob.iglob('**',recursive=True):
@@ -280,7 +281,7 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
                 # maybe an xsl file is malformed, but let's continue in case it's unused
                 except Exception as e:
                     log.warning(f"Failed to expand {filename} due to {e}, continuing anyway...")
-    shutil.copytree(static.path('xsl'),output_dir/"core")
+    shutil.copytree(core.resources.path('xsl'),output_dir/"core")
 
 def check_executable(exec_name:str):
     try:
@@ -371,7 +372,7 @@ def show_target_hints(target_name:str, project, task:str):
         log.info(f"The available targets to {task} are: {project.target_names()}")
 
 def npm_install():
-    with working_directory(static.path("script", "mjsre")):
+    with working_directory(core.resources.path("script", "mjsre")):
         log.info("Attempting to install/update required node packages.")
         try:
             subprocess.run('npm install', shell=True)
