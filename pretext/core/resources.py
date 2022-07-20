@@ -18,9 +18,9 @@ def path(*args) -> Path:
     return local_base_path.joinpath(*args)
 
 def install(local_base_path):
-    static_zip = importlib.resources.path("pretext.core","resources.zip")
-    with zipfile.ZipFile(static_zip,"r") as zip:
-        zip.extractall(local_base_path)
+    with importlib.resources.path("pretext.core","resources.zip") as static_zip:
+        with zipfile.ZipFile(static_zip,"r") as zip:
+            zip.extractall(local_base_path)
     # Write the current commit to local file
     with open(local_base_path/".commit","w") as f:
         f.write(CORE_COMMIT)
