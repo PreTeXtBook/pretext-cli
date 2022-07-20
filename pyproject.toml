@@ -11,7 +11,7 @@ license = "GPL-3.0-or-later"
 include = [
     "pretext/core/pretext.py",
     "pretext/core/resources.zip",
-    "pretext/templates/resources",
+    "pretext/templates/resources/*",
 ]
 
 [tool.poetry.dependencies]
