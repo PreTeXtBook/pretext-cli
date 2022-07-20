@@ -38,7 +38,7 @@ jobs:
       shell: bash
       run:  |
         python -m poetry install
-        python -m poetry run python scripts/update_core.py
+        python -m poetry run python scripts/fetch_core.py
         python -m poetry run python scripts/zip_templates.py
 
     - name: Test with pytest
