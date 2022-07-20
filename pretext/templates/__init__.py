@@ -1,6 +1,5 @@
 from pathlib import Path
 import importlib.resources
-from . import resources
 
 def resource_path(filename:str) -> Path:
     """
@@ -9,4 +8,5 @@ def resource_path(filename:str) -> Path:
     with resource_path('foo.bar') as filepath:
         # do things
     """
+    from . import resources
     return importlib.resources.path(resources,filename)
