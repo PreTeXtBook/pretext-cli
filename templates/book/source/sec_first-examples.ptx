@@ -60,12 +60,12 @@
     Perhaps at the end of the section, you want to summarize your important theorems.
   </p>
 
-  <assemblage xml:id="asm_first-examples-summary">
+  <remark xml:id="remark_first-examples-summary">
     <title>Important Theorems</title>
     <p>
       List important results here.
     </p>
-  </assemblage>
+  </remark>
 
   <p>
     Of course, if you want more information, you might see <xref ref="thm_first-examples-theorem"/>.
