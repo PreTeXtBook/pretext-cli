@@ -57,13 +57,13 @@
   </corollary>
 
   <p>
-    Perhaps at the end of the section, you want to summarize your important theorems.
+    Perhaps at the end of the section, you want to add a note to the reader about how what you have fits into the larger scope of mathematics.
   </p>
 
-  <remark xml:id="remark_first-examples-summary">
-    <title>Important Theorems</title>
+  <remark xml:id="remark_first-examples-context">
+    <title>Larger Context</title>
     <p>
-      List important results here.
+      Comment to the reader here.
     </p>
   </remark>
 
