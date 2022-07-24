@@ -10,6 +10,7 @@ import tempfile, shutil
 import platform
 from pathlib import Path
 from typing import Optional
+import atexit
 
 from . import utils, templates, VERSION, CORE_COMMIT, core
 from .project import Target, Project
@@ -25,6 +26,13 @@ style_kwargs = {
     'critical': dict(fg='bright_red', bold=True),
 }
 click_logging.basic_config(log)
+click_logging_format = click_logging.ColorFormatter(style_kwargs)
+# create memory handler which displays error and critical messages at the end as well.
+sh = logging.StreamHandler(sys.stdout)
+sh.setFormatter(click_logging_format)
+mh = logging.handlers.MemoryHandler(capacity=1024*100, flushLevel=100,target=sh, flushOnClose=True)
+mh.setLevel(logging.ERROR)
+log.addHandler(mh)
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -62,15 +70,8 @@ def main(ctx,targets):
         # create file handler which logs even debug messages
         fh = logging.FileHandler(utils.project_path()/'cli.log', mode='w')
         fh.setLevel(logging.DEBUG)
-        click_logging_format = click_logging.ColorFormatter(style_kwargs)
         fh.setFormatter(click_logging_format)
         log.addHandler(fh)
-        # create memory handler which displays error and critical messages at the end as well.
-        sh = logging.StreamHandler(sys.stdout)
-        sh.setFormatter(click_logging_format)
-        mh = logging.handlers.MemoryHandler(capacity=1024*100, flushLevel=100,target=sh, flushOnClose=True)
-        mh.setLevel(logging.ERROR)
-        log.addHandler(mh)
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         # permanently change working directory for rest of processs

@@ -48,9 +48,10 @@ def latex_image(ptxfile:Path, pub_file:Path, output:Path, params, target_format,
                         method=pdf_method
                     )
                 except Exception as e:
-                    log.critical(e)
-                    log.debug(f"Critical error info:\n****\n", exc_info=True)
-                    sys.exit('Failed to generate latex-image elements.  Exiting...')
+                    log.error(e)
+                    log.debug(f"Exception info:\n****\n", exc_info=True)
+                    log.error('Failed to generate some latex-image elements.  Check your source and partial output to diagnose the issue.')
+                    log.warning('Continuing...')
     else:
         log.info("Note: No latex-image elements found.")
 
@@ -91,9 +92,10 @@ def sageplot(ptxfile:Path, pub_file:Path, output:Path, params, target_format, xm
                         outformat=outformat
                     )
             except Exception as e:
-                log.critical(e)
-                log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to generate sageplot elements.  Exiting...')
+                log.error(e)
+                log.debug(f"Exception info:\n****\n", exc_info=True)
+                log.error('Failed to generate some sageplot elements.  Check your source and partial output to diagnose the issue.')
+                log.warning('Continuing...')
     else:
         log.info("Note: No sageplot elements found.")
 
@@ -132,9 +134,10 @@ def asymptote(ptxfile:Path, pub_file:Path, output:Path, params, target_format, x
                         method='server'
                     )
             except Exception as e:
-                log.critical(e)
-                log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to generate asymptote elements.  Exiting...')
+                log.error(e)
+                log.debug(f"Exception info:\n****\n", exc_info=True)
+                log.error('Failed to generate some asymptote elements. Check your source and partial output to diagnose the issue.')
+                log.warning('Continuing...')
     else:
         log.info("Note: No asymptote elements found.")
 
@@ -189,9 +192,10 @@ def youtube(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
                     dest_dir=image_output.as_posix(),
                 )
             except Exception as e:
-                log.critical(e)
-                log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to genereate youtube video previews.  Exiting...')
+                log.error(e)
+                log.debug(f"Exception info:\n****\n", exc_info=True)
+                log.error('Failed to genereate some youtube video previews. Check your source and partial output to diagnose the issue.')
+                log.warning('Continuing...')
     else:
         log.info("Note: No video@youtube elements found.")
 
@@ -217,9 +221,10 @@ def webwork(ptxfile:Path, pub_file:Path, output:Path, params):
                     server_params=None
                 )
             except Exception as e:
-                log.critical(e)
-                log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to generate webwork-representations file.  Exiting...')
+                log.error(e)
+                log.debug(f"Exception info:\n****\n", exc_info=True)
+                log.error('Failed to generate the webwork-representations file.  Check your source and partial output to diagnose the issue.')
+                log.warning('Continuing...')
     else:
         log.info("Note: No webwork elements found.")
 
@@ -244,8 +249,9 @@ def codelens(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root):
                     dest_dir=trace_output.as_posix(),
                 )
             except Exception as e:
-                log.critical(e)
-                log.debug(f"Critical error info:\n****\n", exc_info=True)
-                sys.exit('Failed to generate codelens trace.  Exiting...')
+                log.error(e)
+                log.debug(f"Exception info:\n****\n", exc_info=True)
+                log.error('Failed to generate codelens trace.')
+                log.warning('Continuing...')
     else:
         log.info("Note: No program elements using codelens found.")
