@@ -1,6 +1,8 @@
+from concurrent.futures.process import _threads_wakeups
+from pickle import FALSE
 import click
 import click_logging
-import logging
+import logging, logging.handlers, sys
 import shutil
 import datetime
 import os, zipfile, requests, io
@@ -14,7 +16,16 @@ from .project import Target, Project
 
 
 log = logging.getLogger('ptxlogger')
+style_kwargs = {
+    'debug': dict(fg='blue'),
+    # 'info': dict(fg='white'),
+    'warning': dict(fg='yellow'),
+    'error': dict(fg='red',),
+    'exception': dict(fg='red'),
+    'critical': dict(fg='bright_red', bold=True),
+}
 click_logging.basic_config(log)
+
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -51,9 +62,15 @@ def main(ctx,targets):
         # create file handler which logs even debug messages
         fh = logging.FileHandler(utils.project_path()/'cli.log', mode='w')
         fh.setLevel(logging.DEBUG)
-        file_log_format = logging.Formatter('%(levelname)-8s:  %(message)s')
-        fh.setFormatter(file_log_format)
+        click_logging_format = click_logging.ColorFormatter(style_kwargs)
+        fh.setFormatter(click_logging_format)
         log.addHandler(fh)
+        # create memory handler which displays error and critical messages at the end as well.
+        sh = logging.StreamHandler(sys.stdout)
+        sh.setFormatter(click_logging_format)
+        mh = logging.handlers.MemoryHandler(capacity=1024*100, flushLevel=100,target=sh, flushOnClose=True)
+        mh.setLevel(logging.ERROR)
+        log.addHandler(mh)
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         # permanently change working directory for rest of processs
@@ -109,6 +126,7 @@ def support():
                     f"Unable to locate the command for <{exec_name}> on your system.")
     else:
         log.info("No project.ptx found.")
+    log.info("")
 
 
 # pretext new
@@ -153,6 +171,7 @@ def new(template,directory,url_template):
         f.write(f"pretextbook == {VERSION}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
+    log.info("")
 
 
 # pretext init
@@ -219,6 +238,7 @@ def init(refresh):
     # End by reporting success
     log.info(f"Success! Open project.ptx to edit your project manifest.")
     log.info(f"Edit your <target/>s to point to the location of your PreTeXt source files.")
+    log.info("")
 
 ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens']
 
@@ -298,6 +318,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
         log.warning("(previously generated assets will be used if they exist).")
         log.warning("To generate these assets before building, run `pretext build -g`.")
     project.build(target_name,clean)
+    log.info("")
 
 # pretext generate
 @main.command(short_help="Generate assets for specified target", 
@@ -336,6 +357,7 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     else:
         log.info(f"Generating only {assets} assets.")
         project.generate(target_name,asset_list=[assets],xmlid=xmlid)
+    log.info("")
 
 
 # pretext view
@@ -418,6 +440,7 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
         log.info("Building target.")
         project.build(target_name)
     project.view(target_name,access,port,watch,no_launch)
+    log.info("")
 
 
 # pretext deploy
@@ -444,6 +467,7 @@ def deploy(target,update_source):
         log.critical("Exiting without completing task.")
         return
     project.deploy(target_name,update_source)
+    log.info ("")
 
 # pretext publish
 @main.command(short_help="OBSOLETE: use deploy",
@@ -465,3 +489,4 @@ def publish(ctx,target,commit_message):
     """
     log.error("`pretext publish` command is OBSOLETE.")
     log.error("Use `pretext deploy` next time.")
+    log.info("")
