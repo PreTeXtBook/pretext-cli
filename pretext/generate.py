@@ -3,7 +3,6 @@ import os
 import logging
 from . import utils, core
 from pathlib import Path
-import sys
 from typing import Optional
 
 # Get access to logger

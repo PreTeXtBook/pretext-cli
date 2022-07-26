@@ -14,7 +14,6 @@ import subprocess
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
-import zipfile
 import webbrowser
 from typing import Optional
 from lxml import etree as ET
