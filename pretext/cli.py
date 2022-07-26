@@ -10,7 +10,6 @@ import tempfile, shutil
 import platform
 from pathlib import Path
 from typing import Optional
-import atexit
 
 from . import utils, templates, VERSION, CORE_COMMIT, core
 from .project import Target, Project
@@ -25,7 +24,7 @@ style_kwargs = {
     'exception': dict(fg='red'),
     'critical': dict(fg='bright_red', bold=True),
 }
-click_logging.basic_config(log)
+click_logging.basic_config(log, style_kwargs=style_kwargs)
 click_logging_format = click_logging.ColorFormatter(style_kwargs)
 # create memory handler which displays error and critical messages at the end as well.
 sh = logging.StreamHandler(sys.stdout)
