@@ -11,8 +11,8 @@ import platform
 from pathlib import Path
 from typing import Optional
 
-from . import utils, templates, VERSION, CORE_COMMIT, core
-from .project import Target, Project
+from . import utils, templates, VERSION, CORE_COMMIT
+from .project import Project
 
 
 log = logging.getLogger('ptxlogger')
@@ -251,22 +251,7 @@ ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
     type=click.Choice(ASSETS, case_sensitive=False), 
     help='Generates assets for target.  -g [asset] will generate the specific assets given.')
-@click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
-@click.option('-w', '--webwork', is_flag=True, default=False, help='OBSOLETE. Use --generate')
-@click.option('-f', '--format', type=click.Choice(['html','latex','pdf']),
-              help='OBSOLETE. Update your project.ptx target instead.')
-@click.option('-i', '--input', 'source', type=click.Path(),
-              help='OBSOLETE. Update your project.ptx target instead.')
-@click.option('-o', '--output', type=click.Path(),
-              help='OBSOLETE. Update your project.ptx target instead.')
-@click.option('-p', '--publication', type=click.Path(), default=None,
-              help='OBSOLETE. Update your project.ptx target instead.')
-@click.option('-x', '--xsl', type=click.Path(), default=None,
-              help='OBSOLETE. Update your project.ptx target instead.')
-@click.option('--stringparam', nargs=2, multiple=True,
-              help='OBSOLETE. Update your project.ptx target instead.')
-def build(target, format, source, output, stringparam, xsl, publication, clean, generate,
-    webwork, diagrams,):
+def build(target, clean, generate):
     """
     Build [TARGET] according to settings specified by project.ptx.
 
@@ -280,22 +265,7 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
-    if diagrams or webwork:
-        log.critical("Command used an asset option that is now obsolete.")
-        log.critical("Assets are now generated with `pretext generate` or `pretext build -g`.")
-        log.critical("Cancelling build. Check `--help` for details.")
-        return
-    if source or output or format or len(stringparam)>0 or xsl:
-        log.critical("Customizing target settings on the command line is no longer supported")
-        log.critical("Edit your `project.ptx` instead.")
-        log.critical("Cancelling build. Check `--help` for details.")
-        return
     target_name = target
-    # set up stringparams as dictionary:
-    if len(stringparam) > 0:
-        stringparams = {p[0] : p[1] for p in stringparam}
-    else:
-        stringparams = None
     if utils.no_project(task="build"):
         return
     project = Project()

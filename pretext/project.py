@@ -1,7 +1,7 @@
 from lxml import etree as ET
 from lxml.etree import Element
 import os, shutil
-import logging, time
+import logging
 import tempfile
 from . import utils, generate, core
 from . import build as builder

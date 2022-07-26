@@ -1,5 +1,3 @@
-from re import T
-from lxml import etree as ET
 import logging
 import os
 from pathlib import Path
