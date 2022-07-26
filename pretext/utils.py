@@ -351,23 +351,23 @@ def no_project(task:str) -> bool:
         return True
     return False
 
-def show_target_hints(target_name:str, project, task:str):
+def show_target_hints(target_format:str, project, task:str):
     '''
     This will give the user hints about why they have provided a bad target and make helpful suggestions for them to fix the problem.  We will only run this function when the target_name is not the name in any target in project.ptx.
     '''
     # just in case this was called in the wrong place:
-    if project.target(name=target_name) is not None:
+    if project.target(name=target_format) is not None:
         return
     # Otherwise continue with hints:
-    log.critical(f'There is not a target named "{target_name}" in the project.ptx manifest.')
-    if target_name in ['html', 'pdf', 'latex','epub','kindle']:
-        target_formats = project.target_names(target_name)
-        if len(target_formats) == 1:
-            log.info(f"However, the target {target_formats[0]} has the target{target_name} as its format.  Did you mean to {task} that?")
-        elif len(target_formats) > 1:
-            log.info(f"However, the targets {target_formats} have target{target_name} as their format.  Did you mean to {task} one of those?")
-        if target_name in ['epub', 'kindle']:
-            log.info(f"Instructions for setting up a target with the {target_name} format, including the external programs required, can be found in the PreTeXt guide: https://pretextbook.org/doc/guide/html/epub.html")
+    log.critical(f'There is not a target named "{target_format}" in the project.ptx manifest.')
+    if target_format in ['html', 'pdf', 'latex','epub','kindle']:
+        target_names = project.target_names(target_format)
+        if len(target_names) == 1:
+            log.info(f'However, the target "{target_names[0]}" has "{target_format}" as its format.  Did you mean to {task} that?')
+        elif len(target_names) > 1:
+            log.info(f'However, the targets {target_names} have "{target_format}" as their format.  Did you mean to {task} one of those?')
+        if target_format in ['epub', 'kindle']:
+            log.info(f"Instructions for setting up a target with the {target_format} format, including the external programs required, can be found in the PreTeXt guide: https://pretextbook.org/doc/guide/html/epub.html")
     else:
         log.info(f"The available targets to {task} are: {project.target_names()}")
 

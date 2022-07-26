@@ -230,7 +230,7 @@ ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive
 @click.option(
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
     type=click.Choice(ASSETS, case_sensitive=False), 
-    help='If generating, specific assets that should be generated')
+    help='Generates assets for target.  -g [asset] will generate the specific assets given.')
 @click.option('-d', '--diagrams', is_flag=True, help='OBSOLETE. Use --generate')
 @click.option('-w', '--webwork', is_flag=True, default=False, help='OBSOLETE. Use --generate')
 @click.option('-f', '--format', type=click.Choice(['html','latex','pdf']),
@@ -279,10 +279,10 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     if utils.no_project(task="build"):
         return
     project = Project()
-    if target_name is None:
-        log.info(f"Since no build target was supplied, the first target of the "+
-                    "project.ptx manifest will be built.")
     target = project.target(name=target_name)
+    if target_name is None:
+        log.info(f'Since no build target was supplied, the first target of the project.ptx manifest ({target.name()}) will be built.')
+    target_name = target.name()
     if target is None:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
@@ -300,21 +300,21 @@ def build(target, format, source, output, stringparam, xsl, publication, clean, 
     project.build(target_name,clean)
 
 # pretext generate
-@main.command(short_help="Generate assets for specified target", 
+@main.command(short_help="Generate specified assets for specified target", 
     context_settings=CONTEXT_SETTINGS)
 @click.argument('assets', default="ALL",
     type=click.Choice(ASSETS, case_sensitive=False))
 @click.option(
-    '-t', '--target', type=click.STRING, help="Name of target to generate assets for (uses default target if not specified).")
+    '-t', '--target', type=click.STRING, help="Name of target to generate assets for (if not specified, first target from manifest is used).")
 @click.option(
     '-x', '--xmlid', type=click.STRING, help="xml:id of element to be generated.")
 @click.option('--all-formats', is_flag=True, default=False, 
-    help='Generate all possible asset formats rather than the defaults for the given target.')
+    help='Generate all possible asset formats rather than just the defaults for the specified target.')
 def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[str]):
     """
-    Generate specified (or all) assets for the default target. Asset "generation" is typically
+    Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
     slower and performed less frequently than "building" a project, but is
-    required for many PreTeXt features such as latex-image.
+    required for many PreTeXt features such as webwork and latex-image.
 
     Certain assets may require installations not included with the CLI, or internet
     access to external servers. Command-line paths
@@ -326,16 +326,24 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     project = Project()
     target_name = target
     target = project.target(name=target_name)
+    if target_name == None:
+        log.info(f'Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()}).')
     if target is None:
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without generating any assets.")
         return
-    if assets == 'ALL':
-        log.info("Genearting all assets in default formats.")
-        project.generate(target_name,xmlid=xmlid)
+    if all_formats and assets == 'ALL':
+        log.info(f'Generating all assets in all asset formats for the target "{target.name()}".')
+        project.generate(target.name(), all_formats=True, xmlid=xmlid)
+    elif all_formats:
+        log.info(f'Generating only {assets} assets in all asset formats for the target "{target.name()}".')
+        project.generate(target.name(), asset_list=[assets], all_formats=True, xmlid=xmlid)
+    elif assets == 'ALL':
+        log.info(f'Genearting all assets in default formats for the target "{target.name()}".')
+        project.generate(target.name(),xmlid=xmlid)
     else:
-        log.info(f"Generating only {assets} assets.")
-        project.generate(target_name,asset_list=[assets],xmlid=xmlid)
+        log.info(f'Generating only {assets} assets in default formats for the target "{target.name()}".')
+        project.generate(target.name(),asset_list=[assets],xmlid=xmlid)
 
 
 # pretext view
