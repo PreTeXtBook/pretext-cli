@@ -17,4 +17,17 @@ from pathlib import Path
 from single_version import get_version
 VERSION = get_version('pretextbook', Path(__file__).parent.parent)
 
+
 CORE_COMMIT = "7be0074ddf550fd0fb7530760bd8b55f85e1bc6e"
+
+
+def activate():
+    """
+    This function was provided by the original `pretext` package
+    deployed to PyPI by Alex Willmer. Thanks to their generosity,
+    we were allowed to adopt this namespace as of 1.0, so we raise an error here
+    to help anyone who might have upgraded from the original package.
+    """
+    raise RuntimeError("As of version 1.0, the `pretext` PyPI package has been "+
+        "transferred to PreTeXtBook.org. Install a <1.0 version to use the "+
+        "pretext.activate() feature from the original `pretext` package.")
