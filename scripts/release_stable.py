@@ -1,5 +1,6 @@
 import subprocess, git, sys
-import pretext
+from pathlib import Path
+import tomli
 import build_package
 
 def main(level='patch'):
@@ -7,8 +8,6 @@ def main(level='patch'):
     if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
         raise Exception("Must commit outstanding changes to project source.")
 
-    alpha_version = pretext.VERSION
-    stable_version = alpha_version.split('-')[0]
     # Bump stable version
     subprocess.run(["poetry", "version", level])
     # Add/commit change
@@ -17,6 +16,9 @@ def main(level='patch'):
 
     build_package.main()
 
+    with open(Path(__file__).parent.parent/'pyproject.toml', "rb") as f:
+        toml_dict = tomli.load(f)
+        stable_version = toml_dict['tool']['poetry']['version']
     print(f"Publishing stable {stable_version}")
 
     # Publish stable
