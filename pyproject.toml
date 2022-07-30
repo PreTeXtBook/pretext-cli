@@ -26,6 +26,8 @@ PyPDF2 = "~2.5"
 click-logging = "^1"
 ghp-import = "^2"
 single-version = "^1"
+CodeChat = "^1.9.2"
+pyppeteer = "^1.0.2"
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
