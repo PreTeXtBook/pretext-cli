@@ -60,7 +60,7 @@ def test_init(tmp_path:Path,script_runner):
     assert len([*tmp_path.glob('.gitignore-*')]) > 0
     assert len([*tmp_path.glob('publication/publication-*.ptx')]) > 0
 
-def test_generate(tmp_path:Path,script_runner):
+def test_generate_asymptote(tmp_path:Path,script_runner):
     assert script_runner.run(PTX_CMD,'-v','debug', 'init', cwd=tmp_path).success
     (tmp_path/'source').mkdir()
     shutil.copyfile(EXAMPLES_DIR/'asymptote.ptx',tmp_path/'source'/'main.ptx')
@@ -72,6 +72,15 @@ def test_generate(tmp_path:Path,script_runner):
     os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
     assert script_runner.run(PTX_CMD,'-v','debug','generate','asymptote','-t', 'web', cwd=tmp_path).success
     os.remove(tmp_path/'generated-assets'/'asymptote'/'test.html')
+
+@pytest.mark.skip(reason="Waiting on upstream changes to interactive preview generation")
+def test_generate_interactive(tmp_path:Path,script_runner):
+    int_path = tmp_path/'interactive'
+    shutil.copytree(EXAMPLES_DIR/'projects'/'interactive',int_path)
+    assert script_runner.run(PTX_CMD,'-v','debug','generate', cwd=int_path).success
+    preview_file = int_path/'generated-assets'/'preview'/'calcplot3d-probability-wavefunction.png'
+    assert preview_file.exists()
+
 
 def test_view(tmp_path:Path,script_runner):
     os.chdir(tmp_path)
