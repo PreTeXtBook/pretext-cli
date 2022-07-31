@@ -137,4 +137,25 @@ def kindle(ptxfile,pub_file:Path,output:Path,stringparams):
             log.critical(e)
             log.debug(f"Critical error info:\n****\n", exc_info=True)
             sys.exit('Failed to build kindle ebook.  Exiting...')
-
+#build Braille:
+def braille(ptxfile,pub_file:Path,output:Path,stringparams,page_format="emboss"):
+    os.makedirs(output, exist_ok=True)
+    try:
+        utils.npm_install()
+    except Exception as e:
+        log.debug(e)
+        sys.exit("Unable to build epub because node packages could not be installed.  Exiting...")
+    log.info(f"\nNow building ePub into {output}\n")
+    with utils.working_directory("."):
+        try:
+            core.braille(
+                xml_source=ptxfile, 
+                pub_file=pub_file.as_posix(),
+                out_file=None, #will be derived from source
+                dest_dir=output.as_posix(), 
+                page_format=page_format,#could be "eboss" or "electronic"
+                stringparams=stringparams)
+        except Exception as e:
+            log.critical(e)
+            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            sys.exit('Failed to build braille.  Exiting...')
