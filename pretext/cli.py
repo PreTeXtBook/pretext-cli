@@ -446,25 +446,4 @@ def deploy(target,update_source):
         return
     project.deploy(target_name,update_source)
     log.info ("")
-
-# pretext publish
-@main.command(short_help="OBSOLETE: use deploy",
-    context_settings=CONTEXT_SETTINGS)
-@click.argument('target', required=False)
-@click.option(
-    '-m',
-    '--commit-message',
-    default="Update to PreTeXt project source.",
-    show_default=True,
-    help="""
-    Customize message to leave on Git commit for source updates.
-    """)
-@click.pass_context
-def publish(ctx,target,commit_message):
-    """
-    OBSOLETE in favor of `deploy` command. Will be
-    removed in a future version.
-    """
-    log.error("`pretext publish` command is OBSOLETE.")
-    log.error("Use `pretext deploy` next time.")
-    log.info("")
+    
