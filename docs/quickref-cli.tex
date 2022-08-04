@@ -1,4 +1,4 @@
-% Sage CLI Quick Reference
+% PreTeXt CLI Quick Reference
 % (c) 2022 by Steven Clontz, Thomas W.\ Judson, and Oscar Levin
 % Licensed with the GNU Free Documentation License (GFDL)
 %   http://www.gnu.org/copyleft/fdl.html
@@ -39,14 +39,15 @@
 \begin{document}
 \begin{multicols*}{3}
 \begin{center}
-\textbf{PreTeXt Quick Reference: Command Line Interface (CLI)}\\
+\textbf{PreTeXt Quick Reference:\\ Command Line Interface (CLI)}\\
 % Steve Clontz, T.\ W.\ Judson, and Oscar Levin \\
-CLI version 0.8.0, 6/24/2022  \\
+CLI version 1.0.0, 8/5/2022  \\
+Full documentation: \url{pretextbook.org}\\
 % Switch to CC?
 GNU Free Document License, extend for your own use
 \end{center}
 % backup over center environment gap
-\vspace{-2ex}
+\vspace{-3ex}
 %*********************************************
 \sect{Setup}
 \hr\textbf{Check requirements}\\
@@ -57,7 +58,7 @@ GNU Free Document License, extend for your own use
 {\ex \verb| xelatex --version|} : some PreTeXt features require \LaTeX \\
 
 \hr\textbf{Install PreTeXt}\\
-{\ex \verb| python -m pip install pretext-cli|} : install PreTeXt \\
+{\ex \verb| python -m pip install pretext|} : install PreTeXt \\
 {\ex \verb| pretext --version|} : check version to verify install \\
 
 
@@ -71,7 +72,7 @@ GNU Free Document License, extend for your own use
 {\ex \verb| pretext pretext init --refresh|}: creates new copies of project manifest and publication file to compare for new features.
 
 \hr\textbf{Upgrade PreTeXt}\\
-{\ex \verb| python -m pip install --upgrade pretext-cli|}: upgrade to latest stable release \\
+{\ex \verb| python -m pip install --upgrade pretext|}: upgrade to latest stable release \\
 
 \hr\textbf{Get Help}\\
 {\ex \verb| pretext --help|}: show general help\\
@@ -85,8 +86,8 @@ GNU Free Document License, extend for your own use
  \hr\textbf{Build a PreTeXt document}
 
 {\ex \verb| pretext build|}: Builds the project to the format of the first target in {\verb|project.ptx|}.\\
-{\ex \verb| pretext build web|}: Create html version (assuming {\verb|<target name="web">|}) is in {\verb|publication.ptx|}\\
-{\ex \verb| pretext build print|}: Create print (pdf) version\\
+{\ex \verb| pretext build print|}: Create pdf version (assuming {\verb|<target name="print">|}) is in {\verb|project.ptx|}\\
+% {\ex \verb| pretext build print|}: Create print (pdf) version\\
 
 
 \hr\textbf{Generate source images and WeBWorK}\\
@@ -102,8 +103,8 @@ If your book has any WeBWorK, latex-image, asymptote, sageplot, interactive, etc
 
 {\ex \verb| pretext view|}: Creates a local server to preview the first target in {\verb|project.ptx|}\\
 {\ex \verb| pretext view print|}: Views the "print" target\\
-{\ex \verb| pretext view -w|}: Builds, starts server, and rebuilds every time the project is saved\\
-{\ex \verb| CTRL+C|} to close the server\\
+{\ex \verb| pretext view -w|}: Builds, starts server, and rebuilds every time the source is saved\\
+% {\ex \verb| CTRL+C|} to close the server\\
 %*********************************************
 
 
@@ -111,24 +112,20 @@ If your book has any WeBWorK, latex-image, asymptote, sageplot, interactive, etc
 \hr\textbf{Deploy to GitHub Pages}
 
 {\ex \verb| pretext deploy|} : deploys Git-managed project to GitHub Pages\\
-{\ex \verb| pretext deploy -u|} : deploys and also uploads source files\\
+% {\ex \verb| pretext deploy -u|} : deploys and also uploads source files\\
 
 
 %*********************************************
 
-
-
-\columnbreak
-%*********************************************
-
-\sect{Useful Shortcuts}
+\hr\textbf{Useful Shortcuts}
 
 {\ex \verb| pretext build -g|}: build and generate in one step\\
 {\ex \verb| pretext build web -g latex-image|}: build web target and generate latex-images\\
 {\ex \verb| pretext view -b|}: build before you preview\\
 {\ex \verb| pretext view -g|}: generate assets before you view\\
-{\ex \verb| pretext view -bg|}: build and generate assets before you view\\
+{\ex \verb| pretext view -bg|}: generate assets, build, and view\\
 
+\columnbreak
 
 %*********************************************
 \hr\textbf{Project Manifest}
@@ -138,84 +135,85 @@ Structure of a target:
 \begin{verbatim}
   <target name="web">
     <format>html</format>
-    <source>source/main.ptx</source>
-    <publication>publication/publication.ptx</publication>
-    <output-dir>output/web</output-dir>
+    <source>...</source>
+    <publication>...</publication>
+    <output-dir>...</output-dir>
   </target>
 \end{verbatim}
-{\ex \verb|<format>|} can be html, latex, or pdf\\
-{\ex \verb|<source>|} is the path to the root ptx document\\
-{\ex \verb|<publication>|} is the path to the publication file\\
-{\ex \verb|<output-dir>|} is the path the the folder that will hold output\\
+{\ex \verb|<format>|} can be html, latex, pdf, custom, epub, or kindle\\
+{\ex \verb|<source>|} is the path to the root ptx document.  Usually \texttt{source/main.ptx}\\
+{\ex \verb|<publication>|} is the path to the publication file.  Usually \texttt{publication/publication.ptx}\\
+{\ex \verb|<output-dir>|} is the path the the folder that will hold output.  Usually something like \texttt{output/web}\\
 Other optional elements:\\
 {\ex \verb|<stringparam key="..." value="..."/>|}: allows for setting the value of string parameters\\
 {\ex \verb|<xmlid-root>ch-first</xmlid-root>|}: used to restrict build to a subset of the source, starting with the element with xml:id "ch-first"\\ 
-{\ex \verb|<xsl>xsl/custom-xsl.xsl</xsl>|}: used to build with a custom xsl file.  In that file, import the standard xsl with, e.g.\\ {\verb|<xsl:import pretext-href="pretext-common.xsl"/>|}
+{\ex \verb|<xsl>xsl/custom.xsl</xsl>|}: used to build with a custom xsl file.  Import standard xsl from that file using, e.g.\\ {\verb|<xsl:import href=".core/pretext-common.xsl"/>|}
 
 
 
 
 \sect{Recommended Project Structure}
-{\ex \verb|assets|}: Contains all manually provided assets, such as a photo at {\verb|assets/frog.jpg|} used as {\verb|<image source="frog.jpg"/>|}.\\
+{\ex \verb|assets|}: Contains all static assets.\\
+% , such as a photo at {\verb|assets/frog.jpg|} used as {\verb|<image source="frog.jpg"/>|}.\\
 {\ex \verb|generated-assets|}: Contains the products of running {\verb|pretext generate|}. Should not be edited manually. \\
 {\ex \verb|output|}: Contains the products of running {\verb|pretext build|}. Should not be edited manually. \\
 {\ex \verb|publication|}: Contains your publication file(s) (e.g. \verb|publication/publication.ptx|). \\
 {\ex \verb|source|}: Contains your PreTeXt source file(s) (e.g. \verb|source/main.ptx|). \\
-{\ex \verb|.gitignore|}: Specifies files not shared publicly when using Git or \verb|pretext deploy|. \\
 {\ex \verb|project.ptx|}: Describes your project's targets (e.g. \verb|web|, \verb|print-latex|) and executables.\\
-{\ex \verb|README.md|}: Written description of your project.\\
-{\ex \verb|requirements.txt|}: Specifies version of CLI used to build your project.
+% {\ex \verb|README.md|}: Written description of your project.\\
+{\ex \verb|requirements.txt|}: Specifies version of CLI used to build your project.\\
+{\ex \verb|.gitignore|}: Specifies files not shared publicly when using Git or \verb|pretext deploy|.
 
 %*********************************************
-\newpage
+% \newpage
 
-\columnbreak
+% \columnbreak
 
-\hr\textbf{publication.ptx}
+% \hr\textbf{publication.ptx}
 
-Information about the publication file goes here.
-
-
-
-\columnbreak
-\sect{Common PreTeXt source tags}
-
-\hr\textbf{Blocks/Environments}
-Example:
-\begin{verbatim}
-<theorem>
-  <title>My Title</title>
-  <statement>
-    <p>
-      Statement of theorem.
-    </p>
-  </statement>
-  <proof>
-    <p>
-      The proof.
-    </p>
-  </proof>
-</theorem>
-\end{verbatim}
-Theorem-like: {\ex\verb|<theorem>|}, {\ex\verb|<algorithm>|}, {\ex\verb|<claim>|}, {\ex\verb|<corollary>|}, {\ex\verb|<fact>|}, {\ex\verb|<identity>|}, {\ex\verb|<lemma>|}, {\ex\verb|<proposition>|}.\\
-Example-like: {\ex\verb|<example>|}, {\ex\verb|<problem>|}, {\ex\verb|<question>|}.\\
-Axiom-like: {\ex\verb|<assumption>|}, {\ex\verb|<axiom>|}, {\ex\verb|<conjecture>|}, {\ex\verb|<heuristic>|}, {\ex\verb|<hypothesis>|}, {\ex\verb|<principle>|}.\\
-Remark-like: {\ex\verb|<remark>|}, {\ex\verb|<convention>|}, {\ex\verb|<insight>|}, {\ex\verb|<note>|}, {\ex\verb|<observation>|}, {\ex\verb|<warning>|}.\\
-Project-like: {\ex\verb|<project>|}, {\ex\verb|<activity>|}, {\ex\verb|<exploration>|}, {\ex\verb|<investigation>|}.\\
-
-Other common blocks:\\
-{\ex\verb|<definition>|}\\
-{\ex\verb|<exercise>|}\\
-{\ex\verb|<task>|}: a division of an exercise or project-like\\
+% Information about the publication file goes here.
 
 
 
+% \columnbreak
+% \sect{Common PreTeXt source tags}
 
-\columnbreak
+% \hr\textbf{Blocks/Environments}
+% Example:
+% \begin{verbatim}
+% <theorem>
+%   <title>My Title</title>
+%   <statement>
+%     <p>
+%       Statement of theorem.
+%     </p>
+%   </statement>
+%   <proof>
+%     <p>
+%       The proof.
+%     </p>
+%   </proof>
+% </theorem>
+% \end{verbatim}
+% Theorem-like: {\ex\verb|<theorem>|}, {\ex\verb|<algorithm>|}, {\ex\verb|<claim>|}, {\ex\verb|<corollary>|}, {\ex\verb|<fact>|}, {\ex\verb|<identity>|}, {\ex\verb|<lemma>|}, {\ex\verb|<proposition>|}.\\
+% Example-like: {\ex\verb|<example>|}, {\ex\verb|<problem>|}, {\ex\verb|<question>|}.\\
+% Axiom-like: {\ex\verb|<assumption>|}, {\ex\verb|<axiom>|}, {\ex\verb|<conjecture>|}, {\ex\verb|<heuristic>|}, {\ex\verb|<hypothesis>|}, {\ex\verb|<principle>|}.\\
+% Remark-like: {\ex\verb|<remark>|}, {\ex\verb|<convention>|}, {\ex\verb|<insight>|}, {\ex\verb|<note>|}, {\ex\verb|<observation>|}, {\ex\verb|<warning>|}.\\
+% Project-like: {\ex\verb|<project>|}, {\ex\verb|<activity>|}, {\ex\verb|<exploration>|}, {\ex\verb|<investigation>|}.\\
 
-\hr\textbf{Examples}
+% Other common blocks:\\
+% {\ex\verb|<definition>|}\\
+% {\ex\verb|<exercise>|}\\
+% {\ex\verb|<task>|}: a division of an exercise or project-like\\
 
-Examples go here.
+
+
+
+% \columnbreak
+
+% \hr\textbf{Examples}
+
+% Examples go here.
 
 
 
