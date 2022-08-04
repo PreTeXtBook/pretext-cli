@@ -241,6 +241,8 @@ class Project():
                 builder.braille(target.source(),target.publication(),target.output_dir(),target.stringparams(),page_format="emboss")
             elif target.format()=='braille-electronic':
                 builder.braille(target.source(),target.publication(),target.output_dir(),target.stringparams(),page_format="electronic")
+            else:
+                log.critical(f'The build format {target.format()} is not supported.')
         except Exception as e:
             log.critical(
                 f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")

@@ -140,12 +140,13 @@ def kindle(ptxfile,pub_file:Path,output:Path,stringparams):
 #build Braille:
 def braille(ptxfile,pub_file:Path,output:Path,stringparams,page_format="emboss"):
     os.makedirs(output, exist_ok=True)
+    log.warning("Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software).")
     try:
         utils.npm_install()
     except Exception as e:
         log.debug(e)
-        sys.exit("Unable to build epub because node packages could not be installed.  Exiting...")
-    log.info(f"\nNow building ePub into {output}\n")
+        sys.exit("Unable to build braille because node packages could not be installed.  Exiting...")
+    log.info(f"\nNow building braille into {output}\n")
     with utils.working_directory("."):
         try:
             core.braille(
