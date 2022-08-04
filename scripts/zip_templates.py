@@ -15,7 +15,7 @@ def main():
                     temporary_path,
                     dirs_exist_ok=True,
                 )
-                template_files = ['project.ptx', '.gitignore']
+                template_files = ['project.ptx', '.gitignore', 'codechat_config.yaml']
                 for template_file in template_files:
                     copied_template_file = temporary_path/template_file
                     if not copied_template_file.is_file():
