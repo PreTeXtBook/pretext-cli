@@ -18,7 +18,7 @@ from single_version import get_version
 VERSION = get_version('pretextbook', Path(__file__).parent.parent)
 
 
-CORE_COMMIT = "7be0074ddf550fd0fb7530760bd8b55f85e1bc6e"
+CORE_COMMIT = "692b7b63b00b3f8856a75841e398668403632a20"
 
 
 def activate():
