@@ -105,8 +105,6 @@ def test_custom_xsl(tmp_path:Path,script_runner):
     shutil.copytree(EXAMPLES_DIR/'projects'/'custom-xsl',custom_path)
     assert script_runner.run(PTX_CMD,'-v','debug','build', cwd=custom_path).success
     assert (custom_path/'output'/'test').exists()
-    assert script_runner.run(PTX_CMD,'-v','debug','build', 'test-deprecated', cwd=custom_path).success
-    assert (custom_path/'output'/'test-deprecated').exists()
 
 def test_custom_webwork_server(tmp_path:Path,script_runner):
     custom_path = tmp_path/'custom'

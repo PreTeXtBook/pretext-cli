@@ -248,13 +248,6 @@ NSMAP = {
 def nstag(prefix:str,suffix:str) -> str:
     return "{" + NSMAP[prefix] + "}" + suffix
 
-def expand_pretext_href(lxml_element:ET.Element): #DEPRECATED as of 0.7.8
-    '''
-    Expands @pretext-href attributes to point to the distributed xsl directory.
-    '''
-    for ele in lxml_element.xpath('//*[@pretext-href]'):
-        ele.set('href',(Path('.')/'core'/ele.get('pretext-href')).as_posix())
-
 def copy_custom_xsl(xsl_path: Path, output_dir: Path):
     """
     Copy relevant files that share a directory with `xsl_path`.
@@ -264,22 +257,7 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
     output_dir = output_dir.resolve()
     log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
-    if not (Path(output_dir)/'entities.ent').exists(): # TODO stop this as it's copied in subdirectory
-        shutil.copyfile(core.resources.path('xsl/entities.ent'),Path(output_dir)/'entities.ent')
-    # expand each xsl file
-    with working_directory(output_dir):
-        for filename in glob.iglob('**',recursive=True):
-            filepath = Path(filename)
-            # glob lists both files and directories, but we only want to copy files.
-            if filepath.is_file() and filepath.suffix =='.xsl':
-                log.debug(f"Expanding and copying {filepath}")
-                try:
-                    lxml_element = ET.parse(filepath)
-                    expand_pretext_href(lxml_element)
-                    lxml_element.write(filepath)
-                # maybe an xsl file is malformed, but let's continue in case it's unused
-                except Exception as e:
-                    log.warning(f"Failed to expand {filename} due to {e}, continuing anyway...")
+    log.debug(f"Copying core XSL to {output_dir}/core")
     shutil.copytree(core.resources.path('xsl'),output_dir/"core")
 
 def check_executable(exec_name:str):
