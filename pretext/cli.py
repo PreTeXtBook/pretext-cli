@@ -1,8 +1,8 @@
 from concurrent.futures.process import _threads_wakeups
 from pickle import FALSE
-import click
-import click_logging
 import logging, logging.handlers, sys
+import click
+import click_log
 import shutil
 import datetime
 import os, zipfile, requests, io
@@ -16,19 +16,11 @@ from .project import Project
 
 
 log = logging.getLogger('ptxlogger')
-style_kwargs = {
-    'debug': dict(fg='blue'),
-    # 'info': dict(fg='white'),
-    'warning': dict(fg='yellow'),
-    'error': dict(fg='red',),
-    'exception': dict(fg='red'),
-    'critical': dict(fg='bright_red', bold=True),
-}
-click_logging.basic_config(log, style_kwargs=style_kwargs)
-click_logging_format = click_logging.ColorFormatter(style_kwargs)
+click_log.basic_config(log)
+click_log_format = click_log.ColorFormatter()
 # create memory handler which displays error and critical messages at the end as well.
 sh = logging.StreamHandler(sys.stdout)
-sh.setFormatter(click_logging_format)
+sh.setFormatter(click_log_format)
 mh = logging.handlers.MemoryHandler(capacity=1024*100, flushLevel=100,target=sh, flushOnClose=True)
 mh.setLevel(logging.ERROR)
 log.addHandler(mh)
@@ -41,7 +33,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
 @click.pass_context
 # Allow a verbosity command:
-@click_logging.simple_verbosity_option(
+@click_log.simple_verbosity_option(
     log,
     help="Sets the severity of log messaging: DEBUG for all, INFO (default) for most, then WARNING, ERROR, and CRITICAL for decreasing verbosity."
 )
@@ -62,14 +54,14 @@ def main(ctx,targets):
     Use the `--help` option on any CLI command to learn more, for example,
     `pretext build --help`.
     """
-    if targets:
-        Project().print_target_names()
-        return
     if utils.project_path() is not None:
+        if targets:
+            Project().print_target_names()
+            return
         # create file handler which logs even debug messages
         fh = logging.FileHandler(utils.project_path()/'cli.log', mode='w')
         fh.setLevel(logging.DEBUG)
-        fh.setFormatter(click_logging_format)
+        fh.setFormatter(click_log_format)
         log.addHandler(fh)
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
