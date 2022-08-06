@@ -438,4 +438,3 @@ def deploy(target,update_source):
         return
     project.deploy(target_name,update_source)
     log.info ("")
-    
