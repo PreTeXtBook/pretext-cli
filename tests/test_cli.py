@@ -113,7 +113,7 @@ def test_custom_webwork_server(tmp_path:Path,script_runner):
     shutil.copytree(EXAMPLES_DIR/'projects'/'custom-wwserver',custom_path)
     result = script_runner.run(PTX_CMD,'-v','debug','generate','webwork', cwd=custom_path)
     assert result.success
-    assert 'webwork-dev' in result.stdout
+    assert 'webwork-dev' in result.stderr
     result = script_runner.run(PTX_CMD,'-v','debug','build', cwd=custom_path)
     assert result.success
 
