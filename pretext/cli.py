@@ -61,7 +61,8 @@ def main(ctx,targets):
         # create file handler which logs even debug messages
         fh = logging.FileHandler(utils.project_path()/'cli.log', mode='w')
         fh.setLevel(logging.DEBUG)
-        fh.setFormatter(click_log_format)
+        file_log_format = logging.Formatter('{levelname:<8}: {message}',style='{')
+        fh.setFormatter(file_log_format)
         log.addHandler(fh)
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")

@@ -32,7 +32,8 @@ def html(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed to build html.  Exiting...')
 
 def latex(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path]):
@@ -50,7 +51,8 @@ def latex(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optiona
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed to build latex.  Exiting...')
 
 def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[Path],pdf_method:str):
@@ -69,7 +71,8 @@ def pdf(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Optional[
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed to build pdf.  Exiting...')
 
 
@@ -88,7 +91,8 @@ def custom(ptxfile:Path,pub_file:Path,output:Path,stringparams,custom_xsl:Path,o
             core.xsltproc(custom_xsl, ptxfile, output_filepath, output_dir=output_dir, stringparams=stringparams)
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed custom build.  Exiting...')
 
 #build (non Kindle) ePub:
@@ -111,7 +115,8 @@ def epub(ptxfile,pub_file:Path,output:Path,stringparams):
                 stringparams=stringparams)
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed to build epub.  Exiting...')
 
 
@@ -135,7 +140,8 @@ def kindle(ptxfile,pub_file:Path,output:Path,stringparams):
                 stringparams=stringparams)
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed to build kindle ebook.  Exiting...')
 #build Braille:
 def braille(ptxfile,pub_file:Path,output:Path,stringparams,page_format="emboss"):
@@ -158,5 +164,6 @@ def braille(ptxfile,pub_file:Path,output:Path,stringparams,page_format="emboss")
                 stringparams=stringparams)
         except Exception as e:
             log.critical(e)
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit('Failed to build braille.  Exiting...')
