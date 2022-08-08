@@ -6,6 +6,7 @@
 -->
 <project>
   <targets>
+    <!-- To build this target, run `pretext build web` -->
     <target name="web">
       <format>html</format>
       <source>source/main.ptx</source>
