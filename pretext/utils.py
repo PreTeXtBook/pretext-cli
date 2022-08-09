@@ -336,17 +336,17 @@ def show_target_hints(target_format:str, project, task:str):
     if project.target(name=target_format) is not None:
         return
     # Otherwise continue with hints:
-    log.critical(f'There is not a target named "{target_format}" in the project.ptx manifest.')
-    if target_format in ['html', 'pdf', 'latex','epub','kindle']:
+    log.critical(f'There is not a target named "{target_format}" for this project.ptx manifest.')
+    if target_format in ['html', 'pdf', 'latex','epub','kindle','braille']:
         target_names = project.target_names(target_format)
         if len(target_names) == 1:
-            log.info(f'However, the target "{target_names[0]}" has "{target_format}" as its format.  Did you mean to {task} that?')
+            log.info(f'However, the target named "{target_names[0]}" has "{target_format}" as its format.  Try to {task} that instead or edit your project.ptx manifest.')
         elif len(target_names) > 1:
-            log.info(f'However, the targets {target_names} have "{target_format}" as their format.  Did you mean to {task} one of those?')
+            log.info(f'However, the targets with names {target_names} have "{target_format}" as their format.  Try to {task} one of those instead or edit your project.ptx manifest.')
         if target_format in ['epub', 'kindle']:
             log.info(f"Instructions for setting up a target with the {target_format} format, including the external programs required, can be found in the PreTeXt guide: https://pretextbook.org/doc/guide/html/epub.html")
     else:
-        log.info(f"The available targets to {task} are: {project.target_names()}")
+        log.info(f"The available targets to {task} are named: {project.target_names()}.  Try to {task} on of those instead or edition your proejct.ptx manifest.")
 
 def npm_install():
     with working_directory(core.resources.path("script", "mjsre")):

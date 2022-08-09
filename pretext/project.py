@@ -246,7 +246,8 @@ class Project():
         except Exception as e:
             log.critical(
                 f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`")
-            log.debug(f"Critical error info:\n****\n", exc_info=True)
+            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.info('##################')
             sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
         # build was successful
         log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
