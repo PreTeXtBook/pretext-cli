@@ -54,6 +54,10 @@ def main(ctx,targets):
     Use the `--help` option on any CLI command to learn more, for example,
     `pretext build --help`.
     """
+    log.warning("PreTeXt-CLI is moving! To upgrade to version 1.0.0 or higher:")
+    log.warning("    pip uninstall pretextbook")
+    log.warning("    pip install --upgrade pretext")
+    log.warning("")
     if utils.project_path() is not None:
         if targets:
             Project().print_target_names()
