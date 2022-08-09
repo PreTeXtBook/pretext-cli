@@ -161,7 +161,7 @@ def new(template,directory,url_template):
         shutil.copytree(tmpsubdirname,directory,dirs_exist_ok=True)
     # generate requirements.txt
     with open(directory_fullpath/"requirements.txt","w") as f:
-        f.write(f"pretextbook == {VERSION}")
+        f.write(f"pretext == {VERSION}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
     log.info("")
@@ -202,7 +202,7 @@ def init(refresh):
         log.warning(f"You already have a requirements.txt file at {Path('requirements.txt').resolve()}`.")
         log.warning(f"The one suggested by PreTeXt will be created as {requirements_path} for comparison.")
     with open(requirements_path,"w") as f:
-        f.write(f"pretextbook == {VERSION}")
+        f.write(f"pretext == {VERSION}")
     log.info(f"Generated requirements file at {requirements_path}.")
     log.info("")
     # Create publication file if one doesn't exist: 

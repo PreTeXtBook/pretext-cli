@@ -72,7 +72,7 @@ def requirements_version(dirpath:Optional[Path]=None) -> str:
     try:
         with open(project_path(dirpath) / 'requirements.txt','r') as f:
             for line in f.readlines():
-                if 'pretextbook' in line:
+                if 'pretext' or 'pretextbook' in line:
                     return line.split("==")[1].strip()
     except Exception as e:
         log.debug("Could not read `requirements.txt`:")
