@@ -22,7 +22,7 @@ def main(level='patch'):
     print(f"Publishing stable {stable_version}")
 
     # Publish stable
-    subprocess.run(["poetry", "publish", "--build"])
+    subprocess.run(["poetry", "publish"])
 
     # Tag
     tag = repo.create_tag(f"v{stable_version}")

@@ -11,7 +11,7 @@ def main():
     print(f"Publishing alpha {pretext.VERSION}")
 
     # Publish alpha
-    subprocess.run(["poetry", "publish", "--build"])
+    subprocess.run(["poetry", "publish"])
 
     # Tag + push
     tag = repo.create_tag(f"v{pretext.VERSION}")
