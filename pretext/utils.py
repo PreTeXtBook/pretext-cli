@@ -11,6 +11,7 @@ import platform
 import socketserver
 import socket
 import subprocess
+import sys
 import logging
 import threading
 import watchdog.events, watchdog.observers, time
@@ -385,4 +386,17 @@ def remove_path(path:Path):
         path.unlink()  # remove the file
     elif path.is_dir():
         shutil.rmtree(path)  # remove dir and all it contains
+
+def exit_command(mh):
+    '''
+    Checks to see if anything (errors etc.) is in the memory handler.  If it is, reports that there are errors before the handler gets flushed.  Otherwise, adds a single blank line.
+    '''
+    if len(mh.buffer) > 0:
+        print("\n----------------------------------------------------")
+        log.info("While running pretext, the following errors occured:\n")
+        mh.flush()
+        print("----------------------------------------------------")      
+        sys.exit(1)
+    else:
+        print('')
     
