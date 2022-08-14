@@ -301,6 +301,15 @@ poetry run python scripts/release_stable.py major # +1.0.0
 - [Steven Clontz](https://clontz.org/)
 - [Oscar Levin](https://math.oscarlevin.com/)
 
+### A note and special thanks
+
+A `pretext` package unrelated to the PreTeXtBook.org project was released on PyPI
+several years ago by Alex Willmer. We are grateful for his willingness to transfer
+this namespace to us.
+
+As such, versions of this project before 1.0 are released on PyPI under the
+name `pretextbook`, while versions 1.0 and later are released as `pretext`.
+
 ### About PreTeXt
 The development of [PreTeXt's core](https://github.com/PreTeXtBook/pretext)
 is led by [Rob Beezer](http://buzzard.ups.edu/).
