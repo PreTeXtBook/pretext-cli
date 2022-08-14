@@ -10,6 +10,7 @@ import tempfile, shutil
 import platform
 from pathlib import Path
 from typing import Optional
+import atexit
 
 from . import utils, templates, VERSION, CORE_COMMIT
 from .project import Project
@@ -19,12 +20,14 @@ log = logging.getLogger('ptxlogger')
 click_log.basic_config(log)
 click_log_format = click_log.ColorFormatter()
 # create memory handler which displays error and critical messages at the end as well.
-sh = logging.StreamHandler(sys.stdout)
+sh = logging.StreamHandler(sys.stderr)
 sh.setFormatter(click_log_format)
-mh = logging.handlers.MemoryHandler(capacity=1024*100, flushLevel=100,target=sh, flushOnClose=True)
+mh = logging.handlers.MemoryHandler(capacity=1024*100, flushLevel=100,target=sh, flushOnClose=False)
 mh.setLevel(logging.ERROR)
 log.addHandler(mh)
 
+#Call exit_command() at close to handle errors incountered during run.
+atexit.register(utils.exit_command, mh)
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
@@ -81,7 +84,7 @@ def main(ctx,targets):
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
-    log.info("")
+
 
 
 # pretext support
@@ -119,7 +122,6 @@ def support():
                     f"Unable to locate the command for <{exec_name}> on your system.")
     else:
         log.info("No project.ptx found.")
-    log.info("")
 
 
 # pretext new
@@ -164,7 +166,6 @@ def new(template,directory,url_template):
         f.write(f"pretext == {VERSION}")
     log.info(f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document")
     log.info(f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`.")
-    log.info("")
 
 
 # pretext init
@@ -231,7 +232,6 @@ def init(refresh):
     # End by reporting success
     log.info(f"Success! Open project.ptx to edit your project manifest.")
     log.info(f"Edit your <target/>s to point to the location of your PreTeXt source files.")
-    log.info("")
 
 ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot', 'asymptote', 'interactive', 'youtube', 'codelens']
 
@@ -281,7 +281,6 @@ def build(target, clean, generate):
         log.warning("(previously generated assets will be used if they exist).")
         log.warning("To generate these assets before building, run `pretext build -g`.")
     project.build(target_name,clean)
-    log.info("")
 
 # pretext generate
 @main.command(short_help="Generate specified assets for specified target", 
@@ -328,8 +327,6 @@ def generate(assets:str, target:Optional[str], all_formats:bool, xmlid:Optional[
     else:
         log.info(f'Generating only {assets} assets in default formats for the target "{target.name()}".')
         project.generate(target.name(),asset_list=[assets],xmlid=xmlid)
-    log.info("")
-
 
 # pretext view
 @main.command(short_help="Preview specified target based on its format.",
@@ -411,7 +408,6 @@ def view(target:str,access:str,port:Optional[int],directory:str,watch:bool,build
         log.info("Building target.")
         project.build(target_name)
     project.view(target_name,access,port,watch,no_launch)
-    log.info("")
 
 
 # pretext deploy
@@ -438,4 +434,3 @@ def deploy(target,update_source):
         log.critical("Exiting without completing task.")
         return
     project.deploy(target_name,update_source)
-    log.info ("")
