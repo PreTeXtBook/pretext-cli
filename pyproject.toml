@@ -1,12 +1,11 @@
 [tool.poetry]
-name = "pretextbook"
-packages = [
-    { include = "pretext" },
-]
-version = "0.8.2-alpha.5"
+name = "pretext"
+version = "1.0.0-alpha.3"
 description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
-authors = ["PreTeXtBook.org <steven.clontz+PreTeXt@gmail.com>"]
+homepage = "https://pretextbook.org"
+repository = "https://github.com/PreTeXtBook/pretext-cli"
+authors = ["Steven Clontz <steven.clontz@gmail.com>", "Oscar Levin <oscar.levin@unco.edu>"]
 license = "GPL-3.0-or-later"
 include = [
     "pretext/core/pretext.py",

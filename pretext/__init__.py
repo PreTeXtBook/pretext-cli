@@ -15,10 +15,10 @@
 
 from pathlib import Path
 from single_version import get_version
-VERSION = get_version('pretextbook', Path(__file__).parent.parent)
+VERSION = get_version('pretext', Path(__file__).parent.parent)
 
 
-CORE_COMMIT = "7be0074ddf550fd0fb7530760bd8b55f85e1bc6e"
+CORE_COMMIT = "f13db4306eb79494c6110f22718dc80a413c05e7"
 
 
 def activate():

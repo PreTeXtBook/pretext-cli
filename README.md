@@ -49,7 +49,7 @@ Once you've confirmed that you're using a valid version of Python, just
 run (replacing `python` with `python3` if necessary):
 
 ```
-python -m pip install --user pretextbook
+python -m pip install --user pretext
 ```
 
 (It's also possible you may get an error like 
@@ -85,7 +85,7 @@ you may require some extra software:
 If you have an existing installation and you want to upgrade to a more recent version, you can run:
 
 ```
-python -m pip install --upgrade pretextbook
+python -m pip install --upgrade pretext
 ```
 
 #### Custom XSL
