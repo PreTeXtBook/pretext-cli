@@ -1,3 +1,16 @@
+# HEADS UP!
+
+PreTeXt-CLI has moved to <https://pypi.org/project/pretext>! To upgrade:
+
+```
+pip uninstall pretextbook
+pip install --upgrade pretext
+```
+
+Original README follows...
+
+---
+
 # PreTeXt-CLI
 
 A package for authoring and building [PreTeXt](https://pretextbook.org) documents.
