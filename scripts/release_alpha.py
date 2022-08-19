@@ -11,14 +11,14 @@ def main():
     print(f"Publishing alpha {pretext.VERSION}")
 
     # Publish alpha
-    subprocess.run(["poetry", "publish"])
+    subprocess.run(["poetry", "publish"], shell=True)
 
     # Tag + push
     tag = repo.create_tag(f"v{pretext.VERSION}")
     repo.remotes.origin.push(tag.path)
 
     # Bump alpha version
-    subprocess.run(["poetry", "version", "prerelease"])
+    subprocess.run(["poetry", "version", "prerelease"], shell=True)
     # Add/commit/push change
     repo.git.add("pyproject.toml")
     repo.index.commit("Bump version to new alpha")

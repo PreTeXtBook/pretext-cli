@@ -9,7 +9,7 @@ def main(level='patch'):
         raise Exception("Must commit outstanding changes to project source.")
 
     # Bump stable version
-    subprocess.run(["poetry", "version", level])
+    subprocess.run(["poetry", "version", level], shell=True)
     # Add/commit change
     repo.git.add("pyproject.toml")
     repo.index.commit(f"Bump version to new {level}")
@@ -22,13 +22,13 @@ def main(level='patch'):
     print(f"Publishing stable {stable_version}")
 
     # Publish stable
-    subprocess.run(["poetry", "publish"])
+    subprocess.run(["poetry", "publish"], shell=True)
 
     # Tag
     tag = repo.create_tag(f"v{stable_version}")
 
     # Bump alpha version
-    subprocess.run(["poetry", "version", "prerelease"])
+    subprocess.run(["poetry", "version", "prerelease"], shell=True)
     # Add/commit/push change
     repo.git.add("pyproject.toml")
     repo.index.commit("Bump version to new alpha")

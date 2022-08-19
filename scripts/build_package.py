@@ -9,7 +9,7 @@ def main():
     zip_templates.main()
 
     # Build package
-    subprocess.run(["poetry", "build"])
+    subprocess.run(["poetry", "build"], shell=True)
 
 if __name__ == '__main__':
     main()
