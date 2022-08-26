@@ -265,22 +265,22 @@ def build(target, clean, generate):
     target = project.target(name=target_name)
     if target_name is None:
         log.info(f'Since no build target was supplied, the first target of the project.ptx manifest ({target.name()}) will be built.')
-    target_name = target.name()
+        target_name = target.name()
     if target is None:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
         return
     if generate=='ALL':
         log.info("Genearting all assets in default formats.")
-        project.generate(target_name)
+        project.generate(target.name())
     elif generate is not None:
         log.warning(f"Generating only {generate} assets.")
-        project.generate(target_name,asset_list=[generate])
+        project.generate(target.name(),asset_list=[generate])
     else:
         log.warning("Assets like latex-images will not be regenerated for this build")
         log.warning("(previously generated assets will be used if they exist).")
         log.warning("To generate these assets before building, run `pretext build -g`.")
-    project.build(target_name,clean)
+    project.build(target.name(),clean)
 
 # pretext generate
 @main.command(short_help="Generate specified assets for specified target", 
