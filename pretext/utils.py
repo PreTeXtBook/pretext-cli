@@ -347,7 +347,7 @@ def show_target_hints(target_format:str, project, task:str):
         if target_format in ['epub', 'kindle']:
             log.info(f"Instructions for setting up a target with the {target_format} format, including the external programs required, can be found in the PreTeXt guide: https://pretextbook.org/doc/guide/html/epub.html")
     else:
-        log.info(f"The available targets to {task} are named: {project.target_names()}.  Try to {task} on of those instead or edition your proejct.ptx manifest.")
+        log.info(f"The available targets to {task} are named: {project.target_names()}.  Try to {task} on of those instead or edit your proejct.ptx manifest.")
 
 def npm_install():
     with working_directory(core.resources.path("script", "mjsre")):
