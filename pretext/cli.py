@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Optional
 import atexit
 
-from . import utils, templates, VERSION, CORE_COMMIT
+from . import utils, templates, core, VERSION, CORE_COMMIT
 from .project import Project
 
 
@@ -104,9 +104,10 @@ def support():
     log.info(f"PreTeXt-CLI version: {VERSION}")
     log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{VERSION}/")
     log.info(f"PreTeXt core resources commit: {CORE_COMMIT}")
+    log.info(f"Runestone Services version: {core.get_runestone_services_version()}")
     log.info(f"OS: {platform.platform()}")
     log.info(f"Python version: {platform.python_version()}")
-    log.info(f"Current working directory: {Path()}")
+    log.info(f"Current working directory: {Path().resolve()}")
     if utils.project_path() is not None:
         log.info(f"PreTeXt project path: {utils.project_path()}")
         log.info("")
