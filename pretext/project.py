@@ -1,3 +1,4 @@
+import re
 from lxml import etree as ET
 from lxml.etree import Element
 import os, shutil
@@ -364,14 +365,12 @@ class Project():
             log.info("And if you haven't already, create a remote GitHub repository for this project at:")
             log.info("    https://github.com/new")
             log.info("(Do NOT check any \"initialize\" options.)")
-            log.info("Then provide your GitHub info below:")
+            log.info("On the next page, copy the URL in the \"Quick Setup\" section (use HTTPS unless you have SSH setup already).")
             log.info("")
-            username = input("Your GitHub username (e.g. JaneDoe): ").strip()
-            reponame = input("Your GitHub repo name (e.g. my-great-book-repo): ").strip()
-            ssh_info = f"git@github.com:{username}/{reponame}.git"
-            repo.create_remote("origin", url=ssh_info)
+            repourl = input("Paste url here: ").strip()
+            repo.create_remote("origin", url=repourl)
             origin = repo.remotes.origin
-            log.info("")
+            log.info("\nFor information about authentication options for github, see: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github\n")
         log.info(f"Commiting your latest build to the `gh-pages` branch.")
         log.info("")
         ghp_import.ghp_import(
@@ -380,11 +379,11 @@ class Project():
             nojekyll=True
         )
         log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
-        log.info("(Your SSH password may be required.)")
+        # log.info("(Your SSH password may be required.)")
         log.info("")
         try:
-            repo_user = origin.url.split(":")[1].split("/")[0]
-            repo_name = origin.url.split(":")[1].split("/")[1][:-4]
+            repo_user = re.split('/|:|.git',origin.url)[-3]
+            repo_name = re.split('/|:|.git',origin.url)[-2]
             repo_url = f"https://github.com/{repo_user}/{repo_name}/"
             pages_url = f"https://{repo_user}.github.io/{repo_name}/"
         except:
