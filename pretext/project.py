@@ -379,7 +379,7 @@ class Project():
             nojekyll=True
         )
         log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
-        log.info("(Your SSH password may be required.)")
+        # log.info("(Your SSH password may be required.)")
         log.info("")
         try:
             repo_user = re.split('/|:|.git',origin.url)[-3]
