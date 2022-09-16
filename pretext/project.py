@@ -1,3 +1,4 @@
+import re
 from lxml import etree as ET
 from lxml.etree import Element
 import os, shutil
@@ -383,8 +384,8 @@ class Project():
         log.info("(Your SSH password may be required.)")
         log.info("")
         try:
-            repo_user = origin.url.split(":")[1].split("/")[0]
-            repo_name = origin.url.split(":")[1].split("/")[1][:-4]
+            repo_user = re.split('/|:|.git',origin.url)[-3]
+            repo_name = re.split('/|:|.git',origin.url)[-2]
             repo_url = f"https://github.com/{repo_user}/{repo_name}/"
             pages_url = f"https://{repo_user}.github.io/{repo_name}/"
         except:
