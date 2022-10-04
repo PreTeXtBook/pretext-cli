@@ -30,25 +30,18 @@ jobs:
         shell: bash
         run: python -m poetry install
 
-  check:
-    needs: setup
-    steps:
+
       - name: Run prep-nightly script 
         run: |
           echo "Updating core commit and version; building"
-          python scrpts/prep_nightly.py
+          python scripts/prep_nightly.py
           echo "Finished steps to prep nightly deployment"
 
-  test:
-    needs: check
-    steps:
       - name: Test with pytest
         run: |
           python -m poetry run pytest -v
 
-  deploy:
-    needs: test
-    steps:
+
       - name: Publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
