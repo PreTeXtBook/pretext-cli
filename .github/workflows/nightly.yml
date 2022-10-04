@@ -20,20 +20,38 @@ jobs:
           python-version: 3.8.5
 
       # Setup poetry
-      - name: Install poetry 1.1.13
+      - name: Install poetry
         run: |
           python -m ensurepip
           python -m pip install --upgrade pip
-          python -m pip install poetry==1.1.13
+          python -m pip install poetry
 
       - name: Install dependencies
         shell: bash
         run: python -m poetry install
 
-      - name: Run deploy-nightly script 
+  check:
+    needs: setup
+    steps:
+      - name: Run prep-nightly script 
+        run: |
+          echo "Updating core commit and version; building"
+          python scrpts/prep_nightly.py
+          echo "Finished steps to prep nightly deployment"
+
+  test:
+    needs: check
+    steps:
+      - name: Test with pytest
+        run: |
+          python -m poetry run pytest -v
+
+  deploy:
+    needs: test
+    steps:
+      - name: Publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry run python scripts/release_nightly.py
-          echo "All done"
+          poetry publish
