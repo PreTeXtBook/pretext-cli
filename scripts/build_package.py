@@ -1,7 +1,8 @@
-import subprocess, pretext
+import subprocess
 import fetch_core, zip_templates
 
 def main():
+    import pretext
     print(f"Building package for version {pretext.VERSION}.")
 
     # ensure up-to-date "static" resources
