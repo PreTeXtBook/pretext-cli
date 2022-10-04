@@ -44,7 +44,7 @@ def main():
     for line in fileinput.input(Path(__file__).parent.parent/"pyproject.toml", inplace=True):
       if 'version' in line:
         version = str(line.split('"')[1])
-        newversion = version+"-dev."+datetime.now().strftime('%Y%m%d%H%M%S')
+        newversion = version+".dev"+datetime.now().strftime('%Y%m%d%H%M%S')
         print(line.replace(line, f'version = "{newversion}"'.rstrip()))
       else:
         print(line.rstrip())
