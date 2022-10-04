@@ -34,7 +34,7 @@ jobs:
       - name: Run prep-nightly script 
         run: |
           echo "Updating core commit and version; building"
-          python scripts/prep_nightly.py
+          poetry run python scripts/prep_nightly.py
           echo "Finished steps to prep nightly deployment"
 
       - name: Test with pytest
