@@ -1,11 +1,10 @@
-import subprocess, pretext
-import build_package
+import subprocess
 from pathlib import Path
 from urllib.request import urlopen
 import json
 from datetime import datetime
 import fileinput
-# import toml
+import pytest
 import tomli
 
 def commit_data(repo):
@@ -25,7 +24,7 @@ def should_release(coredate,clidate):
         print(f"There has been an update to the CLI in the last 24 hours, at {clidate}")
         return True
     else:
-        return False
+        return True
 
 def main():
     last_core_commit = commit_data('pretext')
@@ -47,31 +46,33 @@ def main():
     for line in fileinput.input(Path(__file__).parent.parent/"pyproject.toml", inplace=True):
       if 'version' in line:
         version = str(line.split('"')[1])
-        newversion = version+".dev"+datetime.now().strftime('%Y%m%d-%H%M%S')
+        newversion = version+"-dev."+datetime.now().strftime('%Y%m%d%H%M%S')
         print(line.replace(line, f'version = "{newversion}"'.rstrip()))
       else:
         print(line.rstrip())
-    return    
-    # data = toml.load("pyproject.toml")
-    # print(data['tool']['poetry']['version'])
-
+    
+    # Need to wait to import build_package until now so it gets the updated version CORE_COMMIT and version.
+    import build_package
     build_package.main()
 
-    print(f"Publishing alpha {pretext.VERSION}")
+    # Test package before deploying
+    try:
+        retcode = pytest.main()
+        if retcode != 0:
+            print(retcode)
+            raise
+        else:
+            print("Tests all passed")
+    except:
+        print("Tests did not pass.  Exiting.")
+        return
 
-    # Publish alpha
+    import pretext
+    print(f"Publishing nightly dev version {pretext.VERSION}")
+
+    # Publish nightly
     subprocess.run(["poetry", "publish"], shell=True)
 
-    # Tag + push
-    tag = repo.create_tag(f"v{pretext.VERSION}")
-    repo.remotes.origin.push(tag.path)
-
-    # Bump alpha version
-    subprocess.run(["poetry", "version", "prerelease"], shell=True)
-    # Add/commit/push change
-    repo.git.add("pyproject.toml")
-    repo.index.commit("Bump version to new alpha")
-    repo.remotes.origin.push()
 
 if __name__ == '__main__':
     main()
