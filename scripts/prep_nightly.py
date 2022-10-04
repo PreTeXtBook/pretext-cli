@@ -42,9 +42,9 @@ def main():
 
     # Update version (temporarily) in pyproject.toml:
     for line in fileinput.input(Path(__file__).parent.parent/"pyproject.toml", inplace=True):
-      if 'version' in line:
+      if line.startswith("version"):
         version = str(line.split('"')[1])
-        newversion = version+".dev"+datetime.now().strftime('%Y%m%d%H%M%S')
+        newversion = version+".dev"+datetime.now().strftime('%Y%m%d')
         print(line.replace(line, f'version = "{newversion}"'.rstrip()))
       else:
         print(line.rstrip())
