@@ -1,0 +1,41 @@
+name: deploy-nightly
+
+on:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '00 6 * * *'  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+      
+      # Sets up python3
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8.5
+
+      # Setup poetry
+      - name: Install poetry 1.1.13
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+          python -m pip install poetry==1.1.13
+
+      - name: View poetry --help
+        run: poetry --help
+
+      - name: Install dependencies
+        shell: bash
+        run: python -m poetry install
+
+      - name: Run deploy-nightly script 
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry run python scripts/deploy_nightly.py
