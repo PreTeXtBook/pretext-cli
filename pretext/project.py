@@ -274,7 +274,7 @@ class Project():
         if gen_all or "webwork" in asset_list:
             webwork_output = target.generated_dir()/'webwork'
             generate.webwork(
-                target.source(), target.publication(), webwork_output, target.stringparams()
+                target.source(), target.publication(), webwork_output, target.stringparams(), xmlid,
             )
         if gen_all or "latex-image" in asset_list:
             generate.latex_image(
