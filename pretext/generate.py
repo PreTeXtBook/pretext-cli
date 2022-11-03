@@ -220,10 +220,10 @@ def webwork(ptxfile:Path, pub_file:Path, output:Path, params, xmlid_root=None):
                     xml_source=ptxfile,
                     pub_file=pub_file.as_posix(),
                     stringparams=params,
+                    xmlid_root=xmlid_root,
                     abort_early=True,
                     dest_dir=ww_output.as_posix(),
                     server_params=None,
-                    xmlid_root=xmlid_root,
                 )
             except Exception as e:
                 log.error(e)
