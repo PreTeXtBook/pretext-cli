@@ -29,7 +29,7 @@ python -V
 ```
 
 If your version is 2.x, try this instead
-(and if so, either replace all future references to `python`
+(and if so, replace all future references to `python`
 in these instructions with `python3`).
 
 ```
@@ -52,7 +52,7 @@ run (replacing `python` with `python3` if necessary):
 python -m pip install --user pretext
 ```
 
-(It's also possible you may get an error like 
+(It's possible you will get an error like 
 `error: invalid command 'bdist_wheel'`
 — good news, you can ignore it!)
 
