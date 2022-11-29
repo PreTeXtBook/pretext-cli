@@ -382,13 +382,21 @@ class Project():
         # log.info("(Your SSH password may be required.)")
         log.info("")
         try:
-            repo_user = re.split('/|:|.git',origin.url)[-3]
-            repo_name = re.split('/|:|.git',origin.url)[-2]
+            if not(origin.url.endswith('.git')):
+                origin.url = origin.url + '.git'
+            repo_user = re.split('/|:|.git$',origin.url)[-3]
+            repo_name = re.split('/|:|.git$',origin.url)[-2]
             repo_url = f"https://github.com/{repo_user}/{repo_name}/"
-            pages_url = f"https://{repo_user}.github.io/{repo_name}/"
+            print(repo_url)
+            # Set pages_url depending on whether project is base pages for the user or a separate repo
+            if 'github.io' in repo_name:
+                pages_url = f"https://{repo_name}/"
+            else:
+                pages_url = f"https://{repo_user}.github.io/{repo_name}/"
         except:
-            repo_url = f"(unable to find GitHub URL from {origin.url})"
-            pages_url = f"(unable to find GitHub Pages URL from {origin.url})"
+            log.error(f"(unable to find GitHub URL from {origin.url})")
+            log.error("Deploy unsuccessful")
+            return
         try:
             origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
             origin.push(refspec=f"gh-pages:gh-pages")
