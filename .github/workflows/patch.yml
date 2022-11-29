@@ -89,5 +89,5 @@ jobs:
         run: |
           # Stage the file, commit and push
           git add pyproject.toml
-          git commit -m "bump version to next patch level for nightlies"
+          git commit -m "bump version to next patch level for nightly releases"
           git push origin main
