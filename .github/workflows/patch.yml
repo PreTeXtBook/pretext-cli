@@ -76,7 +76,7 @@ jobs:
           poetry config pypi-token.pypi $PYPI_TOKEN
           poetry publish --build
       
-      - name: Update version
+      - name: Update version for next dev release
         run: poetry version patch
       
       - name: setup git config

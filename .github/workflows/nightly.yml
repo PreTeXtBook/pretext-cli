@@ -8,7 +8,43 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
+  test:
+    name: Run tests
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+        poetry-version: ['1.1.13']
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install poetry ${{ matrix.poetry-version }}
+      run: |
+        python -m ensurepip
+        python -m pip install --upgrade pip
+        python -m pip install poetry==${{ matrix.poetry-version }}
+
+    - name: Install dependencies
+      shell: bash
+      run:  |
+        python -m poetry install
+        python -m poetry run python scripts/fetch_core.py
+        python -m poetry run python scripts/zip_templates.py
+
+    - name: Test with pytest
+      run: |
+        python -m poetry run pytest -v
+
+  deploy:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -36,11 +72,6 @@ jobs:
           echo "Updating core commit and version; building"
           poetry run python scripts/prep_nightly.py
           echo "Finished steps to prep nightly deployment"
-
-      - name: Test with pytest
-        run: |
-          python -m poetry run pytest -v
-
 
       - name: Publish
         env:
