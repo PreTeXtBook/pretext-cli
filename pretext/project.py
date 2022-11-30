@@ -222,6 +222,9 @@ class Project():
             log.info(f'Building with custom xsl {target.xsl_path()} specified in project.ptx')
             utils.copy_custom_xsl(target.xsl_path(), temp_xsl_path)
             custom_xsl = temp_xsl_path/target.xsl_path().name
+        # warn if "publisher" is one of the string-param keys:
+        if 'publisher' in target.stringparams():
+            log.warning('You specified a publication file via a stringparam.  This is ignored in favor of the publication file given by the <publication> element in the project manifest.')
         log.info(f"Preparing to build into {target.output_dir()}.")
         try:
             if (target.format()=='html' or target.format()=='html-zip'):
