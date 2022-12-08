@@ -45,6 +45,8 @@ jobs:
         python -m poetry run pytest -v
 
   deploy:
+    needs: test
+    name: Deploy to pypi
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
