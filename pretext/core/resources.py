@@ -1,6 +1,8 @@
 from pathlib import Path
-import zipfile, importlib.resources
+import zipfile
+import importlib.resources
 from .. import CORE_COMMIT
+
 
 def path(*args) -> Path:
     # Checks that the local static path ~/.ptx/ contains the static files needed for core, and installs them if they are missing (or if the version is different from the installed version of pretext).  Then returns the absolute path to the static files (appending arguments)
@@ -17,12 +19,14 @@ def path(*args) -> Path:
         install(local_base_path)
     return local_base_path.joinpath(*args)
 
+
 def install(local_base_path):
-    with importlib.resources.path("pretext.core","resources.zip") as static_zip:
-        with zipfile.ZipFile(static_zip,"r") as zip:
+    with importlib.resources.path("pretext.core", "resources.zip") as static_zip:
+        with zipfile.ZipFile(static_zip, "r") as zip:
             zip.extractall(local_base_path)
     # Write the current commit to local file
-    with open(local_base_path/".commit","w") as f:
+    with open(local_base_path/".commit", "w") as f:
         f.write(CORE_COMMIT)
-    print(f"Static files required for pretext have now been installed to {local_base_path}")
+    print(
+        f"Static files required for pretext have now been installed to {local_base_path}")
     return

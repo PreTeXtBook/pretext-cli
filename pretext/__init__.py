@@ -28,6 +28,6 @@ def activate():
     we were allowed to adopt this namespace as of 1.0, so we raise an error here
     to help anyone who might have upgraded from the original package.
     """
-    raise RuntimeError("As of version 1.0, the `pretext` PyPI package has been "+
-        "transferred to PreTeXtBook.org. Install a <1.0 version to use the "+
-        "pretext.activate() feature from the original `pretext` package.")
+    raise RuntimeError("As of version 1.0, the `pretext` PyPI package has been " +
+                       "transferred to PreTeXtBook.org. Install a <1.0 version to use the " +
+                       "pretext.activate() feature from the original `pretext` package.")

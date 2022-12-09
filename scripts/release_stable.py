@@ -1,11 +1,14 @@
-import subprocess, git, sys
+import subprocess
+import git
+import sys
 from pathlib import Path
 import tomli
 import build_package
 
+
 def main(level='patch'):
     repo = git.Repo()
-    if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
+    if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
         raise Exception("Must commit outstanding changes to project source.")
 
     # Bump stable version
@@ -34,6 +37,7 @@ def main(level='patch'):
     repo.index.commit("Bump version to new alpha")
     repo.remotes.origin.push()
     repo.remotes.origin.push(tag.path)
+
 
 if __name__ == '__main__':
     try:

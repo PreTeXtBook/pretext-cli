@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 from pretext import utils
 
-def test_working_directory(tmp_path:Path):
+
+def test_working_directory(tmp_path: Path):
     os.chdir(tmp_path)
     subdir = Path('foobar')
     subdir.mkdir()
@@ -11,7 +12,8 @@ def test_working_directory(tmp_path:Path):
         assert Path().resolve().parent == tmp_path.resolve()
     # TODO check path returns afterward
 
-def test_project_path(tmp_path:Path):
+
+def test_project_path(tmp_path: Path):
     os.chdir(tmp_path)
     Path('project.ptx').write_text("")
     assert Path('project.ptx').exists()
@@ -21,4 +23,3 @@ def test_project_path(tmp_path:Path):
     subdir.mkdir()
     os.chdir(subdir)
     assert utils.project_path().resolve() == Path().resolve().parent
-

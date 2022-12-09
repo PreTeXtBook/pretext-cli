@@ -1,5 +1,7 @@
 import subprocess
-import fetch_core, zip_templates
+import fetch_core
+import zip_templates
+
 
 def main():
     import pretext
@@ -12,6 +14,7 @@ def main():
     # Build package
     subprocess.run(["poetry", "build"], shell=True)
     print("Completed poetry build of pretext")
+
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,8 @@
-import shutil, glob, tempfile
+import shutil
+import glob
+import tempfile
 from pathlib import Path
+
 
 def main():
     static_template_path = Path('pretext')/'templates'/'resources'
@@ -15,7 +18,8 @@ def main():
                     temporary_path,
                     dirs_exist_ok=True,
                 )
-                template_files = ['project.ptx', '.gitignore', 'codechat_config.yaml']
+                template_files = ['project.ptx',
+                                  '.gitignore', 'codechat_config.yaml']
                 for template_file in template_files:
                     copied_template_file = temporary_path/template_file
                     if not copied_template_file.is_file():
@@ -29,15 +33,16 @@ def main():
                     'zip',
                     temporary_path,
                 )
-    for f in ['project.ptx','publication.ptx','.gitignore']:
+    for f in ['project.ptx', 'publication.ptx', '.gitignore']:
         shutil.copyfile(
             Path('templates')/f,
             static_template_path/f
         )
-    with open(static_template_path/"__init__.py","w") as _:
+    with open(static_template_path/"__init__.py", "w") as _:
         pass
 
     print(f'Templates successfully zipped into `{static_template_path}`.')
+
 
 if __name__ == '__main__':
     main()
