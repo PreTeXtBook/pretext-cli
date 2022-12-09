@@ -175,6 +175,12 @@ with this command.
 poetry install
 ```
 
+Before you attempt to run `pretext` locally, you must fetch a copy of the core pretext library by running
+
+```
+python scripts/fetch_core.py
+```
+
 Then to use the in-development package, you can either enter a poetry shell:
 
 ```
