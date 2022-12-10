@@ -3,6 +3,28 @@ import typing as t
 from lxml import etree as ET
 
 
+def remove_single_newlines(string: str) -> str:
+    import re
+
+    lines = (re.sub(r"\s+", " ", l).strip() for l in string.splitlines())
+    return " ".join(l if l else "\n\n" for l in lines)
+
+
+USAGE_DESCRIPTION = remove_single_newlines(
+    """
+    Override an entry in the project.ptx file. Entries are specified as `path` and `value`.
+    Paths are `.`-separated. For example, the path of the `<c>` node in `<a><b><c>...` is
+    `a.b.c`.
+
+    Attributes can be overridden providing `path@attribute_name` and `value`. For example,
+    to override the `foo` attribute in `<a><b><c foo="bar">...` use `a.b.c@foo`.
+
+    Example, to over add/override custom xsl, you could run
+    `pretext build {} targets.target.xsl custom.xsl`
+"""
+)
+
+
 class ShadowXmlNodeType(t.TypedDict):
     name: t.Union[str, None]
     value: t.Union[str, None]

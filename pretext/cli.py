@@ -15,7 +15,7 @@ import tempfile
 import shutil
 import platform
 from pathlib import Path
-from typing import Optional
+import typing as t
 import atexit
 from .config import xml_overlay
 
@@ -347,15 +347,9 @@ ASSETS = [
     "--project-ptx-override",
     type=(str, str),
     multiple=True,
-    help="Override an entry in the project.ptx file. "
-    "Entries are specified as `path value` space-separated strings, or `path@attribute value` space-separated strings. "
-    "Paths reference elements in the `project.ptx` XML tree. They are "
-    ".-separated. E.g. `a.b.c` refers to the `c` node in `<a><b><c>...`."
-    "Attributes are specified by supplying an `@attr_name` at the end of a path. "
-    "\n\n"
-    "For example, to over add/override custom xsl, you could run `pretext build -P targets.target.xsl custom.xsl`",
+    help=xml_overlay.USAGE_DESCRIPTION.format("-P"),
 )
-def build(target, clean, generate, project_ptx_override):
+def build(target, clean, generate, project_ptx_override: t.Tuple[str, str]):
     """
     Build [TARGET] according to settings specified by project.ptx.
 
@@ -430,8 +424,19 @@ def build(target, clean, generate, project_ptx_override):
     default=False,
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
+@click.option(
+    "-P",
+    "--project-ptx-override",
+    type=(str, str),
+    multiple=True,
+    help=xml_overlay.USAGE_DESCRIPTION.format("-P"),
+)
 def generate(
-    assets: str, target: Optional[str], all_formats: bool, xmlid: Optional[str]
+    assets: str,
+    target: t.Optional[str],
+    all_formats: bool,
+    xmlid: t.Optional[str],
+    project_ptx_override: t.Tuple[str, str],
 ):
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
@@ -445,7 +450,16 @@ def generate(
     """
     if utils.no_project(task="generate assets for"):
         return
+
+    overlay = xml_overlay.ShadowXmlDocument()
+    for path, value in project_ptx_override:
+        overlay.upsert_node_or_attribute(path, value)
+
     project = Project()
+    if len(project_ptx_override) > 0:
+        messages = project.apply_overlay(overlay)
+        for message in messages:
+            log.info("project.ptx overlay " + message)
     target_name = target
     target = project.target(name=target_name)
     if target_name == None:
@@ -556,11 +570,11 @@ def generate(
 def view(
     target: str,
     access: str,
-    port: Optional[int],
+    port: t.Optional[int],
     directory: str,
     watch: bool,
     build: bool,
-    generate: Optional[str],
+    generate: t.Optional[str],
     no_launch: bool,
 ):
     """
