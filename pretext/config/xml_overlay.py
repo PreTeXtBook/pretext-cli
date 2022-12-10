@@ -4,8 +4,8 @@ from lxml import etree as ET
 
 
 class ShadowXmlNodeType(t.TypedDict):
-    name: str | None
-    value: str | None
+    name: t.Union[str, None]
+    value: t.Union[str, None]
     attributes: t.List[t.Tuple[str, str]]
 
 
@@ -21,7 +21,7 @@ class ShadowXmlDocument:
     def __init__(self):
         self._nodes_dict: t.Dict[str, ShadowXmlNodeType] = {}
 
-    def upsert_node_or_attribute(self, path: str, value: str | None):
+    def upsert_node_or_attribute(self, path: str, value: t.Union[str, None]):
         """
         Upserts a node into the shadow document.
 
