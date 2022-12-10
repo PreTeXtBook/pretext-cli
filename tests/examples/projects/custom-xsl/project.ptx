@@ -11,14 +11,7 @@
       <source>source/main.ptx</source>
       <publication>publication/publication.ptx</publication>
       <output-dir>output/test</output-dir>
-      <xsl>xsl/custom.xs</xsl>
-    </target>
-    <target name="test2">
-      <format>html</format>
-      <source>source/main.ptx</source>
-      <publication>publication/publication.ptx</publication>
-      <output-dir>output/test2</output-dir>
-      <xsl>xsl/custom.xs</xsl>
+      <xsl>xsl/custom.xsl</xsl>
     </target>
   </targets>
   <executables>
