@@ -5,6 +5,7 @@ import zip_templates
 
 def main():
     import pretext
+
     print(f"Building package for version {pretext.VERSION}.")
 
     # ensure up-to-date "static" resources
@@ -16,5 +17,5 @@ def main():
     print("Completed poetry build of pretext")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
