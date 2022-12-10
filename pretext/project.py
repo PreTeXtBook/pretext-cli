@@ -11,6 +11,8 @@ from pathlib import Path
 import sys
 from typing import Optional
 import webbrowser
+from .config.xml_overlay import ShadowXmlDocument
+import typing as t
 
 log = logging.getLogger('ptxlogger')
 
@@ -130,6 +132,13 @@ class Project():
         self.__project_path = project_path
         # prepre core PreTeXt python scripts
         self.init_ptxcore()
+
+    def apply_overlay(self, overlay: ShadowXmlDocument):
+        """
+        Modify the internal data structure of the `project.ptx` XML tree by applying the supplied overlay.
+        This modification happens in-memory only.
+        """
+        return overlay.overlay_tree(self.__xml_element)
 
     def xml_element(self) -> Element:
         return self.__xml_element

@@ -17,6 +17,7 @@ import platform
 from pathlib import Path
 from typing import Optional
 import atexit
+from .config import xml_overlay
 
 from . import utils, templates, core, VERSION, CORE_COMMIT
 from .project import Project
@@ -278,7 +279,15 @@ ASSETS = ['ALL', 'webwork', 'latex-image', 'sageplot',
     '-g', '--generate', is_flag=False, flag_value="ALL", default=None,
     type=click.Choice(ASSETS, case_sensitive=False),
     help='Generates assets for target.  -g [asset] will generate the specific assets given.')
-def build(target, clean, generate):
+@click.option("-P", '--project-ptx-override',  type=(str, str), multiple=True, help="Override an entry in the project.ptx file. "
+              "Entries are specified as `path value` space-separated strings, or `path@attribute value` space-separated strings. "
+              "Paths reference elements in the `project.ptx` XML tree. They are "
+              ".-separated. E.g. `a.b.c` refers to the `c` node in `<a><b><c>...`."
+              "Attributes are specified by supplying an `@attr_name` at the end of a path. "
+              "\n\n"
+              'For example, to over add/override custom xsl, you could run `pretext build -P targets.target.xsl custom.xsl`'
+              )
+def build(target, clean, generate, project_ptx_override):
     """
     Build [TARGET] according to settings specified by project.ptx.
 
@@ -292,10 +301,19 @@ def build(target, clean, generate):
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+
+    overlay = xml_overlay.ShadowXmlDocument()
+    for path, value in project_ptx_override:
+        overlay.upsert_node_or_attribute(path, value)
+
     target_name = target
     if utils.no_project(task="build"):
         return
     project = Project()
+    if len(project_ptx_override) > 0:
+        messages = project.apply_overlay(overlay)
+        for message in messages:
+            log.info("project.ptx overlay " + message)
     target = project.target(name=target_name)
     if target_name is None:
         log.info(
@@ -318,6 +336,7 @@ def build(target, clean, generate):
         log.warning(
             "To generate these assets before building, run `pretext build -g`.")
     project.build(target.name(), clean)
+
 
 # pretext generate
 
