@@ -28,7 +28,7 @@ jobs:
 
     - name: Check formatting with black
       run: |
-        python -m poetry run black --check --diff $(git ls-files |grep -e "\.py$")
+        python -m poetry run black --check --diff $(git ls-files "*.py")
 
   build:
     strategy:
