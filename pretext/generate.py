@@ -177,7 +177,7 @@ def asymptote(
                         stringparams=params,
                         xmlid_root=xmlid_root,
                         dest_dir=image_output.as_posix(),
-                        outformat=outformat ,
+                        outformat=outformat,
                         method="server",
                     )
             except Exception as e:
