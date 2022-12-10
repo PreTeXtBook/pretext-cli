@@ -10,4 +10,5 @@ def resource_path(filename: str) -> Path:
         # do things
     """
     from . import resources
+
     return importlib.resources.path(resources, filename)

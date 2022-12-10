@@ -25,7 +25,7 @@ class ShadowXmlDocument:
         """
         Upserts a node into the shadow document.
 
-        @path - A string representing the path of the node/attribute. For example, `a.b.c` would be nested `<a><b><c>...` nodes. 
+        @path - A string representing the path of the node/attribute. For example, `a.b.c` would be nested `<a><b><c>...` nodes.
                 `a.b@c` would be an attribute named `c` on the `b` node. E.g. `<a><b c="...">...`
         @value - The (string) value of the node/attribute.
         """
@@ -34,17 +34,20 @@ class ShadowXmlDocument:
         if "@" in path:
             if len(path.split("@")) > 2:
                 raise Exception(
-                    "Cannot have multiple `@` characters in a ShadowXmlDocument path")
+                    "Cannot have multiple `@` characters in a ShadowXmlDocument path"
+                )
             path, attr_name = path.split("@")
 
             node = self._nodes_dict.get(
-                path, {"name": None, "value": None, "attributes": []})
+                path, {"name": None, "value": None, "attributes": []}
+            )
             node["attributes"].append((attr_name, value))
             self._nodes_dict[path] = node
             # all other paths correspond to nodes and values
         else:
             node = self._nodes_dict.get(
-                path, {"name": None, "value": None, "attributes": []})
+                path, {"name": None, "value": None, "attributes": []}
+            )
             node["value"] = value
             self._nodes_dict[path] = node
         return self
@@ -59,7 +62,11 @@ class ShadowXmlDocument:
 
         ret: t.List[str] = []
 
-        def upsert_node(path: t.List[str], current: ET.Element = root, current_path: t.List[str] = []) -> t.List[ET.Element]:
+        def upsert_node(
+            path: t.List[str],
+            current: ET.Element = root,
+            current_path: t.List[str] = [],
+        ) -> t.List[ET.Element]:
             if len(path) == 0:
                 return [current]
             needed_tag = path[0]
@@ -68,19 +75,19 @@ class ShadowXmlDocument:
 
             # Find all matching tags. If none are found, we create one.
             # If any are found we recurse down _every_ instance of a found tag
-            matching_elms = [
-                elm for elm in current if elm.tag == needed_tag]
+            matching_elms = [elm for elm in current if elm.tag == needed_tag]
             if len(matching_elms) == 0:
                 # if we're here, there was no node with the correct tag name, so we add one.
                 new_node = ET.Element(needed_tag)
                 current.append(new_node)
-                ret.append("NODE_ADDED with XML path {}".format(
-                    ".".join(current_path)))
+                ret.append("NODE_ADDED with XML path {}".format(".".join(current_path)))
                 return upsert_node(path, new_node, current_path)
 
             # There was one or more tags with the correct name;
             # Concatenate all target nodes that are found.
-            return sum((upsert_node(path, node, current_path) for node in matching_elms), [])
+            return sum(
+                (upsert_node(path, node, current_path) for node in matching_elms), []
+            )
 
         for path, node in sorted(self._nodes_dict.items()):
             split_path = path.split(".")
@@ -91,18 +98,24 @@ class ShadowXmlDocument:
                     if old_val is not None:
                         if old_val != val:
                             ret.append(
-                                f"ATTRIBUTE_CHANGED '{old_val}' to '{val}' at XML path '{path}'")
+                                f"ATTRIBUTE_CHANGED '{old_val}' to '{val}' at XML path '{path}'"
+                            )
                     else:
-                        ret.append(
-                            f"ATTRIBUTE_ADDED '{val}' at XML path '{path}'")
+                        ret.append(f"ATTRIBUTE_ADDED '{val}' at XML path '{path}'")
                     xml_node.set(attr, val)
                 if node["value"] is not None:
                     if xml_node.text is not None:
-                        ret.append("TEXT_CHANGED '{}' to '{}' at XML path '{}'".format(
-                            repr(xml_node.text), repr(node["value"]), path))
+                        ret.append(
+                            "TEXT_CHANGED '{}' to '{}' at XML path '{}'".format(
+                                repr(xml_node.text), repr(node["value"]), path
+                            )
+                        )
                     else:
-                        ret.append("TEXT_ADDED '{}' at XML path '{}'".format(
-                            repr(node["value"]), path))
+                        ret.append(
+                            "TEXT_ADDED '{}' at XML path '{}'".format(
+                                repr(node["value"]), path
+                            )
+                        )
                     xml_node.text = node["value"]
 
         return ret
@@ -110,8 +123,7 @@ class ShadowXmlDocument:
     def __repr__(self) -> str:
         node_repr = []
         for path, node in self._nodes_dict.items():
-            attrs = " ".join(f"{key}=\"{val}\"" for key,
-                             val in node["attributes"])
+            attrs = " ".join(f'{key}="{val}"' for key, val in node["attributes"])
             value = "" if node["value"] is None else node["value"]
             node_repr.append(f"""<{path} {attrs}>{value}</>""")
-        return "ShadowXmlDocument:"+"\n".join(sorted(node_repr))
+        return "ShadowXmlDocument:" + "\n".join(sorted(node_repr))
