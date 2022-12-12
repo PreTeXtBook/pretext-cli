@@ -175,6 +175,12 @@ with this command.
 poetry install
 ```
 
+Before you attempt to run `pretext` locally, you must fetch a copy of the core pretext library by running
+
+```
+python scripts/fetch_core.py
+```
+
 Then to use the in-development package, you can either enter a poetry shell:
 
 ```
@@ -250,6 +256,17 @@ running:
 
 ```
 poetry run python scripts/zip_templates.py
+```
+
+### Formatting code before a commit
+
+All `.py` files are formatted with the `black` python formatter. Proper formatting
+is enforced by checks in the Continuous Integration framework. Before you commit code,
+you should make sure it is formatted with `black` by running the following command (on linux or mac)
+from the _root_ project folder (most likely `pretext-cli`).
+
+```
+poetry run black $(git ls-files "*.py")
 ```
 
 ### Testing
