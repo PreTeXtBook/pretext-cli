@@ -1,9 +1,12 @@
-import subprocess, pretext, git
+import subprocess
+import pretext
+import git
 import build_package
+
 
 def main():
     repo = git.Repo()
-    if repo.bare or repo.is_dirty() or len(repo.untracked_files)>0:
+    if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
         raise Exception("Must commit outstanding changes to project source.")
 
     build_package.main()
@@ -24,5 +27,6 @@ def main():
     repo.index.commit("Bump version to new alpha")
     repo.remotes.origin.push()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

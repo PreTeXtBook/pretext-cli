@@ -1,7 +1,8 @@
 from pathlib import Path
 import importlib.resources
 
-def resource_path(filename:str) -> Path:
+
+def resource_path(filename: str) -> Path:
     """
     Returns resource manager
     Usage:
@@ -9,4 +10,5 @@ def resource_path(filename:str) -> Path:
         # do things
     """
     from . import resources
-    return importlib.resources.path(resources,filename)
+
+    return importlib.resources.path(resources, filename)
