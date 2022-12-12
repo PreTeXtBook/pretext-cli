@@ -6,7 +6,7 @@ import tomli
 import build_package
 
 
-def main(level='patch'):
+def main(level="patch"):
     repo = git.Repo()
     if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
         raise Exception("Must commit outstanding changes to project source.")
@@ -19,9 +19,9 @@ def main(level='patch'):
 
     build_package.main()
 
-    with open(Path(__file__).parent.parent/'pyproject.toml', "rb") as f:
+    with open(Path(__file__).parent.parent / "pyproject.toml", "rb") as f:
         toml_dict = tomli.load(f)
-        stable_version = toml_dict['tool']['poetry']['version']
+        stable_version = toml_dict["tool"]["poetry"]["version"]
     print(f"Publishing stable {stable_version}")
 
     # Publish stable
@@ -39,10 +39,10 @@ def main(level='patch'):
     repo.remotes.origin.push(tag.path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         level = sys.argv[1].lower()
     except IndexError:
         level = "patch"
-    assert level in ['major', 'minor', 'patch']
+    assert level in ["major", "minor", "patch"]
     main(level)
