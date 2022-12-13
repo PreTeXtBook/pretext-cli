@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 from typing import Optional
 
-from . import utils, core
+from . import utils, core, codechat
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -39,6 +39,9 @@ def html(
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
                 None,
                 output.as_posix(),
+            )
+            codechat.map_path_to_xml_id(
+                ptxfile, utils.project_path(), output.as_posix()
             )
         except Exception as e:
             log.critical(e)
