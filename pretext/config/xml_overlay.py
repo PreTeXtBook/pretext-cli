@@ -1,16 +1,10 @@
 import click
 import typing as t
 from lxml import etree as ET
+from ..utils import format_docstring_as_help_str
 
 
-def remove_single_newlines(string: str) -> str:
-    import re
-
-    lines = (re.sub(r"\s+", " ", l).strip() for l in string.splitlines())
-    return " ".join(l if l else "\n\n" for l in lines)
-
-
-USAGE_DESCRIPTION = remove_single_newlines(
+USAGE_DESCRIPTION = format_docstring_as_help_str(
     """
     Override an entry in the project.ptx file. Entries are specified as `path` and `value`.
     Paths are `.`-separated. For example, the path of the `<c>` node in `<a><b><c>...` is

@@ -343,11 +343,11 @@ ASSETS = [
     help="Generates assets for target.  -g [asset] will generate the specific assets given.",
 )
 @click.option(
-    "-P",
+    "-p",
     "--project-ptx-override",
     type=(str, str),
     multiple=True,
-    help=xml_overlay.USAGE_DESCRIPTION.format("-P"),
+    help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
 )
 def build(target, clean, generate, project_ptx_override: t.Tuple[str, str]):
     """
@@ -425,11 +425,11 @@ def build(target, clean, generate, project_ptx_override: t.Tuple[str, str]):
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
 @click.option(
-    "-P",
+    "-p",
     "--project-ptx-override",
     type=(str, str),
     multiple=True,
-    help=xml_overlay.USAGE_DESCRIPTION.format("-P"),
+    help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
 )
 def generate(
     assets: str,

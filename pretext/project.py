@@ -9,7 +9,6 @@ from . import utils, generate, core
 from . import build as builder
 from pathlib import Path
 import sys
-from typing import Optional
 import webbrowser
 from .config.xml_overlay import ShadowXmlDocument
 import typing as t
@@ -72,7 +71,7 @@ class Target:
         ele_tree.xinclude()
         return ele_tree.getroot()
 
-    def external_dir(self) -> Optional[Path]:
+    def external_dir(self) -> t.Optional[Path]:
         dir_ele = self.publication_xml().find("source/directories")
         if dir_ele is None:
             log.error("Publication file does not specify asset directories.")
@@ -80,7 +79,7 @@ class Target:
         rel_dir = dir_ele.get("external")
         return self.source_dir() / rel_dir
 
-    def generated_dir(self) -> Optional[Path]:
+    def generated_dir(self) -> t.Optional[Path]:
         dir_ele = self.publication_xml().find("source/directories")
         if dir_ele is None:
             log.error("Publication file does not specify asset directories.")
@@ -94,7 +93,7 @@ class Target:
             / self.xml_element().find("output-dir").text.strip()
         ).resolve()
 
-    def output_filename(self) -> Optional[str]:
+    def output_filename(self) -> t.Optional[str]:
         if self.xml_element().find("output-filename") is None:
             return None
         else:
@@ -113,7 +112,7 @@ class Target:
             for sp_ele in self.xml_element().xpath("stringparam")
         }
 
-    def xsl_path(self) -> Optional[Path]:
+    def xsl_path(self) -> t.Optional[Path]:
         if self.xml_element().find("xsl") is not None:
             return (
                 Path(self.__project_path) / self.xml_element().find("xsl").text.strip()
