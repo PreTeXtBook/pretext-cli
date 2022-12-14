@@ -50,7 +50,7 @@ class ShadowXmlDocument:
         if "@" in path:
             if len(path.split("@")) > 2:
                 raise Exception(
-                    "Cannot have multiple `@` characters in a ShadowXmlDocument path"
+                    "Cannot have multiple `@` characters in a ShadowXmlDocument path."
                 )
             path, attr_name = path.split("@")
 
