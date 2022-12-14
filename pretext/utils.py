@@ -463,3 +463,17 @@ def exit_command(mh):
         sys.exit(1)
     else:
         print("")
+
+
+def format_docstring_as_help_str(string: str) -> str:
+    """
+    Formats a docstring so that it is suitable to pass in as a help string
+    in the `click` library.
+
+    Specifically, this function removes leading whitespace and single newlines.
+    However, double newlines are preserved.
+    """
+    import re
+
+    lines = (re.sub(r"\s+", " ", l).strip() for l in string.splitlines())
+    return " ".join(l if l else "\n\n" for l in lines)
