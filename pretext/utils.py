@@ -1,5 +1,5 @@
 from asyncio import subprocess
-import os, random_package
+import os
 import glob
 import random
 import json
@@ -201,6 +201,8 @@ def binding_for_access(access="private"):
     else:
         return "localhost"
 
+def too_wide_indentation(foo="bar"   ):
+        return "lol"
 
 def url_for_access(access="private", port=8000):
     if cocalc_project_id() is not None:
