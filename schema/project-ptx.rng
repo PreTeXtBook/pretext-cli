@@ -68,6 +68,9 @@ PreTeXt project. Often called `publication.ptx`</a:documentation>
               <name>output-dir</name>
               <a:documentation>Relative or absolute path to the folder you wish to output compiled files to.</a:documentation>
               <name>xmlid-root</name>
+              <name>xsl</name>
+              <a:documentation>Relative or absolute path to custom XSL files</a:documentation>
+              <name>output-filename</name>
             </choice>
             <text/>
           </element>
@@ -94,6 +97,8 @@ These parameters are rarely used by content authors.</a:documentation>
             <name>pdfeps</name>
             <name>node</name>
             <name>liblouis</name>
+            <name>pdfcrop</name>
+            <name>pageres</name>
           </choice>
           <text/>
         </element>
@@ -111,6 +116,8 @@ These parameters are rarely used by content authors.</a:documentation>
         <a:documentation>Generate LaTeX files, but do not compile them</a:documentation>
         <value>epub</value>
         <a:documentation>Generate and ePub file suitable for e-reader devices</a:documentation>
+        <value>custom</value>
+        <a:documentation>Custom build method. Often used with custom XSL</a:documentation>
       </choice>
     </element>
   </define>

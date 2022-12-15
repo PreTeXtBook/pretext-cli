@@ -41,7 +41,10 @@ Target = element target {
 			publication |
 			## Relative or absolute path to the folder you wish to output compiled files to.
 			output-dir |
-			xmlid-root
+			xmlid-root |
+			## Relative or absolute path to custom XSL files
+			xsl |
+			output-filename
 		) { text } |
 		## Parameters that get passed directly to the XSL processing backend.
 		## These parameters are rarely used by content authors.
@@ -59,7 +62,9 @@ Executables = element executables {
 		pdfpng |
 		pdfeps |
 		node |
-		liblouis
+		liblouis |
+		pdfcrop |
+		pageres
 	) { text }*
 }
 
@@ -71,7 +76,9 @@ Format = element format {
 	## Generate LaTeX files, but do not compile them
 	"latex" |
 	## Generate and ePub file suitable for e-reader devices
-	"epub"
+	"epub" |
+	## Custom build method. Often used with custom XSL
+	"custom"
 }
 Stringparam = element stringparam {
 	attribute key { string },
