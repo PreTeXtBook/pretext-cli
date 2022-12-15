@@ -107,4 +107,4 @@ def map_path_to_xml_id(
             path_to_xml_id[str(relpath)].append(xml_id)
 
     # Save the result as a JSON file in the ``dest_dir``.
-    (pathlib.Path(dest_dir) / "mapping.json").write_text(json.dumps(path_to_xml_id))
+    (pathlib.Path(dest_dir) / ".mapping.json").write_text(json.dumps(path_to_xml_id))
