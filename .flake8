@@ -1,0 +1,17 @@
+# ********************************
+# |docname| - Flake8 configuration
+# ********************************
+# See the `docs <https://flake8.pycqa.org/en/latest/user/configuration.html>`_ for more details.
+[flake8]
+# Although there is a `max-doc-length <https://flake8.pycqa.org/en/latest/user/options.html#cmdoption-flake8-max-doc-length>`_, setting this still produces lots of error about long lines, even if those lines are just a comment. The docs on `max-line-length <https://flake8.pycqa.org/en/latest/user/options.html#cmdoption-flake8-max-line-length>`_ states that it applies to ALL lines -- including comments -- unless they contain a URL or a string. So, set this to allow long comments.
+max-line-length = 50000
+
+extend-ignore =
+    # Black formats this differently.
+    E203
+
+# Exclude generated files and files from the pretext repo.
+exclude =
+    pretext/core/
+    output
+    .venv
