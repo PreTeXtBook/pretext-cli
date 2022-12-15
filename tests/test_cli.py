@@ -1,3 +1,4 @@
+import json
 import subprocess
 import os
 import shutil
@@ -60,7 +61,28 @@ def test_build(tmp_path: Path, script_runner):
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "build", "web", cwd=tmp_path
     ).success
-    assert (tmp_path / "output" / "web").exists()
+    web_path = tmp_path / "output" / "web"
+    assert web_path.exists()
+    mapping = json.load(open(web_path / ".mapping.json"))
+    print(mapping)
+    # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
+    #
+    # The path separator varies by platform.
+    source_prefix = f"source{os.sep}"
+    assert mapping == {
+        f"{source_prefix}main.ptx": ["my-great-book"],
+        f"{source_prefix}meta_frontmatter.ptx": [
+            "meta_frontmatter",
+            "meta_frontmatter-preface",
+        ],
+        f"{source_prefix}ch_first.ptx": ["ch_first"],
+        f"{source_prefix}sec_first-intro.ptx": ["sec_first-intro"],
+        f"{source_prefix}sec_first-examples.ptx": ["sec_first-examples"],
+        f"{source_prefix}ex_first.ptx": ["ex_first"],
+        f"{source_prefix}ch_empty.ptx": ["ch_empty"],
+        f"{source_prefix}ch_features.ptx": ["ch_features", "sec_features-blocks"],
+        f"{source_prefix}meta_backmatter.ptx": ["meta_backmatter"],
+    }
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "build", "subset", cwd=tmp_path
     ).success
