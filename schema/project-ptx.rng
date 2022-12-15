@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="">
+  <!--
+    Relax-ng grammar for `project.ptx` files.
+    To use this grammar, it must first be converted from
+    "compact" form (the `.rnc` file) into XML (the `.rng` file).
+    This conversion is accomplished with [trang](https://github.com/relaxng/jing-trang) via
+    ```
+    > trang project-ptx.rnc project-ptx.rng
+    ```
+    You can then use [jing](https://github.com/relaxng/jing-trang) to test
+    whether a `project.ptx` file conforms to the schema.
+    ```
+    > jing project-ptx.rng path/to/project.ptx
+    ```
+    
+    If you are running these commands directly from Java `.jar` files, you will
+    instead run
+    ```
+    > java -jar path/to/jing.jar [...other arguments...]
+    ```
+  -->
+  <start>
+    <ref name="Project"/>
+  </start>
+  <define name="Project">
+    <element name="project">
+      <zeroOrMore>
+        <choice>
+          <ref name="Targets"/>
+          <ref name="Executables"/>
+        </choice>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="Targets">
+    <element name="targets">
+      <zeroOrMore>
+        <ref name="Target"/>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="Target">
+    <element name="target">
+      <attribute name="name">
+        <a:documentation>Unique identifier for this build target. This is the name you pass on the
+command line when building via the `pretext` CLI.</a:documentation>
+        <data type="string"/>
+      </attribute>
+      <optional>
+        <attribute name="pdf-method">
+          <a:documentation>The LaTeX executable should be used when compiling to PDF.
+There must be a corresponding entry in `&lt;executables&gt;`</a:documentation>
+          <data type="string"/>
+        </attribute>
+      </optional>
+      <ref name="Format"/>
+      <zeroOrMore>
+        <choice>
+          <element>
+            <choice>
+              <name>source</name>
+              <a:documentation>Relative or absolute path to the "root" file of your PreTeXt project.
+This file is often called `main.ptx`</a:documentation>
+              <name>publication</name>
+              <a:documentation>Relative or absolute path to the publication file for your
+PreTeXt project. Often called `publication.ptx`</a:documentation>
+              <name>output-dir</name>
+              <a:documentation>Relative or absolute path to the folder you wish to output compiled files to.</a:documentation>
+              <name>xmlid-root</name>
+            </choice>
+            <text/>
+          </element>
+          <ref name="Stringparam">
+            <a:documentation>Parameters that get passed directly to the XSL processing backend.
+These parameters are rarely used by content authors.</a:documentation>
+          </ref>
+        </choice>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="Executables">
+    <element name="executables">
+      <zeroOrMore>
+        <element>
+          <choice>
+            <name>latex</name>
+            <name>pdflatex</name>
+            <name>xelatex</name>
+            <name>pdfsvg</name>
+            <name>asy</name>
+            <name>sage</name>
+            <name>pdfpng</name>
+            <name>pdfeps</name>
+            <name>node</name>
+            <name>liblouis</name>
+          </choice>
+          <text/>
+        </element>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="Format">
+    <element name="format">
+      <choice>
+        <value>pdf</value>
+        <a:documentation>Generate a PDF file as output</a:documentation>
+        <value>html</value>
+        <a:documentation>Generate HTML that can be viewed with a standard web browser</a:documentation>
+        <value>latex</value>
+        <a:documentation>Generate LaTeX files, but do not compile them</a:documentation>
+        <value>epub</value>
+        <a:documentation>Generate and ePub file suitable for e-reader devices</a:documentation>
+      </choice>
+    </element>
+  </define>
+  <define name="Stringparam">
+    <element name="stringparam">
+      <attribute name="key">
+        <data type="string"/>
+      </attribute>
+      <attribute name="value">
+        <data type="string"/>
+      </attribute>
+    </element>
+  </define>
+</grammar>
