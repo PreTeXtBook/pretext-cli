@@ -314,9 +314,12 @@ poetry run python scripts/release_stable.py major # +1.0.0
 
 ## About
 
-### PreTeXt-CLI Lead Developers
-- [Steven Clontz](https://clontz.org/)
-- [Oscar Levin](https://math.oscarlevin.com/)
+### PreTeXt-CLI Team
+- [Oscar Levin](https://math.oscarlevin.com/) is co-creator and lead developer of PreTeXt-CLI.
+- [Steven Clontz](https://clontz.org/) is co-creator and a regular contributor of PreTeXt-CLI.
+- Development of PreTeXt-CLI would not be possible without the frequent 
+  [contributions](https://github.com/PreTeXtBook/pretext-cli/graphs/contributors) of the
+  wider [PreTeXt-Runestone Open Source Ecosystem](https://prose.runestone.academy).
 
 ### A note and special thanks
 
