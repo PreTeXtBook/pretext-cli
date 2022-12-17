@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pretext"
-version = "1.1.1"
+version = "1.2.1"
 description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 homepage = "https://pretextbook.org"
