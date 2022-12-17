@@ -25,19 +25,15 @@
   </start>
   <define name="Project">
     <element name="project">
-      <zeroOrMore>
-        <choice>
-          <ref name="Targets"/>
-          <ref name="Executables"/>
-        </choice>
-      </zeroOrMore>
+      <ref name="Targets"/>
+      <ref name="Executables"/>
     </element>
   </define>
   <define name="Targets">
     <element name="targets">
-      <zeroOrMore>
+      <oneOrMore>
         <ref name="Target"/>
-      </zeroOrMore>
+      </oneOrMore>
     </element>
   </define>
   <define name="Target">
@@ -115,7 +111,11 @@ These parameters are rarely used by content authors.</a:documentation>
         <value>latex</value>
         <a:documentation>Generate LaTeX files, but do not compile them</a:documentation>
         <value>epub</value>
-        <a:documentation>Generate and ePub file suitable for e-reader devices</a:documentation>
+        <a:documentation>Generate an ePub file suitable for e-reader devices</a:documentation>
+        <value>kindle</value>
+        <a:documentation>Generate an ePub file suitable for the kindle e-reader</a:documentation>
+        <value>braille</value>
+        <a:documentation>Generate braille ouput</a:documentation>
         <value>custom</value>
         <a:documentation>Custom build method. Often used with custom XSL</a:documentation>
       </choice>
