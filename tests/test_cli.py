@@ -80,7 +80,7 @@ def test_build(tmp_path: Path, script_runner):
         f"{source_prefix}sec_first-examples.ptx": ["sec_first-examples"],
         f"{source_prefix}ex_first.ptx": ["ex_first"],
         f"{source_prefix}ch_empty.ptx": ["ch_empty"],
-        f"{source_prefix}ch_features.ptx": ["ch_features"], 
+        f"{source_prefix}ch_features.ptx": ["ch_features"],
         f"{source_prefix}sec_features.ptx": ["sec_features-blocks"],
         f"{source_prefix}meta_backmatter.ptx": ["meta_backmatter"],
     }
