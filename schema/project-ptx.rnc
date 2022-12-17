@@ -20,9 +20,9 @@
 start = Project
 
 Project = element project {
-	(Targets | Executables)*
+	Targets, Executables
 }
-Targets = element targets { Target* }
+Targets = element targets { Target+ }
 Target = element target { 
 	## Unique identifier for this build target. This is the name you pass on the
 	## command line when building via the `pretext` CLI.
@@ -75,8 +75,12 @@ Format = element format {
 	"html" |
 	## Generate LaTeX files, but do not compile them
 	"latex" |
-	## Generate and ePub file suitable for e-reader devices
+	## Generate an ePub file suitable for e-reader devices
 	"epub" |
+	## Generate an ePub file suitable for the kindle e-reader
+	"kindle" |
+	## Generate braille ouput
+	"braille" |
 	## Custom build method. Often used with custom XSL
 	"custom"
 }
