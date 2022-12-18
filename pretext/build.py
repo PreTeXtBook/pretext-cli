@@ -41,7 +41,7 @@ def html(
                 output.as_posix(),
             )
             codechat.map_path_to_xml_id(
-                ptxfile, utils.project_path(), output.as_posix()
+                ptxfile, utils.project_path(ptxfile), output.as_posix()
             )
         except Exception as e:
             log.critical(e)
