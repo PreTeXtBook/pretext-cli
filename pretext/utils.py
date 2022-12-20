@@ -24,6 +24,7 @@ from . import core
 # Get access to logger
 log = logging.getLogger("ptxlogger")
 
+CACHED_PROJECT_PATH: Optional[Path] = None
 
 @contextmanager
 def working_directory(path: Path):
@@ -35,6 +36,10 @@ def working_directory(path: Path):
         do_things()   # working in the given path
     do_other_things() # back to original path
     """
+    cached_path = False
+    if CACHED_PROJECT_PATH is None:
+        cached_path = True
+        CACHED_PROJECT_PATH = project_path()
     current_directory = Path()
     os.chdir(path)
     log.debug(f"Now working in directory {path}")
@@ -43,12 +48,16 @@ def working_directory(path: Path):
     finally:
         os.chdir(current_directory)
         log.debug(f"Successfully changed directory back to {current_directory}")
+        if cached_path:
+            CACHED_PROJECT_PATH = None
 
 
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath: Optional[Path] = None) -> Path:
-    if dirpath == None:
-        dirpath = Path().resolve()  # current directory
+    if dirpath == None:  # use current directory
+        if CACHED_PROJECT_PATH is not None: # use cache if set
+            return CACHED_PROJECT_PATH
+        dirpath = Path().resolve() # set current directory
     if (dirpath / "project.ptx").is_file():
         # we're at the project root
         return dirpath
