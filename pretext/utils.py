@@ -8,6 +8,7 @@ from http.server import SimpleHTTPRequestHandler
 import shutil
 from pathlib import Path
 import platform
+import re
 import socketserver
 import socket
 import subprocess
@@ -16,7 +17,7 @@ import logging
 import threading
 import watchdog.events, watchdog.observers, time
 import webbrowser
-from typing import Optional
+import typing as t
 from lxml import etree as ET
 
 from . import core
@@ -46,7 +47,7 @@ def working_directory(path: Path):
 
 
 # Grabs project directory based on presence of `project.ptx`
-def project_path(dirpath: Optional[Path] = None) -> Path:
+def project_path(dirpath: t.Optional[Path] = None) -> Path:
     if dirpath == None:
         dirpath = Path().resolve()  # current directory
     if (dirpath / "project.ptx").is_file():
@@ -60,7 +61,7 @@ def project_path(dirpath: Optional[Path] = None) -> Path:
         return project_path(dirpath=dirpath.parent)
 
 
-def project_xml(dirpath: Optional[Path] = None) -> Path:
+def project_xml(dirpath: t.Optional[Path] = None) -> Path:
     if dirpath is None:
         dirpath = Path()  # current directory
     if project_path(dirpath) is None:
@@ -71,7 +72,7 @@ def project_xml(dirpath: Optional[Path] = None) -> Path:
         return ET.parse(project_manifest)
 
 
-def requirements_version(dirpath: Optional[Path] = None) -> str:
+def requirements_version(dirpath: t.Optional[Path] = None) -> str:
     if dirpath == None:
         dirpath = Path()  # current directory
     try:
@@ -85,14 +86,14 @@ def requirements_version(dirpath: Optional[Path] = None) -> str:
         return None
 
 
-def project_xml_string(dirpath: Optional[Path] = None) -> str:
+def project_xml_string(dirpath: t.Optional[Path] = None) -> str:
     if dirpath == None:
         dirpath = Path()  # current directory
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
 
 def target_xml(
-    alias: Optional[str] = None, dirpath: Optional[Path] = None
+    alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
 ) -> ET.Element:
     if dirpath == None:
         dirpath = Path()  # current directory
@@ -167,7 +168,7 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
     return True
 
 
-def cocalc_project_id() -> Optional[str]:
+def cocalc_project_id() -> t.Optional[str]:
     try:
         return json.loads(open("/home/user/.smc/info.json").read())["project_id"]
     except:
@@ -268,7 +269,7 @@ def run_server(
     directory: Path,
     access: str,
     port: int,
-    watch_directory: Optional[Path] = None,
+    watch_directory: t.Optional[Path] = None,
     watch_callback=lambda: None,
     no_launch: bool = False,
 ):
@@ -477,3 +478,15 @@ def format_docstring_as_help_str(string: str) -> str:
 
     lines = (re.sub(r"\s+", " ", l).strip() for l in string.splitlines())
     return " ".join(l if l else "\n\n" for l in lines)
+
+
+def parse_git_remote(string: str) -> t.List[str]:
+    """
+    Given a Git remote such as
+    git@github.com:PreTeXtBook/pretext-cli.git or
+    https://github.com/PreTeXtBook/pretext-cli.git or
+    https://github.com/PreTeXtBook/pretext-cli
+    return a list with the username (PreTeXtBook) and reponame (pretext-cli).
+    """
+    repo_info = list(filter(None, re.split(r"\/|\:|\.git$", string)))
+    return repo_info[-2:]

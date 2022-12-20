@@ -1,4 +1,3 @@
-import re
 from lxml import etree as ET
 from lxml.etree import Element
 import os
@@ -537,19 +536,16 @@ class Project:
         # log.info("(Your SSH password may be required.)")
         log.info("")
         try:
-            if not (origin.url.endswith(".git")):
-                origin.url = origin.url + ".git"
-            repo_user = re.split("/|:|.git$", origin.url)[-3]
-            repo_name = re.split("/|:|.git$", origin.url)[-2]
+            repo_user, repo_url = utils.parse_git_remote(origin.url)
             repo_url = f"https://github.com/{repo_user}/{repo_name}/"
             print(repo_url)
             # Set pages_url depending on whether project is base pages for the user or a separate repo
             if "github.io" in repo_name:
-                pages_url = f"https://{repo_name}/"
+                pages_url = f"https://{repo_name}"
             else:
                 pages_url = f"https://{repo_user}.github.io/{repo_name}/"
         except:
-            log.error(f"(unable to find GitHub URL from {origin.url})")
+            log.error(f"(unable to parse GitHub URL from {url})")
             log.error("Deploy unsuccessful")
             return
         try:
