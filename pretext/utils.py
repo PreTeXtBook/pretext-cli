@@ -8,6 +8,7 @@ from http.server import SimpleHTTPRequestHandler
 import shutil
 from pathlib import Path
 import platform
+import re
 import socketserver
 import socket
 import subprocess
@@ -487,5 +488,5 @@ def parse_git_remote(string: str) -> t.List[str]:
     https://github.com/PreTeXtBook/pretext-cli
     return a list with the username (PreTeXtBook) and reponame (pretext-cli).
     """
-    repo_info = list(filter("", re.split(r"\/|\:|\.git$", string)))
+    repo_info = list(filter(None,re.split(r"\/|\:|\.git$", string)))
     return repo_info[-2:]
