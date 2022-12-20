@@ -37,6 +37,7 @@ def working_directory(path: Path):
         do_things()   # working in the given path
     do_other_things() # back to original path
     """
+    global CACHED_PROJECT_PATH
     cached_path = False
     if CACHED_PROJECT_PATH is None:
         cached_path = True
@@ -55,6 +56,7 @@ def working_directory(path: Path):
 
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath: Optional[Path] = None) -> Path:
+    global CACHED_PROJECT_PATH
     if dirpath == None:  # use current directory
         if CACHED_PROJECT_PATH is not None:  # use cache if set
             return CACHED_PROJECT_PATH
