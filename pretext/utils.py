@@ -26,6 +26,7 @@ log = logging.getLogger("ptxlogger")
 
 CACHED_PROJECT_PATH: Optional[Path] = None
 
+
 @contextmanager
 def working_directory(path: Path):
     """
@@ -55,9 +56,9 @@ def working_directory(path: Path):
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath: Optional[Path] = None) -> Path:
     if dirpath == None:  # use current directory
-        if CACHED_PROJECT_PATH is not None: # use cache if set
+        if CACHED_PROJECT_PATH is not None:  # use cache if set
             return CACHED_PROJECT_PATH
-        dirpath = Path().resolve() # set current directory
+        dirpath = Path().resolve()  # set current directory
     if (dirpath / "project.ptx").is_file():
         # we're at the project root
         return dirpath
