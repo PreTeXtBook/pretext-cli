@@ -175,10 +175,12 @@ with this command.
 poetry install
 ```
 
-Before you attempt to run `pretext` locally, you must fetch a copy of the core pretext library by running
+Before you attempt to run `pretext` locally, you must fetch a copy of the core pretext library
+and zip up templates by running
 
 ```
-python scripts/fetch_core.py
+poetry run python scripts/fetch_core.py
+poetry run python scripts/zip_templates.py
 ```
 
 Then to use the in-development package, you can either enter a poetry shell:
