@@ -95,7 +95,7 @@
       list="no"
       exercise-inline="yes"
       exercise-divisional="no"
-      exercise-workshtte="no"
+      exercise-worksheet="no"
       exercise-readingquestion="no"
     />
     <!-- Specify the style of the html by giving names to      -->
