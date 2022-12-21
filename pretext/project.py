@@ -8,7 +8,6 @@ from . import utils, generate, core
 from . import build as builder
 from pathlib import Path
 import sys
-import webbrowser
 from .config.xml_overlay import ShadowXmlDocument
 import typing as t
 
@@ -344,7 +343,7 @@ class Project:
             log.critical(
                 f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`"
             )
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
         # build was successful
@@ -452,7 +451,7 @@ class Project:
             try:
                 repo.config_reader().get_value("user", "name")
                 repo.config_reader().get_value("user", "email")
-            except:
+            except Exception:
                 log.info("Setting up name/email configuration for Git...")
                 name = input("Type a name to use with Git: ")
                 email = input("Type your GitHub email to use with Git: ")
@@ -511,7 +510,7 @@ class Project:
             log.info(
                 "\nFor information about authentication options for github, see: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github\n"
             )
-        log.info(f"Committing your latest build to the `gh-pages` branch.")
+        log.info("Committing your latest build to the `gh-pages` branch.")
         log.info("")
         ghp_import.ghp_import(
             target.output_dir(),
@@ -529,13 +528,13 @@ class Project:
                 pages_url = f"https://{repo_name}"
             else:
                 pages_url = f"https://{repo_user}.github.io/{repo_name}/"
-        except:
+        except Exception:
             log.error(f"Unable to parse GitHub URL from {origin.url}")
             log.error("Deploy unsuccessful")
             return
         try:
             origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
-            origin.push(refspec=f"gh-pages:gh-pages")
+            origin.push(refspec="gh-pages:gh-pages")
         except git.exc.GitCommandError:
             log.warning(
                 f"There was an issue connecting to GitHub repository located at {repo_url}"

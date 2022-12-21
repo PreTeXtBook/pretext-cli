@@ -3,11 +3,8 @@ import subprocess
 import os
 import shutil
 import time
-import signal
-import platform
 import random
 import sys
-from tempfile import TemporaryDirectory
 from pathlib import Path
 from contextlib import contextmanager
 import requests

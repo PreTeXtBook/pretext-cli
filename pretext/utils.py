@@ -1,6 +1,4 @@
-from asyncio import subprocess
 import os
-import glob
 import random
 import json
 from contextlib import contextmanager
@@ -15,10 +13,13 @@ import subprocess
 import sys
 import logging
 import threading
-import watchdog.events, watchdog.observers, time
+import watchdog.events
+import watchdog.observers
+import time
 import webbrowser
 import typing as t
 from lxml import etree as ET
+from typing import Optional
 
 from . import core
 
@@ -47,8 +48,8 @@ def working_directory(path: Path):
 
 
 # Grabs project directory based on presence of `project.ptx`
-def project_path(dirpath: t.Optional[Path] = None) -> Path:
-    if dirpath == None:
+def project_path(dirpath: Optional[Path] = None) -> Path:
+    if dirpath is None:
         dirpath = Path().resolve()  # current directory
     if (dirpath / "project.ptx").is_file():
         # we're at the project root
@@ -72,8 +73,8 @@ def project_xml(dirpath: t.Optional[Path] = None) -> Path:
         return ET.parse(project_manifest)
 
 
-def requirements_version(dirpath: t.Optional[Path] = None) -> str:
-    if dirpath == None:
+def requirements_version(dirpath: Optional[Path] = None) -> str:
+    if dirpath is None:
         dirpath = Path()  # current directory
     try:
         with open(project_path(dirpath) / "requirements.txt", "r") as f:
@@ -86,8 +87,8 @@ def requirements_version(dirpath: t.Optional[Path] = None) -> str:
         return None
 
 
-def project_xml_string(dirpath: t.Optional[Path] = None) -> str:
-    if dirpath == None:
+def project_xml_string(dirpath: Optional[Path] = None) -> str:
+    if dirpath is None:
         dirpath = Path()  # current directory
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
@@ -95,7 +96,7 @@ def project_xml_string(dirpath: t.Optional[Path] = None) -> str:
 def target_xml(
     alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
 ) -> ET.Element:
-    if dirpath == None:
+    if dirpath is None:
         dirpath = Path()  # current directory
     if alias is None:
         return project_xml().find("targets/target")  # first target
@@ -149,7 +150,8 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
     # Parse xml file:
     source_xml = ET.parse(xmlfile)
 
-    ## just for testing:
+    # just for testing
+    # ----------------
     # relaxng.validate(source_xml)
     # log = relaxng.error_log
     # print(log)
@@ -171,7 +173,7 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 def cocalc_project_id() -> t.Optional[str]:
     try:
         return json.loads(open("/home/user/.smc/info.json").read())["project_id"]
-    except:
+    except Exception:
         return None
 
 
@@ -183,6 +185,7 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
 
     def on_any_event(self, event):
         self.last_trigger_at = time.time()
+
         # only run callback once triggers halt for a second
         def timeout_callback(handler):
             time.sleep(1.5)
@@ -251,11 +254,11 @@ def serve_forever(
                 looking_for_port = False
                 url = url_for_access(access, port)
                 log.info(
-                    f"Success! The most recent build of your project can be viewed in a web browser at the following url:"
+                    "Success! The most recent build of your project can be viewed in a web browser at the following url:"
                 )
                 log.info("    " + url)
                 if not no_launch:
-                    log.info(f"This page should open in a new tab automatically.")
+                    log.info("This page should open in a new tab automatically.")
                     webbrowser.open(url)
                 log.info("Use [Ctrl]+[C] to halt the server.\n")
                 httpd.serve_forever()
@@ -476,8 +479,8 @@ def format_docstring_as_help_str(string: str) -> str:
     """
     import re
 
-    lines = (re.sub(r"\s+", " ", l).strip() for l in string.splitlines())
-    return " ".join(l if l else "\n\n" for l in lines)
+    lines = (re.sub(r"\s+", " ", line).strip() for line in string.splitlines())
+    return " ".join(line if line else "\n\n" for line in lines)
 
 
 def parse_git_remote(string: str) -> t.List[str]:

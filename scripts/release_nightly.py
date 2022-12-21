@@ -5,7 +5,6 @@ import json
 from datetime import datetime
 import fileinput
 import pytest
-import tomli
 
 
 def commit_data(repo):
@@ -81,7 +80,7 @@ def main():
             raise
         else:
             print("Tests all passed")
-    except:
+    except Exception:
         print("Tests did not pass.  Exiting.")
         return
 

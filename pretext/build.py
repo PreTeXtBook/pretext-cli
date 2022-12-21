@@ -45,7 +45,7 @@ def html(
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build html.  Exiting...")
 
@@ -72,7 +72,7 @@ def latex(
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build latex.  Exiting...")
 
@@ -101,7 +101,7 @@ def pdf(
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build pdf.  Exiting...")
 
@@ -135,7 +135,7 @@ def custom(
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed custom build.  Exiting...")
 
@@ -165,7 +165,7 @@ def epub(ptxfile, pub_file: Path, output: Path, stringparams):
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build epub.  Exiting...")
 
@@ -193,7 +193,7 @@ def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build kindle ebook.  Exiting...")
 
@@ -226,6 +226,6 @@ def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="em
             )
         except Exception as e:
             log.critical(e)
-            log.debug(f"Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build braille.  Exiting...")
