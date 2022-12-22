@@ -538,14 +538,13 @@ class Project:
         try:
             repo_user, repo_name = utils.parse_git_remote(origin.url)
             repo_url = f"https://github.com/{repo_user}/{repo_name}/"
-            print(repo_url)
             # Set pages_url depending on whether project is base pages for the user or a separate repo
             if "github.io" in repo_name:
                 pages_url = f"https://{repo_name}"
             else:
                 pages_url = f"https://{repo_user}.github.io/{repo_name}/"
         except:
-            log.error(f"(unable to parse GitHub URL from {repo_url})")
+            log.error(f"Unable to parse GitHub URL from {origin.url}")
             log.error("Deploy unsuccessful")
             return
         try:
