@@ -156,7 +156,7 @@ def support():
 @click.argument(
     "template",
     default="book",
-    type=click.Choice(["book", "article", "hello", "slideshow"], case_sensitive=False),
+    type=click.Choice(["book", "article", "demo", "hello", "slideshow"], case_sensitive=False),
 )
 @click.option(
     "-d",
