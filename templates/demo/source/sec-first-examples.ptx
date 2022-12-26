@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<section xml:id="sec_first-examples" xmlns:xi="http://www.w3.org/2001/XInclude">
+<section xml:id="sec-first-examples" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>Examples</title>
   
   <p>
@@ -34,7 +34,7 @@
     Although the next things are not examples, they give examples of blocks that are not examples.  First a theorem.
   </p>
 
-  <theorem xml:id="thm_first-examples-theorem">
+  <theorem xml:id="thm-first-examples-theorem">
     <title>Theorem Title</title>
     <statement>
       <p>
@@ -48,7 +48,7 @@
     </proof>
   </theorem>
   
-  <corollary xml:id="cor_first-examples-corollary">
+  <corollary xml:id="cor-first-examples-corollary">
     <statement>
       <p>
         A corollary that doesn't need a proof.
@@ -60,7 +60,7 @@
     Perhaps at the end of the section, you want to add a note to the reader about how what you have fits into the larger scope of mathematics.
   </p>
 
-  <remark xml:id="remark_first-examples-context">
+  <remark xml:id="remark-first-examples-context">
     <title>Larger Context</title>
     <p>
       Comment to the reader here.
@@ -68,7 +68,7 @@
   </remark>
 
   <p>
-    Of course, if you want more information, you might see <xref ref="thm_first-examples-theorem"/>.
+    Of course, if you want more information, you might see <xref ref="thm-first-examples-theorem"/>.
   </p>
 </section>
 

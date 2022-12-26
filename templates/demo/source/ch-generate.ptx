@@ -1,20 +1,21 @@
 <?xml version='1.0' encoding='utf-8'?>
 <chapter xml:id="ch_generate" xmlns:xi="http://www.w3.org/2001/XInclude">
   <title><pretext /> features that require generation</title>
+  <introduction>
+    <p>
+      In <c>main.ptx</c>, uncomment this chapter to try building various
+      types of assets.
+    </p>
+  </introduction>
   <section>
     <title>Image Examples</title>
-    <p>
-      In your source, uncomment any of the figures below to try building various
-      types of images (Tikz, SageMath, Asymptote) with <c>pretext build -g all</c>.
-    </p>
-    <xi:include href="./fig_tikz.ptx" />
-    <xi:include href="./fig_sage2d.ptx" />
-    <xi:include href="./fig_sage3d.ptx" />
-    <xi:include href="./fig_asymptote.ptx" />
+    <xi:include href="./fig-tikz.ptx" />
+    <xi:include href="./fig-sage2d.ptx" />
+    <xi:include href="./fig-sage3d.ptx" />
+    <xi:include href="./fig-asymptote.ptx" />
   </section>
   <section xml:id="webwork">
     <title><webwork /> Example</title>
-    <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -g webwork</c>.</p>
     <exercise>
       <webwork>
         <pg-code>
@@ -45,14 +46,10 @@
   </section>
   <section xml:id="youtube">
     <title>YouTube Example</title>
-    <p>In your source, uncomment the line below to include a YouTube video.</p>
-    <p>Use <c>pretext build -g youtube</c> to generate its thumbnail (useful for PDF).</p>
     <video youtube="dQw4w9WgXcQ"/>
   </section>
   <section xml:id="codelens">
     <title>Codelens Example</title>
-    <p>In your source, uncomment the line below to include an interactive Python program.</p>
-    <p>Use <c>pretext build -g codelens</c> to generate files necessary for interactivity.</p>
     <listing xml:id="sieve-python">
       <caption>Finding primes</caption>
       <program xml:id="sieve-codelens-python" interactive="codelens" language="python">

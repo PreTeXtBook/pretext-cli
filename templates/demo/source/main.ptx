@@ -8,7 +8,7 @@
 <pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
 
   <!-- we first include a file which contains the docinfo element: -->
-  <xi:include href="./meta_docinfo.ptx" />
+  <xi:include href="./docinfo.ptx" />
 
   <!-- The <book> tags wrap all the content.  Change the @xml:id   -->
   <!-- to some short (non-spaced) description of your book         -->
