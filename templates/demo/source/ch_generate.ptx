@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='utf-8'?>
+<chapter xml:id="ch_generate" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title><pretext /> features that require generation</title>
+  <section>
+    <title>Image Examples</title>
+    <p>
+      In your source, uncomment any of the figures below to try building various
+      types of images (Tikz, SageMath, Asymptote) with <c>pretext build -g all</c>.
+    </p>
+    <xi:include href="./fig_tikz.ptx" />
+    <xi:include href="./fig_sage2d.ptx" />
+    <xi:include href="./fig_sage3d.ptx" />
+    <xi:include href="./fig_asymptote.ptx" />
+  </section>
+  <section xml:id="webwork">
+    <title><webwork /> Example</title>
+    <p>In your source, uncomment the exercise below to build a WebWork problem with <c>pretext build -g webwork</c>.</p>
+    <exercise>
+      <webwork>
+        <pg-code>
+          $a = Compute(random(1, 9, 1));
+          $b = Compute(random(1, 9, 1));
+          $c = $a + $b;
+        </pg-code>
+        <statement>
+          <p>
+            Compute the sum of <m><var name="$a" /></m> and <m><var name="$b" /></m>:
+          </p>
+          <p>
+            <m><var name="$a" /> + <var name="$b" /> =</m> <var name="$c" width="5" />
+          </p>
+        </statement>
+        <hint>
+          <p>
+            Add <m><var name="$a" /></m> and <m><var name="$b" /></m> together.
+          </p>
+        </hint>
+        <solution>
+          <p>
+            <m><var name="$a" /> + <var name="$b" /> = <var name="$c" /></m>.
+          </p>
+        </solution>
+      </webwork>
+    </exercise>
+  </section>
+  <section xml:id="youtube">
+    <title>YouTube Example</title>
+    <p>In your source, uncomment the line below to include a YouTube video.</p>
+    <p>Use <c>pretext build -g youtube</c> to generate its thumbnail (useful for PDF).</p>
+    <video youtube="dQw4w9WgXcQ"/>
+  </section>
+  <section xml:id="codelens">
+    <title>Codelens Example</title>
+    <p>In your source, uncomment the line below to include an interactive Python program.</p>
+    <p>Use <c>pretext build -g codelens</c> to generate files necessary for interactivity.</p>
+    <listing xml:id="sieve-python">
+      <caption>Finding primes</caption>
+      <program xml:id="sieve-codelens-python" interactive="codelens" language="python">
+        <input><![CDATA[
+def SieveOfEratosthenes(n):
+    # array of type boolean with True values in it
+    prime = [True for i in range(n + 1)]
+    p = 2
+    while (p * p <= n):
+      # If it remain unchanged it is prime
+      if (prime[p] == True):
+          # updating all the multiples
+          for i in range(p * 2, n + 1, p):
+            prime[i] = False
+      p += 1
+    prime[0]= False
+    prime[1]= False
+    # Print
+    for p in range(n + 1):
+      if prime[p]:
+          print (p,end=" ")
+# main
+if __name__=='__main__':
+    n = 20
+    print ("The prime numbers smaller than or equal to", n,"is")
+    SieveOfEratosthenes(n)
+      ]]></input>
+      </program>
+    </listing>
+  </section>
+</chapter>

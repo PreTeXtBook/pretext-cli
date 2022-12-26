@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<exercises xml:id="ex_first" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <!-- You can ommit the title and just get the default "Exercises" -->
+  <title>My Exercises</title>
+  
+  <exercise>
+    <statement>
+      <p>
+        Is this an exercise?
+      </p>
+    </statement>
+    <answer>
+      <p>
+        Yes.
+      </p>
+    </answer>
+    <solution>
+      <p>
+        It is, but not a very good one.
+      </p>
+    </solution>
+  </exercise>
+  <exercise>
+    <statement>
+      <p>
+        Another, with a hint.
+      </p>
+    </statement>
+    <hint>
+      <p>
+        The hint.
+      </p>
+    </hint>
+  </exercise>
+  
+  <!-- For an example of WeBWorK, uncomment the next -->
+  <!-- exercise and run `pretext build html -w`.     -->
+  <!-- <exercise>
+    <webwork xml:id="ex_first-webwork-add-numbers">
+      <description>
+        Add two positive single-digit integers.
+      </description>
+
+      <pg-code>
+        $a = random(1, 9, 1);
+        $b = random(1, 9, 1);
+        $c = Compute($a + $b);
+      </pg-code>
+
+      <statement>
+        <p>
+          Compute the sum of <m><var name="$a" /></m> and <m><var name="$b" /></m>:
+        </p>
+        <p>
+          <m><var name="$a" /> + <var name="$b" /> =</m><var name="$c" width="5" category="integer" />
+        </p>
+      </statement>
+
+      <solution>
+        <p>
+          <m><var name="$a" /> + <var name="$b" /> = <var name="$c" /></m>.
+        </p>
+      </solution>
+    </webwork>
+  </exercise> -->
+
+</exercises>
+

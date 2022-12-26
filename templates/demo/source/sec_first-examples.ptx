@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<section xml:id="sec_first-examples" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Examples</title>
+  
+  <p>
+    Here is an example:
+  </p>
+ 
+  <example>
+    <statement>
+      <p>
+        The statement of the example, since it will have a solution.  What is the solution?
+      </p>
+    </statement>
+    <solution>
+      <p>
+        This is the solution.
+      </p>
+    </solution>
+  </example>
+
+  <p>
+    Here is another example, but without a solution
+  </p>
+
+  <example>
+    <p>
+      This is an example of an example without a solution (or hint or answer) so the paragraph doesn't need to be inside a statement tag.
+    </p>
+  </example>
+  
+  <p>
+    Although the next things are not examples, they give examples of blocks that are not examples.  First a theorem.
+  </p>
+
+  <theorem xml:id="thm_first-examples-theorem">
+    <title>Theorem Title</title>
+    <statement>
+      <p>
+        This is the statement of the theorem.
+      </p>
+    </statement>
+    <proof>
+      <p>
+        And this is its proof.
+      </p>
+    </proof>
+  </theorem>
+  
+  <corollary xml:id="cor_first-examples-corollary">
+    <statement>
+      <p>
+        A corollary that doesn't need a proof.
+      </p>
+    </statement>
+  </corollary>
+
+  <p>
+    Perhaps at the end of the section, you want to add a note to the reader about how what you have fits into the larger scope of mathematics.
+  </p>
+
+  <remark xml:id="remark_first-examples-context">
+    <title>Larger Context</title>
+    <p>
+      Comment to the reader here.
+    </p>
+  </remark>
+
+  <p>
+    Of course, if you want more information, you might see <xref ref="thm_first-examples-theorem"/>.
+  </p>
+</section>
+

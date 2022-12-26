@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This frontmatter division will contain all content before the -->
+<!-- first chapter.  Fill in and comment/uncomment to see how this -->
+<!-- works.                                                        -->
+
+<frontmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="meta_frontmatter">
+  <titlepage>
+    <author>
+      <personname>Me</personname>
+      <department>My department</department>
+      <institution>My school</institution>
+    </author>
+    <date><today/></date>
+  </titlepage>
+
+  <colophon>
+
+    <website>
+      <name><c>my-website.org</c></name>
+      <address>http://pretextbook.org</address>
+    </website>
+
+    <copyright>
+      <!-- In addition to specifying the copyright holder, you should  -->
+      <!-- include a license, such as the cc-by-sa license shown below -->
+      <!-- so people reading your book know how they can use it.       -->
+      <year>2020<ndash/>2022</year>
+      <holder>Me</holder>
+      <!-- <minilicense><image source="../images/by-sa.png" /></minilicense> -->
+      <shortlicense>
+        <!-- <image source="../images/by-sa.png" width="15%"/>  -->
+        This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+        To view a copy of this license, visit
+        <url 
+          href="http://creativecommons.org/licenses/by-sa/4.0/"
+          visual="creativecommons.org/licenses/by-sa/4.0">
+          CreativeCommons.org</url>
+      </shortlicense>
+    </copyright>
+
+  </colophon>
+
+  <dedication>
+    <p>
+      For ...
+    </p>
+  </dedication>
+
+  <acknowledgement>
+    <p>
+      I would like to thank...
+    </p>
+  </acknowledgement>
+
+  <preface xml:id="meta_frontmatter-preface">
+    <!-- You should be a little careful about what you put here -->
+    <!-- Avoid elements that should have a number, for example  -->
+    <p>
+      About this book:
+    </p>
+  </preface>
+
+  <!-- You can have more than one preface. -->
+  <preface>
+    <title>Not just that..</title>
+    <p>
+      I still have more to say!
+    </p>
+  </preface>
+
+</frontmatter>
+

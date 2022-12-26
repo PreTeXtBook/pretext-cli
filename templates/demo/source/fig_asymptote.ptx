@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<figure xml:id="fig_asymptote" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <caption>Canada</caption>
+  <image xml:id="cflag" archive="asy">
+    <description>Image of a Canadian flag</description>
+    <asymptote><xi:include href="images/cflag.asy" parse="text"/></asymptote>
+  </image>
+</figure>

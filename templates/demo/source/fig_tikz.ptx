@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<figure xml:id="fig_tikz" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <caption>The graph <m>C_5</m> made by TikZ</caption>
+    <image xml:id="fig_tikz-example-diagram" width="20%">
+    <description>A 5-cycle</description>
+    <latex-image>
+      <xi:include href="images/tikz.tex" parse="text"/>
+    </latex-image>
+    </image>
+</figure>

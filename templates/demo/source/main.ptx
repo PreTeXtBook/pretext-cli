@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- This is the main file of the pretext template book provided -->
+<!-- by the `pretext new book` command.  The main.ptx here always-->
+<!-- starts with <pretext> tags.  In this example, the main file -->
+<!-- just imports other .ptx files which contain content. Open   -->
+<!-- those files to see more pretext features                    -->
+
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+  <!-- we first include a file which contains the docinfo element: -->
+  <xi:include href="./meta_docinfo.ptx" />
+
+  <!-- The <book> tags wrap all the content.  Change the @xml:id   -->
+  <!-- to some short (non-spaced) description of your book         -->
+  <book xml:id="my-great-book">
+    <!-- The book needs a title and can have a subtitle  -->
+    <title>My Great Book</title>
+    <subtitle>An example to be modified</subtitle>
+
+    <!-- Now we include files containing each main devision.       -->
+
+    <!-- First a frontmatter for prefaces and such. Maybe comment  -->
+    <!-- out for now and write this when the book is more complete -->
+    <xi:include href="./meta_frontmatter.ptx" />
+
+    <!-- The first chapter will be bare bones to illustrate the    -->
+    <!-- possible structure of the book.  Once you know what the   -->
+    <!-- title of the chapter is, rename the file something based  -->
+    <!-- on the title (ch-shorttitle.ptx) both here and on disk    -->
+    <xi:include href="./ch_first.ptx" />
+    <xi:include href="./ch_empty.ptx"/>
+    <!-- Of course you will want to add more chapters as you proceed-->
+
+    <!-- This chapter contains a wide variety of elements to  -->
+    <!-- illustrate what pretext can do, plus links to more help.  -->
+    <!-- We recommend keeping this handy, and commenting it out    -->
+    <!-- when you show off your own work.                          -->
+    <xi:include href="./ch_features.ptx" />
+  
+    <!-- This chapter includes several features that require pregeneration   -->
+    <!-- of assets with `pretext generate` or similar. Some features require -->
+    <!-- internet access; others require local installs not automatically    -->
+    <!-- provided by the CLI. Uncomment to view this chapter, and comment    -->
+    <!-- features you don't wish to generate.                                -->
+    <!-- <xi:include href="./ch_generate.ptx" /> -->
+
+    <!-- Finaly we place the backmatter in its own file and inlcude-->
+    <xi:include href="./meta_backmatter.ptx" />
+  </book>
+</pretext>

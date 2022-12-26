@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<figure xml:id="fig_sage3d" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <caption>The paraboloid <m>z=x^2+y^2</m> made by SageMath</caption>
+  <image xml:id="sageplot3d-example-diagram" width="80%">
+    <description>A paraboloid</description>
+    <sageplot variant="3d" aspect="1.0"><xi:include href="images/sageplot3d.sage" parse="text"/></sageplot>
+  </image>
+</figure>
