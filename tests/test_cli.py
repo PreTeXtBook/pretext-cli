@@ -56,7 +56,7 @@ def test_new(tmp_path: Path, script_runner):
 
 def test_build(tmp_path: Path, script_runner):
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "new", "-d", ".", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "new", "book", "-d", ".", cwd=tmp_path
     ).success
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "build", "web", cwd=tmp_path
@@ -71,23 +71,21 @@ def test_build(tmp_path: Path, script_runner):
     source_prefix = f"source{os.sep}"
     assert mapping == {
         f"{source_prefix}main.ptx": ["my-great-book"],
-        f"{source_prefix}meta_frontmatter.ptx": [
-            "meta_frontmatter",
-            "meta_frontmatter-preface",
-        ],
-        f"{source_prefix}ch_first.ptx": ["ch_first"],
-        f"{source_prefix}sec_first-intro.ptx": ["sec_first-intro"],
-        f"{source_prefix}sec_first-examples.ptx": ["sec_first-examples"],
-        f"{source_prefix}ex_first.ptx": ["ex_first"],
-        f"{source_prefix}ch_empty.ptx": ["ch_empty"],
-        f"{source_prefix}ch_features.ptx": ["ch_features"],
-        f"{source_prefix}sec_features.ptx": ["sec_features-blocks"],
-        f"{source_prefix}meta_backmatter.ptx": ["meta_backmatter"],
+        f"{source_prefix}frontmatter.ptx": ["frontmatter"],
+        f"{source_prefix}ch1{os.sep}main.ptx": ["ch1"],
+        f"{source_prefix}ch1{os.sep}sec1.ptx": ["ch1-sec1"],
+        f"{source_prefix}ch1{os.sep}sec2.ptx": ["ch1-sec2"],
+        f"{source_prefix}ch2{os.sep}main.ptx": ["ch2"],
+        f"{source_prefix}ch2{os.sep}sec1.ptx": ["ch2-sec1"],
+        f"{source_prefix}ch2{os.sep}sec2.ptx": ["ch2-sec2"],
+        f"{source_prefix}backmatter.ptx": ["backmatter"],
     }
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "build", "subset", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "build", "subset", "-p", "targets.target.xmlid-root", "ch2", cwd=tmp_path
     ).success
     assert (tmp_path / "output" / "subset").exists()
+    assert not (tmp_path / "output" / "subset" / "ch1.html").exists()
+    assert (tmp_path / "output" / "subset" / "ch2.html").exists()
     assert script_runner.run(PTX_CMD, "build", "print-latex", cwd=tmp_path).success
     assert (tmp_path / "output" / "print-latex").exists()
     assert script_runner.run(
