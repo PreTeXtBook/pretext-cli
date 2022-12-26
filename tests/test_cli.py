@@ -81,7 +81,15 @@ def test_build(tmp_path: Path, script_runner):
         f"{source_prefix}backmatter.ptx": ["backmatter"],
     }
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "build", "subset", "-p", "targets.target.xmlid-root", "ch2", cwd=tmp_path
+        PTX_CMD,
+        "-v",
+        "debug",
+        "build",
+        "subset",
+        "-p",
+        "targets.target.xmlid-root",
+        "ch2",
+        cwd=tmp_path,
     ).success
     assert (tmp_path / "output" / "subset").exists()
     assert not (tmp_path / "output" / "subset" / "ch1.html").exists()
