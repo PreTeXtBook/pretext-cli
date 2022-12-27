@@ -25,6 +25,27 @@ class Target:
             os.makedirs(self.external_dir(), exist_ok=True)
         if self.generated_dir() is not None:
             os.makedirs(self.generated_dir(), exist_ok=True)
+        if self.managed_divisions(): # EXPERIMENTAL: build ".main.ptx"
+            source_dir  = self.project_path() / self.xml_element().find("source").text.strip()
+            document_element = ET.parse(source_dir / "main.ptx").getroot()
+            docinfo_element = ET.parse(source_dir / "docinfo.ptx").getroot()
+            document_element.insert(0,docinfo_element)
+            book_element = document_element.find("book")
+            frontmatter_element = ET.parse(source_dir / "frontmatter.ptx").getroot()
+            book_element.insert(-1,frontmatter_element)
+            chapter_paths = [c for c in source_dir.iterdir() if c.is_dir() and c.name[:8] == "chapter-"]
+            chapter_paths.sort(key=lambda c:c.name[8:])
+            for chapter_path in chapter_paths:
+                chapter_element = ET.parse(chapter_path / "main.ptx").getroot()
+                section_paths = [s for s in chapter_path.iterdir() if not s.is_dir() and s.name[:8] == "section-"]
+                section_paths.sort(key=lambda s:s.name[8:])
+                for section_path in section_paths:
+                    section_element = ET.parse(section_path).getroot()
+                    chapter_element.insert(-1,section_element)
+                book_element.insert(-1,chapter_element)
+            backmatter_element = ET.parse(source_dir / "backmatter.ptx").getroot()
+            book_element.insert(-1,backmatter_element)
+            ET.ElementTree(document_element).write(source_dir/".main.ptx",xml_declaration=True,encoding="utf-8")
 
     def xml_element(self) -> Element:
         return self.__xml_element
@@ -46,10 +67,12 @@ class Target:
         return self.xml_element().find("format").text.strip()
 
     def source(self) -> Path:
+        if self.managed_divisions(): #EXPERIMENTAL
+            return self.project_path() / self.xml_element().find("source").text.strip() / ".main.ptx"
         return self.project_path() / self.xml_element().find("source").text.strip()
 
     def source_dir(self) -> Path:
-        return Path(self.source()).parent
+        return self.source().parent
 
     def source_xml(self):
         ele_tree = ET.parse(self.source())
@@ -125,6 +148,12 @@ class Target:
             return None
         else:
             return ele.text.strip()
+
+    def managed_divisions(self) -> bool: #EXPERIMENTAL
+        return self.xml_element().find("source").get("experiemental-managed-divisions") == "yes"
+
+
+
 
 
 class Project:
