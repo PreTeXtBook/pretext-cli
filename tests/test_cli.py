@@ -72,8 +72,8 @@ def test_build(tmp_path: Path, script_runner):
     assert mapping == {
         f"{source_prefix}main.ptx": ["my-demo-book"],
         f"{source_prefix}frontmatter.ptx": [
-            "meta_frontmatter",
-            "meta_frontmatter-preface",
+            "frontmatter",
+            "frontmatter-preface",
         ],
         f"{source_prefix}ch-first.ptx": ["ch-first"],
         f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
