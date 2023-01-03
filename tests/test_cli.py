@@ -75,13 +75,13 @@ def test_build(tmp_path: Path, script_runner):
             "meta_frontmatter",
             "meta_frontmatter-preface",
         ],
-        f"{source_prefix}ch{os.sep}first.ptx": ["ch_first"],
-        f"{source_prefix}sec{os.sep}first-intro.ptx": ["sec_first-intro"],
-        f"{source_prefix}sec{os.sep}first-examples.ptx": ["sec_first-examples"],
-        f"{source_prefix}ex{os.sep}first.ptx": ["ex_first"],
-        f"{source_prefix}ch{os.sep}empty.ptx": ["ch_empty"],
-        f"{source_prefix}ch{os.sep}features.ptx": ["ch_features"],
-        f"{source_prefix}sec{os.sep}features.ptx": ["sec_features-blocks"],
+        f"{source_prefix}ch{os.sep}first.ptx": ["ch-first"],
+        f"{source_prefix}sec{os.sep}first-intro.ptx": ["sec-first-intro"],
+        f"{source_prefix}sec{os.sep}first-examples.ptx": ["sec-first-examples"],
+        f"{source_prefix}ex{os.sep}first.ptx": ["ex-first"],
+        f"{source_prefix}ch{os.sep}empty.ptx": ["ch-empty"],
+        f"{source_prefix}ch{os.sep}features.ptx": ["ch-features"],
+        f"{source_prefix}sec{os.sep}features.ptx": ["sec-features-blocks"],
         f"{source_prefix}meta{os.sep}backmatter.ptx": ["meta_backmatter"],
     }
     assert script_runner.run(
@@ -91,12 +91,12 @@ def test_build(tmp_path: Path, script_runner):
         "build",
         "subset",
         "-x",
-        "ch_first",
+        "ch-first",
         cwd=tmp_path,
     ).success
     assert (tmp_path / "output" / "subset").exists()
-    assert not (tmp_path / "output" / "subset" / "ch1.html").exists()
-    assert (tmp_path / "output" / "subset" / "ch2.html").exists()
+    assert not (tmp_path / "output" / "subset" / "ch-empty.html").exists()
+    assert (tmp_path / "output" / "subset" / "ch-features.html").exists()
     assert script_runner.run(PTX_CMD, "build", "print-latex", cwd=tmp_path).success
     assert (tmp_path / "output" / "print-latex").exists()
     assert script_runner.run(

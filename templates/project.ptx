@@ -26,8 +26,9 @@
       <output-dir>output/print-latex</output-dir>
     </target>
     <target name="subset">
-      <!-- Usage: -->
-      <!-- pretext build subset -p targets.target.xmlid-root XMLID -->
+      <!-- Usage: to build starting at XMLID, -->
+      <!-- pretext build subset -x XMLID      -->
+      <!-- or use <xml-root>XMLID</xml-root>  -->
       <format>html</format>
       <source>source/main.ptx</source>
       <publication>publication/publication.ptx</publication>
