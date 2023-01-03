@@ -156,7 +156,9 @@ def support():
 @click.argument(
     "template",
     default="book",
-    type=click.Choice(["book", "article", "hello", "slideshow"], case_sensitive=False),
+    type=click.Choice(
+        ["book", "article", "demo", "hello", "slideshow"], case_sensitive=False
+    ),
 )
 @click.option(
     "-d",
@@ -375,7 +377,7 @@ def build(
 
     # Add xmlid value to project_ptx_override (a tuple of tuples)
     if xmlid:
-        project_ptx_override += (("target.targets.xmlid-root", xmlid),)
+        project_ptx_override += (("targets.target.xmlid-root", xmlid),)
     overlay = xml_overlay.ShadowXmlDocument()
     for path, value in project_ptx_override:
         overlay.upsert_node_or_attribute(path, value)

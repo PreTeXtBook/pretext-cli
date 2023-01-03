@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<figure xml:id="fig_sage3d" xmlns:xi="http://www.w3.org/2001/XInclude">
+<figure xml:id="fig-sage3d" xmlns:xi="http://www.w3.org/2001/XInclude">
   <caption>The paraboloid <m>z=x^2+y^2</m> made by SageMath</caption>
   <image xml:id="sageplot3d-example-diagram" width="80%">
     <description>A paraboloid</description>

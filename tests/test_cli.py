@@ -56,7 +56,7 @@ def test_new(tmp_path: Path, script_runner):
 
 def test_build(tmp_path: Path, script_runner):
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "new", "-d", ".", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "new", "demo", "-d", ".", cwd=tmp_path
     ).success
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "build", "web", cwd=tmp_path
@@ -70,24 +70,33 @@ def test_build(tmp_path: Path, script_runner):
     # The path separator varies by platform.
     source_prefix = f"source{os.sep}"
     assert mapping == {
-        f"{source_prefix}main.ptx": ["my-great-book"],
-        f"{source_prefix}meta_frontmatter.ptx": [
-            "meta_frontmatter",
-            "meta_frontmatter-preface",
+        f"{source_prefix}main.ptx": ["my-demo-book"],
+        f"{source_prefix}frontmatter.ptx": [
+            "frontmatter",
+            "frontmatter-preface",
         ],
-        f"{source_prefix}ch_first.ptx": ["ch_first"],
-        f"{source_prefix}sec_first-intro.ptx": ["sec_first-intro"],
-        f"{source_prefix}sec_first-examples.ptx": ["sec_first-examples"],
-        f"{source_prefix}ex_first.ptx": ["ex_first"],
-        f"{source_prefix}ch_empty.ptx": ["ch_empty"],
-        f"{source_prefix}ch_features.ptx": ["ch_features"],
-        f"{source_prefix}sec_features.ptx": ["sec_features-blocks"],
-        f"{source_prefix}meta_backmatter.ptx": ["meta_backmatter"],
+        f"{source_prefix}ch-first.ptx": ["ch-first"],
+        f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
+        f"{source_prefix}sec-first-examples.ptx": ["sec-first-examples"],
+        f"{source_prefix}ex-first.ptx": ["ex-first"],
+        f"{source_prefix}ch-empty.ptx": ["ch-empty"],
+        f"{source_prefix}ch-features.ptx": ["ch-features"],
+        f"{source_prefix}sec-features.ptx": ["sec-features-blocks"],
+        f"{source_prefix}backmatter.ptx": ["backmatter"],
     }
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "build", "subset", cwd=tmp_path
+        PTX_CMD,
+        "-v",
+        "debug",
+        "build",
+        "subset",
+        "-x",
+        "ch-first",
+        cwd=tmp_path,
     ).success
     assert (tmp_path / "output" / "subset").exists()
+    assert not (tmp_path / "output" / "subset" / "ch-empty.html").exists()
+    assert (tmp_path / "output" / "subset" / "ch-first.html").exists()
     assert script_runner.run(PTX_CMD, "build", "print-latex", cwd=tmp_path).success
     assert (tmp_path / "output" / "print-latex").exists()
     assert script_runner.run(

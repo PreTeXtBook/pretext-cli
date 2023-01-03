@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<figure xml:id="fig_sage2d" xmlns:xi="http://www.w3.org/2001/XInclude">
+<figure xml:id="fig-sage2d" xmlns:xi="http://www.w3.org/2001/XInclude">
   <caption>The parabola <m>y=x^2</m> made by SageMath</caption>
   <image xml:id="sageplot-example-diagram" width="50%">
     <description>A parabola</description>

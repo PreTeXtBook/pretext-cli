@@ -5,7 +5,7 @@
 <!-- excercies appear in a section, and then their        -->
 <!-- solutions in the next.  Then there is an appendix    -->
 <!-- with all notation generated, and finally the index.  -->
-<backmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="meta_backmatter">
+<backmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="backmatter">
   <title>Backmatter</title>
   
   <solutions divisional="hint">

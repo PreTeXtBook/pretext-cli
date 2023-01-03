@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<section xml:id="sec-features-blocks" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Environments and Blocks</title>
+  <p>Some text</p>
+  <theorem xml:id="thm_features-blocks-my-theorem">
+    <title>My Theorem</title>
+    
+    <statement>
+      <p>
+        Theorem statement.          
+      </p>
+    </statement>
+    <proof>
+      <p>
+        Proof of theorem.
+      </p>
+    </proof>
+  </theorem>
+  
+  <example>
+    <statement>
+      <p>
+        Statement of example
+      </p>
+    </statement>
+    <solution>
+      <p>
+        The solution.
+      </p>
+    </solution>
+  </example>
+  <p>
+    Now a figure.
+  </p>
+  <figure>
+    <caption>A frog</caption>
+    <image source="frog.jpg" width="50%">
+      <description>A nice-looking frog with a longish
+      description.</description>
+    </image>
+  </figure>
+</section>
