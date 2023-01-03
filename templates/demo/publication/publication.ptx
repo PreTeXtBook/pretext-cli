@@ -6,8 +6,6 @@
 <!-- of publication-file options, see                                     -->
 <!-- https://pretextbook.org/doc/guide/html/publisher-file-reference.html -->
 
-
-
 <publication>
   <common>
     <!-- Level at which are html files generated (chapter/section/etc): -->

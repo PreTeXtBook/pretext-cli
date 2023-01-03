@@ -2,91 +2,65 @@
 
 <pretext xml:lang="en-US">
 
-    <docinfo>
-        <macros>
-\newcommand{\R}{\mathbb R}
-        </macros>
-    </docinfo>
+  <docinfo>
+    <macros>
+      \newcommand{\R}{\mathbb R}
+    </macros>
+  </docinfo>
 
-    <book xml:id="my-great-book">
-        <title>My Great Book</title>
-        <subtitle>An example to get you started</subtitle>
+  <book xml:id="my-great-book">
+    <title>My Great Book</title>
+    <subtitle>An example to get you started</subtitle>
 
-        <frontmatter xml:id="frontmatter">
-            <titlepage>
-                <author>
-                <personname>You</personname>
-                <department>Your department</department>
-                <institution>Your institution</institution>
-                </author>
-                <date><today/></date>
-            </titlepage>
+    <frontmatter xml:id="frontmatter">
+      <titlepage>
+        <author>
+          <personname>You</personname>
+          <department>Your department</department>
+          <institution>Your institution</institution>
+        </author>
+        <date>
+          <today />
+        </date>
+      </titlepage>
 
-            <colophon>
+      <colophon>
 
-                <website>
-                <name><c>example.org</c></name>
-                <address>https://example.org</address>
-                </website>
+        <website>
+          <name>
+            <c>example.org</c>
+          </name>
+          <address>https://example.org</address>
+        </website>
 
-                <copyright>
-                <year>2020<ndash/>2023</year>
-                <holder>You</holder>
-                <shortlicense>
-                    This work is licensed under the Creative Commons
-                    Attribution-ShareAlike 4.0 International License.
-                    To view a copy of this license, visit
-                    <url 
-                    href="http://creativecommons.org/licenses/by-sa/4.0/"
-                    visual="creativecommons.org/licenses/by-sa/4.0">
-                    CreativeCommons.org</url>
-                </shortlicense>
-                </copyright>
+        <copyright>
+          <year>2020<ndash />2023</year>
+          <holder>You</holder>
+          <shortlicense> 
+            This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit <url href="http://creativecommons.org/licenses/by-sa/4.0/" visual="creativecommons.org/licenses/by-sa/4.0"> CreativeCommons.org</url>
+          </shortlicense>
+        </copyright>
+      </colophon>
+    </frontmatter>
 
-            </colophon>
+    <chapter xml:id="">
+      <title></title>
 
-        </frontmatter>
+      <section xml:id="">
+        <title></title>
+        <p>Hello</p>
+      </section>
 
-        <chapter xml:id="ch1">
-            <title>First Chapter</title>
+    </chapter>
 
-            <section xml:id="ch1-sec1">
-                <title>First section</title>
-                <p>Hello</p>
-            </section>
+    <backmatter xml:id="backmatter">
+      <title>Backmatter</title>
 
-            <section xml:id="ch1-sec2">
-                <title>Second section</title>
-                <p>Hello</p>
-            </section>
-        
-        </chapter>
+      <colophon>
+        <p> This book was authored in <pretext />. </p>
+      </colophon>
 
-        <chapter xml:id="ch2">
-            <title>Last Chapter</title>
+    </backmatter>
 
-            <section xml:id="ch2-sec1">
-                <title>Initial section</title>
-                <p>Hello</p>
-            </section>
-
-            <section xml:id="ch2-sec2">
-                <title>Final section</title>
-                <p>Hello</p>
-            </section>
-        
-        </chapter>
-
-        <backmatter xml:id="backmatter">
-            <title>Backmatter</title>
-            
-            <colophon>
-                <p>
-                This book was authored in <pretext/>.
-                </p>
-            </colophon>
-
-        </backmatter>
-
-    </book>
+  </book>
 </pretext>

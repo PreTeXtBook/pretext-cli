@@ -56,7 +56,7 @@ def test_new(tmp_path: Path, script_runner):
 
 def test_build(tmp_path: Path, script_runner):
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "new", "book", "-d", ".", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "new", "demo", "-d", ".", cwd=tmp_path
     ).success
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "build", "web", cwd=tmp_path
@@ -70,15 +70,19 @@ def test_build(tmp_path: Path, script_runner):
     # The path separator varies by platform.
     source_prefix = f"source{os.sep}"
     assert mapping == {
-        f"{source_prefix}main.ptx": ["my-great-book"],
-        f"{source_prefix}frontmatter.ptx": ["frontmatter"],
-        f"{source_prefix}ch1{os.sep}main.ptx": ["ch1"],
-        f"{source_prefix}ch1{os.sep}sec1.ptx": ["ch1-sec1"],
-        f"{source_prefix}ch1{os.sep}sec2.ptx": ["ch1-sec2"],
-        f"{source_prefix}ch2{os.sep}main.ptx": ["ch2"],
-        f"{source_prefix}ch2{os.sep}sec1.ptx": ["ch2-sec1"],
-        f"{source_prefix}ch2{os.sep}sec2.ptx": ["ch2-sec2"],
-        f"{source_prefix}backmatter.ptx": ["backmatter"],
+        f"{source_prefix}main.ptx": ["my-demo-book"],
+        f"{source_prefix}meta{os.sep}frontmatter.ptx": [
+            "meta_frontmatter",
+            "meta_frontmatter-preface",
+        ],
+        f"{source_prefix}ch{os.sep}first.ptx": ["ch_first"],
+        f"{source_prefix}sec{os.sep}first-intro.ptx": ["sec_first-intro"],
+        f"{source_prefix}sec{os.sep}first-examples.ptx": ["sec_first-examples"],
+        f"{source_prefix}ex{os.sep}first.ptx": ["ex_first"],
+        f"{source_prefix}ch{os.sep}empty.ptx": ["ch_empty"],
+        f"{source_prefix}ch{os.sep}features.ptx": ["ch_features"],
+        f"{source_prefix}sec{os.sep}features.ptx": ["sec_features-blocks"],
+        f"{source_prefix}meta{os.sep}backmatter.ptx": ["meta_backmatter"],
     }
     assert script_runner.run(
         PTX_CMD,
@@ -86,9 +90,8 @@ def test_build(tmp_path: Path, script_runner):
         "debug",
         "build",
         "subset",
-        "-p",
-        "targets.target.xmlid-root",
-        "ch2",
+        "-x",
+        "ch_first",
         cwd=tmp_path,
     ).success
     assert (tmp_path / "output" / "subset").exists()
