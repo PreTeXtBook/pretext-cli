@@ -43,10 +43,10 @@
       </colophon>
     </frontmatter>
 
-    <chapter xml:id="">
+    <chapter xml:id="chapter-">
       <title></title>
 
-      <section xml:id="">
+      <section xml:id="section-">
         <title></title>
         <p>Hello</p>
       </section>
