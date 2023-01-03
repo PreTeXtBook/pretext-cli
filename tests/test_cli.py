@@ -71,18 +71,18 @@ def test_build(tmp_path: Path, script_runner):
     source_prefix = f"source{os.sep}"
     assert mapping == {
         f"{source_prefix}main.ptx": ["my-demo-book"],
-        f"{source_prefix}meta{os.sep}frontmatter.ptx": [
+        f"{source_prefix}frontmatter.ptx": [
             "meta_frontmatter",
             "meta_frontmatter-preface",
         ],
-        f"{source_prefix}ch{os.sep}first.ptx": ["ch-first"],
-        f"{source_prefix}sec{os.sep}first-intro.ptx": ["sec-first-intro"],
-        f"{source_prefix}sec{os.sep}first-examples.ptx": ["sec-first-examples"],
-        f"{source_prefix}ex{os.sep}first.ptx": ["ex-first"],
-        f"{source_prefix}ch{os.sep}empty.ptx": ["ch-empty"],
-        f"{source_prefix}ch{os.sep}features.ptx": ["ch-features"],
-        f"{source_prefix}sec{os.sep}features.ptx": ["sec-features-blocks"],
-        f"{source_prefix}meta{os.sep}backmatter.ptx": ["meta_backmatter"],
+        f"{source_prefix}ch-first.ptx": ["ch-first"],
+        f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
+        f"{source_prefix}sec-first-examples.ptx": ["sec-first-examples"],
+        f"{source_prefix}ex-first.ptx": ["ex-first"],
+        f"{source_prefix}ch-empty.ptx": ["ch-empty"],
+        f"{source_prefix}ch-features.ptx": ["ch-features"],
+        f"{source_prefix}sec-features.ptx": ["sec-features-blocks"],
+        f"{source_prefix}backmatter.ptx": ["backmatter"],
     }
     assert script_runner.run(
         PTX_CMD,

@@ -3,7 +3,7 @@
 <!-- first chapter.  Fill in and comment/uncomment to see how this -->
 <!-- works.                                                        -->
 
-<frontmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="meta_frontmatter">
+<frontmatter xmlns:xi="http://www.w3.org/2001/XInclude" xml:id="frontmatter">
   <titlepage>
     <author>
       <personname>Me</personname>
@@ -52,7 +52,7 @@
     </p>
   </acknowledgement>
 
-  <preface xml:id="meta_frontmatter-preface">
+  <preface xml:id="frontmatter-preface">
     <!-- You should be a little careful about what you put here -->
     <!-- Avoid elements that should have a number, for example  -->
     <p>
