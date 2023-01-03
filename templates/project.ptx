@@ -31,8 +31,9 @@
       <publication>publication/publication.ptx</publication>
       <output-dir>output/subset</output-dir>
       <stringparam key="debug.skip-knowls" value="yes"/>
-      <!-- edit this to change the section/chapter/etc. to include
-           in your subset build -->
+      <!-- edit this to change the section/chapter/etc. -->
+      <!-- to include in your subset build.             -->
+      <!-- Or, use `-x` option on the command line.     -->
       <xmlid-root>ch_first</xmlid-root>
     </target>
   </targets>
