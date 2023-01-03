@@ -96,7 +96,7 @@ def test_build(tmp_path: Path, script_runner):
     ).success
     assert (tmp_path / "output" / "subset").exists()
     assert not (tmp_path / "output" / "subset" / "ch-empty.html").exists()
-    assert (tmp_path / "output" / "subset" / "ch-features.html").exists()
+    assert (tmp_path / "output" / "subset" / "ch-first.html").exists()
     assert script_runner.run(PTX_CMD, "build", "print-latex", cwd=tmp_path).success
     assert (tmp_path / "output" / "print-latex").exists()
     assert script_runner.run(

@@ -377,7 +377,7 @@ def build(
 
     # Add xmlid value to project_ptx_override (a tuple of tuples)
     if xmlid:
-        project_ptx_override += (("target.targets.xmlid-root", xmlid),)
+        project_ptx_override += (("targets.target.xmlid-root", xmlid),)
     overlay = xml_overlay.ShadowXmlDocument()
     for path, value in project_ptx_override:
         overlay.upsert_node_or_attribute(path, value)
