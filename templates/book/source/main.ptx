@@ -1,11 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<!-- This is the main file of the pretext template book provided -->
-<!-- by the `pretext new book` command.  The main.ptx here always-->
-<!-- starts with <pretext> tags.  In this example, the main file -->
-<!-- just imports other .ptx files which contain content. Open   -->
-<!-- those files to see more pretext features                    -->
 
-<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+<pretext xml:lang="en-US">
 
     <docinfo>
         <macros>
@@ -17,11 +12,81 @@
         <title>My Great Book</title>
         <subtitle>An example to get you started</subtitle>
 
-        <xi:include href="./frontmatter.ptx" />
+        <frontmatter xml:id="frontmatter">
+            <titlepage>
+                <author>
+                <personname>You</personname>
+                <department>Your department</department>
+                <institution>Your institution</institution>
+                </author>
+                <date><today/></date>
+            </titlepage>
 
-        <xi:include href="./ch1/main.ptx" />
-        <xi:include href="./ch2/main.ptx" />
+            <colophon>
 
-        <xi:include href="./backmatter.ptx" />
+                <website>
+                <name><c>example.org</c></name>
+                <address>https://example.org</address>
+                </website>
+
+                <copyright>
+                <year>2020<ndash/>2023</year>
+                <holder>You</holder>
+                <shortlicense>
+                    This work is licensed under the Creative Commons
+                    Attribution-ShareAlike 4.0 International License.
+                    To view a copy of this license, visit
+                    <url 
+                    href="http://creativecommons.org/licenses/by-sa/4.0/"
+                    visual="creativecommons.org/licenses/by-sa/4.0">
+                    CreativeCommons.org</url>
+                </shortlicense>
+                </copyright>
+
+            </colophon>
+
+        </frontmatter>
+
+        <chapter xml:id="ch1">
+            <title>First Chapter</title>
+
+            <section xml:id="ch1-sec1">
+                <title>First section</title>
+                <p>Hello</p>
+            </section>
+
+            <section xml:id="ch1-sec2">
+                <title>Second section</title>
+                <p>Hello</p>
+            </section>
+        
+        </chapter>
+
+        <chapter xml:id="ch2">
+            <title>Last Chapter</title>
+
+            <section xml:id="ch2-sec1">
+                <title>Initial section</title>
+                <p>Hello</p>
+            </section>
+
+            <section xml:id="ch2-sec2">
+                <title>Final section</title>
+                <p>Hello</p>
+            </section>
+        
+        </chapter>
+
+        <backmatter xml:id="backmatter">
+            <title>Backmatter</title>
+            
+            <colophon>
+                <p>
+                This book was authored in <pretext/>.
+                </p>
+            </colophon>
+
+        </backmatter>
+
     </book>
 </pretext>
