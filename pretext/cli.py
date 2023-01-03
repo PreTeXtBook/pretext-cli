@@ -345,13 +345,22 @@ ASSETS = [
     help="Generates assets for target.  -g [asset] will generate the specific assets given.",
 )
 @click.option(
+    "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
+)
+@click.option(
     "-p",
     "--project-ptx-override",
     type=(str, str),
     multiple=True,
     help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
 )
-def build(target, clean, generate, project_ptx_override: t.Tuple[str, str]):
+def build(
+    target,
+    clean,
+    generate,
+    xmlid: t.Optional[str],
+    project_ptx_override: t.Tuple[str, str],
+):
     """
     Build [TARGET] according to settings specified by project.ptx.
 
@@ -366,6 +375,9 @@ def build(target, clean, generate, project_ptx_override: t.Tuple[str, str]):
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
 
+    # Add xmlid value to project_ptx_override (a tuple of tuples)
+    if xmlid:
+        project_ptx_override += (("target.targets.xmlid-root", xmlid),)
     overlay = xml_overlay.ShadowXmlDocument()
     for path, value in project_ptx_override:
         overlay.upsert_node_or_attribute(path, value)
