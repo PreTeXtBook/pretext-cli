@@ -1,0 +1,43 @@
+{
+    "name": "PreTeXt-Full",
+    "features": {
+          "ghcr.io/rocker-org/devcontainer-features/pandoc:1": {}
+      },
+      "forwardPorts": [
+          27377,
+          27378
+      ],
+      "portsAttributes": {
+          "27378": {
+              "label": "CodeChat",
+              "onAutoForward": "openPreview",
+              "requireLocalPort": true,
+              "elevateIfNeeded": true,
+              "protocol": "https"
+          }
+      },
+    // Use 'postCreateCommand' to run commands after the container is created.
+    "postCreateCommand": "sudo bash ./.devcontainer/postCreateCommand.sh",
+  
+      // Configure tool-specific properties.
+      "customizations": {
+          "codespaces": {
+              "openFiles": [
+                  "project.ptx",
+                  "source/main.ptx"
+              ]
+          },
+          "vscode": {
+              "settings": {
+                  "CodeChat.CodeChatServer.Command": "CodeChat_Server"
+              },
+              "extensions": [
+                  "CodeChat.codechat",
+                  "oscarlevin.pretext-tools"
+              ]
+          }
+      }
+  
+      // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+      // "remoteUser": "root"
+  }
