@@ -17,6 +17,7 @@ import json  # dumps
 import pathlib  # Path
 import sys  # platform
 import urllib.parse  # urlparse
+import urllib.request  # pathname2url
 
 # Third-party imports
 # -------------------
@@ -48,7 +49,7 @@ def map_path_to_xml_id(
     # A path to the root XML file in the pretext book being processed.
     xml: str,
     # A path to the project directory, which (should) contain ``codechat_config.yaml``.
-    project_path: str,
+    project_path: pathlib.Path,
     # A path to the destination or output directory. The resulting JSON file will be stored there.
     dest_dir: str,
 ) -> None:
@@ -78,6 +79,12 @@ def map_path_to_xml_id(
         if isinstance(ret, ET._Element):
             ret.attrib[xml_base_attrib] = href
         return ret
+
+    # Clean up project_path in case it has spaces.
+    project_path = urllib.request.pathname2url(str(project_path))
+    # Remove two leading slashes if on windows.
+    if is_win:
+        project_path = project_path[3:]
 
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
