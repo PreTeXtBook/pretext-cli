@@ -17,7 +17,7 @@ import json  # dumps
 import pathlib  # Path
 import sys  # platform
 import urllib.parse  # urlparse
-import urllib.request # pathname2url
+import urllib.request  # pathname2url
 
 # Third-party imports
 # -------------------
@@ -84,7 +84,7 @@ def map_path_to_xml_id(
     project_path = urllib.request.pathname2url(str(project_path))
     # Remove two leading slashes if on windows.
     if is_win:
-        project_path = project_path[3:]  
+        project_path = project_path[3:]
 
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
