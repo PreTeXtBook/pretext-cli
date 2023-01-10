@@ -27,7 +27,7 @@
     <!-- possible structure of the book.  Once you know what the   -->
     <!-- title of the chapter is, rename the file something based  -->
     <!-- on the title (ch-shorttitle.ptx) both here and on disk    -->
-    <xi:include href="./ch-first.ptx" />
+    <xi:include href="./ch-first%20with%20spaces.ptx" />
     <xi:include href="./ch-empty.ptx"/>
     <!-- Of course you will want to add more chapters as you proceed-->
 
@@ -36,7 +36,7 @@
     <!-- We recommend keeping this handy, and commenting it out    -->
     <!-- when you show off your own work.                          -->
     <xi:include href="./ch-features.ptx" />
-  
+
     <!-- This chapter includes several features that require pregeneration   -->
     <!-- of assets with `pretext generate` or similar. Some features require -->
     <!-- internet access; others require local installs not automatically    -->

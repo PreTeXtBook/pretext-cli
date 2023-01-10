@@ -55,13 +55,15 @@ def test_new(tmp_path: Path, script_runner):
 
 
 def test_build(tmp_path: Path, script_runner):
+    path_with_spaces = "test path with spaces"
+    project_path = tmp_path / path_with_spaces
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "new", "demo", "-d", ".", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces, cwd=tmp_path
     ).success
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "build", "web", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "build", "web", cwd=project_path
     ).success
-    web_path = tmp_path / "output" / "web"
+    web_path = project_path / "output" / "web"
     assert web_path.exists()
     mapping = json.load(open(web_path / ".mapping.json"))
     print(mapping)
@@ -75,7 +77,7 @@ def test_build(tmp_path: Path, script_runner):
             "frontmatter",
             "frontmatter-preface",
         ],
-        f"{source_prefix}ch-first.ptx": ["ch-first"],
+        f"{source_prefix}ch-first with spaces.ptx": ["ch-first-without-spaces"],
         f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
         f"{source_prefix}sec-first-examples.ptx": ["sec-first-examples"],
         f"{source_prefix}ex-first.ptx": ["ex-first"],
@@ -91,23 +93,25 @@ def test_build(tmp_path: Path, script_runner):
         "build",
         "subset",
         "-x",
-        "ch-first",
-        cwd=tmp_path,
+        "ch-first-without-spaces",
+        cwd=project_path,
     ).success
-    assert (tmp_path / "output" / "subset").exists()
-    assert not (tmp_path / "output" / "subset" / "ch-empty.html").exists()
-    assert (tmp_path / "output" / "subset" / "ch-first.html").exists()
-    assert script_runner.run(PTX_CMD, "build", "print-latex", cwd=tmp_path).success
-    assert (tmp_path / "output" / "print-latex").exists()
+    assert (project_path / "output" / "subset").exists()
+    assert not (project_path / "output" / "subset" / "ch-empty.html").exists()
+    assert (
+        project_path / "output" / "subset" / "ch-first-without-spaces.html"
+    ).exists()
+    assert script_runner.run(PTX_CMD, "build", "print-latex", cwd=project_path).success
+    assert (project_path / "output" / "print-latex").exists()
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "build", "-g", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "build", "-g", cwd=project_path
     ).success
-    assert (tmp_path / "generated-assets").exists()
-    os.removedirs(tmp_path / "generated-assets")
+    assert (project_path / "generated-assets").exists()
+    os.removedirs(project_path / "generated-assets")
     assert script_runner.run(
-        PTX_CMD, "-v", "debug", "build", "-g", "webwork", cwd=tmp_path
+        PTX_CMD, "-v", "debug", "build", "-g", "webwork", cwd=project_path
     ).success
-    assert (tmp_path / "generated-assets").exists()
+    assert (project_path / "generated-assets").exists()
 
 
 def test_init(tmp_path: Path, script_runner):
