@@ -17,7 +17,6 @@ import json  # dumps
 import pathlib  # Path
 import sys  # platform
 import urllib.parse  # urlparse
-import urllib.request  # pathname2url
 
 # Third-party imports
 # -------------------
@@ -80,12 +79,6 @@ def map_path_to_xml_id(
             ret.attrib[xml_base_attrib] = href
         return ret
 
-    # Clean up project_path in case it has spaces.
-    project_path = urllib.request.pathname2url(str(project_path))
-    # Remove two leading slashes if on windows.
-    if is_win:
-        project_path = project_path[3:]
-
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
     src_tree = ET.parse(xml, parser=huge_parser)
@@ -106,6 +99,8 @@ def map_path_to_xml_id(
             # On Windows, this produces ``path == "/C:/path/to/file.ptx"``. Remove the slash.
             if is_win:
                 path = path[1:]
+            # Decode the URL-encoded filename.
+            path = urllib.parse.unquote(path)
             # Use ``resolve()`` to standardize capitalization on Windows.
             stdpath = pathlib.Path(path).resolve()
             # Make this path relative to the project directory, to avoid writing potentially confidential information (username / local filesystem paths) to the mapping file, which might be published to the web.
