@@ -2,7 +2,7 @@
 <!-- Chapters are enclosed with <chapter> tags. Use xml:id to -->
 <!-- uniquely identify the chapter.  The @xmlns:xi attribute  -->
 <!-- is needed if you use xi:include in this file             -->
-<chapter xml:id="ch-first" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter xml:id="ch-first-without-spaces" xmlns:xi="http://www.w3.org/2001/XInclude">
 
 <!-- Change title when you have one: -->
   <title>My First Chapter</title>
