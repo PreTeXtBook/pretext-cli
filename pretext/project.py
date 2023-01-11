@@ -205,24 +205,10 @@ class Project:
                 )
             else:
                 log.info(f"Output can be viewed by navigating to {directory}")
-        elif target.format() == "html":
+        else:
             utils.run_server(
                 directory, access, port, watch_directory, watch_callback, no_launch
             )
-        else:
-            outputfiles = list(Path(directory).glob("*.*"))
-            log.info(f"Output can be viewed by navigating to {directory}")
-            if len(outputfiles) > 1 or no_launch:
-                return
-            else:
-                try:
-                    outputfile = str(outputfiles[0])
-                    webbrowser.open(outputfile)
-                    log.info(
-                        f"Attempting to open output using default viewer for {target.format()} files.  If this doesn't work, you can open {outputfile} manually."
-                    )
-                except:
-                    return
 
     def build(self, target_name, clean=False):
         target = self.target(target_name)
