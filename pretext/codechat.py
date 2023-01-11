@@ -80,12 +80,6 @@ def map_path_to_xml_id(
             ret.attrib[xml_base_attrib] = href
         return ret
 
-    # Clean up project_path in case it has spaces.
-    project_path = urllib.request.pathname2url(str(project_path))
-    # Remove two leading slashes if on windows.
-    if is_win:
-        project_path = project_path[3:]
-
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
     src_tree = ET.parse(xml, parser=huge_parser)
