@@ -1,5 +1,3 @@
-from concurrent.futures.process import _threads_wakeups
-from pickle import FALSE
 import logging
 import logging.handlers
 import sys
@@ -12,7 +10,6 @@ import zipfile
 import requests
 import io
 import tempfile
-import shutil
 import platform
 from pathlib import Path
 import typing as t
@@ -184,7 +181,7 @@ def new(template, directory, url_template):
         log.warning(
             f"A project already exists in `{utils.project_path(directory_fullpath)}`."
         )
-        log.warning(f"No new project will be generated.")
+        log.warning("No new project will be generated.")
         return
     log.info(
         f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template."
@@ -243,7 +240,7 @@ def init(refresh):
     if utils.project_path() is not None and not refresh:
         log.warning(f"A project already exists in `{utils.project_path()}`.")
         log.warning(
-            f"Use `pretext init --refresh` to refresh initialization of an existing project."
+            "Use `pretext init --refresh` to refresh initialization of an existing project."
         )
         return
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -305,12 +302,12 @@ def init(refresh):
                 f"A default project file has been created as {project_gitignore_path} for comparison."
             )
         shutil.copyfile(template_gitignore_path, project_gitignore_path)
-    log.info(f"Generated .gitignore file at {project_gitignore_path}.")
+    log.info("Generated .gitignore file at {project_gitignore_path}.")
     log.info("")
     # End by reporting success
-    log.info(f"Success! Open project.ptx to edit your project manifest.")
+    log.info("Success! Open project.ptx to edit your project manifest.")
     log.info(
-        f"Edit your <target/>s to point to the location of your PreTeXt source files."
+        "Edit your <target/>s to point to the location of your PreTeXt source files."
     )
 
 
@@ -476,7 +473,7 @@ def generate(
             log.info("project.ptx overlay " + message)
     target_name = target
     target = project.target(name=target_name)
-    if target_name == None:
+    if target_name is None:
         log.info(
             f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
         )

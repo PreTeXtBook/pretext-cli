@@ -3,4 +3,4 @@
 
 raise Exception("File provided to satisfy GitHub only.")
 
-setup(name="pretextbook")
+setup(name="pretextbook")  # noqa: F821

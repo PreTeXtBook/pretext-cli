@@ -1,5 +1,4 @@
 import sys
-import shutil
 from pathlib import Path
 from remove_path import remove_path
 import pretext.core.resources

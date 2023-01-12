@@ -3,7 +3,6 @@ import os
 import logging
 from . import utils, core
 from pathlib import Path
-from typing import Optional
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -62,7 +61,7 @@ def latex_image(
                     )
                 except Exception as e:
                     log.error(e)
-                    log.debug(f"Exception info:\n##################\n", exc_info=True)
+                    log.debug("Exception info:\n##################\n", exc_info=True)
                     log.info("##################")
                     log.error(
                         "Failed to generate some latex-image elements.  Check your source and partial output to diagnose the issue."
@@ -123,7 +122,7 @@ def sageplot(
                     )
             except Exception as e:
                 log.error(e)
-                log.debug(f"Exception info:\n##################\n", exc_info=True)
+                log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.error(
                     "Failed to generate some sageplot elements.  Check your source and partial output to diagnose the issue."
@@ -182,7 +181,7 @@ def asymptote(
                     )
             except Exception as e:
                 log.error(e)
-                log.debug(f"Exception info:\n##################\n", exc_info=True)
+                log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.error(
                     "Failed to generate some asymptote elements. Check your source and partial output to diagnose the issue."
@@ -221,7 +220,7 @@ def interactive(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root)
                     "Failed to generate interactive element previews. Check debug log for info."
                 )
                 log.debug(e)
-                log.debug(f"Exception info:\n##################\n", exc_info=True)
+                log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.warning("Continuing...")
     else:
@@ -252,7 +251,7 @@ def youtube(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
                 )
             except Exception as e:
                 log.error(e)
-                log.debug(f"Exception info:\n##################\n", exc_info=True)
+                log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.error(
                     "Failed to generate some youtube video previews. Check your source and partial output to diagnose the issue."
@@ -288,7 +287,7 @@ def webwork(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root=None
                 )
             except Exception as e:
                 log.error(e)
-                log.debug(f"Exception info:\n##################\n", exc_info=True)
+                log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.error(
                     "Failed to generate the webwork-representations file.  Check your source and partial output to diagnose the issue."
@@ -322,7 +321,7 @@ def codelens(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
                 )
             except Exception as e:
                 log.error(e)
-                log.debug(f"Exception info:\n##################\n", exc_info=True)
+                log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.error("Failed to generate codelens trace.")
                 log.warning("Continuing...")

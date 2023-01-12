@@ -3,10 +3,8 @@ import zipfile
 import io
 import shutil
 import tempfile
-import os
 from pretext import CORE_COMMIT
 from pathlib import Path
-import os
 from remove_path import remove_path
 
 

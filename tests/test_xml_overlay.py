@@ -1,5 +1,4 @@
 from pretext.config import xml_overlay
-import typing as t
 from lxml import etree as ET
 
 # Allow for importing importing directly in tests functions in the development tree.
