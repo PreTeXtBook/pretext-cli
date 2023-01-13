@@ -25,7 +25,7 @@ PyPDF2 = "~2.5"
 click-log = "^0.4"
 ghp-import = "^2"
 single-version = "^1"
-pyppeteer = "^1.0.2"
+playwright = "^1"
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
