@@ -153,10 +153,7 @@ def test_generate_interactive(tmp_path: Path, script_runner):
     shutil.copytree(EXAMPLES_DIR / "projects" / "interactive", int_path)
     assert script_runner.run(PTX_CMD, "-v", "debug", "generate", cwd=int_path).success
     preview_file = (
-        int_path
-        / "generated-assets"
-        / "preview"
-        / "interactive-infinity-preview.png"
+        int_path / "generated-assets" / "preview" / "interactive-infinity-preview.png"
     )
     assert preview_file.exists()
 
