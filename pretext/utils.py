@@ -447,6 +447,19 @@ def npm_install():
             log.critical(e)
             log.debug("", exc_info=True)
 
+def playwright_install():
+    '''
+    Run `playwright install` to ensure that its required browsers and tools are available to it.
+    '''
+    try:
+        subprocess.run("playwright install", shell=True)
+        log.debug("Installed dependencies to capture interactive previews")
+    except Exception as e:
+        log.critical(
+            "Unable to install required playwright packages.  Please see the documentation."
+        )
+        log.critical(e)
+        log.debug("", exc_info=True)
 
 def remove_path(path: Path):
     if path.is_file() or path.is_symlink():

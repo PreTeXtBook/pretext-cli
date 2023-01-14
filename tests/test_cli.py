@@ -156,7 +156,7 @@ def test_generate_interactive(tmp_path: Path, script_runner):
         int_path
         / "generated-assets"
         / "preview"
-        / "calcplot3d-probability-wavefunction.png"
+        / "interactive-infinity-preview.png"
     )
     assert preview_file.exists()
 

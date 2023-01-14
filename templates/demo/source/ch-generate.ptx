@@ -48,8 +48,25 @@
     <title>YouTube Example</title>
     <video youtube="dQw4w9WgXcQ"/>
   </section>
+  <section>
+    <title>Interactive Example</title>
+    <!-- From the sample article -->
+    <figure>
+      <caption>Infinity, from the JSXGraph Showcase</caption>
+
+      <interactive xml:id="interactive-infinity" platform="jsxgraph" width="60%"
+        source="jsxgraph/infinity.js">
+        <slate xml:id="jsxgraph-infinity" surface="jsxboard" />
+        <instructions>
+          <p>Drag the sliders to change the pattern, and drag any of the four red corners to change
+            the overall shape.</p>
+        </instructions>
+      </interactive>
+    </figure>
+  </section>
   <section xml:id="codelens">
-    <title>Codelens Example</title>
+    <title>Codelens
+      Example</title>
     <listing xml:id="sieve-python">
       <caption>Finding primes</caption>
       <program xml:id="sieve-codelens-python" interactive="codelens" language="python">
