@@ -195,8 +195,8 @@ def asymptote(
 
 
 def interactive(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
-    log.warning("Interactive preview generation is temporarily unavailable.")
-    return
+    # First verify that playwright has dependencies installed:
+    utils.playwright_install()
     # We assume passed paths are absolute.
     # parse source so we can check for interactives.
     source_xml = ET.parse(ptxfile)
