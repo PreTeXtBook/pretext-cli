@@ -145,9 +145,9 @@ def test_generate_asymptote(tmp_path: Path, script_runner):
     os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
 
 
-@pytest.mark.skip(
-    reason="Waiting on upstream changes to interactive preview generation"
-)
+# @pytest.mark.skip(
+#     reason="Waiting on upstream changes to interactive preview generation"
+# )
 def test_generate_interactive(tmp_path: Path, script_runner):
     int_path = tmp_path / "interactive"
     shutil.copytree(EXAMPLES_DIR / "projects" / "interactive", int_path)
