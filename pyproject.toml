@@ -5,7 +5,7 @@ description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 homepage = "https://pretextbook.org"
 repository = "https://github.com/PreTeXtBook/pretext-cli"
-authors = ["Steven Clontz <steven.clontz@gmail.com>", "Oscar Levin <oscar.levin@unco.edu>"]
+authors = ["Oscar Levin <oscar.levin@unco.edu>", "Steven Clontz <steven.clontz@gmail.com>",]
 license = "GPL-3.0-or-later"
 include = [
     "pretext/core/pretext.py",
