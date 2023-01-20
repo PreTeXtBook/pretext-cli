@@ -327,3 +327,40 @@ def codelens(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
                 log.warning("Continuing...")
     else:
         log.info("Note: No program elements using codelens found.")
+
+
+# generate youtube thumbnail assets
+
+
+def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+    # We assume passed paths are absolute.
+    # parse source so we can check for videos.
+    source_xml = ET.parse(ptxfile)
+    for _ in range(20):
+        source_xml.xinclude()
+    if (
+        len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0
+        or len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0
+    ):
+        image_output = (output / "qrcode").resolve()
+        os.makedirs(image_output, exist_ok=True)
+        log.info("Now generating QR codes for videos and/or interactives\n\n")
+        with utils.working_directory(Path()):
+            try:
+                core.qrcode(
+                    xml_source=ptxfile,
+                    pub_file=pub_file.as_posix(),
+                    stringparams=params,
+                    xmlid_root=xmlid_root,
+                    dest_dir=image_output.as_posix(),
+                )
+            except Exception as e:
+                log.error(e)
+                log.debug("Exception info:\n##################\n", exc_info=True)
+                log.info("##################")
+                log.error(
+                    "Failed to generate some QR codes for some videos or interactives. Check your source and partial output to diagnose the issue."
+                )
+                log.warning("Continuing...")
+    else:
+        log.info("Note: No elements needing QR codes found")
