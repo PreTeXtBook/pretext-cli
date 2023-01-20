@@ -1,11 +1,14 @@
 <?xml version='1.0' encoding='utf-8'?>
 
-<pretext xml:lang="en-US">
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
 
   <docinfo>
     <macros>
       \newcommand{\R}{\mathbb R}
     </macros>
+    <latax-image-preamble>
+      \usepackage{tikz}
+    </latax-image-preamble>
   </docinfo>
 
   <book xml:id="my-great-book">
@@ -43,11 +46,11 @@
       </colophon>
     </frontmatter>
 
-    <chapter xml:id="chapter-">
-      <title></title>
+    <chapter xml:id="chapter-title">
+      <title>Chapter title</title>
 
-      <section xml:id="section-">
-        <title></title>
+      <section xml:id="section-title">
+        <title>Section title</title>
         <p>Hello</p>
       </section>
 
