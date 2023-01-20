@@ -26,6 +26,7 @@ click-log = "^0.4"
 ghp-import = "^2"
 single-version = "^1"
 playwright = "^1"
+qrcode = "^7"
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'

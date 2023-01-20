@@ -428,6 +428,14 @@ class Project:
                 target.stringparams(),
                 xmlid,
             )
+        if gen_all or "interactive" or "youtube" in asset_list:
+            generate.qrcodes(
+                target.source(),
+                target.publication(),
+                target.generated_dir(),
+                target.stringparams(),
+                xmlid,
+            )
 
     def deploy(self, target_name, update_source):
         try:

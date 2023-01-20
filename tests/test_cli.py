@@ -155,7 +155,9 @@ def test_generate_interactive(tmp_path: Path, script_runner):
     preview_file = (
         int_path / "generated-assets" / "preview" / "interactive-infinity-preview.png"
     )
+    qrcode_file = int_path / "generated-assets" / "qrcode" / "interactive-infinity.png"
     assert preview_file.exists()
+    assert qrcode_file.exists()
 
 
 def test_view(tmp_path: Path, script_runner):
