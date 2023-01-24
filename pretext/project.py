@@ -197,7 +197,7 @@ class Project:
 
         def watch_callback():
             return self.build(target_name)
-            
+
         utils.run_server(
             directory, access, port, watch_directory, watch_callback, no_launch
         )
