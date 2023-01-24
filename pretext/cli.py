@@ -240,7 +240,7 @@ def init(refresh):
     if utils.project_path() is not None and not refresh:
         log.warning(f"A project already exists in `{utils.project_path()}`.")
         log.warning(
-            "Use `pretext init --refresh` to refresh initialization of an existing project."
+            f"Use `pretext init --refresh` to refresh initialization of an existing project."
         )
         return
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -285,7 +285,7 @@ def init(refresh):
                 f"You already have a publication file at {(Path('publication')/'publication.ptx').resolve()}."
             )
             log.warning(
-                f"A default project file has been created as {project_pub_path} for comparison."
+                f"A default publication file has been created as {project_pub_path} for comparison."
             )
         shutil.copyfile(template_pub_path, project_pub_path)
         log.info(f"Generated publication file at {project_pub_path}.")
@@ -299,15 +299,29 @@ def init(refresh):
                 f"You already have a gitignore file at {Path('.gitignore').resolve()}."
             )
             log.warning(
-                f"A default project file has been created as {project_gitignore_path} for comparison."
+                f"A default .gitignore file has been created as {project_gitignore_path} for comparison."
             )
         shutil.copyfile(template_gitignore_path, project_gitignore_path)
-    log.info("Generated .gitignore file at {project_gitignore_path}.")
+    log.info(f"Generated .gitignore file at {project_gitignore_path}.")
+    log.info("")
+    # Create .devcontainer if one doesn't exist
+    with templates.resource_path(".devcontainer") as template_devcontainer_path:
+        project_devcontainer_path = Path(".devcontainer").resolve()
+        if project_devcontainer_path.is_dir():
+            project_devcontainer_path = Path(f".devcontainer-{timestamp}").resolve()
+            log.warning(
+                f"You already have a .devcontainer folder at {Path('.devcontainer').resolve()}."
+            )
+            log.warning(
+                f"A default .devcontainer folder has been created as {project_devcontainer_path} for comparison."
+            )
+        shutil.copytree(template_devcontainer_path, project_devcontainer_path)
+    log.info(f"Generated .devcontainer file at {project_devcontainer_path}.")
     log.info("")
     # End by reporting success
-    log.info("Success! Open project.ptx to edit your project manifest.")
+    log.info(f"Success! Open project.ptx to edit your project manifest.")
     log.info(
-        "Edit your <target/>s to point to the location of your PreTeXt source files."
+        f"Edit your <target/>s to point to the location of your PreTeXt source files."
     )
 
 
