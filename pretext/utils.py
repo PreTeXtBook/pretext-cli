@@ -172,7 +172,8 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 
 def cocalc_project_id() -> t.Optional[str]:
     try:
-        return json.loads(open("/home/user/.smc/info.json").read())["project_id"]
+        with open("/home/user/.smc/info.json") as f:
+            return json.load(f)["project_id"]
     except Exception:
         return None
 
@@ -200,16 +201,14 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
 def binding_for_access(access="private"):
-    if access == "public" or cocalc_project_id() is not None:
-        return "0.0.0.0"
-    else:
+    if access == "private":
         return "localhost"
+    else:
+        return "0.0.0.0"
 
 
 def url_for_access(access="private", port=8000):
-    if cocalc_project_id() is not None:
-        return f"https://cocalc.com/{cocalc_project_id()}/server/{port}/"
-    elif access == "public":
+    if access == "public":
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
         return f"http://localhost:{port}"

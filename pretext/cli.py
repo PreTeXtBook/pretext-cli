@@ -533,6 +533,8 @@ def generate(
     help="""
     If running a local server,
     choose which port to use.
+    (Ignored when used
+    in CoCalc, which works automatically.)
     """,
 )
 @click.option(
@@ -592,8 +594,15 @@ def view(
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
     """
-    # Easter egg to spin up a local server at a specified directory:
     if directory is not None:
+        if utils.cocalc_project_id() is not None:
+            try:
+                subdir = directory.relative_to(Path.home())
+            except ValueError:
+                subdir = ""
+            log.info(f"Directory can be previewed at the following link at any time:")
+            log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
+            return
         port = port or 8000
         utils.run_server(Path(directory), access, port, no_launch=no_launch)
         return
@@ -605,6 +614,15 @@ def view(
     if target is None:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
+        return
+    # Easter egg to spin up a local server at a specified directory:
+    if utils.cocalc_project_id() is not None:
+        try:
+            subdir = target.output_dir().relative_to(Path.home())
+        except ValueError:
+            subdir = ""
+        log.info(f"Built project can be previewed at the following link at any time:")
+        log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
         return
     port = port or target.port()
     if generate == "ALL":
