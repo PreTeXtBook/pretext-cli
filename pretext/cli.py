@@ -306,11 +306,11 @@ def init(refresh):
     log.info("")
     # Create .devcontainer if one doesn't exist
     with templates.resource_path(".devcontainer") as template_devcontainer_path:
-        project_devcontainer_path = Path(".devcontainer").resolve()
+        project_devcontainer_path = Path(".devcontainer")
         if project_devcontainer_path.is_dir():
-            project_devcontainer_path = Path(f".devcontainer-{timestamp}").resolve()
+            project_devcontainer_path = Path(f".devcontainer-{timestamp}")
             log.warning(
-                f"You already have a .devcontainer folder at {Path('.devcontainer').resolve()}."
+                f"You already have a .devcontainer folder at {Path('.devcontainer')}."
             )
             log.warning(
                 f"A default .devcontainer folder has been created as {project_devcontainer_path} for comparison."
