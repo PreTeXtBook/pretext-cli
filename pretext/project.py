@@ -183,6 +183,7 @@ class Project:
     ):
         target = self.target(target_name)
         directory = target.output_dir()
+
         if watch:
             watch_directory = target.source_dir()
         else:
@@ -197,17 +198,9 @@ class Project:
         def watch_callback():
             return self.build(target_name)
 
-        if utils.cocalc_project_id() is not None:
-            if target.format() in ["html", "pdf"]:
-                utils.run_server(
-                    directory, access, port, watch_directory, watch_callback, no_launch
-                )
-            else:
-                log.info(f"Output can be viewed by navigating to {directory}")
-        else:
-            utils.run_server(
-                directory, access, port, watch_directory, watch_callback, no_launch
-            )
+        utils.run_server(
+            directory, access, port, watch_directory, watch_callback, no_launch
+        )
 
     def build(self, target_name, clean=False):
         target = self.target(target_name)
