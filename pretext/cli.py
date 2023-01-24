@@ -307,7 +307,7 @@ def init(refresh):
     # Create .devcontainer if one doesn't exist
     with templates.resource_path(".devcontainer") as template_devcontainer_path:
         project_devcontainer_path = Path(".devcontainer")
-        if project_devcontainer_path.is_dir():
+        if project_devcontainer_path.exists():
             project_devcontainer_path = Path(f".devcontainer-{timestamp}")
             log.warning(
                 f"You already have a .devcontainer folder at {Path('.devcontainer')}."
@@ -315,7 +315,7 @@ def init(refresh):
             log.warning(
                 f"A default .devcontainer folder has been created as {project_devcontainer_path} for comparison."
             )
-        shutil.copytree(template_devcontainer_path, project_devcontainer_path)
+        shutil.copytree(template_devcontainer_path, project_devcontainer_path, dirs_exist_ok=True)
     log.info(f"Generated .devcontainer file at {project_devcontainer_path}.")
     log.info("")
     # End by reporting success
