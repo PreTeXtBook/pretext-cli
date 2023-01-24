@@ -8,7 +8,7 @@ def main():
     static_template_path = Path("pretext") / "templates" / "resources"
     print(f"Zipping templates from source into `{static_template_path}`.")
 
-    for template_directory in glob.iglob("templates/*"):
+    for template_directory in glob.iglob("templates/[!.]*"):
         template_path = Path(template_directory)
         if template_path.is_dir():
             with tempfile.TemporaryDirectory() as temporary_directory:
@@ -18,7 +18,11 @@ def main():
                     temporary_path,
                     dirs_exist_ok=True,
                 )
-                template_files = ["project.ptx", ".gitignore", "codechat_config.yaml"]
+                template_files = [
+                    "project.ptx",
+                    ".gitignore",
+                    "codechat_config.yaml",
+                ]
                 for template_file in template_files:
                     copied_template_file = temporary_path / template_file
                     if not copied_template_file.is_file():
@@ -26,6 +30,11 @@ def main():
                             Path("templates") / template_file,
                             copied_template_file,
                         )
+                shutil.copytree(
+                    Path("templates") / ".devcontainer",
+                    temporary_path / ".devcontainer",
+                    dirs_exist_ok=True,
+                )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
                     static_template_path / template_zip_basename,
@@ -34,6 +43,11 @@ def main():
                 )
     for f in ["project.ptx", "publication.ptx", ".gitignore"]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
+    shutil.copytree(
+        Path("templates") / ".devcontainer",
+        static_template_path / ".devcontainer",
+        dirs_exist_ok=True,
+    )
     with open(static_template_path / "__init__.py", "w") as _:
         pass
 
