@@ -600,7 +600,7 @@ def view(
                 subdir = directory.relative_to(Path.home())
             except ValueError:
                 subdir = ""
-            log.info(f"Directory can be previewed at the following link at any time:")
+            log.info("Directory can be previewed at the following link at any time:")
             log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
             return
         port = port or 8000
@@ -621,7 +621,7 @@ def view(
             subdir = target.output_dir().relative_to(Path.home())
         except ValueError:
             subdir = ""
-        log.info(f"Built project can be previewed at the following link at any time:")
+        log.info("Built project can be previewed at the following link at any time:")
         log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
         return
     port = port or target.port()

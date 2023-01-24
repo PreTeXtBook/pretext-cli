@@ -21,7 +21,7 @@ import typing as t
 from lxml import etree as ET
 from typing import Optional
 
-from . import core
+from . import core, templates
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -275,7 +275,6 @@ def run_server(
     watch_callback=lambda: None,
     no_launch: bool = False,
 ):
-    binding = binding_for_access(access)
     threading.Thread(
         target=lambda: serve_forever(directory, access, port, no_launch), daemon=True
     ).start()

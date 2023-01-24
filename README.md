@@ -2,17 +2,17 @@
 
 A package for authoring and building [PreTeXt](https://pretextbook.org) documents.
 
-- GitHub: <https://github.com/PreTeXtBook/pretext-cli/>
+-   GitHub: <https://github.com/PreTeXtBook/pretext-cli/>
 
 ## Documentation and examples for authors/publishers
 
 Most documentation for PreTeXt authors and publishers is available at:
 
-- <https://pretextbook.org/doc/guide/html/>
+-   <https://pretextbook.org/doc/guide/html/>
 
 Authors and publishers may also find the examples catalog useful as well:
 
-- <https://pretextbook.org/examples.html>
+-   <https://pretextbook.org/examples.html>
 
 We have a few notes below (TODO: publish these in the Guide).
 
@@ -38,10 +38,10 @@ python3 -V
 
 If you don't have a compatible Python available, try one of these:
 
-- https://www.python.org/downloads/
-  - Windows warning: Be sure to select the option adding Python to your Path.
-- https://github.com/pyenv/pyenv#installation (Mac/Linux)
-- https://github.com/pyenv-win/pyenv-win#installation (Windows)
+-   https://www.python.org/downloads/
+    -   Windows warning: Be sure to select the option adding Python to your Path.
+-   https://github.com/pyenv/pyenv#installation (Mac/Linux)
+-   https://github.com/pyenv-win/pyenv-win#installation (Windows)
 
 #### Installing PreTeXt-CLI
 
@@ -52,7 +52,7 @@ run (replacing `python` with `python3` if necessary):
 python -m pip install --user pretext
 ```
 
-(It's possible you will get an error like 
+(It's possible you will get an error like
 `error: invalid command 'bdist_wheel'`
 — good news, you can ignore it!)
 
@@ -78,10 +78,11 @@ subcommands like `pretext new` and `pretext build`.
 We install as much as we can with the `pip install` command, but depending on your machine
 you may require some extra software:
 
-- [TeXLive](https://www.tug.org/texlive/)
-- [pdftoppm/Ghostscript](https://github.com/abarker/pdfCropMargins/blob/master/doc/installing_pdftoppm_and_ghostscript.rst)
+-   [TeXLive](https://www.tug.org/texlive/)
+-   [pdftoppm/Ghostscript](https://github.com/abarker/pdfCropMargins/blob/master/doc/installing_pdftoppm_and_ghostscript.rst)
 
 #### Upgrading PreTeXt-CLI
+
 If you have an existing installation and you want to upgrade to a more recent version, you can run:
 
 ```
@@ -94,8 +95,8 @@ Custom XSL is not encouraged for most authors, but (for example) developers work
 bleeding-edge XSL from core PreTeXt may want to call XSL different from that
 which is shipped with a fixed version of the CLI. This may be accomplished by
 adding an `<xsl/>` element to your target with a relative (to `project.ptx`) or
-absolute path to the desired XSL. *(Note: this XSL must only import
-other XSL files in the same directory or within subdirectories.)*
+absolute path to the desired XSL. _(Note: this XSL must only import
+other XSL files in the same directory or within subdirectories.)_
 
 For example:
 
@@ -126,14 +127,15 @@ Similarly, `entities.ent` may be used:
 ]>
 ```
 
-*Note: previously this was achieved with a `pretext-href` attribute - this is now deprecated and will be removed in a future release.*
+_Note: previously this was achieved with a `pretext-href` attribute - this is now deprecated and will be removed in a future release._
 
 ---
 
 ## Development
+
 **Note.** The remainder of this documentation is intended only for those interested
-in contributing to the developement of this project.  Anyone who simply wishes to
-*use* the PreTeXt-CLI can stop reading here. 
+in contributing to the development of this project. Anyone who simply wishes to
+_use_ the PreTeXt-CLI can stop reading here.
 
 From the "Clone or Download" button on GitHub, copy the `REPO_URL` into the below
 command to clone the project.
@@ -154,7 +156,7 @@ The `pyenv` tool for Linux automates the process of running the correct
 version of Python when working on this project (even if you have
 other versions of Python installed on your system).
 
-- https://github.com/pyenv/pyenv#installation
+-   https://github.com/pyenv/pyenv#installation
 
 Run the following, replacing `PYTHON_VERSION` with your desired version.
 
@@ -164,9 +166,9 @@ pyenv install PYTHON_VERSION
 
 Then follow these instructions to install `poetry`.
 
-- https://python-poetry.org/docs/#installation
-    - Note 2022/06/21: you may ignore "This installer is deprecated". See
-      [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
+-   https://python-poetry.org/docs/#installation
+    -   Note 2022/06/21: you may ignore "This installer is deprecated". See
+        [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
 
 Then you should be able to install dependencies into a virtual environment
 with this command.
@@ -211,10 +213,10 @@ pr pretext --version  # returns version being developed
 #### Steps on Windows
 
 In windows, you can either use the bash shell and follow the directions above,
-or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation).  In
+or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation). In
 the latter case, make sure to follow all the installation instructions, including
-the **Finish the installation**.  Then proceed to follow the directions above to
-install a version of python matching `.pyproject.toml`.  Finally, you may then need
+the **Finish the installation**. Then proceed to follow the directions above to
+install a version of python matching `pyproject.toml`. Finally, you may then need
 to manually add that version of python to your path.
 
 ### Updating dependencies
@@ -262,13 +264,16 @@ poetry run python scripts/zip_templates.py
 
 ### Formatting code before a commit
 
-All `.py` files are formatted with the `black` python formatter. Proper formatting
-is enforced by checks in the Continuous Integration framework. Before you commit code,
-you should make sure it is formatted with `black` by running the following command (on linux or mac)
+All `.py` files are formatted with the [black](https://black.readthedocs.io/en/stable/)
+python formatter and checked by [flake8](https://flake8.pycqa.org/en/latest/).
+Proper formatting is enforced by checks in the Continuous Integration framework.
+Before you commit code, you should make sure it is formatted with `black` and
+passes `flake8` by running the following commands (on linux or mac)
 from the _root_ project folder (most likely `pretext-cli`).
 
 ```
-poetry run black $(git ls-files "*.py")
+poetry run black .
+poetry run flake8
 ```
 
 ### Testing
@@ -317,11 +322,12 @@ poetry run python scripts/release_stable.py major # +1.0.0
 ## About
 
 ### PreTeXt-CLI Team
-- [Oscar Levin](https://math.oscarlevin.com/) is co-creator and lead developer of PreTeXt-CLI.
-- [Steven Clontz](https://clontz.org/) is co-creator and a regular contributor of PreTeXt-CLI.
-- Development of PreTeXt-CLI would not be possible without the frequent 
-  [contributions](https://github.com/PreTeXtBook/pretext-cli/graphs/contributors) of the
-  wider [PreTeXt-Runestone Open Source Ecosystem](https://prose.runestone.academy).
+
+-   [Oscar Levin](https://math.oscarlevin.com/) is co-creator and lead developer of PreTeXt-CLI.
+-   [Steven Clontz](https://clontz.org/) is co-creator and a regular contributor of PreTeXt-CLI.
+-   Development of PreTeXt-CLI would not be possible without the frequent
+    [contributions](https://github.com/PreTeXtBook/pretext-cli/graphs/contributors) of the
+    wider [PreTeXt-Runestone Open Source Ecosystem](https://prose.runestone.academy).
 
 ### A note and special thanks
 
@@ -333,5 +339,6 @@ As such, versions of this project before 1.0 are released on PyPI under the
 name `pretextbook`, while versions 1.0 and later are released as `pretext`.
 
 ### About PreTeXt
+
 The development of [PreTeXt's core](https://github.com/PreTeXtBook/pretext)
 is led by [Rob Beezer](http://buzzard.ups.edu/).

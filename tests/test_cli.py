@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 from contextlib import contextmanager
 import requests
-import pytest
 import pretext
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
