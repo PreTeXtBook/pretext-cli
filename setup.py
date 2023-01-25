@@ -3,4 +3,4 @@
 
 raise Exception("File provided to satisfy GitHub only.")
 
-setup(name="pretext")  # noqa: F821
+setup(name="pretext")
