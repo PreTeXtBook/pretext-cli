@@ -1,5 +1,5 @@
 from pathlib import Path
-import importlib.resources
+import importlib.resources as ir
 
 
 def resource_path(filename: str) -> Path:
@@ -11,4 +11,9 @@ def resource_path(filename: str) -> Path:
     """
     from . import resources
 
-    return importlib.resources.path(resources, filename)
+    # Try except here is to use newer importlib function,
+    # supported starting with 3.9, and required with 3.11
+    try:
+        return ir.as_file(ir.files(resources).joinpath(filename))
+    except AttributeError:
+        return ir.path(resources, filename)
