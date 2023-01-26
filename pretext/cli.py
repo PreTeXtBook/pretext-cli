@@ -244,14 +244,26 @@ def init(refresh):
         )
         return
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    resource_to_dest = {"project.ptx":"project.ptx", "publication.ptx": "publication/publication.ptx", ".gitignore":".gitignore", "devcontainer.json":".devcontainer/devcontainer.json"}
+    resource_to_dest = {
+        "project.ptx": "project.ptx",
+        "publication.ptx": "publication/publication.ptx",
+        ".gitignore": ".gitignore",
+        "devcontainer.json": ".devcontainer/devcontainer.json",
+    }
     for resource in resource_to_dest:
         with templates.resource_path(resource) as resource_path:
             project_resource_path = Path(resource_to_dest.get(resource)).resolve()
             if project_resource_path.exists():
-                new_resource_name = project_resource_path.stem+'-'+timestamp+project_resource_path.suffix
+                new_resource_name = (
+                    project_resource_path.stem
+                    + "-"
+                    + timestamp
+                    + project_resource_path.suffix
+                )
                 project_resource_path = project_resource_path.parent / new_resource_name
-                log.warning(f"You already have a {resource} file; a new default one for comparison has been created as {project_resource_path}.")
+                log.warning(
+                    f"You already have a {resource} file; a new default one for comparison has been created as {project_resource_path}."
+                )
             log.info(f"Generated `{project_resource_path}`\n")
             if not project_resource_path.parent.exists():
                 project_resource_path.parent.mkdir()
@@ -269,7 +281,7 @@ def init(refresh):
     with open(requirements_path, "w") as f:
         f.write(f"pretext == {VERSION}")
     log.info(f"Generated requirements file at {requirements_path}.\n")
- 
+
     log.info(f"Success! Open project.ptx to edit your project manifest.")
     log.info(
         f"Edit your <target/>s to point to the location of your PreTeXt source files."
