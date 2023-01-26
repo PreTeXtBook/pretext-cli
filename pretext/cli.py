@@ -240,7 +240,7 @@ def init(refresh):
     if utils.project_path() is not None and not refresh:
         log.warning(f"A project already exists in `{utils.project_path()}`.")
         log.warning(
-            f"Use `pretext init --refresh` to refresh initialization of an existing project."
+            "Use `pretext init --refresh` to refresh initialization of an existing project."
         )
         return
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -282,9 +282,9 @@ def init(refresh):
         f.write(f"pretext == {VERSION}")
     log.info(f"Generated requirements file at {requirements_path}.\n")
 
-    log.info(f"Success! Open project.ptx to edit your project manifest.")
+    log.info("Success! Open project.ptx to edit your project manifest.")
     log.info(
-        f"Edit your <target/>s to point to the location of your PreTeXt source files."
+        "Edit your <target/>s to point to the location of your PreTeXt source files."
     )
 
 
