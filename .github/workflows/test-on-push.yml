@@ -45,11 +45,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         exclude:
           - os: windows-latest
-            version: '3.9'
-          - os: windows-latest
-            version: '3.10'
-          - os: windows-latest
-            version: '3.11'
+            python-version: ['3.9', '3.10', '3.11']
+
 
     runs-on: ${{ matrix.os }}
 
