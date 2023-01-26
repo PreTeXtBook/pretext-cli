@@ -30,10 +30,12 @@ def main():
                             Path("templates") / template_file,
                             copied_template_file,
                         )
-                shutil.copytree(
-                    Path("templates") / ".devcontainer",
-                    temporary_path / ".devcontainer",
-                    dirs_exist_ok=True,
+                dc_dir_path = temporary_path / ".devcontainer"
+                if not dc_dir_path.exists():
+                    dc_dir_path.mkdir()
+                shutil.copyfile(
+                    Path("templates") / "devcontainer.json",
+                    dc_dir_path / "devcontainer.json",
                 )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
@@ -41,13 +43,9 @@ def main():
                     "zip",
                     temporary_path,
                 )
-    for f in ["project.ptx", "publication.ptx", ".gitignore"]:
+    for f in ["project.ptx", "publication.ptx", ".gitignore", "devcontainer.json"]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
-    shutil.copytree(
-        Path("templates") / ".devcontainer",
-        static_template_path / ".devcontainer",
-        dirs_exist_ok=True,
-    )
+
     with open(static_template_path / "__init__.py", "w") as _:
         pass
 
