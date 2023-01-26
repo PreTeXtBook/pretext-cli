@@ -244,19 +244,30 @@ def init(refresh):
         )
         return
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    with templates.resource_path("project.ptx") as template_manifest_path:
-        project_manifest_path = Path("project.ptx").resolve()
-        if project_manifest_path.is_file():
-            project_manifest_path = Path(f"project-{timestamp}.ptx").resolve()
-            log.warning(
-                f"You already have a project file at {Path('project.ptx').resolve()}."
-            )
-            log.warning(
-                f"A default project file has been created as {project_manifest_path} for comparison."
-            )
-        log.info(f"Generated project file at `{project_manifest_path}`.")
-        log.info("")
-        shutil.copyfile(template_manifest_path, project_manifest_path)
+    resource_to_dest = {
+        "project.ptx": "project.ptx",
+        "publication.ptx": "publication/publication.ptx",
+        ".gitignore": ".gitignore",
+        "devcontainer.json": ".devcontainer/devcontainer.json",
+    }
+    for resource in resource_to_dest:
+        with templates.resource_path(resource) as resource_path:
+            project_resource_path = Path(resource_to_dest.get(resource)).resolve()
+            if project_resource_path.exists():
+                new_resource_name = (
+                    project_resource_path.stem
+                    + "-"
+                    + timestamp
+                    + project_resource_path.suffix
+                )
+                project_resource_path = project_resource_path.parent / new_resource_name
+                log.warning(
+                    f"You already have a {resource} file; a new default one for comparison has been created as {project_resource_path}."
+                )
+            log.info(f"Generated `{project_resource_path}`\n")
+            if not project_resource_path.parent.exists():
+                project_resource_path.parent.mkdir()
+            shutil.copyfile(resource_path, project_resource_path)
     # Create requirements.txt
     requirements_path = Path("requirements.txt").resolve()
     if requirements_path.exists():
@@ -269,42 +280,8 @@ def init(refresh):
         )
     with open(requirements_path, "w") as f:
         f.write(f"pretext == {VERSION}")
-    log.info(f"Generated requirements file at {requirements_path}.")
-    log.info("")
-    # Create publication file if one doesn't exist:
-    with templates.resource_path("publication.ptx") as template_pub_path:
-        pub_dir_path = Path("publication")
-        if not pub_dir_path.exists():
-            pub_dir_path.mkdir()
-        project_pub_path = (pub_dir_path / "publication.ptx").resolve()
-        if project_pub_path.exists():
-            project_pub_path = (
-                Path("publication") / f"publication-{timestamp}.ptx"
-            ).resolve()
-            log.warning(
-                f"You already have a publication file at {(Path('publication')/'publication.ptx').resolve()}."
-            )
-            log.warning(
-                f"A default project file has been created as {project_pub_path} for comparison."
-            )
-        shutil.copyfile(template_pub_path, project_pub_path)
-        log.info(f"Generated publication file at {project_pub_path}.")
-        log.info("")
-    # Create .gitignore if one doesn't exist
-    with templates.resource_path(".gitignore") as template_gitignore_path:
-        project_gitignore_path = Path(".gitignore").resolve()
-        if project_gitignore_path.exists():
-            project_gitignore_path = Path(f".gitignore-{timestamp}").resolve()
-            log.warning(
-                f"You already have a gitignore file at {Path('.gitignore').resolve()}."
-            )
-            log.warning(
-                f"A default project file has been created as {project_gitignore_path} for comparison."
-            )
-        shutil.copyfile(template_gitignore_path, project_gitignore_path)
-    log.info("Generated .gitignore file at {project_gitignore_path}.")
-    log.info("")
-    # End by reporting success
+    log.info(f"Generated requirements file at {requirements_path}.\n")
+
     log.info("Success! Open project.ptx to edit your project manifest.")
     log.info(
         "Edit your <target/>s to point to the location of your PreTeXt source files."
