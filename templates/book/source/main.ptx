@@ -6,9 +6,9 @@
     <macros>
       \newcommand{\R}{\mathbb R}
     </macros>
-    <latax-image-preamble>
+    <latex-image-preamble>
       \usepackage{tikz}
-    </latax-image-preamble>
+    </latex-image-preamble>
   </docinfo>
 
   <book xml:id="my-great-book">
