@@ -50,6 +50,15 @@ def test_new(tmp_path: Path, script_runner):
     assert (tmp_path / "new-pretext-project" / "project.ptx").exists()
 
 
+def test_core(script_runner):
+    """
+    Test that `pretext core -h` aliases `python /path/to/.ptx/pretext/pretext -h`.
+    """
+    result = script_runner.run(PTX_CMD, "core", "-h")
+    assert result.success
+    assert "PreTeXt utility script" in result.stdout
+
+
 def test_build(tmp_path: Path, script_runner):
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces

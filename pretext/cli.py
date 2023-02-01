@@ -14,6 +14,7 @@ import platform
 from pathlib import Path
 import typing as t
 import atexit
+import subprocess
 from .config import xml_overlay
 
 from . import utils, templates, core, VERSION, CORE_COMMIT
@@ -143,6 +144,21 @@ def support():
                 )
     else:
         log.info("No project.ptx found.")
+
+
+# pretext support
+@main.command(
+    name="core",
+    short_help="Alias for the legacy pretext/pretext core script.",
+    context_settings={"help_option_names":[],"ignore_unknown_options":True},
+)
+@click.argument('args', nargs=-1)
+def core_command(args):
+    """
+    Aliases the core pretext script.
+    """
+    PY_CMD = sys.executable
+    subprocess.run([PY_CMD, core.resources.path("pretext","pretext")]+list(args))
 
 
 # pretext new
