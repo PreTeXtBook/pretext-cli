@@ -50,11 +50,11 @@ def test_new(tmp_path: Path, script_runner):
     assert (tmp_path / "new-pretext-project" / "project.ptx").exists()
 
 
-def test_core(script_runner):
+def test_devscript(script_runner):
     """
-    Test that `pretext core -h` aliases `python /path/to/.ptx/pretext/pretext -h`.
+    Test that `pretext devscript -h` aliases `python /path/to/.ptx/pretext/pretext -h`.
     """
-    result = script_runner.run(PTX_CMD, "core", "-h")
+    result = script_runner.run(PTX_CMD, "devscript", "-h")
     assert result.success
     assert "PreTeXt utility script" in result.stdout
 

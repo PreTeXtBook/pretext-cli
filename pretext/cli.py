@@ -148,17 +148,16 @@ def support():
 
 # pretext support
 @main.command(
-    name="core",
-    short_help="Alias for the legacy pretext/pretext core script.",
-    context_settings={"help_option_names":[],"ignore_unknown_options":True},
+    short_help="Alias for the developer pretext/pretext script.",
+    context_settings={"help_option_names": [], "ignore_unknown_options": True},
 )
-@click.argument('args', nargs=-1)
-def core_command(args):
+@click.argument("args", nargs=-1)
+def devscript(args):
     """
     Aliases the core pretext script.
     """
     PY_CMD = sys.executable
-    subprocess.run([PY_CMD, core.resources.path("pretext","pretext")]+list(args))
+    subprocess.run([PY_CMD, core.resources.path("pretext", "pretext")] + list(args))
 
 
 # pretext new
