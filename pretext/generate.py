@@ -329,7 +329,7 @@ def codelens(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
         log.info("Note: No program elements using codelens found.")
 
 
-# generate youtube thumbnail assets
+# generate qr code assets
 
 
 def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
@@ -362,5 +362,37 @@ def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
                     "Failed to generate some QR codes for some videos or interactives. Check your source and partial output to diagnose the issue."
                 )
                 log.warning("Continuing...")
+        # No else clause needed, since this isn't called specifically.
+
+
+# generate datafile assets
+def datafiles(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+    # We assume passed paths are absolute.
+    # parse source so we can check for datafile elements.
+    source_xml = ET.parse(ptxfile)
+    for _ in range(20):
+        source_xml.xinclude()
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//datafile")) > 0:
+        datafile_output = (output / "datafile").resolve()
+        os.makedirs(datafile_output, exist_ok=True)
+        log.info("Now generating base64 versions of datafiles\n\n")
+        with utils.working_directory(Path()):
+            try:
+                core.datafiles_to_xml(
+                    xml_source=ptxfile,
+                    pub_file=pub_file.as_posix(),
+                    stringparams=params,
+                    xmlid_root=xmlid_root,
+                    dest_dir=datafile_output.as_posix(),
+                )
+
+            except Exception as e:
+                log.error(e)
+                log.debug("Exception info:\n##################\n", exc_info=True)
+                log.info("##################")
+                log.error(
+                    "Failed to generate some datafile assets. Check your source and partial output to diagnose the issue."
+                )
+                log.warning("Continuing...")
     else:
-        log.info("Note: No elements needing QR codes found")
+        log.info("Note: No elements needing datafile conversion found")

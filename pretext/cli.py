@@ -297,6 +297,7 @@ ASSETS = [
     "interactive",
     "youtube",
     "codelens",
+    "datafile",
 ]
 
 # pretext build

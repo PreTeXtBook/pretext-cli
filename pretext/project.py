@@ -421,7 +421,15 @@ class Project:
                 target.stringparams(),
                 xmlid,
             )
-        if gen_all or "interactive" or "youtube" in asset_list:
+        if gen_all or "datafile" in asset_list:
+            generate.datafiles(
+                target.source(),
+                target.publication(),
+                target.generated_dir(),
+                target.stringparams(),
+                xmlid,
+            )
+        if gen_all or "interactive" in asset_list or "youtube" in asset_list:
             generate.qrcodes(
                 target.source(),
                 target.publication(),
