@@ -146,7 +146,7 @@ def support():
         log.info("No project.ptx found.")
 
 
-# pretext support
+# pretext devscript
 @main.command(
     short_help="Alias for the developer pretext/pretext script.",
     context_settings={"help_option_names": [], "ignore_unknown_options": True},
