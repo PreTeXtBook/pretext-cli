@@ -48,8 +48,6 @@ def html(
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build html.  Exiting...")
-        finally:
-            core.release_temporary_directories()
 
 
 def latex(
@@ -77,8 +75,6 @@ def latex(
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build latex.  Exiting...")
-        finally:
-            core.release_temporary_directories()
 
 
 def pdf(
@@ -108,8 +104,6 @@ def pdf(
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build pdf.  Exiting...")
-        finally:
-            core.release_temporary_directories()
 
 
 def custom(
@@ -144,8 +138,6 @@ def custom(
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed custom build.  Exiting...")
-        finally:
-            core.release_temporary_directories()
 
 
 # build (non Kindle) ePub:
@@ -176,8 +168,6 @@ def epub(ptxfile, pub_file: Path, output: Path, stringparams):
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build epub.  Exiting...")
-        finally:
-            core.release_temporary_directories()
 
 
 # build Kindle ePub:
@@ -206,8 +196,6 @@ def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build kindle ebook.  Exiting...")
-        finally:
-            core.release_temporary_directories()
 
 
 # build Braille:
@@ -241,5 +229,3 @@ def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="em
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build braille.  Exiting...")
-        finally:
-            core.release_temporary_directories()
