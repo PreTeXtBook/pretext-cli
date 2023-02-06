@@ -372,10 +372,10 @@ def datafiles(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//datafile")) > 0:
+    if len(source_xml.xpath("/pretext/*[not(docinfo)]//datafile|/pretext/*[not(docinfo)]//dataurl")) > 0:
         datafile_output = (output / "datafile").resolve()
         os.makedirs(datafile_output, exist_ok=True)
-        log.info("Now generating base64 versions of datafiles\n\n")
+        log.info("Now generating base64 versions of data files\n\n")
         with utils.working_directory(Path()):
             try:
                 core.datafiles_to_xml(
@@ -391,7 +391,7 @@ def datafiles(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
                 log.debug("Exception info:\n##################\n", exc_info=True)
                 log.info("##################")
                 log.error(
-                    "Failed to generate some datafile assets. Check your source and partial output to diagnose the issue."
+                    "Failed to generate some data file assets. Check your source and partial output to diagnose the issue."
                 )
                 log.warning("Continuing...")
     else:
