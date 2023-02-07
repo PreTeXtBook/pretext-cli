@@ -340,7 +340,7 @@ class Project:
             log.info("##################")
             sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
         finally:
-            #remove temp directories left by core.
+            # remove temp directories left by core.
             core.release_temporary_directories()
         # build was successful
         log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
@@ -440,7 +440,7 @@ class Project:
                 target.stringparams(),
                 xmlid,
             )
-        # Delete temporary directories left behind by core:    
+        # Delete temporary directories left behind by core:
         core.release_temporary_directories()
 
     def deploy(self, target_name, update_source):
