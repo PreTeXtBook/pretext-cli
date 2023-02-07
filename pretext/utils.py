@@ -470,10 +470,9 @@ def remove_path(path: Path):
 
 def exit_command(mh):
     """
-    Clean's up at the end of a run.  Deletes temporary directories left by core.
+    Clean's up at the end of a run.
     Checks to see if anything (errors etc.) is in the memory handler.  If it is, reports that there are errors before the handler gets flushed.  Otherwise, adds a single blank line.
     """
-    core.release_temporary_directories()
     if len(mh.buffer) > 0:
         print("\n----------------------------------------------------")
         log.info("While running pretext, the following errors occurred:\n")
