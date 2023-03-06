@@ -340,8 +340,9 @@ def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
         source_xml.xinclude()
     if (
         len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0
-        or len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtubeplaylist]")) > 0 
-        or len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0 
+        or len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtubeplaylist]"))
+        > 0
+        or len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0
     ):
         image_output = (output / "qrcode").resolve()
         os.makedirs(image_output, exist_ok=True)
