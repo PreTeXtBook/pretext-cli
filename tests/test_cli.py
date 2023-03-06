@@ -112,7 +112,7 @@ def test_build(tmp_path: Path, script_runner):
         PTX_CMD, "-v", "debug", "build", "-g", cwd=project_path
     ).success
     assert (project_path / "generated-assets").exists()
-    os.removedirs(project_path / "generated-assets")
+    shutil.rmtree(project_path / "generated-assets")
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "build", "-g", "webwork", cwd=project_path
     ).success

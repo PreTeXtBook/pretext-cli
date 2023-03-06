@@ -340,6 +340,8 @@ def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
         source_xml.xinclude()
     if (
         len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0
+        or len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtubeplaylist]"))
+        > 0
         or len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0
     ):
         image_output = (output / "qrcode").resolve()
@@ -363,6 +365,25 @@ def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
                 )
                 log.warning("Continuing...")
         # No else clause needed, since this isn't called specifically.
+
+
+def play_button(output: Path):
+    # Currently we do not parse source to look for videos, as this can run regardless of the source.
+    image_output = (output / "play-button").resolve()
+    os.makedirs(image_output, exist_ok=True)
+    log.info("Now copying play-button image for videos\n\n")
+    with utils.working_directory(Path()):
+        try:
+            core.play_button(dest_dir=image_output.as_posix())
+        except Exception as e:
+            log.error(e)
+            log.debug("Exception info:\n##################\n", exc_info=True)
+            log.info("##################")
+            log.error(
+                "Failed to copy play-button image for videos. Please report this on pretext-support."
+            )
+            log.warning("Continuing...")
+    # No else clause needed, since this isn't called specifically.
 
 
 # generate datafile assets
