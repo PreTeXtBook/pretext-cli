@@ -416,6 +416,9 @@ class Project:
                 target.stringparams(),
                 xmlid,
             )
+            generate.play_button(
+                target.generated_dir(),
+            )
         if gen_all or "codelens" in asset_list:
             generate.codelens(
                 target.source(),
