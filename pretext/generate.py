@@ -195,14 +195,14 @@ def asymptote(
 
 
 def interactive(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
-    # First verify that playwright has dependencies installed:
-    utils.playwright_install()
     # We assume passed paths are absolute.
     # parse source so we can check for interactives.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
     if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0:
+        # First verify that playwright has dependencies installed:
+        utils.playwright_install()
         image_output = (output / "preview").resolve()
         os.makedirs(image_output, exist_ok=True)
         log.info("Now generating preview images for interactives\n\n")
@@ -339,9 +339,7 @@ def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
     for _ in range(20):
         source_xml.xinclude()
     if (
-        len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0
-        or len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtubeplaylist]"))
-        > 0
+        len(source_xml.xpath("/pretext/*[not(docinfo)]//video")) > 0
         or len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0
     ):
         image_output = (output / "qrcode").resolve()
