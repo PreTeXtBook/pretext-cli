@@ -37,13 +37,23 @@ def main():
                     Path("templates") / "devcontainer.json",
                     dc_dir_path / "devcontainer.json",
                 )
+                shutil.copyfile(
+                    Path("templates") / "postCreateCommand.sh",
+                    dc_dir_path / "postCreateCommand.sh",
+                )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
                     static_template_path / template_zip_basename,
                     "zip",
                     temporary_path,
                 )
-    for f in ["project.ptx", "publication.ptx", ".gitignore", "devcontainer.json"]:
+    for f in [
+        "project.ptx",
+        "publication.ptx",
+        ".gitignore",
+        "devcontainer.json",
+        "postCreateCommand.sh",
+    ]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
 
     with open(static_template_path / "__init__.py", "w") as _:
