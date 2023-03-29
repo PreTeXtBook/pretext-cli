@@ -268,6 +268,9 @@ class Project:
                     target.output_dir(),
                     target.stringparams(),
                     custom_xsl,
+                    output_filename=(
+                        target.output_filename() or f"{target.name()}.tex"
+                    ),
                 )
                 # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                 shutil.copytree(
@@ -288,6 +291,9 @@ class Project:
                     target.stringparams(),
                     custom_xsl,
                     target.pdf_method(),
+                    output_filename=(
+                        target.output_filename() or f"{target.name()}.pdf"
+                    ),
                 )
             elif target.format() == "custom":
                 if custom_xsl is None:

@@ -214,3 +214,23 @@ def test_slideshow(tmp_path: Path, script_runner):
         PTX_CMD, "-v", "debug", "build", "web", cwd=tmp_path
     ).success
     assert (tmp_path / "output" / "web" / "slides.html").exists()
+
+
+def test_output_filename(tmp_path: Path, script_runner):
+
+    # without output-filename
+    custom_path = tmp_path / "default"
+    custom_path.mkdir()
+    assert script_runner.run(
+        PTX_CMD, "-v", "debug", "new", "-d", ".", cwd=custom_path
+    ).success
+    assert script_runner.run(
+        PTX_CMD, "-v", "debug", "build", "print-latex", cwd=custom_path
+    ).success
+    assert (custom_path / "output" / "print-latex" / "print-latex.tex").exists()
+
+    # with output-filename
+    custom_path = tmp_path / "output-filename"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "output-filename", custom_path)
+    assert script_runner.run(PTX_CMD, "-v", "debug", "build", cwd=custom_path).success
+    assert (custom_path / "output" / "latex" / "foobar.tex").exists()

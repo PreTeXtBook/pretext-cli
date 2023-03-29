@@ -13,14 +13,14 @@ log = logging.getLogger("ptxlogger")
 def html(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
     stringparams,
     custom_xsl: Optional[Path],
     xmlid_root,
     zipped=False,
 ):
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building HTML into {output}\n")
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building HTML into {output_dir}\n")
     if xmlid_root is not None:
         log.info(f"Only building @xml:id `{xmlid_root}`\n")
     if zipped:
@@ -38,10 +38,10 @@ def html(
                 file_format,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
                 None,
-                output.as_posix(),
+                output_dir.as_posix(),
             )
             codechat.map_path_to_xml_id(
-                ptxfile, utils.project_path(ptxfile), output.as_posix()
+                ptxfile, utils.project_path(ptxfile), output_dir.as_posix()
             )
         except Exception as e:
             log.critical(e)
@@ -53,12 +53,16 @@ def html(
 def latex(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
     stringparams,
     custom_xsl: Optional[Path],
+    output_filename: Optional[str] = None,
 ):
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building LaTeX into {output}\n")
+    output_filepath = None
+    if output_filename:
+        output_filepath = output_dir / output_filename
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building LaTeX into {output_dir}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -67,8 +71,8 @@ def latex(
                 pub_file.as_posix(),
                 stringparams,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
-                None,
-                output.as_posix(),
+                output_filepath,
+                output_dir.as_posix(),
             )
         except Exception as e:
             log.critical(e)
@@ -80,13 +84,17 @@ def latex(
 def pdf(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
     stringparams,
     custom_xsl: Optional[Path],
     pdf_method: str,
+    output_filename: Optional[str] = None,
 ):
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building LaTeX into {output}\n")
+    output_filepath = None
+    if output_filename:
+        output_filepath = output_dir / output_filename
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building LaTeX into {output_dir}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -95,8 +103,8 @@ def pdf(
                 pub_file.as_posix(),
                 stringparams,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
-                None,
-                dest_dir=output.as_posix(),
+                output_filepath,
+                dest_dir=output_dir.as_posix(),
                 method=pdf_method,
             )
         except Exception as e:
