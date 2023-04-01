@@ -224,13 +224,17 @@ def test_output_filename(tmp_path: Path, script_runner):
     assert script_runner.run(
         PTX_CMD, "-v", "debug", "new", "-d", ".", cwd=custom_path
     ).success
-    assert script_runner.run(
+    result = script_runner.run(
         PTX_CMD, "-v", "debug", "build", "print-latex", cwd=custom_path
-    ).success
+    )
+    assert result.success
+    assert str(Path("output/print-latex/print-latex.tex")) in result.stderr
     assert (custom_path / "output" / "print-latex" / "print-latex.tex").exists()
 
     # with output-filename
     custom_path = tmp_path / "output-filename"
     shutil.copytree(EXAMPLES_DIR / "projects" / "output-filename", custom_path)
-    assert script_runner.run(PTX_CMD, "-v", "debug", "build", cwd=custom_path).success
+    result = script_runner.run(PTX_CMD, "-v", "debug", "build", cwd=custom_path)
+    assert result.success
+    assert str(Path("output/latex/foobar")) in result.stderr
     assert (custom_path / "output" / "latex" / "foobar.tex").exists()

@@ -265,12 +265,10 @@ class Project:
                 builder.latex(
                     target.source(),
                     target.publication(),
-                    target.output_dir(),
+                    target.output_dir()
+                    / (target.output_filename() or f"{target.name()}.tex"),
                     target.stringparams(),
                     custom_xsl,
-                    output_filename=(
-                        target.output_filename() or f"{target.name()}.tex"
-                    ),
                 )
                 # core script doesn't put a copy of images in output for latex builds, so we do it instead here
                 shutil.copytree(
@@ -287,13 +285,11 @@ class Project:
                 builder.pdf(
                     target.source(),
                     target.publication(),
-                    target.output_dir(),
+                    target.output_dir()
+                    / (target.output_filename() or f"{target.name()}.tex"),
                     target.stringparams(),
                     custom_xsl,
                     target.pdf_method(),
-                    output_filename=(
-                        target.output_filename() or f"{target.name()}.pdf"
-                    ),
                 )
             elif target.format() == "custom":
                 if custom_xsl is None:

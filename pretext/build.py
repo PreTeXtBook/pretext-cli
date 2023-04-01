@@ -19,6 +19,7 @@ def html(
     xmlid_root,
     zipped=False,
 ):
+    output_dir.mkdir(exist_ok=True, parents=True)
     os.makedirs(output_dir, exist_ok=True)
     log.info(f"\nNow building HTML into {output_dir}\n")
     if xmlid_root is not None:
@@ -53,16 +54,12 @@ def html(
 def latex(
     ptxfile: Path,
     pub_file: Path,
-    output_dir: Path,
+    output_filepath: Path,
     stringparams,
     custom_xsl: Optional[Path],
-    output_filename: Optional[str] = None,
 ):
-    output_filepath = None
-    if output_filename:
-        output_filepath = output_dir / output_filename
-    os.makedirs(output_dir, exist_ok=True)
-    log.info(f"\nNow building LaTeX into {output_dir}\n")
+    output_filepath.parent.mkdir(exist_ok=True, parents=True)
+    log.info(f"\nNow building LaTeX as {output_filepath}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -71,8 +68,8 @@ def latex(
                 pub_file.as_posix(),
                 stringparams,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
-                output_filepath,
-                output_dir.as_posix(),
+                output_filepath.as_posix(),
+                None,  # output_dir
             )
         except Exception as e:
             log.critical(e)
@@ -84,17 +81,13 @@ def latex(
 def pdf(
     ptxfile: Path,
     pub_file: Path,
-    output_dir: Path,
+    output_filepath: Path,
     stringparams,
     custom_xsl: Optional[Path],
     pdf_method: str,
-    output_filename: Optional[str] = None,
 ):
-    output_filepath = None
-    if output_filename:
-        output_filepath = output_dir / output_filename
-    os.makedirs(output_dir, exist_ok=True)
-    log.info(f"\nNow building LaTeX into {output_dir}\n")
+    output_filepath.parent.mkdir(exist_ok=True, parents=True)
+    log.info(f"\nNow building PDF as {output_filepath}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -103,8 +96,8 @@ def pdf(
                 pub_file.as_posix(),
                 stringparams,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
-                output_filepath,
-                dest_dir=output_dir.as_posix(),
+                output_filepath.as_posix(),
+                dest_dir=None,
                 method=pdf_method,
             )
         except Exception as e:
@@ -122,7 +115,8 @@ def custom(
     custom_xsl: Path,
     output_filename: Optional[str] = None,
 ):
-    os.makedirs(output, exist_ok=True)
+    stringparams["publisher"] = pub_file.as_posix()
+    output.mkdir(exist_ok=True, parents=True)
     if output_filename is not None:
         output_filepath = output / output_filename
         output_dir = None
