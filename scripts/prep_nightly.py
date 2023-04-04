@@ -37,7 +37,7 @@ def main():
     # Check to see if there is nothing new to build and stop script if so.
     if not (should_release(last_core_commit["date"], last_cli_commit["date"])):
         print(
-            "No recent commits to pretext core of the CLI.  No nightly will be built."
+            "No recent commits to pretext core or the CLI.  No nightly will be built."
         )
         return
 
@@ -69,24 +69,6 @@ def main():
     import build_package
 
     build_package.main()
-
-    # Test package before deploying
-    # try:
-    #     retcode = pytest.main()
-    #     if retcode != 0:
-    #         print(retcode)
-    #         raise
-    #     else:
-    #         print("Tests all passed")
-    # except:
-    #     print("Tests did not pass.  Exiting.")
-    #     return
-
-    # import pretext
-    # print(f"Publishing nightly dev version {pretext.VERSION}")
-
-    # Publish nightly
-    # subprocess.run(["poetry", "publish"], shell=True)
 
 
 if __name__ == "__main__":

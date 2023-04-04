@@ -1,0 +1,38 @@
+name: deploy-patch
+
+on:
+# Currently this workflow only runs when triggered manually.  Perhaps we can set it up to run when a tag is pushed.  Or when a release is made.  Or that it could create a release, on a release it can create a tag?
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+
+  name: Update core commit
+  runs-on: ubuntu-latest
+  steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
+    
+    # Sets up python3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+
+    - name: Run bump script 
+      run: |
+        echo "Updating core commit"
+        python scripts/fetch_core_commit.py
+        echo "Finished"
+
+    - name: setup git config
+      run: |
+        # setup the username and email.
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+
+    - name: commit
+      run: |
+        # Stage the file, commit and push
+        git add pretext/__init__.py
+        git commit -m "update to latest core commit"
+        git push origin main
