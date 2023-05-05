@@ -41,7 +41,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11']
-        poetry-version: ['1.1.13']
+        poetry-version: ['1.4.2']
         os: [ubuntu-latest, windows-latest]
         exclude:
           - os: windows-latest
