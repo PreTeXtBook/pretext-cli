@@ -30,7 +30,7 @@ def main():
         if "CORE_COMMIT" in line:
             print(
                 line.replace(
-                    line, f"CORE_COMMIT = '{last_core_commit['sha']}'".rstrip()
+                    line, f"CORE_COMMIT = \"{last_core_commit['sha']}\"".rstrip()
                 )
             )
         else:
