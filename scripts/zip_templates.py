@@ -37,10 +37,6 @@ def main():
                     Path("templates") / "devcontainer.json",
                     dc_dir_path / "devcontainer.json",
                 )
-                shutil.copyfile(
-                    Path("templates") / "postCreateCommand.sh",
-                    dc_dir_path / "postCreateCommand.sh",
-                )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
                     static_template_path / template_zip_basename,
