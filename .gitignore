@@ -147,8 +147,7 @@ pretext/static
 #default new pretext project
 new-pretext-project
 
-#poetry (lock not needed for library)
-poetry.lock
+#poetry
 .python-version
 
 ## Core latex/pdflatex auxiliary files:
