@@ -48,7 +48,6 @@ def main():
         "publication.ptx",
         ".gitignore",
         "devcontainer.json",
-        "postCreateCommand.sh",
     ]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
 
