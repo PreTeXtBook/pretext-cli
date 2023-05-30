@@ -24,7 +24,6 @@ from . import (
     VERSION,
     CORE_COMMIT,
     NEW_TEMPLATES,
-    BUILD_FORMATS,
     ASSETS,
 )
 from .project import Project
