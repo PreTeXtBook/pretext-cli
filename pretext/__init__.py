@@ -31,7 +31,7 @@ BUILD_FORMATS = [
     "braille",
     "html-zip",
     "webwork-sets",
-    "webwork-sets-zipped"
+    "webwork-sets-zipped",
 ]
 ASSETS = [
     "ALL",
