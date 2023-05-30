@@ -141,8 +141,6 @@ def custom(
 
 
 # build (non Kindle) ePub:
-
-
 def epub(ptxfile, pub_file: Path, output: Path, stringparams):
     os.makedirs(output, exist_ok=True)
     try:
@@ -199,8 +197,6 @@ def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
 
 
 # build Braille:
-
-
 def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="emboss"):
     os.makedirs(output, exist_ok=True)
     log.warning(

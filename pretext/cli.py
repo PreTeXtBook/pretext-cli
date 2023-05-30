@@ -17,7 +17,16 @@ import atexit
 import subprocess
 from .config import xml_overlay
 
-from . import utils, templates, core, VERSION, CORE_COMMIT
+from . import (
+    utils,
+    templates,
+    core,
+    VERSION,
+    CORE_COMMIT,
+    NEW_TEMPLATES,
+    BUILD_FORMATS,
+    ASSETS,
+)
 from .project import Project
 
 
@@ -168,9 +177,7 @@ def devscript(args):
 @click.argument(
     "template",
     default="book",
-    type=click.Choice(
-        ["book", "article", "demo", "hello", "slideshow"], case_sensitive=False
-    ),
+    type=click.Choice(NEW_TEMPLATES, case_sensitive=False),
 )
 @click.option(
     "-d",
@@ -303,21 +310,7 @@ def init(refresh):
     )
 
 
-ASSETS = [
-    "ALL",
-    "webwork",
-    "latex-image",
-    "sageplot",
-    "asymptote",
-    "interactive",
-    "youtube",
-    "codelens",
-    "datafile",
-]
-
 # pretext build
-
-
 @main.command(short_help="Build specified target", context_settings=CONTEXT_SETTINGS)
 @click.argument("target", required=False)
 @click.option(
@@ -404,8 +397,6 @@ def build(
 
 
 # pretext generate
-
-
 @main.command(
     short_help="Generate specified assets for specified target",
     context_settings=CONTEXT_SETTINGS,
