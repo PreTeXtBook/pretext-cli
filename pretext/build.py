@@ -141,8 +141,6 @@ def custom(
 
 
 # build (non Kindle) ePub:
-
-
 def epub(ptxfile, pub_file: Path, output: Path, stringparams):
     os.makedirs(output, exist_ok=True)
     try:
@@ -199,8 +197,6 @@ def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
 
 
 # build Braille:
-
-
 def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="emboss"):
     os.makedirs(output, exist_ok=True)
     log.warning(
@@ -229,3 +225,30 @@ def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="em
             log.debug("Exception info:\n##################\n", exc_info=True)
             log.info("##################")
             sys.exit("Failed to build braille.  Exiting...")
+
+
+# Build WeBWorK sets (for archive)
+def webwork_sets(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    stringparams,
+    zipped=False,
+):
+    os.makedirs(output, exist_ok=True)
+    log.info(f"\nNow building WeBWorK Sets into {output}\n")
+    # ensure working directory is preserved
+    with utils.working_directory(Path()):
+        try:
+            core.webwork_sets(
+                xml_source=ptxfile,
+                pub_file=pub_file.as_posix(),
+                stringparams=stringparams,
+                dest_dir=output.as_posix(),
+                tgz=zipped,
+            )
+        except Exception as e:
+            log.critical(e)
+            log.debug("Exception info:\n##################\n", exc_info=True)
+            log.info("##################")
+            sys.exit("Failed to build html.  Exiting...")

@@ -21,7 +21,7 @@ import typing as t
 from lxml import etree as ET
 from typing import Optional
 
-from . import core, templates
+from . import core, templates, BUILD_FORMATS
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -413,7 +413,7 @@ def show_target_hints(target_format: str, project, task: str):
     log.critical(
         f'There is not a target named "{target_format}" for this project.ptx manifest.'
     )
-    if target_format in ["html", "pdf", "latex", "epub", "kindle", "braille"]:
+    if target_format in BUILD_FORMATS:
         target_names = project.target_names(target_format)
         if len(target_names) == 1:
             log.info(
@@ -429,7 +429,7 @@ def show_target_hints(target_format: str, project, task: str):
             )
     else:
         log.info(
-            f"The available targets to {task} are named: {project.target_names()}.  Try to {task} on of those instead or edit your proejct.ptx manifest."
+            f"The available targets to {task} are named: {project.target_names()}.  Try to {task} on of those instead or edit your project.ptx manifest."
         )
 
 

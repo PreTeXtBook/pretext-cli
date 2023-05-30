@@ -18,8 +18,32 @@ from single_version import get_version
 
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
+CORE_COMMIT = "d34a6ed506009fb74534324b547a5d3ced4d4678"
 
-CORE_COMMIT = "8bd8f47f1c0d8fdde4caaff03c8646dda1fd429d"
+# List of templates, build formats, and assets that are supported by the CLI.
+NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
+BUILD_FORMATS = [
+    "html",
+    "pdf",
+    "latex",
+    "epub",
+    "kindle",
+    "braille",
+    "html-zip",
+    "webwork-sets",
+    "webwork-sets-zipped",
+]
+ASSETS = [
+    "ALL",
+    "webwork",
+    "latex-image",
+    "sageplot",
+    "asymptote",
+    "interactive",
+    "youtube",
+    "codelens",
+    "datafile",
+]
 
 
 def activate():

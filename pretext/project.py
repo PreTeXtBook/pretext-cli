@@ -250,8 +250,8 @@ class Project:
             )
         log.info(f"Preparing to build into {target.output_dir()}.")
         try:
-            if target.format() == "html" or target.format() == "html-zip":
-                zipped = target.format() == "html-zip"
+            if target.format().startswith("html"):
+                # html-zip is a special case of html that passes True to the zip parameter
                 builder.html(
                     target.source(),
                     target.publication(),
@@ -259,7 +259,7 @@ class Project:
                     target.stringparams(),
                     custom_xsl,
                     target.xmlid_root(),
-                    zipped,
+                    target.format().startswith("html-zip"),
                 )
             elif target.format() == "latex":
                 builder.latex(
@@ -329,6 +329,15 @@ class Project:
                     target.output_dir(),
                     target.stringparams(),
                     page_format="electronic",
+                )
+            elif target.format().startswith("webwork-sets"):
+                # webwork-sets-zipped is a special case which will pass True to the zipped parameter.
+                builder.webwork_sets(
+                    target.source(),
+                    target.publication(),
+                    target.output_dir(),
+                    target.stringparams(),
+                    target.format().startswith("webwork-sets-zip"),
                 )
             else:
                 log.critical(f"The build format {target.format()} is not supported.")

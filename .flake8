@@ -16,3 +16,4 @@ exclude =
     output
     .venv
     setup.py
+    build
