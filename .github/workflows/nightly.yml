@@ -3,7 +3,7 @@ name: deploy-nightly
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '00 6 * * *'  
+    - cron:  '00 6 * * *'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -42,7 +42,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        python -m poetry run pytest -v
+        python -m poetry run pytest -v --cov
 
   deploy:
     needs: test
@@ -51,7 +51,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-      
+
       # Sets up python3
       - uses: actions/setup-python@v4
         with:
@@ -69,7 +69,7 @@ jobs:
         run: python -m poetry install
 
 
-      - name: Run prep-nightly script 
+      - name: Run prep-nightly script
         run: |
           echo "Updating core commit and version; building"
           poetry run python scripts/prep_nightly.py
