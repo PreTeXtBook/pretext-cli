@@ -1,0 +1,16 @@
+; ***********************************
+; |docname| - Configure code coverage
+; ***********************************
+[run]
+; Select code to be covered -- everything in the `pretext` subdirectory.
+source = pretext
+; This doesn't work. It works if the path is absolute, but I can't find any relative path that does work.
+;omit = pretext\core\*.py
+
+[report]
+; This is a simple workaround for the `omit` setting above: don't report coverage for the PreTeXt core.
+omit = pretext\core\*.py
+
+[html]
+; For better organization, place generated reports under the tests.
+directory = test/htmlcov
