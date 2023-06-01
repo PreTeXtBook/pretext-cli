@@ -1,3 +1,14 @@
+# ********************************
+# |docname| - Poetry configuration
+# ********************************
+#
+# Poetry
+# ======
+# See https://python-poetry.org/docs/dependency-specification/ to get an understanding of
+# how poetry specifies dependencies.
+#
+# Project metadata
+# ----------------
 [tool.poetry]
 name = "pretext"
 version = "1.5.4"
@@ -13,6 +24,8 @@ include = [
     "pretext/templates/resources/*",
 ]
 
+# Dependencies
+# ------------
 [tool.poetry.dependencies]
 python = "^3.8.5"
 lxml = "^4.8"
@@ -28,10 +41,11 @@ single-version = "^1"
 playwright = "^1"
 qrcode = "^7"
 
-[tool.poetry.scripts]
-pretext = 'pretext.cli:main'
-
+# Development dependencies
+# ------------------------
 [tool.poetry.group.dev.dependencies]
+lxml-stubs = "^0.4.0"
+mypy = "^1"
 pytest = "^7.0.0"
 pytest-console-scripts = "^1.3.1"
 pytest-cov = "^4"
@@ -40,9 +54,38 @@ black = "^22.12.0"
 codechat-server = "^0.2.9"
 flake8 = "^6.0.0"
 
-[tool.pytest.ini_options]
-script_launch_mode = "subprocess"
+# Misc
+# ----
+[tool.poetry.scripts]
+pretext = 'pretext.cli:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+# Pytest configuration
+# ====================
+[tool.pytest.ini_options]
+script_launch_mode = "subprocess"
+
+# mypy configuration
+# ==================
+# To run, execute ``mypy`` from the directory containing this file.
+#
+# This section `must <https://mypy.readthedocs.io/en/stable/config_file.html#config-file-format>`_ be present.
+[tool.mypy]
+# See `files <https://mypy.readthedocs.io/en/stable/config_file.html#confval-files>`_.
+files = "pretext"
+exclude = "^pretext/core/.*"
+
+# Ignores for libraries with no type hints
+# ----------------------------------------
+[[tool.mypy.overrides]]
+module = [
+    "click_log",
+    "single_version",
+    "ghp_import",
+    # We're installing ``lxml-stubs``, but it doesn't have stubs for this yet.
+    "lxml.ElementInclude",
+]
+ignore_missing_imports = true

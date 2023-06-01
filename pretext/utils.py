@@ -19,7 +19,8 @@ import time
 import webbrowser
 import typing as t
 from lxml import etree as ET
-from typing import Optional
+from lxml.etree import _ElementTree, _Element
+from typing import cast, List, Optional
 
 from . import core, templates, BUILD_FORMATS
 
@@ -48,7 +49,7 @@ def working_directory(path: Path):
 
 
 # Grabs project directory based on presence of `project.ptx`
-def project_path(dirpath: Optional[Path] = None) -> Path:
+def project_path(dirpath: Optional[Path] = None) -> Optional[Path]:
     if dirpath is None:
         dirpath = Path().resolve()  # current directory
     if (dirpath / "project.ptx").is_file():
@@ -62,29 +63,33 @@ def project_path(dirpath: Optional[Path] = None) -> Path:
         return project_path(dirpath=dirpath.parent)
 
 
-def project_xml(dirpath: t.Optional[Path] = None) -> Path:
+def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
     if dirpath is None:
         dirpath = Path()  # current directory
-    if project_path(dirpath) is None:
+    pp = project_path(dirpath)
+    if pp is None:
         with templates.resource_path("project.ptx") as project_manifest:
             return ET.parse(project_manifest)
     else:
-        project_manifest = project_path(dirpath) / "project.ptx"
+        project_manifest = pp / "project.ptx"
         return ET.parse(project_manifest)
 
 
-def requirements_version(dirpath: Optional[Path] = None) -> str:
+def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
     if dirpath is None:
         dirpath = Path()  # current directory
+    pp = project_path(dirpath)
+    if pp is None:
+        return None
     try:
-        with open(project_path(dirpath) / "requirements.txt", "r") as f:
+        with open(pp / "requirements.txt", "r") as f:
             for line in f.readlines():
                 if "pretext" or "pretextbook" in line:
                     return line.split("==")[1].strip()
     except Exception as e:
         log.debug("Could not read `requirements.txt`:")
         log.debug(e)
-        return None
+    return None
 
 
 def project_xml_string(dirpath: Optional[Path] = None) -> str:
@@ -93,21 +98,24 @@ def project_xml_string(dirpath: Optional[Path] = None) -> str:
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
 
+# TODO: is this ever called?
 def target_xml(
     alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
-) -> ET.Element:
+) -> Optional[_Element]:
     if dirpath is None:
         dirpath = Path()  # current directory
     if alias is None:
         return project_xml().find("targets/target")  # first target
     xpath = f'targets/target[@name="{alias}"]'
-    matches = project_xml().xpath(xpath)
+    _matches = project_xml().xpath(xpath)
+    # Given that this is a project target, narrow the type of the match: ``xpath`` can return a wide variety of results.
+    matches = cast(List[_Element], _matches)
     if len(matches) == 0:
         log.info(
             f"No targets with alias {alias} found in project manifest file project.ptx."
         )
         return None
-    return project_xml().xpath(xpath)[0]
+    return matches[0]
 
 
 # check xml syntax
