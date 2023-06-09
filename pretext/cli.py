@@ -362,6 +362,7 @@ def build(
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
 
+
     # Add xmlid value to project_ptx_override (a tuple of tuples)
     if xmlid:
         project_ptx_override += (("targets.target.xmlid-root", xmlid),)
