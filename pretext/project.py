@@ -133,16 +133,22 @@ class Target:
         for asset in ASSETS:
             if asset == "webwork":
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
+                if len(self.source_xml().xpath(".//webwork[@*|*]")) == 0:
+                    # Only generate a hash if there are actually ww exercises in the source
+                    continue
                 h = hashlib.sha256()
                 for node in self.source_xml().xpath(".//webwork[@*|*]"):
                     h.update(ET.tostring(node))
                 asset_hash_dict[(asset, "")] = h.digest()
             elif asset != "ALL":
                 # everything else can be updated individually, if it has an xml:id
+                if len(self.source_xml().xpath(f".//{asset}")) == 0:
+                    # Only generate a hash if there are actually assets of this type in the source
+                    continue
                 h_no_id = hashlib.sha256()
                 for node in self.source_xml().xpath(f".//{asset}"):
-                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id
-                    if id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"):
+                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id (but we haven't already made this key)
+                    if (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id")) and (asset,id[0]) not in asset_hash_dict:
                         asset_hash_dict[(asset, id[0])] = hashlib.sha256(
                             ET.tostring(node)
                         ).digest()
@@ -165,10 +171,13 @@ class Target:
         """
         Loads the asset_table from a pickle file in the generated assets directory based on the target name.
         """
-        with open(
-            self.generated_dir().joinpath(f".{self.name()}_assets.pkl"), "rb"
-        ) as f:
-            return pickle.load(f)
+        try:
+            with open(
+                self.generated_dir().joinpath(f".{self.name()}_assets.pkl"), "rb"
+            ) as f:
+                return pickle.load(f)
+        except Exception:
+            return {}
 
 
 class Project:
