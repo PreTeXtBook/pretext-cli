@@ -1,3 +1,4 @@
+import pickle
 from lxml import etree as ET
 from lxml.etree import Element
 import os
@@ -6,10 +7,12 @@ import logging
 import tempfile
 from . import utils, generate, core
 from . import build as builder
+from . import ASSETS
 from pathlib import Path
 import sys
 from .config.xml_overlay import ShadowXmlDocument
 import typing as t
+import hashlib
 
 log = logging.getLogger("ptxlogger")
 
@@ -124,6 +127,48 @@ class Target:
             return None
         else:
             return ele.text.strip()
+
+    def asset_hash(self):
+        asset_hash_dict = {}
+        for asset in ASSETS:
+            if asset == "webwork":
+                # WeBWorK must be regenerated every time *any* of the ww exercises change.
+                h = hashlib.sha256()
+                for node in self.source_xml().xpath(".//webwork[@*|*]"):
+                    h.update(ET.tostring(node))
+                asset_hash_dict[(asset, "")] = h.digest()
+            elif asset != "ALL":
+                # everything else can be updated individually, if it has an xml:id
+                h_no_id = hashlib.sha256()
+                for node in self.source_xml().xpath(f".//{asset}"):
+                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id
+                    if id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"):
+                        asset_hash_dict[(asset, id[0])] = hashlib.sha256(
+                            ET.tostring(node)
+                        ).digest()
+                    # otherwise collect all non-id'd nodes into a single hash
+                    else:
+                        h_no_id.update(ET.tostring(node))
+                asset_hash_dict[(asset, "")] = h_no_id.digest()
+        return asset_hash_dict
+
+    def save_asset_table(self, asset_table: dict):
+        """
+        Saves the asset_table to a pickle file in the generated assets directory based on the target name.
+        """
+        with open(
+            self.generated_dir().joinpath(f".{self.name()}_assets.pkl"), "wb"
+        ) as f:
+            pickle.dump(asset_table, f)
+
+    def load_asset_table(self) -> dict:
+        """
+        Loads the asset_table from a pickle file in the generated assets directory based on the target name.
+        """
+        with open(
+            self.generated_dir().joinpath(f".{self.name()}_assets.pkl"), "rb"
+        ) as f:
+            return pickle.load(f)
 
 
 class Project:

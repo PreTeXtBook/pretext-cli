@@ -382,6 +382,12 @@ def build(
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
         return
+    # # TESTING!
+    # print(target.asset_hash())
+    # target.save_asset_table(target.asset_hash())
+    # print(target.load_asset_table())
+    # return
+    # ###########
     if generate == "ALL":
         log.info("Generating all assets in default formats.")
         project.generate(target.name())
