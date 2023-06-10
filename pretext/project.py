@@ -148,7 +148,9 @@ class Target:
                 h_no_id = hashlib.sha256()
                 for node in self.source_xml().xpath(f".//{asset}"):
                     # First see if the node has an xml:id, or if it is a child of a node with an xml:id (but we haven't already made this key)
-                    if (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id")) and (asset,id[0]) not in asset_hash_dict:
+                    if (
+                        id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id")
+                    ) and (asset, id[0]) not in asset_hash_dict:
                         asset_hash_dict[(asset, id[0])] = hashlib.sha256(
                             ET.tostring(node)
                         ).digest()
