@@ -327,6 +327,13 @@ def init(refresh):
     help="Generates assets for target.  -g [asset] will generate the specific assets given.",
 )
 @click.option(
+    "-q",
+    "--no-generate",
+    is_flag=True,
+    default=False,
+    help="Do not generate assets for target, even if their source has changed since last build.",
+)
+@click.option(
     "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
 )
 @click.option(
@@ -340,16 +347,14 @@ def build(
     target,
     clean,
     generate,
+    no_generate,
     xmlid: t.Optional[str],
     project_ptx_override: t.Tuple[str, str],
 ):
     """
     Build [TARGET] according to settings specified by project.ptx.
 
-    If using certain elements (webwork, latex-image, etc.) then
-    using `--generate` may be necessary for a successful build. Generated
-    assets are cached so they need not be regenerated in subsequent builds unless
-    they are changed.
+    If using elements that require separate generation of assets (e.g., webwork, latex-image, etc.) then these will be generated automatically if their source has changed since the last build.  You can suppress this with the `--no-generate` flag, or force a regeneration with the `--generate` flag.
 
     Certain builds may require installations not included with the CLI, or internet
     access to external servers. Command-line paths
@@ -375,23 +380,60 @@ def build(
     target = project.target(name=target_name)
     if target_name is None:
         log.info(
-            f"Since no build target was supplied, the first target of the project.ptx manifest ({target.name()}) will be built."
+            f"Since no build target was supplied, the first target of the project.ptx manifest ({target.name()}) will be built.\n"
         )
         target_name = target.name()
     if target is None:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
         return
+    # Automatically generate any assets that have changed.
+    if not no_generate:
+        asset_table = target.load_asset_table()
+        asset_hash_dict = target.asset_hash()
+        if asset_table == asset_hash_dict:
+            log.info(
+                "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
+            )
+        else:
+            for asset in set(asset[0] for asset in asset_hash_dict.keys()):
+                if asset in ["webwork"]:
+                    if (asset, "") not in asset_table or asset_hash_dict[
+                        (asset, "")
+                    ] != asset_table[(asset, "")]:
+                        project.generate(target.name(), asset_list=[asset])
+                elif (asset, "") not in asset_table or asset_hash_dict[
+                    (asset, "")
+                ] != asset_table[(asset, "")]:
+                    project.generate(target.name(), asset_list=[asset])
+                else:
+                    for id in set(
+                        key[1] for key in asset_hash_dict.keys() if key[0] == asset
+                    ):
+                        if (asset, id) not in asset_table or asset_hash_dict[
+                            (asset, id)
+                        ] != asset_table[(asset, id)]:
+                            log.info(
+                                f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
+                            )
+                            project.generate(
+                                target.name(), asset_list=[asset], xmlid=id
+                            )
+            target.save_asset_table(target.asset_hash())
+    else:
+        log.info("Skipping asset generation as requested.")
     if generate == "ALL":
-        log.info("Generating all assets in default formats.")
+        log.info("Generating all assets in default formats as requested.")
+        log.info(
+            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
+        )
         project.generate(target.name())
     elif generate is not None:
-        log.warning(f"Generating only {generate} assets.")
+        log.info(f"Generating {generate} assets as requested.")
+        log.info(
+            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
+        )
         project.generate(target.name(), asset_list=[generate])
-    else:
-        log.warning("Assets like latex-images will not be regenerated for this build")
-        log.warning("(previously generated assets will be used if they exist).")
-        log.warning("To generate these assets before building, run `pretext build -g`.")
     project.build(target.name(), clean)
 
 
