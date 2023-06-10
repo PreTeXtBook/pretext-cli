@@ -209,6 +209,7 @@ shell, this becomes less of a mouthful:
 pretext --version     # returns system version
 pr pretext --version  # returns version being developed
 ```
+(On Windows, in PowerShell, you get get such an alias with `Function pr {poetry run @Args}`)
 
 #### Steps on Windows
 
