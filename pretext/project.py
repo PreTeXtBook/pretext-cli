@@ -185,19 +185,10 @@ class Target:
         return self.source_xml().find(".//webwork/statement") is not None
 
     def has_ww_reps(self):
-        return Path.exists(self.generated_dir() / "webwork" / "webwork-representations.xml")
-    
-    def needs_playbutton(self):
-        return self.source_xml().find(".//video") is not None
+        return Path.exists(
+            self.generated_dir() / "webwork" / "webwork-representations.xml"
+        )
 
-    def has_playbutton(sefl):
-        return Path.exists(self.generated_dir() / "playbutton" / "playbutton.png")
-
-    def needs_datafile(self):
-        return self.source_xml().find("/pretext/*[not(docinfo)]//datafile") is not None
-
-    def has_datafile(self):
-        return Path.exists(self.generated_dir() / "datafile")
 
 class Project:
     def __init__(self, project_path=None):

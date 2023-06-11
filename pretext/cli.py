@@ -362,7 +362,6 @@ def build(
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
 
-
     # Add xmlid value to project_ptx_override (a tuple of tuples)
     if xmlid:
         project_ptx_override += (("targets.target.xmlid-root", xmlid),)
@@ -435,6 +434,11 @@ def build(
             "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
         )
         project.generate(target.name(), asset_list=[generate])
+    if target.needs_ww_reps() and not target.has_ww_reps():
+        log.info(
+            "This target needs a webwork-representations.xml file, but it wasn't found (possibly manually deleted?).  Generating it now."
+        )
+        project.generate(target.name(), asset_list=["webwork"])
     project.build(target.name(), clean)
 
 
