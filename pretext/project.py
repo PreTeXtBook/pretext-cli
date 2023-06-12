@@ -181,6 +181,14 @@ class Target:
         except Exception:
             return {}
 
+    def needs_ww_reps(self):
+        return self.source_xml().find(".//webwork/statement") is not None
+
+    def has_ww_reps(self):
+        return Path.exists(
+            self.generated_dir() / "webwork" / "webwork-representations.xml"
+        )
+
 
 class Project:
     def __init__(self, project_path=None):
