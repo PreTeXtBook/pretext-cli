@@ -10,7 +10,7 @@
 
   // Add gh cli as a feature (to support chodechat)
   "features": {
-    "ghcr.io/devcontainers/features/gh-cli:0.1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
   // The following was the previous version of this file, which used the Codespaces base image.  It is still available for reference, but is not recommended.
