@@ -11,10 +11,12 @@ from . import ASSETS
 from pathlib import Path
 import sys
 from .config.xml_overlay import ShadowXmlDocument
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 import hashlib
 
 log = logging.getLogger("ptxlogger")
+
+asset_table_type = Dict[Tuple[str, str], bytes]
 
 
 class Target:
@@ -169,29 +171,38 @@ class Target:
         else:
             return self.require_str_value(ele.text, "xmlid-root").strip()
 
-    def asset_hash(self):
+    def asset_hash(self) -> asset_table_type:
         asset_hash_dict = {}
         for asset in ASSETS:
             if asset == "webwork":
+                ww = self.source_xml().xpath(".//webwork[@*|*]")
+                assert isinstance(ww, List)
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
-                if len(self.source_xml().xpath(".//webwork[@*|*]")) == 0:
+                if len(ww) == 0:
                     # Only generate a hash if there are actually ww exercises in the source
                     continue
                 h = hashlib.sha256()
-                for node in self.source_xml().xpath(".//webwork[@*|*]"):
+                for node in ww:
+                    assert isinstance(node, _Element)
                     h.update(ET.tostring(node))
                 asset_hash_dict[(asset, "")] = h.digest()
             elif asset != "ALL":
                 # everything else can be updated individually, if it has an xml:id
-                if len(self.source_xml().xpath(f".//{asset}")) == 0:
+                source_assets = self.source_xml().xpath(f".//{asset}")
+                assert isinstance(source_assets, List)
+                if len(source_assets) == 0:
                     # Only generate a hash if there are actually assets of this type in the source
                     continue
                 h_no_id = hashlib.sha256()
-                for node in self.source_xml().xpath(f".//{asset}"):
+                for node in source_assets:
+                    assert isinstance(node, _Element)
                     # First see if the node has an xml:id, or if it is a child of a node with an xml:id (but we haven't already made this key)
                     if (
-                        id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id")
-                    ) and (asset, id[0]) not in asset_hash_dict:
+                        (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"))
+                        and isinstance(id, List)
+                        and (asset, id[0]) not in asset_hash_dict
+                    ):
+                        assert isinstance(id, _Element)
                         asset_hash_dict[(asset, id[0])] = hashlib.sha256(
                             ET.tostring(node)
                         ).digest()
@@ -201,33 +212,33 @@ class Target:
                 asset_hash_dict[(asset, "")] = h_no_id.digest()
         return asset_hash_dict
 
-    def save_asset_table(self, asset_table: dict):
+    def save_asset_table(self, asset_table: asset_table_type) -> None:
         """
         Saves the asset_table to a pickle file in the generated assets directory based on the target name.
         """
         with open(
-            self.generated_dir().joinpath(f".{self.name()}_assets.pkl"), "wb"
+            self.generated_dir_found().joinpath(f".{self.name()}_assets.pkl"), "wb"
         ) as f:
             pickle.dump(asset_table, f)
 
-    def load_asset_table(self) -> dict:
+    def load_asset_table(self) -> asset_table_type:
         """
         Loads the asset_table from a pickle file in the generated assets directory based on the target name.
         """
         try:
             with open(
-                self.generated_dir().joinpath(f".{self.name()}_assets.pkl"), "rb"
+                self.generated_dir_found().joinpath(f".{self.name()}_assets.pkl"), "rb"
             ) as f:
                 return pickle.load(f)
         except Exception:
             return {}
 
-    def needs_ww_reps(self):
+    def needs_ww_reps(self) -> bool:
         return self.source_xml().find(".//webwork/statement") is not None
 
-    def has_ww_reps(self):
+    def has_ww_reps(self) -> bool:
         return Path.exists(
-            self.generated_dir() / "webwork" / "webwork-representations.xml"
+            self.generated_dir_found() / "webwork" / "webwork-representations.xml"
         )
 
 
