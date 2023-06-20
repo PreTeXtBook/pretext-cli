@@ -14,6 +14,7 @@ def resource_path(filename: str) -> AbstractContextManager:
     # Try except here is to use newer importlib function,
     # supported starting with 3.9, and required with 3.11
     try:
-        return ir.as_file(ir.files(resources).joinpath(filename))
+        # TODO: remove the ignore when Python 3.8 support ends. This fails Python 3.8 type checks, since these functions depend on newer Python versions.
+        return ir.as_file(ir.files(resources).joinpath(filename))  # type: ignore[attr-defined]
     except AttributeError:
         return ir.path(resources, filename)
