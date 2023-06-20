@@ -8,7 +8,7 @@ from pathlib import Path
 from remove_path import remove_path
 
 
-def main():
+def main() -> None:
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
 
     print(f"Requesting core PreTeXtBook/pretext commit {CORE_COMMIT} from GitHub.")

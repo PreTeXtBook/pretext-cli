@@ -4,7 +4,7 @@ from remove_path import remove_path
 import pretext.core.resources
 
 
-def main(core_path: Path = Path("../pretext")):
+def main(core_path: Path = Path("../pretext")) -> None:
     for subdir in ["xsl", "schema", "script", "css"]:
         original_path = (core_path / subdir).resolve()
         link_path = pretext.core.resources.path(subdir)

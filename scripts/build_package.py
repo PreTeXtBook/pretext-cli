@@ -3,7 +3,7 @@ import fetch_core
 import zip_templates
 
 
-def main():
+def main() -> None:
     import pretext
 
     print(f"Building package for version {pretext.VERSION}.")

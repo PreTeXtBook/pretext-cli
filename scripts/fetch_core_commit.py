@@ -3,9 +3,10 @@ from urllib.request import urlopen
 import json
 from datetime import datetime
 import fileinput
+from typing import Any, Dict
 
 
-def commit_data(repo):
+def commit_data(repo: str) -> Dict[str, Any]:
     """
     Returns a dictionary containing the date and commit sha from the most recent commit to `repo`
     """
@@ -20,7 +21,7 @@ def commit_data(repo):
     return lastcommit
 
 
-def main():
+def main() -> None:
     last_core_commit = commit_data("pretext")
 
     # Update core commit:
