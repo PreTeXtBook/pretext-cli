@@ -44,15 +44,17 @@ qrcode = "^7"
 # Development dependencies
 # ------------------------
 [tool.poetry.group.dev.dependencies]
-lxml-stubs = "^0.4.0"
+black = "^23"
+codechat-server = "^0"
+flake8 = "^6"
+lxml-stubs = "^0"
 mypy = "^1"
-pytest = "^7.0.0"
-pytest-console-scripts = "^1.3.1"
+pytest = "^7"
+pytest-console-scripts = "^1"
 pytest-cov = "^4"
-pytest-mock = "^3.8.2"
-black = "^22.12.0"
-codechat-server = "^0.2.9"
-flake8 = "^6.0.0"
+pytest-mock = "^3"
+# Needed by coverage, so it can read its configuration from this file. See the [Coverage docs](https://coverage.readthedocs.io/en/7.2.7/config.html).
+toml = "^0"
 
 # Misc
 # ----
@@ -63,10 +65,12 @@ pretext = 'pretext.cli:main'
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
+
 # Pytest configuration
 # ====================
 [tool.pytest.ini_options]
 script_launch_mode = "subprocess"
+
 
 # mypy configuration
 # ==================
@@ -76,7 +80,9 @@ script_launch_mode = "subprocess"
 [tool.mypy]
 # See `files <https://mypy.readthedocs.io/en/stable/config_file.html#confval-files>`_.
 files = "pretext"
-exclude = "^pretext/core/.*"
+exclude = "^pretext/core/pretext.py"
+check_untyped_defs = true
+disallow_untyped_defs = true
 
 # Ignores for libraries with no type hints
 # ----------------------------------------
@@ -89,3 +95,20 @@ module = [
     "lxml.ElementInclude",
 ]
 ignore_missing_imports = true
+
+
+# Coverage configuration
+# ======================
+[tool.coverage.run]
+# Select code to be covered -- everything in the `pretext` subdirectory.
+source = [ "pretext" ]
+# This doesn't work. It works if the path is absolute, but I can't find any relative path that does work.
+#omit = [ "pretext/core/pretext.py" ]
+
+[tool.coverage.report]
+# This is a simple workaround for the `omit` setting above: don't report coverage for the PreTeXt core.
+omit = [ "pretext/core/pretext.py" ]
+
+[tool.coverage.html]
+# For better organization, place generated reports under the tests.
+directory = "tests/htmlcov"

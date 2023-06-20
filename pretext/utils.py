@@ -1,6 +1,7 @@
 import os
 import random
 import json
+from collections.abc import Generator
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
 import shutil
@@ -12,6 +13,7 @@ import socket
 import subprocess
 import sys
 import logging
+import logging.handlers
 import threading
 import watchdog.events
 import watchdog.observers
@@ -20,7 +22,7 @@ import webbrowser
 import typing as t
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
-from typing import cast, List, Optional
+from typing import Any, cast, Callable, List, Optional
 
 from . import core, templates, BUILD_FORMATS
 
@@ -29,7 +31,7 @@ log = logging.getLogger("ptxlogger")
 
 
 @contextmanager
-def working_directory(path: Path):
+def working_directory(path: Path) -> Generator[None, None, None]:
     """
     Temporarily change the current working directory.
 
@@ -61,6 +63,13 @@ def project_path(dirpath: Optional[Path] = None) -> Optional[Path]:
     else:
         # check parent instead
         return project_path(dirpath=dirpath.parent)
+
+
+# Like above, but asserts if the project path can't be found.
+def project_path_found(dirpath: Optional[Path] = None) -> Path:
+    pp = project_path(dirpath)
+    assert pp is not None, "Invalid project path"
+    return pp
 
 
 def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
@@ -188,15 +197,15 @@ def cocalc_project_id() -> t.Optional[str]:
 
 # watchdog handler for watching changes to source
 class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
-    def __init__(self, callback):
+    def __init__(self, callback: Callable[[], None]):
         self.last_trigger_at = time.time() - 5
         self.callback = callback
 
-    def on_any_event(self, event):
+    def on_any_event(self, event: watchdog.events.FileSystemEvent) -> None:
         self.last_trigger_at = time.time()
 
         # only run callback once triggers halt for a second
-        def timeout_callback(handler):
+        def timeout_callback(handler: "HTMLRebuildHandler") -> None:
             time.sleep(1.5)
             if time.time() > handler.last_trigger_at + 1:
                 handler.last_trigger_at = time.time()
@@ -208,14 +217,14 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
 
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
-def binding_for_access(access="private"):
+def binding_for_access(access: str = "private") -> str:
     if access == "private":
         return "localhost"
     else:
         return "0.0.0.0"
 
 
-def url_for_access(access="private", port=8000):
+def url_for_access(access: str = "private", port: int = 8000) -> str:
     if access == "public":
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
@@ -223,8 +232,8 @@ def url_for_access(access="private", port=8000):
 
 
 def serve_forever(
-    directory: Path, access="private", port=8000, no_launch: bool = False
-):
+    directory: Path, access: str = "private", port: int = 8000, no_launch: bool = False
+) -> None:
     log.info(f"Now preparing local server to preview directory `{directory}`.")
     log.info(
         "  (Reminder: use `pretext deploy` to deploy your built project to a public"
@@ -237,16 +246,16 @@ def serve_forever(
     binding = binding_for_access(access)
 
     class RequestHandler(SimpleHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any):
             super().__init__(*args, directory=directory.as_posix(), **kwargs)
 
         """HTTP request handler with no caching"""
 
-        def end_headers(self):
+        def end_headers(self) -> None:
             self.send_my_headers()
             SimpleHTTPRequestHandler.end_headers(self)
 
-        def send_my_headers(self):
+        def send_my_headers(self) -> None:
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
             self.send_header("Pragma", "no-cache")
             self.send_header("Expires", "0")
@@ -280,9 +289,9 @@ def run_server(
     access: str,
     port: int,
     watch_directory: t.Optional[Path] = None,
-    watch_callback=lambda: None,
+    watch_callback: Callable[[], None] = lambda: None,
     no_launch: bool = False,
-):
+) -> None:
     threading.Thread(
         target=lambda: serve_forever(directory, access, port, no_launch), daemon=True
     ).start()
@@ -314,7 +323,7 @@ def nstag(prefix: str, suffix: str) -> str:
     return "{" + NSMAP[prefix] + "}" + suffix
 
 
-def copy_custom_xsl(xsl_path: Path, output_dir: Path):
+def copy_custom_xsl(xsl_path: Path, output_dir: Path) -> None:
     """
     Copy relevant files that share a directory with `xsl_path`.
     Pre-processing the `.xsl` files to point to subdirectory for graceful deprecation.
@@ -327,16 +336,17 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path):
     shutil.copytree(core.resources.path("xsl"), output_dir / "core")
 
 
-def check_executable(exec_name: str):
+def check_executable(exec_name: str) -> Optional[str]:
     try:
         exec_cmd = core.get_executable_cmd(exec_name)[0]
         log.debug(f"PTX-CLI: Executable command {exec_name} found at {exec_cmd}")
         return exec_cmd
     except OSError as e:
         log.debug(e)
+        return None
 
 
-def check_asset_execs(element, outformats=None):
+def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> None:
     # outformats is assumed to be a list of formats.
     if outformats is None:
         outformats = []
@@ -410,7 +420,12 @@ def no_project(task: str) -> bool:
     return False
 
 
-def show_target_hints(target_format: str, project, task: str):
+def show_target_hints(
+    target_format: Optional[str],
+    # TODO: the type is ``project.Project``, but we can't ``import project`` due to circular imports.
+    project: Any,
+    task: str,
+) -> None:
     """
     This will give the user hints about why they have provided a bad target and make helpful suggestions for them to fix the problem.  We will only run this function when the target_name is not the name in any target in project.ptx.
     """
@@ -441,7 +456,7 @@ def show_target_hints(target_format: str, project, task: str):
         )
 
 
-def npm_install():
+def npm_install() -> None:
     with working_directory(core.resources.path("script", "mjsre")):
         log.info("Attempting to install/update required node packages.")
         try:
@@ -454,7 +469,7 @@ def npm_install():
             log.debug("", exc_info=True)
 
 
-def playwright_install():
+def playwright_install() -> None:
     """
     Run `playwright install` to ensure that its required browsers and tools are available to it.
     """
@@ -471,14 +486,14 @@ def playwright_install():
         log.debug("", exc_info=True)
 
 
-def remove_path(path: Path):
+def remove_path(path: Path) -> None:
     if path.is_file() or path.is_symlink():
         path.unlink()  # remove the file
     elif path.is_dir():
         shutil.rmtree(path)  # remove dir and all it contains
 
 
-def exit_command(mh):
+def exit_command(mh: logging.handlers.MemoryHandler) -> None:
     """
     Clean's up at the end of a run.
     Checks to see if anything (errors etc.) is in the memory handler.  If it is, reports that there are errors before the handler gets flushed.  Otherwise, adds a single blank line.

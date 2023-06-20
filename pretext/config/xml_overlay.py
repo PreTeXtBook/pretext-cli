@@ -28,16 +28,27 @@ class ShadowXmlNodeType(t.TypedDict):
 class XmlOverlayType(click.ParamType):
     name = "xml_overlay"
 
-    def convert(self, value, param, ctx):
-        print("got", value, param, ctx.args, ctx.obj)
+    def convert(
+        self,
+        value: t.Any,
+        param: t.Optional[click.Parameter],
+        ctx: t.Optional[click.Context],
+    ) -> t.Any:
+        print(
+            "got",
+            value,
+            param,
+            None if ctx is None else ctx.args,
+            None if ctx is None else ctx.obj,
+        )
         return value
 
 
 class ShadowXmlDocument:
-    def __init__(self):
+    def __init__(self) -> None:
         self._nodes_dict: t.Dict[str, ShadowXmlNodeType] = {}
 
-    def upsert_node_or_attribute(self, path: str, value: t.Union[str, None]):
+    def upsert_node_or_attribute(self, path: str, value: str) -> "ShadowXmlDocument":
         """
         Upserts a node into the shadow document.
 
@@ -68,7 +79,7 @@ class ShadowXmlDocument:
             self._nodes_dict[path] = node
         return self
 
-    def overlay_tree(self, root: ET.Element = ET.Element("root")) -> t.List[str]:
+    def overlay_tree(self, root: ET._Element = ET.Element("root")) -> t.List[str]:
         """
         Overlay `root` with the current ShadowXmlDocument's nodes and attributes.
         A list of string messages are returned about what elements were changed.
@@ -80,9 +91,9 @@ class ShadowXmlDocument:
 
         def upsert_node(
             path: t.List[str],
-            current: ET.Element = root,
+            current: ET._Element = root,
             current_path: t.List[str] = [],
-        ) -> t.List[ET.Element]:
+        ) -> t.List[ET._Element]:
             if len(path) == 0:
                 return [current]
             needed_tag = path[0]

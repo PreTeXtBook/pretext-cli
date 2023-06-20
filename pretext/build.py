@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 import sys
-from typing import Optional
+from typing import Dict, Optional
 
 from . import utils, core, codechat
 
@@ -14,11 +14,11 @@ def html(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    stringparams,
+    stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
-    xmlid_root,
-    zipped=False,
-):
+    xmlid_root: Optional[str],
+    zipped: bool = False,
+) -> None:
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building HTML into {output}\n")
     if xmlid_root is not None:
@@ -40,9 +40,9 @@ def html(
                 None,
                 output.as_posix(),
             )
-            codechat.map_path_to_xml_id(
-                ptxfile, utils.project_path(ptxfile), output.as_posix()
-            )
+            pp = utils.project_path(ptxfile)
+            assert pp is not None, f"Invalid project path to {ptxfile}."
+            codechat.map_path_to_xml_id(ptxfile, pp, output.as_posix())
         except Exception as e:
             log.critical(e)
             log.debug("Exception info:\n##################\n", exc_info=True)
@@ -54,9 +54,9 @@ def latex(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    stringparams,
+    stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
-):
+) -> None:
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building LaTeX into {output}\n")
     # ensure working directory is preserved
@@ -81,10 +81,10 @@ def pdf(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    stringparams,
+    stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
     pdf_method: str,
-):
+) -> None:
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building LaTeX into {output}\n")
     # ensure working directory is preserved
@@ -110,10 +110,10 @@ def custom(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    stringparams,
+    stringparams: Dict[str, str],
     custom_xsl: Path,
     output_filename: Optional[str] = None,
-):
+) -> None:
     os.makedirs(output, exist_ok=True)
     if output_filename is not None:
         output_filepath = output / output_filename
@@ -141,7 +141,9 @@ def custom(
 
 
 # build (non Kindle) ePub:
-def epub(ptxfile, pub_file: Path, output: Path, stringparams):
+def epub(
+    ptxfile: Path, pub_file: Path, output: Path, stringparams: Dict[str, str]
+) -> None:
     os.makedirs(output, exist_ok=True)
     try:
         utils.npm_install()
@@ -151,7 +153,7 @@ def epub(ptxfile, pub_file: Path, output: Path, stringparams):
             "Unable to build epub because node packages are not installed.  Exiting..."
         )
     log.info(f"\nNow building ePub into {output}\n")
-    with utils.working_directory("."):
+    with utils.working_directory(Path()):
         try:
             core.epub(
                 ptxfile,
@@ -169,7 +171,9 @@ def epub(ptxfile, pub_file: Path, output: Path, stringparams):
 
 
 # build Kindle ePub:
-def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
+def kindle(
+    ptxfile: Path, pub_file: Path, output: Path, stringparams: Dict[str, str]
+) -> None:
     os.makedirs(output, exist_ok=True)
     try:
         utils.npm_install()
@@ -179,7 +183,7 @@ def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
             "Unable to build Kindle ePub because node packages are not installed.  Exiting..."
         )
     log.info(f"\nNow building Kindle ePub into {output}\n")
-    with utils.working_directory("."):
+    with utils.working_directory(Path()):
         try:
             core.epub(
                 ptxfile,
@@ -197,7 +201,13 @@ def kindle(ptxfile, pub_file: Path, output: Path, stringparams):
 
 
 # build Braille:
-def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="emboss"):
+def braille(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    stringparams: Dict[str, str],
+    page_format: str = "emboss",
+) -> None:
     os.makedirs(output, exist_ok=True)
     log.warning(
         "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
@@ -210,7 +220,7 @@ def braille(ptxfile, pub_file: Path, output: Path, stringparams, page_format="em
             "Unable to build braille because node packages could not be installed.  Exiting..."
         )
     log.info(f"\nNow building braille into {output}\n")
-    with utils.working_directory("."):
+    with utils.working_directory(Path()):
         try:
             core.braille(
                 xml_source=ptxfile,
@@ -232,9 +242,9 @@ def webwork_sets(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    stringparams,
-    zipped=False,
-):
+    stringparams: Dict[str, str],
+    zipped: bool = False,
+) -> None:
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building WeBWorK Sets into {output}\n")
     # ensure working directory is preserved
