@@ -543,7 +543,7 @@ def generate(
     short_help="Preview specified target based on its format.",
     context_settings=CONTEXT_SETTINGS,
 )
-@click.argument("target", metavar="target_name", required=False)
+@click.argument("target_name", metavar="target", required=False)
 @click.option(
     "-a",
     "--access",
@@ -672,7 +672,7 @@ def view(
     short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS,
 )
-@click.argument("target", metavar="target_name", required=False)
+@click.argument("target_name", metavar="target", required=False)
 @click.option("-u", "--update_source", is_flag=True, required=False)
 def deploy(target_name: str, update_source: bool) -> None:
     """

@@ -31,8 +31,7 @@ def latex_image(
     }
     # set overwrite formats to all when appropriate
     if all_formats:
-        # BUG: this looks wrong to me. Perhaps `formats[target_formats].append("all")`?
-        formats[target_format] = {key: ["all"] for key in formats[target_format]}
+        formats[target_format] = ["all"]
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for latex-image.
@@ -98,7 +97,7 @@ def sageplot(
     }
     # set overwrite formats to all when appropriate
     if all_formats:
-        formats[target_format] = {key: ["all"] for key in formats[target_format]}
+        formats[target_format] = ["all"]
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for sageplot.
