@@ -1,9 +1,8 @@
 from contextlib import AbstractContextManager
 import importlib.resources as ir
-from pathlib import Path
 
 
-def resource_path(filename: str) -> AbstractContextManager[Path]:
+def resource_path(filename: str) -> AbstractContextManager:
     """
     Returns resource manager
     Usage:

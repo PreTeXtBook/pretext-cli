@@ -31,7 +31,7 @@ log = logging.getLogger("ptxlogger")
 
 
 @contextmanager
-def working_directory(path: Path) -> Generator[None, None, None]:
+def working_directory(path: Path) -> Generator:
     """
     Temporarily change the current working directory.
 
