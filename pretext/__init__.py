@@ -18,7 +18,7 @@ from single_version import get_version
 
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
-CORE_COMMIT = "d34a6ed506009fb74534324b547a5d3ced4d4678"
+CORE_COMMIT = "3024ffd91203498bc9fba1c16681c9817ccce93a"
 
 # List of templates, build formats, and assets that are supported by the CLI.
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
