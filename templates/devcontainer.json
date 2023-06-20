@@ -8,7 +8,10 @@
   // If you only intend to build for web and don't have any latex-image generated assets, you can use a smaller image:
   // "image": "oscarlevin/pretext:lite",
 
-
+  // Add gh cli as a feature (to support chodechat)
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
 
   // The following was the previous version of this file, which used the Codespaces base image.  It is still available for reference, but is not recommended.
   // "image": "mcr.microsoft.com/devcontainers/python:3",
@@ -31,7 +34,6 @@
   // },
   // "onCreateCommand": "pip install pretext",
   // // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "sudo bash ./.devcontainer/postCreateCommand.sh",
 
   // Configure tool-specific properties.
   "customizations": {
@@ -46,9 +48,10 @@
           "other": "off"
         },
         "editor.snippetSuggestions": "top",
-        "xml.validation.enabled": false
+        "xml.validation.enabled": false,
+        "CodeChat.CodeChatServer.Command": "CodeChat_Server"
       },
-      "extensions": ["ms-vscode.live-server", "oscarlevin.pretext-tools"]
+      "extensions": ["ms-vscode.live-server", "oscarlevin.pretext-tools", "CodeChat.codechat"]
     }
   }
 
