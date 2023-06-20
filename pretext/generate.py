@@ -3,6 +3,7 @@ import os
 import logging
 from . import utils, core
 from pathlib import Path
+from typing import Dict, List, Optional
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -14,23 +15,23 @@ def latex_image(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    params,
-    target_format,
-    xmlid_root,
-    pdf_method,
-    all_formats=False,
-):
+    params: Dict[str, str],
+    target_format: str,
+    xmlid_root: Optional[str],
+    pdf_method: str,
+    all_formats: bool = False,
+) -> None:
     # Dictionary of formats for images based on target
     formats = {
-        "pdf": None,
-        "latex": None,
+        "pdf": [],
+        "latex": [],
         "html": ["svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
     # set overwrite formats to all when appropriate
     if all_formats:
-        formats[target_format] = {key: ["all"] for key in formats[target_format]}
+        formats[target_format] = ["all"]
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for latex-image.
@@ -38,7 +39,10 @@ def latex_image(
     for _ in range(20):
         source_xml.xinclude()
     if (
-        len(source_xml.xpath("/pretext/*[not(docinfo)]//latex-image")) > 0
+        isinstance(
+            li := source_xml.xpath("/pretext/*[not(docinfo)]//latex-image"), List
+        )
+        and len(li) > 0
         and formats[target_format] is not None
     ):
         image_output = (output / "latex-image").resolve()
@@ -78,11 +82,11 @@ def sageplot(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    params,
-    target_format,
-    xmlid_root,
-    all_formats=False,
-):
+    params: Dict[str, str],
+    target_format: str,
+    xmlid_root: Optional[str],
+    all_formats: bool = False,
+) -> None:
     # Dictionary of formats for images based on target
     formats = {
         "pdf": ["pdf", "png"],
@@ -93,7 +97,7 @@ def sageplot(
     }
     # set overwrite formats to all when appropriate
     if all_formats:
-        formats[target_format] = {key: ["all"] for key in formats[target_format]}
+        formats[target_format] = ["all"]
     # We assume passed paths are absolute.
     # set images directory
     # parse source so we can check for sageplot.
@@ -101,7 +105,8 @@ def sageplot(
     for _ in range(20):
         source_xml.xinclude()
     if (
-        len(source_xml.xpath("/pretext/*[not(docinfo)]//sageplot")) > 0
+        isinstance(li := source_xml.xpath("/pretext/*[not(docinfo)]//sageplot"), List)
+        and len(li) > 0
         and formats[target_format] is not None
     ):
         image_output = (output / "sageplot").resolve()
@@ -139,11 +144,11 @@ def asymptote(
     ptxfile: Path,
     pub_file: Path,
     output: Path,
-    params,
-    target_format,
-    xmlid_root,
-    all_formats=False,
-):
+    params: Dict[str, str],
+    target_format: str,
+    xmlid_root: Optional[str],
+    all_formats: bool = False,
+) -> None:
     # Dictionary of formats for images based on target
     formats = {
         "pdf": ["pdf"],
@@ -161,7 +166,8 @@ def asymptote(
     for _ in range(20):
         source_xml.xinclude()
     if (
-        len(source_xml.xpath("/pretext/*[not(docinfo)]//asymptote")) > 0
+        isinstance(li := source_xml.xpath("/pretext/*[not(docinfo)]//asymptote"), List)
+        and len(li) > 0
         and formats[target_format] is not None
     ):
         image_output = (output / "asymptote").resolve()
@@ -194,13 +200,24 @@ def asymptote(
 # generate interactive preview assets
 
 
-def interactive(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+def interactive(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    params: Dict[str, str],
+    xmlid_root: Optional[str],
+) -> None:
     # We assume passed paths are absolute.
     # parse source so we can check for interactives.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0:
+    if (
+        isinstance(
+            li := source_xml.xpath("/pretext/*[not(docinfo)]//interactive"), List
+        )
+        and len(li) > 0
+    ):
         # First verify that playwright has dependencies installed:
         utils.playwright_install()
         image_output = (output / "preview").resolve()
@@ -230,13 +247,24 @@ def interactive(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root)
 # generate youtube thumbnail assets
 
 
-def youtube(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+def youtube(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    params: Dict[str, str],
+    xmlid_root: Optional[str],
+) -> None:
     # We assume passed paths are absolute.
     # parse source so we can check for videos.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]")) > 0:
+    if (
+        isinstance(
+            li := source_xml.xpath("/pretext/*[not(docinfo)]//video[@youtube]"), List
+        )
+        and len(li) > 0
+    ):
         image_output = (output / "youtube").resolve()
         os.makedirs(image_output, exist_ok=True)
         log.info("Now generating youtube previews\n\n")
@@ -264,13 +292,19 @@ def youtube(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
 # generate webwork assets
 
 
-def webwork(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root=None):
+def webwork(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    params: Dict[str, str],
+    xmlid_root: Optional[str] = None,
+) -> None:
     # We assume passed paths are absolute.
     # parse source so we can check for webwork.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
-    if len(source_xml.xpath("//webwork[node()|@*]")) > 0:
+    if isinstance(li := source_xml.xpath("//webwork[node()|@*]"), List) and len(li) > 0:
         ww_output = (output / "webwork").resolve()
         os.makedirs(ww_output, exist_ok=True)
         log.info("Now generating webwork representation\n\n")
@@ -300,13 +334,22 @@ def webwork(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root=None
 # generate codelens trace assets
 
 
-def codelens(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+def codelens(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    params: Dict[str, str],
+    xmlid_root: Optional[str],
+) -> None:
     # We assume passed paths are absolute.
     # parse source so we can check for webwork.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
-    if len(source_xml.xpath("//program[@interactive = 'codelens']")) > 0:
+    if (
+        isinstance(li := source_xml.xpath("//program[@interactive = 'codelens']"), List)
+        and len(li) > 0
+    ):
         trace_output = (output / "trace").resolve()
         os.makedirs(trace_output, exist_ok=True)
         log.info("Now generating codelens trace\n\n")
@@ -332,15 +375,26 @@ def codelens(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
 # generate qr code assets
 
 
-def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+def qrcodes(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    params: Dict[str, str],
+    xmlid_root: Optional[str],
+) -> None:
     # We assume passed paths are absolute.
     # parse source so we can check for videos.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
     if (
-        len(source_xml.xpath("/pretext/*[not(docinfo)]//video")) > 0
-        or len(source_xml.xpath("/pretext/*[not(docinfo)]//interactive")) > 0
+        isinstance(li1 := source_xml.xpath("/pretext/*[not(docinfo)]//video"), List)
+        and len(li1) > 0
+    ) or (
+        isinstance(
+            li2 := source_xml.xpath("/pretext/*[not(docinfo)]//interactive"), List
+        )
+        and len(li2) > 0
     ):
         image_output = (output / "qrcode").resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -365,7 +419,7 @@ def qrcodes(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
         # No else clause needed, since this isn't called specifically.
 
 
-def play_button(output: Path):
+def play_button(output: Path) -> None:
     # Currently we do not parse source to look for videos, as this can run regardless of the source.
     image_output = (output / "play-button").resolve()
     os.makedirs(image_output, exist_ok=True)
@@ -385,13 +439,22 @@ def play_button(output: Path):
 
 
 # generate datafile assets
-def datafiles(ptxfile: Path, pub_file: Path, output: Path, params, xmlid_root):
+def datafiles(
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    params: Dict[str, str],
+    xmlid_root: Optional[str],
+) -> None:
     # We assume passed paths are absolute.
     # parse source so we can check for datafile elements.
     source_xml = ET.parse(ptxfile)
     for _ in range(20):
         source_xml.xinclude()
-    if len(source_xml.xpath("/pretext/*[not(docinfo)]//datafile")) > 0:
+    if (
+        isinstance(li := source_xml.xpath("/pretext/*[not(docinfo)]//datafile"), List)
+        and len(li) > 0
+    ):
         datafile_output = (output / "datafile").resolve()
         os.makedirs(datafile_output, exist_ok=True)
         log.info("Now generating base64 versions of datafiles\n\n")

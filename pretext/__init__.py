@@ -46,7 +46,7 @@ ASSETS = [
 ]
 
 
-def activate():
+def activate() -> None:
     """
     This function was provided by the original `pretext` package
     deployed to PyPI by Alex Willmer. Thanks to their generosity,

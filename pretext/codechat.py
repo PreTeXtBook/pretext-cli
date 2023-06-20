@@ -14,7 +14,7 @@
 import collections  # defaultdict
 import glob  # glob
 import json  # dumps
-import pathlib  # Path
+from pathlib import Path
 import sys  # platform
 import urllib.parse  # urlparse
 import urllib.request  # pathname2url
@@ -47,9 +47,9 @@ import lxml.ElementInclude
 # This allows a single source file to produce multiple HTML files, as well as supporting a one-to-one relationship. The list captures the order of appearance of the XML IDs in the tree -- element 0 is the first XML ID, etc.
 def map_path_to_xml_id(
     # A path to the root XML file in the pretext book being processed.
-    xml: str,
+    xml: Path,
     # A path to the project directory, which (should) contain ``codechat_config.yaml``.
-    project_path: pathlib.Path,
+    project_path: Path,
     # A path to the destination or output directory. The resulting JSON file will be stored there.
     dest_dir: str,
 ) -> None:
@@ -57,14 +57,14 @@ def map_path_to_xml_id(
     path_to_xml_id = collections.defaultdict(list)
 
     # Normalize path separators to current OS.
-    xml = str(pathlib.Path(xml).resolve())
+    _xml = str(xml.resolve())
 
     # This follows the `Python recommendations <https://docs.python.org/3/library/sys.html#sys.platform>`_.
     is_win = sys.platform == "win32"
 
     # Look at all HTML files in the output directory. Store only their stem, since this is what an XML ID specifies. Note that all output files will have the same path prefix (the ``dest_dir`` and the same suffix (``.html``); the stem is the only unique part.
     html_files = set(
-        pathlib.Path(html_file).stem for html_file in glob.glob(dest_dir + "/*.html")
+        Path(html_file).stem for html_file in glob.glob(dest_dir + "/*.html")
     )
 
     # lxml turns ``xml:id`` into the string below.
@@ -73,7 +73,9 @@ def map_path_to_xml_id(
     xml_id_attrib = f"{xml_ns}id"
 
     # Define a loader which sets the ``xml:base`` of an xincluded element. While lxml `evidently used to do this in 2013 <https://stackoverflow.com/a/18158472/16038919>`_, a change eliminated this ability per some `dicussion <https://mail.gnome.org/archives/xml/2014-April/msg00015.html>`_, which included a rejected patch fixing this problem. `Current source <https://github.com/GNOME/libxml2/blob/master/xinclude.c#L1689>`_ lacks this patch.
-    def my_loader(href, parse, encoding=None, parser=None):
+    #
+    # Since there's few docs on this function, ignore the lack of types.
+    def my_loader(href, parse, encoding=None, parser=None):  # type: ignore
         ret = lxml.ElementInclude._lxml_default_loader(href, parse, encoding, parser)
         # The return value may not be an element.
         if isinstance(ret, ET._Element):
@@ -82,11 +84,11 @@ def map_path_to_xml_id(
 
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
-    src_tree = ET.parse(xml, parser=huge_parser)
+    src_tree = ET.parse(_xml, parser=huge_parser)
     lxml.ElementInclude.include(src_tree, loader=my_loader)
 
-    # Walk though every element with an xml ID.
-    for elem in src_tree.iterfind(f"//*[@{xml_id_attrib}]"):
+    # Walk though every element with an xml ID. Note: the type stubs don't have the ``iterfind`` method, hence the ignore in the next line.
+    for elem in src_tree.iterfind(f"//*[@{xml_id_attrib}]"):  # type: ignore
         # Consider only elemets whose ID produced an HTML file. TODO: use a walrus operator after Python 3.7 is EOL.
         xml_id = elem.get(xml_id_attrib)
         if xml_id in html_files:
@@ -103,11 +105,11 @@ def map_path_to_xml_id(
             # Decode the URL-encoded filename.
             path = urllib.parse.unquote(path)
             # Use ``resolve()`` to standardize capitalization on Windows.
-            stdpath = pathlib.Path(path).resolve()
+            stdpath = Path(path).resolve()
             # Make this path relative to the project directory, to avoid writing potentially confidential information (username / local filesystem paths) to the mapping file, which might be published to the web.
             relpath = stdpath.relative_to(project_path)
             # Add this XML ID to others for this path.
             path_to_xml_id[str(relpath)].append(xml_id)
 
     # Save the result as a JSON file in the ``dest_dir``.
-    (pathlib.Path(dest_dir) / ".mapping.json").write_text(json.dumps(path_to_xml_id))
+    (Path(dest_dir) / ".mapping.json").write_text(json.dumps(path_to_xml_id))

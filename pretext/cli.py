@@ -12,9 +12,9 @@ import io
 import tempfile
 import platform
 from pathlib import Path
-import typing as t
 import atexit
 import subprocess
+from typing import List, Optional, Tuple
 from .config import xml_overlay
 
 from . import (
@@ -62,7 +62,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     is_flag=True,
     help='Display list of build/view "targets" available in the project manifest.',
 )
-def main(ctx, targets):
+def main(ctx: click.Context, targets: bool) -> None:
     """
     Command line tools for quickly creating, authoring, and building PreTeXt projects.
 
@@ -77,12 +77,12 @@ def main(ctx, targets):
     Use the `--help` option on any CLI command to learn more, for example,
     `pretext build --help`.
     """
-    if utils.project_path() is not None:
+    if (pp := utils.project_path()) is not None:
         if targets:
             Project().print_target_names()
             return
         # create file handler which logs even debug messages
-        fh = logging.FileHandler(utils.project_path() / "cli.log", mode="w")
+        fh = logging.FileHandler(pp / "cli.log", mode="w")
         fh.setLevel(logging.DEBUG)
         file_log_format = logging.Formatter("{levelname:<8}: {message}", style="{")
         fh.setFormatter(file_log_format)
@@ -90,7 +90,7 @@ def main(ctx, targets):
         # output info
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         # permanently change working directory for rest of process
-        os.chdir(utils.project_path())
+        os.chdir(pp)
         if utils.requirements_version() is None:
             log.warning(
                 "Project's CLI version could not be detected from `requirements.txt`."
@@ -119,7 +119,7 @@ def main(ctx, targets):
     short_help="Use when communicating with PreTeXt support.",
     context_settings=CONTEXT_SETTINGS,
 )
-def support():
+def support() -> None:
     """
     Outputs useful information about your installation needed by
     PreTeXt volunteers when requesting help on the pretext-support
@@ -160,12 +160,14 @@ def support():
     context_settings={"help_option_names": [], "ignore_unknown_options": True},
 )
 @click.argument("args", nargs=-1)
-def devscript(args):
+def devscript(args: List[str]) -> None:
     """
     Aliases the core pretext script.
     """
     PY_CMD = sys.executable
-    subprocess.run([PY_CMD, core.resources.path("pretext", "pretext")] + list(args))
+    subprocess.run(
+        [PY_CMD, str(core.resources.path("pretext", "pretext"))] + list(args)
+    )
 
 
 # pretext new
@@ -191,7 +193,7 @@ def devscript(args):
     type=click.STRING,
     help="Download a zipped template from its URL.",
 )
-def new(template, directory, url_template):
+def new(template: str, directory: Path, url_template: str) -> None:
     """
     Generates the necessary files for a new PreTeXt project.
     Supports `pretext new book` (default) and `pretext new article`,
@@ -249,7 +251,7 @@ def new(template, directory, url_template):
     is_flag=True,
     help="Refresh initialization of project even if project.ptx exists.",
 )
-def init(refresh):
+def init(refresh: bool) -> None:
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
     is mainly intended for updating existing projects to use this CLI.
@@ -273,7 +275,7 @@ def init(refresh):
     }
     for resource in resource_to_dest:
         with templates.resource_path(resource) as resource_path:
-            project_resource_path = Path(resource_to_dest.get(resource)).resolve()
+            project_resource_path = Path(resource_to_dest[resource]).resolve()
             if project_resource_path.exists():
                 new_resource_name = (
                     project_resource_path.stem
@@ -311,7 +313,7 @@ def init(refresh):
 
 # pretext build
 @main.command(short_help="Build specified target", context_settings=CONTEXT_SETTINGS)
-@click.argument("target", required=False)
+@click.argument("target_name", required=False, metavar="target")
 @click.option(
     "--clean",
     is_flag=True,
@@ -344,13 +346,13 @@ def init(refresh):
     help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
 )
 def build(
-    target,
-    clean,
-    generate,
-    no_generate,
-    xmlid: t.Optional[str],
-    project_ptx_override: t.Tuple[str, str],
-):
+    target_name: str,
+    clean: bool,
+    generate: str,
+    no_generate: bool,
+    xmlid: Optional[str],
+    project_ptx_override: Tuple[Tuple[str, str], ...],
+) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
 
@@ -369,7 +371,6 @@ def build(
     for path, value in project_ptx_override:
         overlay.upsert_node_or_attribute(path, value)
 
-    target_name = target
     if utils.no_project(task="build"):
         return
     project = Project()
@@ -453,6 +454,7 @@ def build(
 @click.option(
     "-t",
     "--target",
+    "target_name",
     type=click.STRING,
     help="Name of target to generate assets for (if not specified, first target from manifest is used).",
 )
@@ -474,11 +476,11 @@ def build(
 )
 def generate(
     assets: str,
-    target: t.Optional[str],
+    target_name: Optional[str],
     all_formats: bool,
-    xmlid: t.Optional[str],
-    project_ptx_override: t.Tuple[str, str],
-):
+    xmlid: Optional[str],
+    project_ptx_override: Tuple[Tuple[str, str], ...],
+) -> None:
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
     slower and performed less frequently than "building" a project, but is
@@ -501,16 +503,15 @@ def generate(
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-    target_name = target
     target = project.target(name=target_name)
-    if target_name is None:
-        log.info(
-            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
-        )
     if target is None:
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without generating any assets.")
         return
+    if target_name is None:
+        log.info(
+            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
+        )
     if all_formats and assets == "ALL":
         log.info(
             f'Generating all assets in all asset formats for the target "{target.name()}".'
@@ -542,7 +543,7 @@ def generate(
     short_help="Preview specified target based on its format.",
     context_settings=CONTEXT_SETTINGS,
 )
-@click.argument("target", required=False)
+@click.argument("target_name", metavar="target", required=False)
 @click.option(
     "-a",
     "--access",
@@ -611,15 +612,15 @@ def generate(
     help="By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.",
 )
 def view(
-    target: str,
+    target_name: str,
     access: str,
-    port: t.Optional[int],
-    directory: str,
+    port: Optional[int],
+    directory: Optional[str],
     watch: bool,
     build: bool,
-    generate: t.Optional[str],
+    generate: Optional[str],
     no_launch: bool,
-):
+) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
@@ -627,9 +628,9 @@ def view(
     if directory is not None:
         if utils.cocalc_project_id() is not None:
             try:
-                subdir = directory.relative_to(Path.home())
+                subdir = Path(directory).relative_to(Path.home())
             except ValueError:
-                subdir = ""
+                subdir = Path()
             log.info("Directory can be previewed at the following link at any time:")
             log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
             return
@@ -638,7 +639,6 @@ def view(
         return
     if utils.no_project(task="view the output for"):
         return
-    target_name = target
     project = Project()
     target = project.target(name=target_name)
     if target is None:
@@ -650,7 +650,7 @@ def view(
         try:
             subdir = target.output_dir().relative_to(Path.home())
         except ValueError:
-            subdir = ""
+            subdir = Path()
         log.info("Built project can be previewed at the following link at any time:")
         log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
         return
@@ -672,9 +672,9 @@ def view(
     short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS,
 )
-@click.argument("target", required=False)
+@click.argument("target_name", metavar="target", required=False)
 @click.option("-u", "--update_source", is_flag=True, required=False)
-def deploy(target, update_source):
+def deploy(target_name: str, update_source: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
@@ -684,7 +684,6 @@ def deploy(target, update_source):
     """
     if utils.no_project(task="deploy"):
         return
-    target_name = target
     project = Project()
     target = project.target(name=target_name)
     if target is None or target.format() != "html":
