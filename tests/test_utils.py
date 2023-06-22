@@ -3,7 +3,7 @@ from pathlib import Path
 from pretext import utils
 
 
-def test_working_directory(tmp_path: Path):
+def test_working_directory(tmp_path: Path) -> None:
     os.chdir(tmp_path)
     subdir = Path("foobar")
     subdir.mkdir()
@@ -13,19 +13,19 @@ def test_working_directory(tmp_path: Path):
     # TODO check path returns afterward
 
 
-def test_project_path(tmp_path: Path):
+def test_project_path(tmp_path: Path) -> None:
     os.chdir(tmp_path)
     Path("project.ptx").write_text("")
     assert Path("project.ptx").exists()
-    assert utils.project_path().resolve() == tmp_path.resolve()
+    assert utils.project_path_found().resolve() == tmp_path.resolve()
     subdir = Path("foobar")
     print(subdir.resolve())
     subdir.mkdir()
     os.chdir(subdir)
-    assert utils.project_path().resolve() == Path().resolve().parent
+    assert utils.project_path_found().resolve() == Path().resolve().parent
 
 
-def test_parse_git_remote():
+def test_parse_git_remote() -> None:
     valids = [
         "git@github.com:PreTeXtBook/pretext-cli.git",
         "https://github.com/PreTeXtBook/pretext-cli.git",
