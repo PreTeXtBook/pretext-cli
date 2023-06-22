@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.8']
-        poetry-version: ['1.4.2']
+        poetry-version: ['1.5.1']
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
@@ -58,11 +58,11 @@ jobs:
           python-version: 3.8
 
       # Setup poetry
-      - name: Install poetry 1.4.2
+      - name: Install poetry 1.5.1
         run: |
           python -m ensurepip
           python -m pip install --upgrade pip
-          python -m pip install poetry==1.4.2
+          python -m pip install poetry==1.5.1
 
       - name: Install dependencies
         shell: bash

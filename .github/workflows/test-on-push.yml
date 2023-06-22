@@ -17,11 +17,11 @@ jobs:
       with:
         python-version: "3.10"
 
-    - name: Install poetry 1.4.2
+    - name: Install poetry 1.5.1
       run: |
         python -m ensurepip
         python -m pip install --upgrade pip
-        python -m pip install poetry==1.4.2
+        python -m pip install poetry==1.5.1
 
     - name: Install dependencies
       shell: bash
@@ -41,7 +41,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11']
-        poetry-version: ['1.4.2']
+        poetry-version: ['1.5.1']
         os: [ubuntu-latest, windows-latest]
         exclude:
           - os: windows-latest
