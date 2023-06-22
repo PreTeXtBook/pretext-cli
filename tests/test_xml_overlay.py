@@ -12,7 +12,7 @@ sys.path.insert(0, myPath + "/../")
 # Because of the fiddling with paths above, we do an "absolute" import instead of a relative one.
 
 
-def test_xml_overlay():
+def test_xml_overlay() -> None:
     root = ET.Element("root")
     overlay = xml_overlay.ShadowXmlDocument()
     overlay.upsert_node_or_attribute("a.b", "Value!")
