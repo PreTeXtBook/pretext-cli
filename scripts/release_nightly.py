@@ -5,9 +5,10 @@ import json
 from datetime import datetime
 import fileinput
 import pytest
+from typing import Any, Dict
 
 
-def commit_data(repo):
+def commit_data(repo: str) -> Dict[str, Any]:
     lastcommit = {}
     url = f"https://api.github.com/repos/pretextbook/{repo}/commits"
     response = urlopen(url)
@@ -19,7 +20,7 @@ def commit_data(repo):
     return lastcommit
 
 
-def should_release(coredate, clidate):
+def should_release(coredate: datetime, clidate: datetime) -> bool:
     if (datetime.now() - coredate).days < 1:
         print(
             f"There has been an update to core pretext in the last 24 hours, at {coredate}"
@@ -32,7 +33,7 @@ def should_release(coredate, clidate):
         return True
 
 
-def main():
+def main() -> None:
     last_core_commit = commit_data("pretext")
     last_cli_commit = commit_data("pretext-cli")
 

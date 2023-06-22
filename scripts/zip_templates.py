@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 
 
-def main():
+def main() -> None:
     static_template_path = Path("pretext") / "templates" / "resources"
     print(f"Zipping templates from source into `{static_template_path}`.")
 
@@ -39,7 +39,7 @@ def main():
                 )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
-                    static_template_path / template_zip_basename,
+                    str(static_template_path / template_zip_basename),
                     "zip",
                     temporary_path,
                 )

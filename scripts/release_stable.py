@@ -6,7 +6,7 @@ import tomli
 import build_package
 
 
-def main(level="patch"):
+def main(level: str = "patch") -> None:
     repo = git.Repo()
     if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
         raise Exception("Must commit outstanding changes to project source.")

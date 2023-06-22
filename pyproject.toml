@@ -79,7 +79,7 @@ script_launch_mode = "subprocess"
 # This section `must <https://mypy.readthedocs.io/en/stable/config_file.html#config-file-format>`_ be present.
 [tool.mypy]
 # See `files <https://mypy.readthedocs.io/en/stable/config_file.html#confval-files>`_.
-files = "pretext"
+files = "pretext,scripts,tests"
 exclude = "^pretext/core/pretext\\.py$"
 check_untyped_defs = true
 disallow_untyped_defs = true
@@ -93,6 +93,10 @@ module = [
     "ghp_import",
     # We're installing ``lxml-stubs``, but it doesn't have stubs for this yet.
     "lxml.ElementInclude",
+    # TODO: Currently, the ``tomli`` package doesn't support Python 3.11, so
+    # it's not installed there. For now, ignore this module. Remove the ignore
+    # when ``tomli`` provide support for Python 3.11.
+    "tomli",
 ]
 ignore_missing_imports = true
 
