@@ -22,7 +22,7 @@ def latex_image(
     all_formats: bool = False,
 ) -> None:
     # Dictionary of formats for images based on target
-    formats = {
+    formats: Dict[str, List[str]] = {
         "pdf": [],
         "latex": [],
         "html": ["svg"],
@@ -43,7 +43,7 @@ def latex_image(
             li := source_xml.xpath("/pretext/*[not(docinfo)]//latex-image"), List
         )
         and len(li) > 0
-        and formats[target_format] is not None
+        and formats[target_format] != []
     ):
         image_output = (output / "latex-image").resolve()
         os.makedirs(image_output, exist_ok=True)
@@ -159,7 +159,7 @@ def asymptote(
     }
     # set overwrite formats to all when appropriate
     if all_formats:
-        formats[target_format] = {key: ["all"] for key in formats[target_format]}
+        formats[target_format] = ["all"]
     # We assume passed paths are absolute.
     # parse source so we can check for asymptote.
     source_xml = ET.parse(ptxfile)

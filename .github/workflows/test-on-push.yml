@@ -78,6 +78,10 @@ jobs:
         python -m poetry run python scripts/fetch_core.py
         python -m poetry run python scripts/zip_templates.py
 
+    - name: Check types
+      run: |
+        python -m poetry run mypy --install-types --non-interactive
+
     - name: Test with pytest
       run: |
         python -m poetry run pytest -v --cov
