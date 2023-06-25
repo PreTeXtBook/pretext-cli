@@ -2,8 +2,8 @@
 
 echo "Install Poetry and Python dependencies"
 curl -sSL https://install.python-poetry.org | python -
-poetry install
 poetry config virtualenvs.in-project true
+poetry install
 poetry run python scripts/fetch_core.py
 poetry run python scripts/zip_templates.py
 poetry run playwright install-deps
