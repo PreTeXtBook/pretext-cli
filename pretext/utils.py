@@ -217,22 +217,22 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
 
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
-def binding_for_access(access: str = "private") -> str:
-    if access == "private":
+def binding_for_access(access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE") -> str:
+    if access == "PRIVATE":
         return "localhost"
     else:
         return "0.0.0.0"
 
 
-def url_for_access(access: str = "private", port: int = 8000) -> str:
-    if access == "public":
+def url_for_access(access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE", port: int = 8000) -> str:
+    if access == "PUBLIC":
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
         return f"http://localhost:{port}"
 
 
 def serve_forever(
-    directory: Path, access: str = "private", port: int = 8000, no_launch: bool = False
+    directory: Path, access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE", port: int = 8000, no_launch: bool = False
 ) -> None:
     log.info(f"Now preparing local server to preview directory `{directory}`.")
     log.info(
