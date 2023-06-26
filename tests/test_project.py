@@ -17,8 +17,9 @@ def test_defaults() -> None:
         assert target.name == name
         assert target.format == frmt
         assert target.source == Path("source", "main.ptx")
-        with templates.resource_path("publication.ptx") as pub_path:
-            assert target.publication == pub_path
+        assert target.publication is None
+        assert target.external_dir == Path("assets")
+        assert target.generated_dir == Path("generated-assets")
         assert target.output == Path("output", target.name)
         assert target.deploy is None
         assert target.latex_engine == "XELATEX"

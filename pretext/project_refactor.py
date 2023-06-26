@@ -1,7 +1,8 @@
 import typing as t
 import multiprocessing
 from pathlib import Path
-from . import templates, utils
+from lxml import etree as ET
+from . import utils
 
 class Target:
     """
@@ -27,6 +28,8 @@ class Target:
             frmt: Format,
             source: Path = Path("source", "main.ptx"),
             publication: t.Optional[Path] = None,
+            external_dir: t.Optional[Path] = None,
+            generated_dir: t.Optional[Path] = None,
             output: t.Optional[Path] = None,
             deploy: t.Optional[Path] = None,
             latex_engine: t.Literal["XELATEX","LATEX","PDFLATEX"] = "XELATEX"):
@@ -37,17 +40,62 @@ class Target:
         self.name = name
         self.format = frmt
         self.source = source
+        self.publication = publication
+        # directories are set by the publication iff it exists
         if publication is None:
-            with templates.resource_path("publication.ptx") as pub_path:
-                self.publication = pub_path
-        else:
-            self.publication = publication
+            self.external_dir = external_dir
+            self.generated_dir = generated_dir
         if output is None:
             self.output = Path("output", name)
         else:
             self.output = output
         self.deploy = deploy
         self.latex_engine = latex_engine
+
+    @property
+    def publication(self) -> Path:
+        return self._publication
+    
+    @publication.setter
+    def publication(self, path:t.Optional[Path]) -> None:
+        self._publication = path
+        if path is not None:
+            pub_ele = ET.parse(path).getroot()
+            dir_ele = pub_ele.find("source").find("directories")
+            self.external_dir = self.source / dir_ele.get("external")
+            self.generated_dir = self.source / dir_ele.get("generated")
+        else:
+            self.external_dir = None # use default
+            self.generated_dir = None # use default
+
+    @property
+    def external_dir(self) -> Path:
+        return self._external_dir
+    
+    @external_dir.setter
+    def external_dir(self, path:t.Optional[Path]) -> None:
+        if self.publication is None:
+            if path is None:
+                self._external_dir = Path("assets")
+            else:
+                self._external_dir = path
+        else:
+            raise AttributeError("external_dir is managed by publication")
+
+    @property
+    def generated_dir(self) -> Path:
+        return self._generated_dir
+    
+    @generated_dir.setter
+    def generated_dir(self, path:t.Optional[Path]) -> None:
+        if self.publication is None:
+            if path is None:
+                self._generated_dir = Path("generated-assets")
+            else:
+                self._generated_dir = path
+        else:
+            raise AttributeError("generated_dir is managed by publication")
+
 
     def publication_rel_from_source(self) -> Path:
         """
