@@ -3,7 +3,7 @@
 {
 	"name": "PreTeXt-CLI-dev",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/python:0-3.11",
+	"image": "oscarlevin/pretext:full",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
@@ -18,10 +18,9 @@
 		},
 		"vscode": {
 			"settings": {
-				"pretext-tools.installPretext": false,
 				"editor.snippetSuggestions": "top",
+				"pretext-tools.installPretext": false,
 				"xml.validation.enabled": true,
-				"python.envFile": "${workspaceFolder}/.venv",
 				"python.testing.pytestArgs": [
 					"tests"
 				],
@@ -30,6 +29,7 @@
 			},
 			"extensions": [
 				"oscarlevin.pretext-tools",
+				"ms-python.python",
 				"streetsidesoftware.code-spell-checker"
 			]
 		}
