@@ -14,6 +14,7 @@ import subprocess
 import sys
 import logging
 import logging.handlers
+import multiprocessing
 import threading
 import watchdog.events
 import watchdog.observers
@@ -310,6 +311,16 @@ def run_server(
             observer.stop()
     if watch_directory is not None:
         observer.join()
+
+def server_process(
+    directory: Path,
+    access: str,
+    port: int,
+    launch: bool = True,
+) -> multiprocessing.Process:
+    return multiprocessing.Process(
+        target=lambda: serve_forever(directory, access, port, not launch)
+    )
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces

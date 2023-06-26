@@ -1,6 +1,6 @@
 import typing as t
+import multiprocessing
 from pathlib import Path
-# from lxml import etree as ET
 from . import templates, utils
 
 class Target:
@@ -104,22 +104,25 @@ class Project:
             # but no such target was found
             return None
 
-    def view(
+    def server_process(
         self,
         mode: t.Literal["OUTPUT","DEPLOY"] = "OUTPUT",
         access: t.Literal["PUBLIC","PRIVATE"] = "PRIVATE",
         port: int = 8000,
         launch: bool = True,
-    ) -> None:
+    ) -> multiprocessing.Process:
         """
-        Runs a simple local web server providing either the contents
-        of `output` or `deploy`
+        Returns a process for running a simple local web server
+        providing either the contents of `output` or `deploy`
         """
         if mode == "OUTPUT":
             directory = self.output
         else: # "DEPLOY"
             directory = self.deploy
 
-        utils.run_server(
-            directory, access, port, no_launch= not launch
+        return utils.server_process(
+            directory,
+            access,
+            port,
+            launch=launch
         )
