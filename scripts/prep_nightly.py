@@ -28,7 +28,7 @@ def should_release(coredate: datetime, clidate: datetime) -> bool:
         print(f"There has been an update to the CLI in the last 24 hours, at {clidate}")
         return True
     else:
-        return True
+        return False
 
 
 def main() -> None:
