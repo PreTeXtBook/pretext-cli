@@ -4,6 +4,7 @@ from pathlib import Path
 from lxml import etree as ET
 from . import utils
 
+
 class Target:
     """
     Representation of a target for a PreTeXt project: a specific
@@ -23,16 +24,17 @@ class Target:
     ]
 
     def __init__(
-            self,
-            name: str,
-            frmt: Format,
-            source: Path = Path("source", "main.ptx"),
-            publication: t.Optional[Path] = None,
-            external_dir: t.Optional[Path] = None,
-            generated_dir: t.Optional[Path] = None,
-            output: t.Optional[Path] = None,
-            deploy: t.Optional[Path] = None,
-            latex_engine: t.Literal["XELATEX","LATEX","PDFLATEX"] = "XELATEX"):
+        self,
+        name: str,
+        frmt: Format,
+        source: Path = Path("source", "main.ptx"),
+        publication: t.Optional[Path] = None,
+        external_dir: t.Optional[Path] = None,
+        generated_dir: t.Optional[Path] = None,
+        output: t.Optional[Path] = None,
+        deploy: t.Optional[Path] = None,
+        latex_engine: t.Literal["XELATEX", "LATEX", "PDFLATEX"] = "XELATEX",
+    ):
         """
         Construction of a new Target. Requires both a
         `name` and `frmt` (format).
@@ -55,9 +57,9 @@ class Target:
     @property
     def publication(self) -> Path:
         return self._publication
-    
+
     @publication.setter
-    def publication(self, path:t.Optional[Path]) -> None:
+    def publication(self, path: t.Optional[Path]) -> None:
         self._publication = path
         if path is not None:
             pub_ele = ET.parse(path).getroot()
@@ -65,15 +67,15 @@ class Target:
             self.external_dir = self.source / dir_ele.get("external")
             self.generated_dir = self.source / dir_ele.get("generated")
         else:
-            self.external_dir = None # use default
-            self.generated_dir = None # use default
+            self.external_dir = None  # use default
+            self.generated_dir = None  # use default
 
     @property
     def external_dir(self) -> Path:
         return self._external_dir
-    
+
     @external_dir.setter
-    def external_dir(self, path:t.Optional[Path]) -> None:
+    def external_dir(self, path: t.Optional[Path]) -> None:
         if self.publication is None:
             if path is None:
                 self._external_dir = Path("assets")
@@ -85,9 +87,9 @@ class Target:
     @property
     def generated_dir(self) -> Path:
         return self._generated_dir
-    
+
     @generated_dir.setter
-    def generated_dir(self, path:t.Optional[Path]) -> None:
+    def generated_dir(self, path: t.Optional[Path]) -> None:
         if self.publication is None:
             if path is None:
                 self._generated_dir = Path("generated-assets")
@@ -96,7 +98,6 @@ class Target:
         else:
             raise AttributeError("generated_dir is managed by publication")
 
-
     def publication_rel_from_source(self) -> Path:
         """
         Provides a relative path to the publication file
@@ -104,18 +105,21 @@ class Target:
         """
         return self.publication.relative_to(self.source.parent)
 
+
 class Project:
     """
     Representation of a PreTeXt project: a Path for the project
     on the disk, Paths for where to build output and stage deployments,
     and a list of buildable Targets.
     """
+
     def __init__(
-            self,
-            targets: list[Target],
-            pth: t.Optional[Path] = None,
-            output: t.Optional[Path] = None,
-            deploy: t.Optional[Path] = None):
+        self,
+        targets: list[Target],
+        pth: t.Optional[Path] = None,
+        output: t.Optional[Path] = None,
+        deploy: t.Optional[Path] = None,
+    ):
         self.targets = targets
         if pth is None:
             self.path = Path()
@@ -130,10 +134,7 @@ class Project:
         else:
             self.deploy = self.path / deploy
 
-    def target(
-        self,
-        name: t.Optional[str]
-    ) -> t.Optional[Target]:
+    def target(self, name: t.Optional[str]) -> t.Optional[Target]:
         """
         Attempts to return a target matching `name`.
         If `name` isn't provided, returns the default (first) target.
@@ -146,15 +147,15 @@ class Project:
             return self.targets[0]
         try:
             # returns first target matching name
-            return next(t for t in self.targets if t.name==name)
+            return next(t for t in self.targets if t.name == name)
         except StopIteration:
             # but no such target was found
             return None
 
     def server_process(
         self,
-        mode: t.Literal["OUTPUT","DEPLOY"] = "OUTPUT",
-        access: t.Literal["PUBLIC","PRIVATE"] = "PRIVATE",
+        mode: t.Literal["OUTPUT", "DEPLOY"] = "OUTPUT",
+        access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE",
         port: int = 8000,
         launch: bool = True,
     ) -> multiprocessing.Process:
@@ -164,12 +165,7 @@ class Project:
         """
         if mode == "OUTPUT":
             directory = self.output
-        else: # "DEPLOY"
+        else:  # "DEPLOY"
             directory = self.deploy
 
-        return utils.server_process(
-            directory,
-            access,
-            port,
-            launch=launch
-        )
+        return utils.server_process(directory, access, port, launch=launch)

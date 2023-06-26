@@ -225,7 +225,9 @@ def binding_for_access(access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE") -> st
         return "0.0.0.0"
 
 
-def url_for_access(access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE", port: int = 8000) -> str:
+def url_for_access(
+    access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE", port: int = 8000
+) -> str:
     if access == "PUBLIC":
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
@@ -233,7 +235,10 @@ def url_for_access(access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE", port: int
 
 
 def serve_forever(
-    directory: Path, access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE", port: int = 8000, no_launch: bool = False
+    directory: Path,
+    access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE",
+    port: int = 8000,
+    no_launch: bool = False,
 ) -> None:
     log.info(f"Now preparing local server to preview directory `{directory}`.")
     log.info(
@@ -311,6 +316,7 @@ def run_server(
             observer.stop()
     if watch_directory is not None:
         observer.join()
+
 
 def server_process(
     directory: Path,

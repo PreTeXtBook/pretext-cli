@@ -4,10 +4,8 @@
 	"name": "PreTeXt-CLI-dev",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "oscarlevin/pretext:full",
-
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
-
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
@@ -19,8 +17,13 @@
 		"vscode": {
 			"settings": {
 				"editor.snippetSuggestions": "top",
+				"editor.formatOnSave": true,
 				"pretext-tools.installPretext": false,
 				"xml.validation.enabled": true,
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.python"
+				},
+				"python.formatting.provider": "black",
 				"python.testing.pytestArgs": [
 					"tests"
 				],
@@ -34,8 +37,6 @@
 			]
 		}
 	},
-
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "sh ./.devcontainer/postCreateCommand.sh"
-
 }
