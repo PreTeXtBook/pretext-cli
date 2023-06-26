@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Personal configuration
+# VS Code user settings
 .vscode
 
 # C extensions
