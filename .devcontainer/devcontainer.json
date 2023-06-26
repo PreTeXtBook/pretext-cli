@@ -11,8 +11,25 @@
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
+		"codespaces": {
+			"openFiles": [
+				"README.md"
+			]
+		},
 		"vscode": {
+			"settings": {
+				"pretext-tools.installPretext": false,
+				"editor.snippetSuggestions": "top",
+				"xml.validation.enabled": true,
+				"python.envFile": "${workspaceFolder}/.venv",
+				"python.testing.pytestArgs": [
+					"tests"
+				],
+				"python.testing.unittestEnabled": false,
+				"python.testing.pytestEnabled": true
+			},
 			"extensions": [
+				"oscarlevin.pretext-tools",
 				"streetsidesoftware.code-spell-checker"
 			]
 		}
