@@ -25,20 +25,18 @@ class Target:
             self,
             name: str,
             frmt: Format,
-            source: t.Optional[Path] = None,
+            source: Path = Path("source", "main.ptx"),
             publication: t.Optional[Path] = None,
             output: t.Optional[Path] = None,
-            deploy: t.Optional[Path] = None):
+            deploy: t.Optional[Path] = None,
+            latex_engine: t.Literal["XELATEX","LATEX","PDFLATEX"] = "XELATEX"):
         """
         Construction of a new Target. Requires both a
         `name` and `frmt` (format).
         """
         self.name = name
         self.format = frmt
-        if source is None:
-            self.source = Path("source", "main.ptx")
-        else:
-            self.source = source
+        self.source = source
         if publication is None:
             with templates.resource_path("publication.ptx") as pub_path:
                 self.publication = pub_path
@@ -49,6 +47,7 @@ class Target:
         else:
             self.output = output
         self.deploy = deploy
+        self.latex_engine = latex_engine
 
     def publication_rel_from_source(self) -> Path:
         """

@@ -21,6 +21,7 @@ def test_defaults() -> None:
             assert target.publication == pub_path
         assert target.output == Path("output", target.name)
         assert target.deploy is None
+        assert target.latex_engine == "XELATEX"
 
 def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
@@ -44,3 +45,4 @@ def test_serve(tmp_path: Path) -> None:
             r = requests.get(f"http://localhost:{port}/index.html")
             assert r.status_code == 200
             p.terminate()
+
