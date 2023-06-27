@@ -33,6 +33,7 @@
 			"extensions": [
 				"oscarlevin.pretext-tools",
 				"ms-python.python",
+				"matangover.mypy",
 				"streetsidesoftware.code-spell-checker"
 			]
 		}
