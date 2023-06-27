@@ -673,8 +673,15 @@ def view(
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument("target_name", metavar="target", required=False)
+@click.option(
+    "-s",
+    "--site",
+    required=False,
+    default="site",
+    help="Relative path to a directory containing html for a landing page.",
+)
 @click.option("-u", "--update_source", is_flag=True, required=False)
-def deploy(target_name: str, update_source: bool) -> None:
+def deploy(target_name: str, site: str, update_source: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
@@ -694,4 +701,4 @@ def deploy(target_name: str, update_source: bool) -> None:
         )
         log.critical("Exiting without completing task.")
         return
-    project.deploy(target_name, update_source)
+    project.deploy(target_name, site, update_source)
