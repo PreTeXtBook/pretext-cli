@@ -13,27 +13,27 @@ class Target:
 
     # List of valid formats for a target.
     Format = t.Literal[
-        "HTML",
-        "LATEX",
-        "PDF",
-        "EPUB",
-        "KINDLE",
-        "BRAILLE",
-        "WEBWORK",
-        "CUSTOM",
+        "html",
+        "latex",
+        "pdf",
+        "epub",
+        "kindle",
+        "braille",
+        "webwork",
+        "custom",
     ]
 
     def __init__(
         self,
         name: str,
         frmt: Format,
-        source: Path = Path("source", "main.ptx"),
-        publication: t.Optional[Path] = None,
-        external_dir: t.Optional[Path] = None,
-        generated_dir: t.Optional[Path] = None,
-        output: t.Optional[Path] = None,
-        deploy: t.Optional[Path] = None,
-        latex_engine: t.Literal["XELATEX", "LATEX", "PDFLATEX"] = "XELATEX",
+        source: t.Optional[Path | str] = None,
+        publication: t.Optional[Path | str] = None,
+        external_dir: t.Optional[Path | str] = None,
+        generated_dir: t.Optional[Path | str] = None,
+        output: t.Optional[Path | str] = None,
+        deploy: t.Optional[Path | str] = None,
+        latex_engine: t.Literal["xelatex", "latex", "pdflatex"] = "xelatex",
     ):
         """
         Construction of a new Target. Requires both a
@@ -42,24 +42,52 @@ class Target:
         self.name = name
         self.format = frmt
         self.source = source
-        self.publication = publication
         # directories are set by the publication iff it exists
         if publication is None:
+            self.publication = None
             self.external_dir = external_dir
             self.generated_dir = generated_dir
-        if output is None:
-            self.output = Path("output", name)
         else:
-            self.output = output
+            self.publication = publication
+        self.output = output
         self.deploy = deploy
         self.latex_engine = latex_engine
+
+    @classmethod
+    def parse(
+        cls,
+        element: ET._Element,
+    ) -> "Target":
+        latex_engine = element.get("latex-engine")
+        if latex_engine is not None:
+            latex_engine = latex_engine.lower()
+        return cls(
+            element.get("name"),
+            element.get("format").lower(),
+            source=element.get("source"),
+            publication=element.get("publication"),
+            output=element.get("output"),
+            deploy=element.get("deploy"),
+            latex_engine=latex_engine,
+        )
+
+    @property
+    def source(self) -> Path:
+        return self._source
+
+    @source.setter
+    def source(self, path: t.Optional[Path | str]) -> None:
+        if path is None:
+            self._source = Path("main.ptx")
+        else:
+            self._source = Path(path)
 
     @property
     def publication(self) -> Path:
         return self._publication
 
     @publication.setter
-    def publication(self, path: t.Optional[Path]) -> None:
+    def publication(self, path: t.Optional[Path | str]) -> None:
         self._publication = path
         if path is not None:
             pub_ele = ET.parse(path).getroot()
@@ -80,7 +108,7 @@ class Target:
             if path is None:
                 self._external_dir = Path("assets")
             else:
-                self._external_dir = path
+                self._external_dir = Path(path)
         else:
             raise AttributeError("external_dir is managed by publication")
 
@@ -94,9 +122,31 @@ class Target:
             if path is None:
                 self._generated_dir = Path("generated-assets")
             else:
-                self._generated_dir = path
+                self._generated_dir = Path(path)
         else:
             raise AttributeError("generated_dir is managed by publication")
+
+    @property
+    def output(self) -> Path:
+        return self._output
+
+    @output.setter
+    def output(self, path: t.Optional[Path | str]) -> None:
+        if path is None:
+            self._source = Path(self.name)
+        else:
+            self._source = Path(path)
+
+    @property
+    def deploy(self) -> Path:
+        return self._deploy
+
+    @deploy.setter
+    def deploy(self, path: t.Optional[Path | str]) -> None:
+        if path is None:
+            self._deploy = None
+        else:
+            self._deploy = Path(path)
 
     def publication_rel_from_source(self) -> Path:
         """
@@ -115,16 +165,19 @@ class Project:
 
     def __init__(
         self,
-        targets: list[Target],
-        pth: t.Optional[Path] = None,
+        targets: t.Optional[list[Target]] = None,
+        path: t.Optional[Path] = None,
         output: t.Optional[Path] = None,
         deploy: t.Optional[Path] = None,
     ):
-        self.targets = targets
-        if pth is None:
+        if targets is None:
+            self.targets = []
+        else:
+            self.targets = targets
+        if path is None:
             self.path = Path()
         else:
-            self.path = pth
+            self.path = path
         if output is None:
             self.output = self.path / "output"
         else:
@@ -133,6 +186,23 @@ class Project:
             self.deploy = self.path / "deploy"
         else:
             self.deploy = self.path / deploy
+
+    @classmethod
+    def parse(
+        cls,
+        path: Path = Path(),
+        element: t.Optional[ET._Element] = None,
+    ) -> "Project":
+        if element is None:
+            if path.is_file():
+                file_path = path
+                dir_path = path.parent
+            else:
+                file_path = path / "project.ptx"
+                dir_path = path
+            element = ET.parse(file_path).getroot()
+        targets = [Target.parse(t) for t in element.findall("./targets/target")]
+        return cls(targets, path=dir_path)
 
     def target(self, name: t.Optional[str]) -> t.Optional[Target]:
         """
@@ -154,8 +224,8 @@ class Project:
 
     def server_process(
         self,
-        mode: t.Literal["OUTPUT", "DEPLOY"] = "OUTPUT",
-        access: t.Literal["PUBLIC", "PRIVATE"] = "PRIVATE",
+        mode: t.Literal["output", "deploy"] = "output",
+        access: t.Literal["public", "private"] = "private",
         port: int = 8000,
         launch: bool = True,
     ) -> multiprocessing.Process:
@@ -163,9 +233,9 @@ class Project:
         Returns a process for running a simple local web server
         providing either the contents of `output` or `deploy`
         """
-        if mode == "OUTPUT":
+        if mode == "output":
             directory = self.output
-        else:  # "DEPLOY"
+        else:  # "deploy"
             directory = self.deploy
 
         return utils.server_process(directory, access, port, launch=launch)
