@@ -5,6 +5,91 @@ from lxml import etree as ET
 from . import utils
 
 
+class Project:
+    """
+    Representation of a PreTeXt project: a Path for the project
+    on the disk, Paths for where to build output and stage deployments,
+    and a list of buildable Targets.
+    """
+
+    def __init__(
+        self,
+        targets: t.Optional[list[Target]] = None,
+        path: t.Optional[Path] = None,
+        output: t.Optional[Path] = None,
+        deploy: t.Optional[Path] = None,
+    ):
+        if targets is None:
+            self.targets = []
+        else:
+            self.targets = targets
+        if path is None:
+            self.path = Path()
+        else:
+            self.path = path
+        if output is None:
+            self.output = self.path / "output"
+        else:
+            self.output = self.path / output
+        if deploy is None:
+            self.deploy = self.path / "deploy"
+        else:
+            self.deploy = self.path / deploy
+
+    @classmethod
+    def parse(
+        cls,
+        path: Path = Path(),
+        element: t.Optional[ET._Element] = None,
+    ) -> "Project":
+        if element is None:
+            if path.is_file():
+                file_path = path
+                dir_path = path.parent
+            else:
+                file_path = path / "project.ptx"
+                dir_path = path
+            element = ET.parse(file_path).getroot()
+        targets = [Target.parse(t) for t in element.findall("./targets/target")]
+        return cls(targets, path=dir_path)
+
+    def target(self, name: t.Optional[str]) -> t.Optional[Target]:
+        """
+        Attempts to return a target matching `name`.
+        If `name` isn't provided, returns the default (first) target.
+        """
+        if len(self.targets) == 0:
+            # no target to return
+            return None
+        if name is None:
+            # returns default target
+            return self.targets[0]
+        try:
+            # returns first target matching name
+            return next(t for t in self.targets if t.name == name)
+        except StopIteration:
+            # but no such target was found
+            return None
+
+    def server_process(
+        self,
+        mode: t.Literal["output", "deploy"] = "output",
+        access: t.Literal["public", "private"] = "private",
+        port: int = 8000,
+        launch: bool = True,
+    ) -> multiprocessing.Process:
+        """
+        Returns a process for running a simple local web server
+        providing either the contents of `output` or `deploy`
+        """
+        if mode == "output":
+            directory = self.output
+        else:  # "deploy"
+            directory = self.deploy
+
+        return utils.server_process(directory, access, port, launch=launch)
+
+
 class Target:
     """
     Representation of a target for a PreTeXt project: a specific
@@ -154,88 +239,3 @@ class Target:
         from the source directory.
         """
         return self.publication.relative_to(self.source.parent)
-
-
-class Project:
-    """
-    Representation of a PreTeXt project: a Path for the project
-    on the disk, Paths for where to build output and stage deployments,
-    and a list of buildable Targets.
-    """
-
-    def __init__(
-        self,
-        targets: t.Optional[list[Target]] = None,
-        path: t.Optional[Path] = None,
-        output: t.Optional[Path] = None,
-        deploy: t.Optional[Path] = None,
-    ):
-        if targets is None:
-            self.targets = []
-        else:
-            self.targets = targets
-        if path is None:
-            self.path = Path()
-        else:
-            self.path = path
-        if output is None:
-            self.output = self.path / "output"
-        else:
-            self.output = self.path / output
-        if deploy is None:
-            self.deploy = self.path / "deploy"
-        else:
-            self.deploy = self.path / deploy
-
-    @classmethod
-    def parse(
-        cls,
-        path: Path = Path(),
-        element: t.Optional[ET._Element] = None,
-    ) -> "Project":
-        if element is None:
-            if path.is_file():
-                file_path = path
-                dir_path = path.parent
-            else:
-                file_path = path / "project.ptx"
-                dir_path = path
-            element = ET.parse(file_path).getroot()
-        targets = [Target.parse(t) for t in element.findall("./targets/target")]
-        return cls(targets, path=dir_path)
-
-    def target(self, name: t.Optional[str]) -> t.Optional[Target]:
-        """
-        Attempts to return a target matching `name`.
-        If `name` isn't provided, returns the default (first) target.
-        """
-        if len(self.targets) == 0:
-            # no target to return
-            return None
-        if name is None:
-            # returns default target
-            return self.targets[0]
-        try:
-            # returns first target matching name
-            return next(t for t in self.targets if t.name == name)
-        except StopIteration:
-            # but no such target was found
-            return None
-
-    def server_process(
-        self,
-        mode: t.Literal["output", "deploy"] = "output",
-        access: t.Literal["public", "private"] = "private",
-        port: int = 8000,
-        launch: bool = True,
-    ) -> multiprocessing.Process:
-        """
-        Returns a process for running a simple local web server
-        providing either the contents of `output` or `deploy`
-        """
-        if mode == "output":
-            directory = self.output
-        else:  # "deploy"
-            directory = self.deploy
-
-        return utils.server_process(directory, access, port, launch=launch)
