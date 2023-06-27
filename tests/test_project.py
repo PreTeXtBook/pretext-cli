@@ -10,9 +10,10 @@ EXAMPLES_DIR = Path(__file__).parent / "examples"
 
 
 def test_defaults() -> None:
-    ts = ("web", "HTML"), ("print", "PDF")
-    targets = [pr.Target(*t) for t in ts]
-    project = pr.Project(targets)
+    ts = ("web", "html"), ("print", "pdf")
+    project = pr.Project()
+    for t in ts:
+        project.add_target(*t)
     assert project.path == Path()
     assert project.output == Path() / "output"
     assert project.deploy == Path() / "deploy"
@@ -21,27 +22,27 @@ def test_defaults() -> None:
         target = project.target(name)
         assert target.name == name
         assert target.format == frmt
-        assert target.source == Path("source", "main.ptx")
+        assert target.source == Path("main.ptx")
         assert target.publication is None
         assert target.external_dir == Path("assets")
         assert target.generated_dir == Path("generated-assets")
-        assert target.output == Path("output", target.name)
+        assert target.output == Path(target.name)
         assert target.deploy is None
-        assert target.latex_engine == "XELATEX"
+        assert target.latex_engine == "xelatex"
 
 
 def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
         project = pr.Project()
-        for mode in ["OUTPUT", "DEPLOY"]:
-            if mode == "OUTPUT":
+        for mode in ["output", "deploy"]:
+            if mode == "output":
                 dir = project.output
             else:
                 dir = project.deploy
             p = project.server_process(mode=mode, port=port, launch=False)
             p.start()
-            time.sleep(3)
+            time.sleep(1)
             assert not (dir / "index.html").exists()
             r = requests.get(f"http://localhost:{port}/index.html")
             assert r.status_code == 404

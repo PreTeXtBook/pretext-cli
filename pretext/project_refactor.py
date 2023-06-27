@@ -8,65 +8,99 @@ from . import utils
 class Project:
     """
     Representation of a PreTeXt project: a Path for the project
-    on the disk, Paths for where to build output and stage deployments,
-    and a list of buildable Targets.
+    on the disk, and Paths for where to build output and stage deployments.
     """
 
     def __init__(
         self,
-        targets: t.Optional[list[Target]] = None,
-        path: t.Optional[Path] = None,
-        output: t.Optional[Path] = None,
-        deploy: t.Optional[Path] = None,
+        path: t.Optional[Path | str] = None,
+        output: t.Optional[Path | str] = None,
+        deploy: t.Optional[Path | str] = None,
     ):
-        if targets is None:
-            self.targets = []
-        else:
-            self.targets = targets
-        if path is None:
-            self.path = Path()
-        else:
-            self.path = path
-        if output is None:
-            self.output = self.path / "output"
-        else:
-            self.output = self.path / output
-        if deploy is None:
-            self.deploy = self.path / "deploy"
-        else:
-            self.deploy = self.path / deploy
+        self._targets: list[Target] = []
+        self.path = path
+        self.output = output
+        self.deploy = deploy
 
     @classmethod
     def parse(
         cls,
-        path: Path = Path(),
+        path: Path | str = Path(),
         element: t.Optional[ET._Element] = None,
     ) -> "Project":
+        p = Path(path)
         if element is None:
-            if path.is_file():
-                file_path = path
-                dir_path = path.parent
+            if p.is_file():
+                file_path = p
+                dir_path = p.parent
             else:
-                file_path = path / "project.ptx"
-                dir_path = path
+                file_path = p / "project.ptx"
+                dir_path = p
             element = ET.parse(file_path).getroot()
-        targets = [Target.parse(t) for t in element.findall("./targets/target")]
-        return cls(targets, path=dir_path)
+        output = element.get("output")
+        deploy = element.get("deploy")
+        project = cls(path=dir_path, output=output, deploy=deploy)
+        for t in element.findall("./targets/target"):
+            project.parse_target(t)
+        return project
 
-    def target(self, name: t.Optional[str]) -> t.Optional[Target]:
+    @property
+    def path(self) -> Path:
+        return self._path
+
+    @path.setter
+    def path(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._path = Path()
+        else:
+            self._path = Path(p)
+
+    @property
+    def output(self) -> Path:
+        return self._output
+
+    @output.setter
+    def output(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._output = Path("output")
+        else:
+            self._output = Path(p)
+
+    @property
+    def deploy(self) -> Path:
+        return self._deploy
+
+    @deploy.setter
+    def deploy(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._deploy = Path("deploy")
+        else:
+            self._deploy = Path(p)
+
+    @property
+    def targets(self) -> list["Target"]:
+        return self._targets
+
+    def parse_target(self, element: ET._Element) -> None:
+        self._targets.append(Target.parse(self, element))
+
+    def add_target(self, *args, **kwargs) -> None:
+        self._targets.append(Target(self, *args, **kwargs))
+
+    def target(self, name: t.Optional[str] = None) -> t.Optional["Target"]:
         """
         Attempts to return a target matching `name`.
         If `name` isn't provided, returns the default (first) target.
         """
-        if len(self.targets) == 0:
+        if len(self._targets) == 0:
             # no target to return
             return None
         if name is None:
             # returns default target
-            return self.targets[0]
+            return self._targets[0]
         try:
             # returns first target matching name
-            return next(t for t in self.targets if t.name == name)
+            return next(t for t in self._targets if t.name == name)
         except StopIteration:
             # but no such target was found
             return None
@@ -110,6 +144,7 @@ class Target:
 
     def __init__(
         self,
+        project: Project,
         name: str,
         frmt: Format,
         source: t.Optional[Path | str] = None,
@@ -124,6 +159,7 @@ class Target:
         Construction of a new Target. Requires both a
         `name` and `frmt` (format).
         """
+        self._project = project
         self.name = name
         self.format = frmt
         self.source = source
@@ -141,12 +177,14 @@ class Target:
     @classmethod
     def parse(
         cls,
+        project: Project,
         element: ET._Element,
     ) -> "Target":
         latex_engine = element.get("latex-engine")
         if latex_engine is not None:
             latex_engine = latex_engine.lower()
         return cls(
+            project,
             element.get("name"),
             element.get("format").lower(),
             source=element.get("source"),
@@ -155,6 +193,10 @@ class Target:
             deploy=element.get("deploy"),
             latex_engine=latex_engine,
         )
+
+    @property
+    def project(self) -> Project:
+        return self._project
 
     @property
     def source(self) -> Path:
@@ -218,9 +260,9 @@ class Target:
     @output.setter
     def output(self, path: t.Optional[Path | str]) -> None:
         if path is None:
-            self._source = Path(self.name)
+            self._output = Path(self.name)
         else:
-            self._source = Path(path)
+            self._output = Path(path)
 
     @property
     def deploy(self) -> Path:
@@ -232,10 +274,3 @@ class Target:
             self._deploy = None
         else:
             self._deploy = Path(path)
-
-    def publication_rel_from_source(self) -> Path:
-        """
-        Provides a relative path to the publication file
-        from the source directory.
-        """
-        return self.publication.relative_to(self.source.parent)
