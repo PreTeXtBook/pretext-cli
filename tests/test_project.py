@@ -56,7 +56,7 @@ def test_serve(tmp_path: Path) -> None:
 
 def test_manifest(tmp_path: Path) -> None:
     prj_path = tmp_path / "project"
-    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor", prj_path)
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         assert len(project.targets) == 2
