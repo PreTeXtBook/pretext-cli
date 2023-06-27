@@ -11,7 +11,6 @@ import re
 import socketserver
 import socket
 import subprocess
-import sys
 import logging
 import logging.handlers
 import threading

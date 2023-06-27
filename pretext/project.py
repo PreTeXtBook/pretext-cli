@@ -133,11 +133,11 @@ class Target:
         else:
             return self.require_tag_text("output-filename").strip()
 
-    def deploy_dir(self):
+    def deploy_dir(self) -> Optional[str]:
         if self.xml_element().find("deploy-dir") is None:
             return None
         else:
-            return self.xml_element().find("deploy-dir").text.strip()
+            return self.require_tag_text("deploy-dir").strip()
 
     def port(self) -> int:
         view_ele = self.xml_element().find("view")
