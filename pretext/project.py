@@ -209,7 +209,7 @@ class Target:
                         and isinstance(id, List)
                         and (asset, id[0]) not in asset_hash_dict
                     ):
-                        assert isinstance(id, List)
+                        assert isinstance(id[0], str)
                         asset_hash_dict[(asset, id[0])] = hashlib.sha256(
                             ET.tostring(node)
                         ).digest()
@@ -655,9 +655,11 @@ class Project:
                         )
                         log.info("Skipping this target for now.")
                     else:
+                        deploy_dir = target.deploy_dir()
+                        assert isinstance(deploy_dir, str)
                         shutil.copytree(
                             target.output_dir(),
-                            (Path(temp_dir) / target.deploy_dir()).resolve(),
+                            (Path(temp_dir) / deploy_dir).resolve(),
                             dirs_exist_ok=True,
                         )
                         log.info(
