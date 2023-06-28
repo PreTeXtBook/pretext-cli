@@ -103,7 +103,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.target("web").publication == Path("publication.ptx")
         assert project.target("web").output == Path("web")
         assert project.target("web").deploy == Path("")
-        assert project.target("web").xsl == None
+        assert project.target("web").xsl is None
         assert project.target("web").stringparams == {}
 
         assert project.target("print") is not None
