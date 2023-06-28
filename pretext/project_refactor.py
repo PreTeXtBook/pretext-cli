@@ -57,8 +57,8 @@ class Project:
             deploy=element.get("deploy"),
             xsl=element.get("xsl"),
         )
-        for t in element.findall("./targets/target"):
-            project.parse_target(t)
+        for t_ele in element.findall("./targets/target"):
+            project.parse_target(t_ele)
         return project
 
     @property
@@ -536,7 +536,7 @@ class Target:
                     raise NotImplementedError(
                         f"Building {self.format} is not yet supported."
                     )
-            except Exception as e:
+            except Exception:
                 pass  # TODO handle in CLI
                 # log.critical(
                 #     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`"
@@ -548,4 +548,4 @@ class Target:
                 # remove temp directories left by core.
                 core.release_temporary_directories()
         # build was successful
-        log_info(f"\nSuccess! Run `pretext view` to see the results.\n")
+        log_info("\nSuccess! Run `pretext view` to see the results.\n")
