@@ -12,7 +12,7 @@ from . import build as builder
 class Project:
     """
     Representation of a PreTeXt project: a Path for the project
-    on the disk, and Paths for where to build output and stage deployments.
+    on the disk, and Paths for where to build output and maintain a site.
     """
 
     DEFAULT = {
@@ -20,7 +20,7 @@ class Project:
         "source": Path("source"),
         "publication": Path("publication"),
         "output": Path("output"),
-        "deploy": Path("deploy"),
+        "site": Path("site"),
         "xsl": Path("xsl"),
         "executables": {
             "latex": "latex",
@@ -42,7 +42,7 @@ class Project:
         source: t.Optional[t.Union[Path, str]] = None,
         publication: t.Optional[t.Union[Path, str]] = None,
         output: t.Optional[t.Union[Path, str]] = None,
-        deploy: t.Optional[t.Union[Path, str]] = None,
+        site: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
         executables: t.Optional[t.Dict[str, str]] = None,
     ):
@@ -51,7 +51,7 @@ class Project:
         self.source = source
         self.publication = publication
         self.output = output
-        self.deploy = deploy
+        self.site = site
         self.xsl = xsl
         self.executables = executables
 
@@ -77,7 +77,7 @@ class Project:
             source=element.get("source"),
             publication=element.get("publication"),
             output=element.get("output"),
-            deploy=element.get("deploy"),
+            site=element.get("site"),
             xsl=element.get("xsl"),
         )
         for t_ele in element.findall("./targets/target"):
@@ -129,15 +129,15 @@ class Project:
             self._output = Path(p)
 
     @property
-    def deploy(self) -> Path:
-        return self._deploy
+    def site(self) -> Path:
+        return self._site
 
-    @deploy.setter
-    def deploy(self, p: t.Optional[t.Union[Path, str]]) -> None:
+    @site.setter
+    def site(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._deploy = self.DEFAULT["deploy"]
+            self._site = self.DEFAULT["site"]
         else:
-            self._deploy = Path(p)
+            self._site = Path(p)
 
     @property
     def xsl(self) -> Path:
@@ -206,19 +206,19 @@ class Project:
 
     def server_process(
         self,
-        mode: t.Literal["output", "deploy"] = "output",
+        mode: t.Literal["output", "site"] = "output",
         access: t.Literal["public", "private"] = "private",
         port: int = 8000,
         launch: bool = True,
     ) -> multiprocessing.Process:
         """
         Returns a process for running a simple local web server
-        providing either the contents of `output` or `deploy`
+        providing either the contents of `output` or `site`
         """
         if mode == "output":
             directory = self.output
-        else:  # "deploy"
-            directory = self.deploy
+        else:  # "site"
+            directory = self.site
 
         return utils.server_process(directory, access, port, launch=launch)
 
@@ -248,7 +248,7 @@ class Target:
         "source": Path("main.ptx"),
         "publication": Path("publication.ptx"),
         # "output" depends on name
-        "deploy": None,
+        "site": None,
         "xsl": None,
         "latex_engine": "xelatex",
         "stringparams": {},
@@ -262,7 +262,7 @@ class Target:
         source: t.Optional[t.Union[Path, str]] = None,
         publication: t.Optional[t.Union[Path, str]] = None,
         output: t.Optional[t.Union[Path, str]] = None,
-        deploy: t.Optional[t.Union[Path, str]] = None,
+        site: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
         latex_engine: t.Optional[LatexEngine] = None,
         stringparams: t.Dict[str, str] = {},
@@ -277,7 +277,7 @@ class Target:
         self.source = source
         self.publication = publication
         self.output = output
-        self.deploy = deploy
+        self.site = site
         self.xsl = xsl
         self.latex_engine = latex_engine
         self.stringparams = stringparams
@@ -303,7 +303,7 @@ class Target:
             source=element.get("source"),
             publication=element.get("publication"),
             output=element.get("output"),
-            deploy=element.get("deploy"),
+            site=element.get("site"),
             xsl=element.get("xsl"),
             latex_engine=latex_engine,
             stringparams=stringparams,
@@ -347,15 +347,15 @@ class Target:
             self._output = Path(path)
 
     @property
-    def deploy(self) -> Path:
-        return self._deploy
+    def site(self) -> Path:
+        return self._site
 
-    @deploy.setter
-    def deploy(self, path: t.Optional[t.Union[Path, str]]) -> None:
+    @site.setter
+    def site(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._deploy = self.DEFAULT["deploy"]
+            self._site = self.DEFAULT["site"]
         else:
-            self._deploy = Path(path)
+            self._site = Path(path)
 
     @property
     def xsl(self) -> t.Optional[Path]:

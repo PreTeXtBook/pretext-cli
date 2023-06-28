@@ -18,7 +18,7 @@ def test_defaults() -> None:
     assert project.source == Path("source")
     assert project.publication == Path("publication")
     assert project.output == Path("output")
-    assert project.deploy == Path("deploy")
+    assert project.site == Path("site")
     assert project.xsl == Path("xsl")
     for t in ts:
         name, frmt = t
@@ -28,7 +28,7 @@ def test_defaults() -> None:
         assert target.source == Path("main.ptx")
         assert target.publication == Path("publication.ptx")
         assert target.output == Path(target.name)
-        assert target.deploy is None
+        assert target.site is None
         assert target.xsl is None
         assert target.latex_engine == "xelatex"
         assert target.stringparams == {}
@@ -41,8 +41,8 @@ def test_modifications() -> None:
         project.add_target(*t)
     project.source = Path("foo")
     assert project.source == Path("foo")
-    project.deploy = "bar"
-    assert project.deploy == Path("bar")
+    project.site = "bar"
+    assert project.site == Path("bar")
     project.publication = None
     assert project.publication == Path("publication")
     for t in ts:
@@ -60,11 +60,11 @@ def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
         project = pr.Project()
-        for mode in ["output", "deploy"]:
+        for mode in ["output", "site"]:
             if mode == "output":
                 dir = project.output
             else:
-                dir = project.deploy
+                dir = project.site
             p = project.server_process(mode=mode, port=port, launch=False)
             p.start()
             time.sleep(1)
@@ -89,16 +89,16 @@ def test_manifest_simple(tmp_path: Path) -> None:
 
         assert project.target("web") is not None
         assert project.target("web").format == "html"
-        assert project.target("web").deploy is None
+        assert project.target("web").site is None
 
         assert project.target("print") is not None
         assert project.target("print").format == "pdf"
-        assert project.target("print").deploy is None
+        assert project.target("print").site is None
 
         assert project.target("foo") is None
 
         default_project = pr.Project()
-        assert default_project.deploy == project.deploy
+        assert default_project.site == project.site
         assert default_project.output == project.output
         assert default_project.path == project.path
 
@@ -127,7 +127,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.source == Path("my_ptx_source")
         assert project.publication == Path("dont-touch")
         assert project.output == Path("build", "here")
-        assert project.deploy == Path("build", "staging")
+        assert project.site == Path("build", "staging")
         assert project.xsl == Path("customizations")
 
         assert project.target("web") is not None
@@ -135,7 +135,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.target("web").source == Path("book.ptx")
         assert project.target("web").publication == Path("publication.ptx")
         assert project.target("web").output == Path("web")
-        assert project.target("web").deploy == Path("")
+        assert project.target("web").site == Path("")
         assert project.target("web").xsl == Path("silly.xsl")
         assert project.target("web").stringparams == {}
 
@@ -144,7 +144,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.target("print").source == Path("main.ptx")
         assert project.target("print").publication == Path("extras", "print.xml")
         assert project.target("print").output == Path("my-pdf")
-        assert project.target("print").deploy is None
+        assert project.target("print").site is None
         assert project.target("print").xsl is None
         assert project.target("print").stringparams == {
             "foo": "bar",
