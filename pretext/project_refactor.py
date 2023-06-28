@@ -37,6 +37,8 @@ class Project:
                 file_path = p / "project.ptx"
                 dir_path = p
             element = ET.parse(file_path).getroot()
+        if element.get("version") != "2":
+            raise ValueError("project manifest is not version 2")
         output = element.get("output")
         deploy = element.get("deploy")
         project = cls(path=dir_path, output=output, deploy=deploy)
@@ -96,10 +98,10 @@ class Project:
             # no target to return
             return None
         if name is None:
-            # returns default target
+            # return default target
             return self._targets[0]
         try:
-            # returns first target matching name
+            # return first target matching the provided name
             return next(t for t in self._targets if t.name == name)
         except StopIteration:
             # but no such target was found
