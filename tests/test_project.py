@@ -163,3 +163,39 @@ def test_manifest_elaborate_build(tmp_path: Path) -> Path:
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
         project.target("print").build()
         assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()
+
+
+def test_manifest_legacy() -> None:
+    prj_path = EXAMPLES_DIR / "projects" / "project_refactor" / "legacy"
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        assert len(project.targets) == 3
+
+        assert project.target("html") is not None
+        assert project.target("html").format == "html"
+        assert project.target("html").source == Path("source", "main.ptx")
+        assert project.target("html").publication == Path(
+            "publication", "publication.ptx"
+        )
+        assert project.target("html").output == Path("output", "html")
+        assert project.target("html").latex_engine == "xelatex"
+
+        assert project.target("latex") is not None
+        assert project.target("latex").format == "latex"
+        assert project.target("latex").source == Path("source", "main.ptx")
+        assert project.target("latex").publication == Path(
+            "publication", "publication.ptx"
+        )
+        assert project.target("latex").output == Path("output", "latex")
+        assert project.target("latex").latex_engine == "xelatex"
+
+        assert project.target("pdf") is not None
+        assert project.target("pdf").format == "pdf"
+        assert project.target("pdf").source == Path("source", "main.ptx")
+        assert project.target("pdf").publication == Path(
+            "publication", "publication.ptx"
+        )
+        assert project.target("pdf").output == Path("output", "pdf")
+        assert project.target("pdf").latex_engine == "pdflatex"
+
+        assert project.target("foo") is None

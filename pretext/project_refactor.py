@@ -70,19 +70,31 @@ class Project:
                 file_path = p / "project.ptx"
                 dir_path = p
             element = ET.parse(file_path).getroot()
-        if element.get("ptx-version") != "2":
-            raise ValueError("project manifest is not version 2")
-        project = cls(
-            path=dir_path,
-            source=element.get("source"),
-            publication=element.get("publication"),
-            output=element.get("output"),
-            site=element.get("site"),
-            xsl=element.get("xsl"),
-        )
-        for t_ele in element.findall("./targets/target"):
-            project.parse_target(t_ele)
-        return project
+        if element.get("ptx-version") == "2":
+            project = cls(
+                path=dir_path,
+                source=element.get("source"),
+                publication=element.get("publication"),
+                output=element.get("output"),
+                site=element.get("site"),
+                xsl=element.get("xsl"),
+            )
+            for t_ele in element.findall("./targets/target"):
+                project.parse_target(t_ele)
+            return project
+        else:
+            # parse the old project manifest format
+            project = cls(
+                path=dir_path,
+                source=Path(""),
+                publication=Path(""),
+                output=Path(""),
+                site=Path(""),
+                xsl=Path(""),
+            )
+            for t_ele in element.findall("./targets/target"):
+                project.parse_target(t_ele, legacy=True)
+            return project
 
     @property
     def path(self) -> Path:
@@ -165,8 +177,8 @@ class Project:
     def targets(self) -> t.List["Target"]:
         return self._targets
 
-    def parse_target(self, element: ET._Element) -> None:
-        self._targets.append(Target.parse(self, element))
+    def parse_target(self, element: ET._Element, legacy: bool = False) -> None:
+        self._targets.append(Target.parse(self, element, legacy=legacy))
 
     def add_target(self, *args, **kwargs) -> None:
         self._targets.append(Target(self, *args, **kwargs))
@@ -284,30 +296,59 @@ class Target:
 
     @classmethod
     def parse(
-        cls,
-        project: Project,
-        element: ET._Element,
+        cls, project: Project, element: ET._Element, legacy: bool = False
     ) -> "Target":
-        latex_engine = element.get("latex-engine")
-        if latex_engine is not None:
-            latex_engine = latex_engine.lower()
         stringparams = {}
         for param in element.findall("stringparam"):
             if param.get("key") is None or param.get("value") is None:
                 raise ValueError("stringparam must have a key and value")
             stringparams[param.get("key")] = param.get("value")
-        return cls(
-            project,
-            element.get("name"),
-            element.get("format").lower(),
-            source=element.get("source"),
-            publication=element.get("publication"),
-            output=element.get("output"),
-            site=element.get("site"),
-            xsl=element.get("xsl"),
-            latex_engine=latex_engine,
-            stringparams=stringparams,
-        )
+        if legacy:
+            if element.find("source") is None:
+                source = None
+            else:
+                source = element.find("source").text
+            if element.find("publication") is None:
+                publication = None
+            else:
+                publication = element.find("publication").text
+            if element.find("output-dir") is None:
+                output = None
+            else:
+                output = element.find("output-dir").text
+            if element.find("site") is None:
+                site = None
+            else:
+                site = element.find("site").text
+            if element.find("xsl") is None:
+                xsl = None
+            else:
+                xsl = element.find("xsl").text
+            return cls(
+                project,
+                element.get("name"),
+                element.find("format").text,
+                source=source,
+                publication=publication,
+                output=output,
+                site=site,
+                xsl=xsl,
+                latex_engine=element.get("pdf-method"),
+                stringparams=stringparams,
+            )
+        else:
+            return cls(
+                project,
+                element.get("name"),
+                element.get("format"),
+                source=element.get("source"),
+                publication=element.get("publication"),
+                output=element.get("output"),
+                site=element.get("site"),
+                xsl=element.get("xsl"),
+                latex_engine=element.get("latex-engine"),
+                stringparams=stringparams,
+            )
 
     @property
     def project(self) -> Project:
