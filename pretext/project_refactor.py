@@ -142,6 +142,9 @@ class Target:
         "custom",
     ]
 
+    # List of valid latex engines for a target.
+    LatexEngine = t.Literal["xelatex", "latex", "pdflatex"]
+
     def __init__(
         self,
         project: Project,
@@ -153,7 +156,7 @@ class Target:
         generated_dir: t.Optional[Path | str] = None,
         output: t.Optional[Path | str] = None,
         deploy: t.Optional[Path | str] = None,
-        latex_engine: t.Literal["xelatex", "latex", "pdflatex"] = "xelatex",
+        latex_engine: t.Optional[LatexEngine] = None,
     ):
         """
         Construction of a new Target. Requires both a
@@ -274,3 +277,14 @@ class Target:
             self._deploy = None
         else:
             self._deploy = Path(path)
+
+    @property
+    def latex_engine(self) -> LatexEngine:
+        return self._latex_engine
+
+    @latex_engine.setter
+    def latex_engine(self, engine: t.Optional[LatexEngine]) -> None:
+        if engine is None:
+            self._latex_engine = "xelatex"
+        else:
+            self._latex_engine = engine
