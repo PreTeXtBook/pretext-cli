@@ -114,6 +114,7 @@ def custom(
     custom_xsl: Path,
     output_filename: Optional[str] = None,
 ) -> None:
+    stringparams["publisher"] = pub_file.as_posix()
     os.makedirs(output, exist_ok=True)
     if output_filename is not None:
         output_filepath = output / output_filename

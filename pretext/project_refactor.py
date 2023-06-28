@@ -429,6 +429,18 @@ class Target:
     def output_abspath(self) -> Path:
         return self.project.output_abspath() / self.output
 
+    def output_dir_abspath(self) -> Path:
+        if self.output_abspath().is_dir():
+            return self.output_abspath()
+        else:
+            return self.output_abspath().parent
+
+    def output_filename(self) -> t.Optional[Path]:
+        if self.output_abspath().is_dir():
+            return None
+        else:
+            return self.output_abspath().name
+
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
             return None
@@ -552,18 +564,17 @@ class Target:
                         self.stringparams,
                         custom_xsl,
                     )
-                    # TODO
-                    # # core script doesn't put a copy of images in output for latex builds, so we do it instead here
-                    # shutil.copytree(
-                    #     target.external_dir_found(),
-                    #     target.output_dir() / "external",
-                    #     dirs_exist_ok=True,
-                    # )
-                    # shutil.copytree(
-                    #     target.generated_dir_found(),
-                    #     target.output_dir() / "generated",
-                    #     dirs_exist_ok=True,
-                    # )
+                    # Manually copy over asset directories
+                    shutil.copytree(
+                        self.external_dir_abspath(),
+                        self.output_abspath() / "external",
+                        dirs_exist_ok=True,
+                    )
+                    shutil.copytree(
+                        self.generated_dir_abspath(),
+                        self.output_abspath() / "generated",
+                        dirs_exist_ok=True,
+                    )
                 elif self.format == "pdf":
                     builder.pdf(
                         self.source_abspath(),
@@ -573,17 +584,17 @@ class Target:
                         custom_xsl,
                         self.latex_engine,
                     )
-                # elif self.format == "custom":
-                #     if custom_xsl is None:
-                #         raise RuntimeError("Must specify custom XSL for custom build.")
-                #     builder.custom(
-                #         target.source(),
-                #         target.publication(),
-                #         target.output_dir(),
-                #         target.stringparams(),
-                #         custom_xsl,
-                #         target.output_filename(),
-                #     )
+                elif self.format == "custom":
+                    if custom_xsl is None:
+                        raise RuntimeError("Must specify custom XSL for custom build.")
+                    builder.custom(
+                        self.source_abspath(),
+                        self.publication_abspath(),
+                        self.output_dir_abspath(),
+                        self.stringparams,
+                        custom_xsl,
+                        output_filename=self.output_filename(),
+                    )
                 elif self.format == "epub":
                     builder.epub(
                         self.source_abspath(),
@@ -634,14 +645,14 @@ class Target:
                     raise NotImplementedError(
                         f"Building {self.format} is not yet supported."
                     )
-            except Exception:
-                pass  # TODO handle in CLI
-                # log.critical(
-                #     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`"
-                # )
-                # log.debug("Exception info:\n##################\n", exc_info=True)
-                # log_info("##################")
-                # sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
+            # except Exception:
+            #     pass  # TODO handle in CLI
+            # log.critical(
+            #     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`"
+            # )
+            # log.debug("Exception info:\n##################\n", exc_info=True)
+            # log_info("##################")
+            # sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
             finally:
                 # remove temp directories left by core.
                 core.release_temporary_directories()
