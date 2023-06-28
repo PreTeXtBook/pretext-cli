@@ -81,6 +81,17 @@ def test_manifest_simple(tmp_path: Path) -> None:
         assert default_project.path == project.path
 
 
+def test_manifest_simple_build(tmp_path: Path) -> Path:
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        project.target("web").build()
+        assert (prj_path / "output" / "web" / "index.html").exists()
+        project.target("print").build()
+        assert (prj_path / "output" / "print" / "main.pdf").exists()
+
+
 def test_manifest_elaborate(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(

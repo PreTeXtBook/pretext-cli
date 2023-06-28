@@ -23,6 +23,7 @@ class Project:
         output: t.Optional[t.Union[Path, str]] = None,
         deploy: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
+        executables: t.Optional[dict[str, str]] = None,
     ):
         self._targets: list[Target] = []
         self.path = path
@@ -31,6 +32,7 @@ class Project:
         self.output = output
         self.deploy = deploy
         self.xsl = xsl
+        self.executables = executables
 
     @classmethod
     def parse(
@@ -126,6 +128,28 @@ class Project:
             self._xsl = Path("xsl")
         else:
             self._xsl = Path(p)
+
+    @property
+    def executables(self) -> dict[str, str]:
+        return self._executables
+
+    @executables.setter
+    def executables(self, ex: t.Optional[dict[str, str]]) -> None:
+        if ex is None:
+            self._executables = {
+                "latex": "latex",
+                "pdflatex": "pdflatex",
+                "xelatex": "xelatex",
+                "pdfsvg": "pdf2svg",
+                "asy": "asy",
+                "sage": "sage",
+                "pdfpng": "convert",
+                "pdfeps": "pdftops",
+                "node": "node",
+                "liblouis": "file2brl",
+            }
+        else:
+            self._executables = ex
 
     @property
     def targets(self) -> list["Target"]:
@@ -425,6 +449,10 @@ class Target:
 
             log_info(f"Preparing to build into {self.output_abspath()}.")
 
+            # set executables
+            core.set_executables(self.project.executables)
+
+            # try to build
             try:
                 if self.format == "html":
                     builder.html(
