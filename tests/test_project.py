@@ -34,6 +34,28 @@ def test_defaults() -> None:
         assert target.stringparams == {}
 
 
+def test_modifications() -> None:
+    ts = ("web", "html"), ("print", "pdf")
+    project = pr.Project()
+    for t in ts:
+        project.add_target(*t)
+    project.source = Path("foo")
+    assert project.source == Path("foo")
+    project.deploy = "bar"
+    assert project.deploy == Path("bar")
+    project.publication = None
+    assert project.publication == Path("publication")
+    for t in ts:
+        name, _ = t
+        target = project.target(name)
+        target.source = "foo.ptx"
+        assert target.source == Path("foo.ptx")
+        target.publication = Path("bar.ptx")
+        assert target.publication == Path("bar.ptx")
+        target.output = None
+        assert target.output == Path(target.name)
+
+
 def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
