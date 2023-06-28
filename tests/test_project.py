@@ -56,7 +56,7 @@ def test_serve(tmp_path: Path) -> None:
 
 
 def test_manifest(tmp_path: Path) -> None:
-    prj_path = tmp_path / "project"
+    prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
@@ -76,3 +76,24 @@ def test_manifest(tmp_path: Path) -> None:
         assert default_project.deploy == project.deploy
         assert default_project.output == project.output
         assert default_project.path == project.path
+
+    prj_path = tmp_path / "elaborate"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        assert len(project.targets) == 2
+
+        assert project.target("web") is not None
+        assert project.target("web").format == "html"
+        assert project.target("web").deploy == Path("")
+        assert project.target("web").stringparams == {}
+
+        assert project.target("print") is not None
+        assert project.target("print").format == "pdf"
+        assert project.target("print").deploy is None
+        assert project.target("print").stringparams == {
+            "foo": "bar",
+            "baz": "goo",
+        }

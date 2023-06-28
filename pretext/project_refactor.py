@@ -159,6 +159,7 @@ class Target:
         output: t.Optional[Path | str] = None,
         deploy: t.Optional[Path | str] = None,
         latex_engine: t.Optional[LatexEngine] = None,
+        stringparams: dict[str, str] = {},
     ):
         """
         Construction of a new Target. Requires both a
@@ -178,6 +179,7 @@ class Target:
         self.output = output
         self.deploy = deploy
         self.latex_engine = latex_engine
+        self.stringparams = stringparams
 
     @classmethod
     def parse(
@@ -188,6 +190,11 @@ class Target:
         latex_engine = element.get("latex-engine")
         if latex_engine is not None:
             latex_engine = latex_engine.lower()
+        stringparams = {}
+        for param in element.findall("stringparam"):
+            if param.get("key") is None or param.get("value") is None:
+                raise ValueError("stringparam must have a key and value")
+            stringparams[param.get("key")] = param.get("value")
         return cls(
             project,
             element.get("name"),
@@ -197,6 +204,7 @@ class Target:
             output=element.get("output"),
             deploy=element.get("deploy"),
             latex_engine=latex_engine,
+            stringparams=stringparams,
         )
 
     @property
