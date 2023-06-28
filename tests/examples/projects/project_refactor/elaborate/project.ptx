@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project version="2" source="my_ptx_source" publication="">
+<project
+  version="2"
+  source="my_ptx_source"
+  publication="">
   <targets>
-    <target name="web" format="html" deploy="" />
-    <target name="print" format="pdf">
+    <target
+      name="web"
+      format="html"
+      source="book.ptx"
+      deploy="" />
+    <target
+      name="print"
+      format="pdf"
+      publication="print.ptx"
+      output="my-pdf"
+      xsl="xsl">
       <stringparam key="foo" value="bar" />
       <stringparam key="baz" value="goo" />
     </target>

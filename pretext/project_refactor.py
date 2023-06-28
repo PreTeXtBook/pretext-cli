@@ -14,13 +14,19 @@ class Project:
     def __init__(
         self,
         path: t.Optional[Path | str] = None,
+        source: t.Optional[Path | str] = None,
+        publication: t.Optional[Path | str] = None,
         output: t.Optional[Path | str] = None,
         deploy: t.Optional[Path | str] = None,
+        xsl: t.Optional[Path | str] = None,
     ):
         self._targets: list[Target] = []
         self.path = path
+        self.source = source
+        self.publication = publication
         self.output = output
         self.deploy = deploy
+        self.xsl = xsl
 
     @classmethod
     def parse(
@@ -39,9 +45,14 @@ class Project:
             element = ET.parse(file_path).getroot()
         if element.get("version") != "2":
             raise ValueError("project manifest is not version 2")
-        output = element.get("output")
-        deploy = element.get("deploy")
-        project = cls(path=dir_path, output=output, deploy=deploy)
+        project = cls(
+            path=dir_path,
+            source=element.get("source"),
+            publication=element.get("publication"),
+            output=element.get("output"),
+            deploy=element.get("deploy"),
+            xsl=element.get("xsl"),
+        )
         for t in element.findall("./targets/target"):
             project.parse_target(t)
         return project
@@ -56,6 +67,28 @@ class Project:
             self._path = Path()
         else:
             self._path = Path(p)
+
+    @property
+    def source(self) -> Path:
+        return self._source
+
+    @source.setter
+    def source(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._source = Path("source")
+        else:
+            self._source = Path(p)
+
+    @property
+    def publication(self) -> Path:
+        return self._publication
+
+    @publication.setter
+    def publication(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._publication = Path("publication")
+        else:
+            self._publication = Path(p)
 
     @property
     def output(self) -> Path:
@@ -78,6 +111,17 @@ class Project:
             self._deploy = Path("deploy")
         else:
             self._deploy = Path(p)
+
+    @property
+    def xsl(self) -> Path:
+        return self._xsl
+
+    @xsl.setter
+    def xsl(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._xsl = Path("xsl")
+        else:
+            self._xsl = Path(p)
 
     @property
     def targets(self) -> list["Target"]:
@@ -158,6 +202,7 @@ class Target:
         generated_dir: t.Optional[Path | str] = None,
         output: t.Optional[Path | str] = None,
         deploy: t.Optional[Path | str] = None,
+        xsl: t.Optional[Path | str] = None,
         latex_engine: t.Optional[LatexEngine] = None,
         stringparams: dict[str, str] = {},
     ):
@@ -178,6 +223,7 @@ class Target:
             self.publication = publication
         self.output = output
         self.deploy = deploy
+        self.xsl = xsl
         self.latex_engine = latex_engine
         self.stringparams = stringparams
 
@@ -203,6 +249,7 @@ class Target:
             publication=element.get("publication"),
             output=element.get("output"),
             deploy=element.get("deploy"),
+            xsl=element.get("xsl"),
             latex_engine=latex_engine,
             stringparams=stringparams,
         )
@@ -228,13 +275,14 @@ class Target:
 
     @publication.setter
     def publication(self, path: t.Optional[Path | str]) -> None:
-        self._publication = path
         if path is not None:
+            self._publication = Path(path)
             pub_ele = ET.parse(path).getroot()
             dir_ele = pub_ele.find("source").find("directories")
-            self.external_dir = self.source / dir_ele.get("external")
-            self.generated_dir = self.source / dir_ele.get("generated")
+            self._external_dir = self.source / dir_ele.get("external")
+            self._generated_dir = self.source / dir_ele.get("generated")
         else:
+            self._publication = None
             self.external_dir = None  # use default
             self.generated_dir = None  # use default
 
@@ -287,6 +335,17 @@ class Target:
             self._deploy = None
         else:
             self._deploy = Path(path)
+
+    @property
+    def xsl(self) -> t.Optional[Path]:
+        return self._xsl
+
+    @xsl.setter
+    def xsl(self, p: t.Optional[Path | str]) -> None:
+        if p is None:
+            self._xsl = None
+        else:
+            self._xsl = Path(p)
 
     @property
     def latex_engine(self) -> LatexEngine:

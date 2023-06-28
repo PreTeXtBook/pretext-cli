@@ -55,7 +55,7 @@ def test_serve(tmp_path: Path) -> None:
             p.terminate()
 
 
-def test_manifest(tmp_path: Path) -> None:
+def test_manifest_simple(tmp_path: Path) -> None:
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
@@ -77,6 +77,8 @@ def test_manifest(tmp_path: Path) -> None:
         assert default_project.output == project.output
         assert default_project.path == project.path
 
+
+def test_manifest_elaborate(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
@@ -85,14 +87,24 @@ def test_manifest(tmp_path: Path) -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 2
 
+        assert project.source == Path("my_ptx_source")
+
         assert project.target("web") is not None
         assert project.target("web").format == "html"
+        assert project.target("web").source == Path("book.ptx")
+        assert project.target("web").publication == None
+        assert project.target("web").output == Path("web")
         assert project.target("web").deploy == Path("")
+        assert project.target("web").xsl == None
         assert project.target("web").stringparams == {}
 
         assert project.target("print") is not None
         assert project.target("print").format == "pdf"
+        assert project.target("print").source == Path("main.ptx")
+        assert project.target("print").publication == Path("print.ptx")
+        assert project.target("print").output == Path("my-pdf")
         assert project.target("print").deploy is None
+        assert project.target("print").xsl == Path("xsl")
         assert project.target("print").stringparams == {
             "foo": "bar",
             "baz": "goo",
