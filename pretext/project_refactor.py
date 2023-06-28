@@ -17,12 +17,12 @@ class Project:
 
     def __init__(
         self,
-        path: t.Optional[Path | str] = None,
-        source: t.Optional[Path | str] = None,
-        publication: t.Optional[Path | str] = None,
-        output: t.Optional[Path | str] = None,
-        deploy: t.Optional[Path | str] = None,
-        xsl: t.Optional[Path | str] = None,
+        path: t.Optional[t.Union[Path, str]] = None,
+        source: t.Optional[t.Union[Path, str]] = None,
+        publication: t.Optional[t.Union[Path, str]] = None,
+        output: t.Optional[t.Union[Path, str]] = None,
+        deploy: t.Optional[t.Union[Path, str]] = None,
+        xsl: t.Optional[t.Union[Path, str]] = None,
     ):
         self._targets: list[Target] = []
         self.path = path
@@ -35,7 +35,7 @@ class Project:
     @classmethod
     def parse(
         cls,
-        path: Path | str = Path(),
+        path: t.Union[Path, str] = Path(),
         element: t.Optional[ET._Element] = None,
     ) -> "Project":
         p = Path(path)
@@ -66,7 +66,7 @@ class Project:
         return self._path
 
     @path.setter
-    def path(self, p: t.Optional[Path | str]) -> None:
+    def path(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._path = Path()
         else:
@@ -77,7 +77,7 @@ class Project:
         return self._source
 
     @source.setter
-    def source(self, p: t.Optional[Path | str]) -> None:
+    def source(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._source = Path("source")
         else:
@@ -88,7 +88,7 @@ class Project:
         return self._publication
 
     @publication.setter
-    def publication(self, p: t.Optional[Path | str]) -> None:
+    def publication(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._publication = Path("publication")
         else:
@@ -99,7 +99,7 @@ class Project:
         return self._output
 
     @output.setter
-    def output(self, p: t.Optional[Path | str]) -> None:
+    def output(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._output = Path("output")
         else:
@@ -110,7 +110,7 @@ class Project:
         return self._deploy
 
     @deploy.setter
-    def deploy(self, p: t.Optional[Path | str]) -> None:
+    def deploy(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._deploy = Path("deploy")
         else:
@@ -121,7 +121,7 @@ class Project:
         return self._xsl
 
     @xsl.setter
-    def xsl(self, p: t.Optional[Path | str]) -> None:
+    def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._xsl = Path("xsl")
         else:
@@ -212,11 +212,11 @@ class Target:
         project: Project,
         name: str,
         format: Format,
-        source: t.Optional[Path | str] = None,
-        publication: t.Optional[Path | str] = None,
-        output: t.Optional[Path | str] = None,
-        deploy: t.Optional[Path | str] = None,
-        xsl: t.Optional[Path | str] = None,
+        source: t.Optional[t.Union[Path, str]] = None,
+        publication: t.Optional[t.Union[Path, str]] = None,
+        output: t.Optional[t.Union[Path, str]] = None,
+        deploy: t.Optional[t.Union[Path, str]] = None,
+        xsl: t.Optional[t.Union[Path, str]] = None,
         latex_engine: t.Optional[LatexEngine] = None,
         stringparams: dict[str, str] = {},
     ):
@@ -271,7 +271,7 @@ class Target:
         return self._source
 
     @source.setter
-    def source(self, path: t.Optional[Path | str]) -> None:
+    def source(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
             self._source = Path("main.ptx")
         else:
@@ -282,7 +282,7 @@ class Target:
         return self._publication
 
     @publication.setter
-    def publication(self, path: t.Optional[Path | str]) -> None:
+    def publication(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
             self._publication = Path("publication.ptx")
         else:
@@ -293,7 +293,7 @@ class Target:
         return self._output
 
     @output.setter
-    def output(self, path: t.Optional[Path | str]) -> None:
+    def output(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
             self._output = Path(self.name)
         else:
@@ -304,7 +304,7 @@ class Target:
         return self._deploy
 
     @deploy.setter
-    def deploy(self, path: t.Optional[Path | str]) -> None:
+    def deploy(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
             self._deploy = None
         else:
@@ -315,7 +315,7 @@ class Target:
         return self._xsl
 
     @xsl.setter
-    def xsl(self, p: t.Optional[Path | str]) -> None:
+    def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
             self._xsl = None
         else:
