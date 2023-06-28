@@ -2,7 +2,10 @@
 <project
   version="2"
   source="my_ptx_source"
-  publication="">
+  publication="dont-touch"
+  output="build/here"
+  deploy="build/staging"
+  xsl="customizations">
   <targets>
     <target
       name="web"

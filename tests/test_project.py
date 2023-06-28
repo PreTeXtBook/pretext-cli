@@ -15,8 +15,11 @@ def test_defaults() -> None:
     for t in ts:
         project.add_target(*t)
     assert project.path == Path()
-    assert project.output == Path() / "output"
-    assert project.deploy == Path() / "deploy"
+    assert project.source == Path("source")
+    assert project.publication == Path("publication")
+    assert project.output == Path("output")
+    assert project.deploy == Path("deploy")
+    assert project.xsl == Path("xsl")
     for t in ts:
         name, frmt = t
         target = project.target(name)
@@ -28,7 +31,9 @@ def test_defaults() -> None:
         assert target.generated_dir == Path("generated-assets")
         assert target.output == Path(target.name)
         assert target.deploy is None
+        assert target.xsl is None
         assert target.latex_engine == "xelatex"
+        assert target.stringparams == {}
 
 
 def test_serve(tmp_path: Path) -> None:
@@ -87,7 +92,12 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 2
 
+        assert project.path == Path()
         assert project.source == Path("my_ptx_source")
+        assert project.publication == Path("dont-touch")
+        assert project.output == Path("build", "here")
+        assert project.deploy == Path("build", "staging")
+        assert project.xsl == Path("customizations")
 
         assert project.target("web") is not None
         assert project.target("web").format == "html"
