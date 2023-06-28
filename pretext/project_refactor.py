@@ -47,7 +47,7 @@ class Project:
                 file_path = p / "project.ptx"
                 dir_path = p
             element = ET.parse(file_path).getroot()
-        if element.get("version") != "2":
+        if element.get("ptx-version") != "2":
             raise ValueError("project manifest is not version 2")
         project = cls(
             path=dir_path,
