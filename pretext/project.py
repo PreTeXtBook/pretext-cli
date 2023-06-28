@@ -13,6 +13,7 @@ import sys
 from .config.xml_overlay import ShadowXmlDocument
 from typing import Dict, List, Optional, Tuple
 import hashlib
+import subprocess
 
 log = logging.getLogger("ptxlogger")
 
@@ -132,6 +133,12 @@ class Target:
         else:
             return self.require_tag_text("output-filename").strip()
 
+    def deploy_dir(self) -> Optional[str]:
+        if self.xml_element().find("deploy-dir") is None:
+            return None
+        else:
+            return self.require_tag_text("deploy-dir").strip()
+
     def port(self) -> int:
         view_ele = self.xml_element().find("view")
         if view_ele is not None and (port := view_ele.get("port")) is not None:
@@ -202,7 +209,7 @@ class Target:
                         and isinstance(id, List)
                         and (asset, id[0]) not in asset_hash_dict
                     ):
-                        assert isinstance(id, _Element)
+                        assert isinstance(id[0], str)
                         asset_hash_dict[(asset, id[0])] = hashlib.sha256(
                             ET.tostring(node)
                         ).digest()
@@ -269,8 +276,10 @@ class Project:
         ), "Project file error: expected list of targets in targets/target tags."
         ret: List[Target] = []
         for target_element in t:
-            assert isinstance(t, _Element), "Project file error: target must be a tag."
-            t.append(
+            assert isinstance(
+                target_element, _Element
+            ), "Project file error: target must be a tag."
+            ret.append(
                 Target(xml_element=target_element, project_path=self.__project_path)
             )
         return ret
@@ -590,148 +599,74 @@ class Project:
         # Delete temporary directories left behind by core:
         core.release_temporary_directories()
 
-    def deploy(self, target_name: str, update_source: bool) -> None:
+    def deploy_targets(self) -> List[Target]:
+        return [target for target in self.targets() if target.deploy_dir() is not None]
+
+    def deploy(self, target_name: str, site: str, update_source: bool) -> None:
+        # Before doing any work, we check that git is installed.
         try:
-            import git
-            import ghp_import
-        except ImportError:
+            subprocess.run(["git", "--version"], capture_output=True)
+            log.debug("Git is installed.")
+        except Exception as e:
             log.error(
                 "Git must be installed to use this feature, but couldn't be found."
             )
-            log.error("Visit https://github.com/git-guides/install-git for assistance.")
+            log.debug(f"Error: {e}")
             return
-        target = self.target(target_name)
-        if target is None:
-            log.error(f"Target `{target_name}` not found.")
-            return
-        if target.format() != "html":  # redundant for CLI
-            log.error("Only HTML format targets are supported.")
-            return
-        try:
-            repo = git.Repo(self.__project_path)
-        except git.exc.InvalidGitRepositoryError:  # type: ignore
-            log.info("Initializing project with Git.")
-            repo = git.Repo.init(self.__project_path)
-            try:
-                repo.config_reader().get_value("user", "name")
-                repo.config_reader().get_value("user", "email")
-            except Exception:
-                log.info("Setting up name/email configuration for Git...")
-                name = input("Type a name to use with Git: ")
-                email = input("Type your GitHub email to use with Git: ")
-                with repo.config_writer() as w:
-                    w.set_value("user", "name", name)
-                    w.set_value("user", "email", email)
-            repo.git.add(all=True)
-            repo.git.commit(message="Initial commit")
-            repo.active_branch.rename("main")
-            log.info("Successfully initialized new Git repository!")
-            log.info("")
-        log.info(
-            f"Preparing to deploy from active `{repo.active_branch.name}` git branch."
-        )
-        log.info("")
-        if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
-            log.info("Changes to project source since last commit detected.")
-            if update_source:
-                log.info("Add/committing these changes to local Git repository.")
-                log.info("")
-                repo.git.add(all=True)
-                repo.git.commit(message="Update to PreTeXt project source.")
-            else:
-                log.error("Either add and commit these changes with Git, or run")
+        # Determine what set of targets to deploy.  If a target name is specified, deploy on that target.  If there are `deploy-dir` specified in the project manifest, also deploy the contents of the `site` folder, if present.
+        if len(self.deploy_targets()) == 0:
+            target = self.target(target_name)
+            if target is None:
+                log.error(f"Target `{target_name}` not found.")
+                return
+            if target.format() != "html":  # redundant for CLI
+                log.error("Only HTML format targets are supported.")
+                return
+            if not target.output_dir().exists():
                 log.error(
-                    "`pretext deploy -u` to have these changes updated automatically."
+                    f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`."
+                )
+                log.error(
+                    f"Try running `pretext view {target.name()} -b` to build and preview your project first."
                 )
                 return
-        if not target.output_dir().exists():
-            log.error(
-                f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`."
-            )
-            log.error(
-                f"Try running `pretext view {target.name()} -b` to build and preview your project first."
-            )
+            log.info(f"Using latest build located in `{target.output_dir()}`.")
+            log.info("")
+            utils.publish_to_ghpages(target.output_dir(), update_source)
             return
-        log.info(f"Using latest build located in `{target.output_dir()}`.")
-        log.info("")
-        try:
-            origin = repo.remotes.origin
-        except AttributeError:
-            log.warning("Remote GitHub repository is not yet configured.")
-            log.info("")
-            log.info(
-                "And if you haven't already, create a remote GitHub repository for this project at:"
-            )
-            log.info("    https://github.com/new")
-            log.info('(Do NOT check any "initialize" options.)')
-            log.info(
-                'On the next page, copy the URL in the "Quick Setup" section (use HTTPS unless you have SSH setup already).'
-            )
-            log.info("")
-            repourl = input("Paste url here: ").strip()
-            repo.create_remote("origin", url=repourl)
-            origin = repo.remotes.origin
-            log.info(
-                "\nFor information about authentication options for github, see: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github\n"
-            )
-        log.info("Committing your latest build to the `gh-pages` branch.")
-        log.info("")
-        ghp_import.ghp_import(
-            target.output_dir(),
-            mesg=f"Latest build of target {target.name()}.",
-            nojekyll=True,
-        )
-        log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
-        # log.info("(Your SSH password may be required.)")
-        log.info("")
-        try:
-            repo_user, repo_name = utils.parse_git_remote(origin.url)
-            repo_url = f"https://github.com/{repo_user}/{repo_name}/"
-            # Set pages_url depending on whether project is base pages for the user or a separate repo
-            if "github.io" in repo_name:
-                pages_url = f"https://{repo_name}"
-            else:
-                pages_url = f"https://{repo_user}.github.io/{repo_name}/"
-        except Exception:
-            log.error(f"Unable to parse GitHub URL from {origin.url}")
-            log.error("Deploy unsuccessful")
-            return
-        try:
-            origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
-            origin.push(refspec="gh-pages:gh-pages")
-        except git.exc.GitCommandError:  # type: ignore
-            log.warning(
-                f"There was an issue connecting to GitHub repository located at {repo_url}"
-            )
-            log.info("")
-            log.info(
-                "If you haven't already, configure SSH with GitHub by following instructions at:"
-            )
-            log.info(
-                "    https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
-            )
-            log.info("Then try to deploy again.")
-            log.info("")
-            log.info(f"If `{origin.url}` doesn't match your GitHub repository,")
-            log.info(
-                "use `git remote remove origin` on the command line then try to deploy again."
-            )
-            log.info("")
-            log.error("Deploy was unsuccessful.")
-            return
-        log.info("")
-        log.info("Latest build successfully pushed to GitHub!")
-        log.info("")
-        log.info("To enable GitHub Pages, visit")
-        log.info(f"    {repo_url}settings/pages")
-        log.info("selecting the `gh-pages` branch with the `/ (root)` folder.")
-        log.info("")
-        log.info("Visit")
-        log.info(f"    {repo_url}actions/")
-        log.info("to check on the status of your GitHub Pages deployment.")
-        log.info("")
-        log.info("Your built project will soon be available to the public at:")
-        log.info(f"    {pages_url}")
+        else:  # we now deploy multiple targets and the site directory
+            site_dir = (self.__project_path / site).resolve()
+            if not site_dir.exists():
+                log.error(f"Site directory `{site_dir}` not found.")
+                log.info(
+                    f"You have `deploy-dir` elements in your project.ptx file, which requires you to maintain at least a simple landing page in the folder `{site_dir}`. Either create this folder or remove the `deploy-dir` elements from your project.ptx file.\n"
+                )
+                return
+            with tempfile.TemporaryDirectory() as temp_dir:
+                shutil.copytree(
+                    (self.__project_path / site).resolve(),
+                    Path(temp_dir),
+                    dirs_exist_ok=True,
+                )
+                for target in self.deploy_targets():
+                    if not target.output_dir().exists():
+                        log.warning(
+                            f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`. Try running `pretext build {target.name()}` to build this component first."
+                        )
+                        log.info("Skipping this target for now.")
+                    else:
+                        deploy_dir = target.deploy_dir()
+                        assert isinstance(deploy_dir, str)
+                        shutil.copytree(
+                            target.output_dir(),
+                            (Path(temp_dir) / deploy_dir).resolve(),
+                            dirs_exist_ok=True,
+                        )
+                        log.info(
+                            f"Deploying `{target.name()}` to `{target.deploy_dir()}`."
+                        )
+                utils.publish_to_ghpages(Path(temp_dir), update_source)
+        return
 
     def xml_source_is_valid(self, target_name: str) -> bool:
         target = self.target(target_name)

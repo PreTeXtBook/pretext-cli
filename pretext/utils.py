@@ -11,7 +11,6 @@ import re
 import socketserver
 import socket
 import subprocess
-import sys
 import logging
 import logging.handlers
 import multiprocessing
@@ -520,7 +519,7 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
         log.info("While running pretext, the following errors occurred:\n")
         mh.flush()
         print("----------------------------------------------------")
-        sys.exit(1)
+        # sys.exit("Exit due to errors.")
     else:
         print("")
 
@@ -549,3 +548,132 @@ def parse_git_remote(string: str) -> t.List[str]:
     """
     repo_info = list(filter(None, re.split(r"\/|\:|\.git$", string)))
     return repo_info[-2:]
+
+
+def publish_to_ghpages(directory: Path, update_source: bool) -> None:
+    """
+    Publish the current project to GitHub pages.
+    """
+    # Some git setup. Try to import git and ghp_import to make sure git is installed.  These need to be done here, because if git is not installed, then this will break, and not everyone will need deploy functionality.
+    try:
+        import git
+        import ghp_import
+    except ImportError:
+        log.error("Git must be installed to use this feature, but couldn't be found.")
+        log.error("Visit https://github.com/git-guides/install-git for assistance.")
+        return
+
+    try:
+        repo = git.Repo(project_path())
+    except git.exc.InvalidGitRepositoryError:  # type: ignore
+        log.info("Initializing project with Git.")
+        repo = git.Repo.init(project_path())
+        try:
+            repo.config_reader().get_value("user", "name")
+            repo.config_reader().get_value("user", "email")
+        except Exception:
+            log.info("Setting up name/email configuration for Git...")
+            name = input("Type a name to use with Git: ")
+            email = input("Type your GitHub email to use with Git: ")
+            with repo.config_writer() as w:
+                w.set_value("user", "name", name)
+                w.set_value("user", "email", email)
+        repo.git.add(all=True)
+        repo.git.commit(message="Initial commit")
+        repo.active_branch.rename("main")
+        log.info("Successfully initialized new Git repository!")
+        log.info("")
+    log.info(f"Preparing to deploy from active `{repo.active_branch.name}` git branch.")
+    log.info("")
+    if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
+        log.info("Changes to project source since last commit detected.")
+        if update_source:
+            log.info("Add/committing these changes to local Git repository.")
+            log.info("")
+            repo.git.add(all=True)
+            repo.git.commit(message="Update to PreTeXt project source.")
+        else:
+            log.error("Either add and commit these changes with Git, or run")
+            log.error(
+                "`pretext deploy -u` to have these changes updated automatically."
+            )
+            return
+
+    try:
+        origin = repo.remotes.origin
+    except AttributeError:
+        log.warning("Remote GitHub repository is not yet configured.")
+        log.info("")
+        log.info(
+            "And if you haven't already, create a remote GitHub repository for this project at:"
+        )
+        log.info("    https://github.com/new")
+        log.info('(Do NOT check any "initialize" options.)')
+        log.info(
+            'On the next page, copy the URL in the "Quick Setup" section (use HTTPS unless you have SSH setup already).'
+        )
+        log.info("")
+        repourl = input("Paste url here: ").strip()
+        repo.create_remote("origin", url=repourl)
+        origin = repo.remotes.origin
+        log.info(
+            "\nFor information about authentication options for github, see: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github\n"
+        )
+    log.info("Committing your latest build to the `gh-pages` branch.")
+    log.info("")
+    ghp_import.ghp_import(
+        directory,
+        mesg="Latest build deployed.",
+        nojekyll=False,
+    )
+    log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
+    # log.info("(Your SSH password may be required.)")
+    log.info("")
+    try:
+        repo_user, repo_name = parse_git_remote(origin.url)
+        repo_url = f"https://github.com/{repo_user}/{repo_name}/"
+        # Set pages_url depending on whether project is base pages for the user or a separate repo
+        if "github.io" in repo_name:
+            pages_url = f"https://{repo_name}"
+        else:
+            pages_url = f"https://{repo_user}.github.io/{repo_name}/"
+    except Exception:
+        log.error(f"Unable to parse GitHub URL from {origin.url}")
+        log.error("Deploy unsuccessful")
+        return
+    try:
+        origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
+        origin.push(refspec="gh-pages:gh-pages")
+    except git.exc.GitCommandError:  # type: ignore
+        log.warning(
+            f"There was an issue connecting to GitHub repository located at {repo_url}"
+        )
+        log.info("")
+        log.info(
+            "If you haven't already, configure SSH with GitHub by following instructions at:"
+        )
+        log.info(
+            "    https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
+        )
+        log.info("Then try to deploy again.")
+        log.info("")
+        log.info(f"If `{origin.url}` doesn't match your GitHub repository,")
+        log.info(
+            "use `git remote remove origin` on the command line then try to deploy again."
+        )
+        log.info("")
+        log.error("Deploy was unsuccessful.")
+        return
+    log.info("")
+    log.info("Latest build successfully pushed to GitHub!")
+    log.info("")
+    log.info("To enable GitHub Pages, visit")
+    log.info(f"    {repo_url}settings/pages")
+    log.info("selecting the `gh-pages` branch with the `/ (root)` folder.")
+    log.info("")
+    log.info("Visit")
+    log.info(f"    {repo_url}actions/")
+    log.info("to check on the status of your GitHub Pages deployment.")
+    log.info("")
+    log.info("Your built project will soon be available to the public at:")
+    log.info(f"    {pages_url}")
