@@ -129,17 +129,17 @@ def target_xml(
 
 
 # check xml syntax
-def xml_syntax_is_valid(xmlfile: Path) -> bool:
+def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
         # we need to call xinclude once for each level of nesting (just to check for errors).  25 levels should be more than sufficient
-        for i in range(25):
+        for _ in range(25):
             source_xml.xinclude()
         log.debug("XML syntax appears well formed.")
-        if source_xml.getroot().tag != "pretext":
+        if source_xml.getroot().tag != root_tag:
             log.error(
-                f'The file {xmlfile} does not have "<pretext>" as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx).'
+                f'The file {xmlfile} does not have "<{root_tag}>" as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx).'
             )
             return False
     # check for file IO error

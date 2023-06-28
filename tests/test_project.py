@@ -67,7 +67,7 @@ def test_manifest_simple(tmp_path: Path) -> None:
 
         assert project.target("web") is not None
         assert project.target("web").format == "html"
-        assert project.target("web").deploy == Path("")
+        assert project.target("web").deploy is None
 
         assert project.target("print") is not None
         assert project.target("print").format == "pdf"
