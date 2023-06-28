@@ -11,13 +11,13 @@
       name="web"
       format="html"
       source="book.ptx"
-      deploy="" />
+      deploy=""
+      xsl="silly.xsl" />
     <target
       name="print"
       format="pdf"
-      publication="print.ptx"
-      output="my-pdf"
-      xsl="xsl">
+      publication="extras/print.xml"
+      output="my-pdf">
       <stringparam key="foo" value="bar" />
       <stringparam key="baz" value="goo" />
     </target>

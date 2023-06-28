@@ -191,6 +191,9 @@ class Project:
     def output_abspath(self) -> Path:
         return self.abspath() / self.output
 
+    def xsl_abspath(self) -> Path:
+        return self.abspath() / self.xsl
+
     def server_process(
         self,
         mode: t.Literal["output", "deploy"] = "output",
@@ -365,6 +368,11 @@ class Target:
     def output_abspath(self) -> Path:
         return self.project.output_abspath() / self.output
 
+    def xsl_abspath(self) -> t.Optional[Path]:
+        if self.xsl is None:
+            return None
+        return self.project.xsl_abspath() / self.xsl
+
     def external_dir(self) -> Path:
         return Path(
             ET.parse(self.publication_abspath())
@@ -430,12 +438,13 @@ class Target:
         # Ensure the asset directories exist.
         self.ensure_asset_directories()
 
-        with tempfile.TemporaryDirectory() as temp_xsl_path:
+        with tempfile.TemporaryDirectory() as tmp_xsl_str:
+            tmp_xsl_path = Path(tmp_xsl_str)
             # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
-            if (txp := self.xsl) is not None:
+            if (txp := self.xsl_abspath()) is not None:
                 log_info(f"Building with custom xsl {txp}")
-                utils.copy_custom_xsl(txp, temp_xsl_path)
-                custom_xsl = temp_xsl_path / txp.name
+                utils.copy_custom_xsl(txp, tmp_xsl_path)
+                custom_xsl = tmp_xsl_path / txp.name
             else:
                 custom_xsl = None
 

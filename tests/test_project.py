@@ -114,17 +114,30 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.target("web").publication == Path("publication.ptx")
         assert project.target("web").output == Path("web")
         assert project.target("web").deploy == Path("")
-        assert project.target("web").xsl is None
+        assert project.target("web").xsl == Path("silly.xsl")
         assert project.target("web").stringparams == {}
 
         assert project.target("print") is not None
         assert project.target("print").format == "pdf"
         assert project.target("print").source == Path("main.ptx")
-        assert project.target("print").publication == Path("print.ptx")
+        assert project.target("print").publication == Path("extras", "print.xml")
         assert project.target("print").output == Path("my-pdf")
         assert project.target("print").deploy is None
-        assert project.target("print").xsl == Path("xsl")
+        assert project.target("print").xsl is None
         assert project.target("print").stringparams == {
             "foo": "bar",
             "baz": "goo",
         }
+
+
+def test_manifest_elaborate_build(tmp_path: Path) -> Path:
+    prj_path = tmp_path / "elaborate"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        project.target("web").build()
+        assert (prj_path / "build" / "here" / "web" / "index.html").exists()
+        project.target("print").build()
+        assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()

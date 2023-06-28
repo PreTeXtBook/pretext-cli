@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <pretext>
   <article>
-    <title>Hello World! (print)</title>
+    <title>Hello World! (web)</title>
     <p>This is a PreTeXt document.</p>
   </article>
 </pretext>
