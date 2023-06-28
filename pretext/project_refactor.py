@@ -146,7 +146,7 @@ class Target:
         self,
         project: Project,
         name: str,
-        frmt: Format,
+        format: Format,
         source: t.Optional[Path | str] = None,
         publication: t.Optional[Path | str] = None,
         external_dir: t.Optional[Path | str] = None,
@@ -157,11 +157,11 @@ class Target:
     ):
         """
         Construction of a new Target. Requires both a
-        `name` and `frmt` (format).
+        `name` and `format`.
         """
         self._project = project
         self.name = name
-        self.format = frmt
+        self.format = format
         self.source = source
         # directories are set by the publication iff it exists
         if publication is None:
