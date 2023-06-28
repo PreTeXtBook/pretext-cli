@@ -23,7 +23,7 @@ class Project:
         output: t.Optional[t.Union[Path, str]] = None,
         deploy: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
-        executables: t.Optional[dict[str, str]] = None,
+        executables: t.Optional[t.Dict[str, str]] = None,
     ):
         self._targets: list[Target] = []
         self.path = path
@@ -130,11 +130,11 @@ class Project:
             self._xsl = Path(p)
 
     @property
-    def executables(self) -> dict[str, str]:
+    def executables(self) -> t.Dict[str, str]:
         return self._executables
 
     @executables.setter
-    def executables(self, ex: t.Optional[dict[str, str]]) -> None:
+    def executables(self, ex: t.Optional[t.Dict[str, str]]) -> None:
         if ex is None:
             self._executables = {
                 "latex": "latex",
@@ -245,7 +245,7 @@ class Target:
         deploy: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
         latex_engine: t.Optional[LatexEngine] = None,
-        stringparams: dict[str, str] = {},
+        stringparams: t.Dict[str, str] = {},
     ):
         """
         Construction of a new Target. Requires both a
