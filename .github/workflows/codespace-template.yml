@@ -15,7 +15,8 @@ jobs:
     - name: Checkout codespace
       uses: actions/checkout@v3
       with:
-        repository: pretextbook/pretext-codespace
+        repository: oscarlevin/bug-free-fishstick
+        token: ${{ secrets.PUSH_FISHSTICK }}
 
     - name: Install pretext
       run: |
