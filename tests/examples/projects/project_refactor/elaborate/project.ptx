@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project
-  version="2"
+  ptx-version="2"
   source="my_ptx_source"
   publication="dont-touch"
   output="build/here"
