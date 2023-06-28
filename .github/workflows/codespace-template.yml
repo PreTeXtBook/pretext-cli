@@ -27,6 +27,7 @@ jobs:
     - name: pretext new book
       shell: bash
       run:  |
+        rm -f project.ptx
         python -m pretext new book -d .
 
     - name: setup git config
