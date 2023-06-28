@@ -15,6 +15,27 @@ class Project:
     on the disk, and Paths for where to build output and stage deployments.
     """
 
+    DEFAULT = {
+        "path": Path(),
+        "source": Path("source"),
+        "publication": Path("publication"),
+        "output": Path("output"),
+        "deploy": Path("deploy"),
+        "xsl": Path("xsl"),
+        "executables": {
+            "latex": "latex",
+            "pdflatex": "pdflatex",
+            "xelatex": "xelatex",
+            "pdfsvg": "pdf2svg",
+            "asy": "asy",
+            "sage": "sage",
+            "pdfpng": "convert",
+            "pdfeps": "pdftops",
+            "node": "node",
+            "liblouis": "file2brl",
+        },
+    }
+
     def __init__(
         self,
         path: t.Optional[t.Union[Path, str]] = None,
@@ -72,7 +93,7 @@ class Project:
         if p is None:
             self._path = Path()
         else:
-            self._path = Path(p)
+            self._path = self.DEFAULT["path"]
 
     @property
     def source(self) -> Path:
@@ -81,7 +102,7 @@ class Project:
     @source.setter
     def source(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._source = Path("source")
+            self._source = self.DEFAULT["source"]
         else:
             self._source = Path(p)
 
@@ -92,7 +113,7 @@ class Project:
     @publication.setter
     def publication(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._publication = Path("publication")
+            self._publication = self.DEFAULT["publication"]
         else:
             self._publication = Path(p)
 
@@ -103,7 +124,7 @@ class Project:
     @output.setter
     def output(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._output = Path("output")
+            self._output = self.DEFAULT["output"]
         else:
             self._output = Path(p)
 
@@ -114,7 +135,7 @@ class Project:
     @deploy.setter
     def deploy(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._deploy = Path("deploy")
+            self._deploy = self.DEFAULT["deploy"]
         else:
             self._deploy = Path(p)
 
@@ -125,7 +146,7 @@ class Project:
     @xsl.setter
     def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._xsl = Path("xsl")
+            self._xsl = self.DEFAULT["xsl"]
         else:
             self._xsl = Path(p)
 
@@ -136,18 +157,7 @@ class Project:
     @executables.setter
     def executables(self, ex: t.Optional[t.Dict[str, str]]) -> None:
         if ex is None:
-            self._executables = {
-                "latex": "latex",
-                "pdflatex": "pdflatex",
-                "xelatex": "xelatex",
-                "pdfsvg": "pdf2svg",
-                "asy": "asy",
-                "sage": "sage",
-                "pdfpng": "convert",
-                "pdfeps": "pdftops",
-                "node": "node",
-                "liblouis": "file2brl",
-            }
+            self._executables = self.DEFAULT["executables"]
         else:
             self._executables = ex
 
@@ -234,6 +244,16 @@ class Target:
     # List of valid latex engines for a target.
     LatexEngine = t.Literal["xelatex", "latex", "pdflatex"]
 
+    DEFAULT = {
+        "source": Path("main.ptx"),
+        "publication": Path("publication.ptx"),
+        # "output" depends on name
+        "deploy": None,
+        "xsl": None,
+        "latex_engine": "xelatex",
+        "stringparams": {},
+    }
+
     def __init__(
         self,
         project: Project,
@@ -300,7 +320,7 @@ class Target:
     @source.setter
     def source(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._source = Path("main.ptx")
+            self._source = self.DEFAULT["source"]
         else:
             self._source = Path(path)
 
@@ -311,7 +331,7 @@ class Target:
     @publication.setter
     def publication(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._publication = Path("publication.ptx")
+            self._publication = self.DEFAULT["publication"]
         else:
             self._publication = Path(path)
 
@@ -333,7 +353,7 @@ class Target:
     @deploy.setter
     def deploy(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._deploy = None
+            self._deploy = self.DEFAULT["deploy"]
         else:
             self._deploy = Path(path)
 
@@ -344,7 +364,7 @@ class Target:
     @xsl.setter
     def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._xsl = None
+            self._xsl = self.DEFAULT["xsl"]
         else:
             self._xsl = Path(p)
 
@@ -355,7 +375,7 @@ class Target:
     @latex_engine.setter
     def latex_engine(self, engine: t.Optional[LatexEngine]) -> None:
         if engine is None:
-            self._latex_engine = "xelatex"
+            self._latex_engine = self.DEFAULT["latex_engine"]
         else:
             self._latex_engine = engine
 
