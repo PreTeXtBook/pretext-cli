@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<pretext>
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
   <article>
     <title>Hello World! (print)</title>
-    <p>This is a PreTeXt document.</p>
+    <xi:include href="./para.ptx" />
   </article>
 </pretext>

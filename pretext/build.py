@@ -18,6 +18,7 @@ def html(
     custom_xsl: Optional[Path],
     xmlid_root: Optional[str],
     zipped: bool = False,
+    project_path: Optional[Path] = None,
 ) -> None:
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building HTML into {output}\n")
@@ -40,9 +41,10 @@ def html(
                 None,
                 output.as_posix(),
             )
-            pp = utils.project_path(ptxfile)
-            assert pp is not None, f"Invalid project path to {ptxfile}."
-            codechat.map_path_to_xml_id(ptxfile, pp, output.as_posix())
+            if project_path is None:
+                project_path = utils.project_path(ptxfile)
+            assert project_path is not None, f"Invalid project path to {ptxfile}."
+            codechat.map_path_to_xml_id(ptxfile, project_path, output.as_posix())
         except Exception as e:
             log.critical(e)
             log.debug("Exception info:\n##################\n", exc_info=True)

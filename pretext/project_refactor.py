@@ -501,8 +501,7 @@ class Target:
         if not utils.xml_syntax_is_valid(self.publication_abspath(), "publication"):
             raise RuntimeError("XML syntax for publication file is invalid")
         # Validate xml against schema; continue with warning if invalid:
-        if not utils.xml_source_validates_against_schema(self.source_abspath()):
-            raise RuntimeError("XML in source file does not validate with schema")
+        utils.xml_source_validates_against_schema(self.source_abspath())
 
         # Clean output upon request
         if clean:
@@ -544,7 +543,8 @@ class Target:
                         self.stringparams,
                         custom_xsl,
                         xmlid_root,
-                        False,
+                        zipped=False,
+                        project_path=self.project.abspath(),
                     )
                 elif self.format == "html-zip":
                     builder.html(
@@ -554,7 +554,8 @@ class Target:
                         self.stringparams,
                         custom_xsl,
                         xmlid_root,
-                        True,
+                        zipped=True,
+                        project_path=self.project.abspath(),
                     )
                 elif self.format == "latex":
                     builder.latex(

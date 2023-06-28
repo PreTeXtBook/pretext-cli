@@ -1,4 +1,6 @@
 import time
+import json
+import os
 from pathlib import Path
 import requests
 import shutil
@@ -7,6 +9,7 @@ from pretext import utils
 
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
+TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
 
 def test_defaults() -> None:
@@ -199,3 +202,58 @@ def test_manifest_legacy() -> None:
         assert project.target("pdf").latex_engine == "pdflatex"
 
         assert project.target("foo") is None
+
+
+def test_demo_build(tmp_path: Path) -> None:
+    path_with_spaces = "test path with spaces"
+    project_path = tmp_path / path_with_spaces
+    shutil.copytree(TEMPLATES_DIR / "demo", project_path)
+    with utils.working_directory(project_path):
+        p = pr.Project()
+        p.add_target("web", "html")
+        p.add_target("print", "pdf")
+        p.target("web").build()
+        assert p.target("web").output_abspath().exists()
+        with open(p.target("web").output_abspath() / ".mapping.json") as mpf:
+            mapping = json.load(mpf)
+        # The path separator varies by platform.
+        source_prefix = f"source{os.sep}"
+        # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
+        assert mapping == {
+            f"{source_prefix}main.ptx": ["my-demo-book"],
+            f"{source_prefix}frontmatter.ptx": [
+                "frontmatter",
+                "frontmatter-preface",
+            ],
+            f"{source_prefix}ch-first with spaces.ptx": ["ch-first-without-spaces"],
+            f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
+            f"{source_prefix}sec-first-examples.ptx": ["sec-first-examples"],
+            f"{source_prefix}ex-first.ptx": ["ex-first"],
+            f"{source_prefix}ch-empty.ptx": ["ch-empty"],
+            f"{source_prefix}ch-features.ptx": ["ch-features"],
+            f"{source_prefix}sec-features.ptx": ["sec-features-blocks"],
+            f"{source_prefix}backmatter.ptx": ["backmatter"],
+        }
+
+    # assert script_runner.run(
+    #     [PTX_CMD, "-v", "debug", "build", "subset", "-x", "ch-first-without-spaces"],
+    #     cwd=project_path,
+    # ).success
+    # assert (project_path / "output" / "subset").exists()
+    # assert not (project_path / "output" / "subset" / "ch-empty.html").exists()
+    # assert (
+    #     project_path / "output" / "subset" / "ch-first-without-spaces.html"
+    # ).exists()
+    # assert script_runner.run(
+    #     [PTX_CMD, "build", "print-latex"], cwd=project_path
+    # ).success
+    # assert (project_path / "output" / "print-latex").exists()
+    # assert script_runner.run(
+    #     [PTX_CMD, "-v", "debug", "build", "-g"], cwd=project_path
+    # ).success
+    # assert (project_path / "generated-assets").exists()
+    # shutil.rmtree(project_path / "generated-assets")
+    # assert script_runner.run(
+    #     [PTX_CMD, "-v", "debug", "build", "-g", "webwork"], cwd=project_path
+    # ).success
+    # assert (project_path / "generated-assets").exists()

@@ -132,9 +132,7 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
-        # we need to call xinclude once for each level of nesting (just to check for errors).  25 levels should be more than sufficient
-        for _ in range(25):
-            source_xml.xinclude()
+        source_xml.xinclude()
         log.debug("XML syntax appears well formed.")
         if source_xml.getroot().tag != root_tag:
             log.error(
@@ -166,6 +164,7 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 
     # Parse xml file:
     source_xml = ET.parse(xmlfile)
+    source_xml.xinclude()
 
     # just for testing
     # ----------------
