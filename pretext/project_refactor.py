@@ -198,8 +198,6 @@ class Target:
         format: Format,
         source: t.Optional[Path | str] = None,
         publication: t.Optional[Path | str] = None,
-        external_dir: t.Optional[Path | str] = None,
-        generated_dir: t.Optional[Path | str] = None,
         output: t.Optional[Path | str] = None,
         deploy: t.Optional[Path | str] = None,
         xsl: t.Optional[Path | str] = None,
@@ -214,13 +212,7 @@ class Target:
         self.name = name
         self.format = format
         self.source = source
-        # directories are set by the publication iff it exists
-        if publication is None:
-            self.publication = None
-            self.external_dir = external_dir
-            self.generated_dir = generated_dir
-        else:
-            self.publication = publication
+        self.publication = publication
         self.output = output
         self.deploy = deploy
         self.xsl = xsl
@@ -275,44 +267,10 @@ class Target:
 
     @publication.setter
     def publication(self, path: t.Optional[Path | str]) -> None:
-        if path is not None:
+        if path is None:
+            self._publication = Path("publication.ptx")
+        else:
             self._publication = Path(path)
-            pub_ele = ET.parse(path).getroot()
-            dir_ele = pub_ele.find("source").find("directories")
-            self._external_dir = self.source / dir_ele.get("external")
-            self._generated_dir = self.source / dir_ele.get("generated")
-        else:
-            self._publication = None
-            self.external_dir = None  # use default
-            self.generated_dir = None  # use default
-
-    @property
-    def external_dir(self) -> Path:
-        return self._external_dir
-
-    @external_dir.setter
-    def external_dir(self, path: t.Optional[Path]) -> None:
-        if self.publication is None:
-            if path is None:
-                self._external_dir = Path("assets")
-            else:
-                self._external_dir = Path(path)
-        else:
-            raise AttributeError("external_dir is managed by publication")
-
-    @property
-    def generated_dir(self) -> Path:
-        return self._generated_dir
-
-    @generated_dir.setter
-    def generated_dir(self, path: t.Optional[Path]) -> None:
-        if self.publication is None:
-            if path is None:
-                self._generated_dir = Path("generated-assets")
-            else:
-                self._generated_dir = Path(path)
-        else:
-            raise AttributeError("generated_dir is managed by publication")
 
     @property
     def output(self) -> Path:

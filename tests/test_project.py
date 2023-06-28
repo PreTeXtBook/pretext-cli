@@ -26,9 +26,7 @@ def test_defaults() -> None:
         assert target.name == name
         assert target.format == frmt
         assert target.source == Path("main.ptx")
-        assert target.publication is None
-        assert target.external_dir == Path("assets")
-        assert target.generated_dir == Path("generated-assets")
+        assert target.publication == Path("publication.ptx")
         assert target.output == Path(target.name)
         assert target.deploy is None
         assert target.xsl is None
@@ -102,7 +100,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.target("web") is not None
         assert project.target("web").format == "html"
         assert project.target("web").source == Path("book.ptx")
-        assert project.target("web").publication == None
+        assert project.target("web").publication == Path("publication.ptx")
         assert project.target("web").output == Path("web")
         assert project.target("web").deploy == Path("")
         assert project.target("web").xsl == None
