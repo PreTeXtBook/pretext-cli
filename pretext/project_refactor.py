@@ -25,7 +25,7 @@ class Project:
         xsl: t.Optional[t.Union[Path, str]] = None,
         executables: t.Optional[t.Dict[str, str]] = None,
     ):
-        self._targets: list[Target] = []
+        self._targets: t.List[Target] = []
         self.path = path
         self.source = source
         self.publication = publication
@@ -152,7 +152,7 @@ class Project:
             self._executables = ex
 
     @property
-    def targets(self) -> list["Target"]:
+    def targets(self) -> t.List["Target"]:
         return self._targets
 
     def parse_target(self, element: ET._Element) -> None:
