@@ -181,7 +181,7 @@ class Project:
     def parse_target(self, element: ET._Element, legacy: bool = False) -> None:
         self._targets.append(Target.parse(self, element, legacy=legacy))
 
-    def add_target(self, *args, **kwargs) -> None:
+    def new_target(self, *args, **kwargs) -> None:
         self._targets.append(Target(self, *args, **kwargs))
 
     def target(self, name: t.Optional[str] = None) -> t.Optional["Target"]:

@@ -15,7 +15,7 @@ def test_defaults() -> None:
     ts = ("web", "html"), ("print", "pdf")
     project = pr.Project()
     for t in ts:
-        project.add_target(*t)
+        project.new_target(*t)
     assert project.path == Path()
     assert project.source == Path("source")
     assert project.publication == Path("publication")
@@ -40,7 +40,7 @@ def test_modifications() -> None:
     ts = ("web", "html"), ("print", "pdf")
     project = pr.Project()
     for t in ts:
-        project.add_target(*t)
+        project.new_target(*t)
     project.source = Path("foo")
     assert project.source == Path("foo")
     project.site = "bar"
@@ -218,7 +218,7 @@ def test_demo_html_build(tmp_path: Path) -> None:
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
     with utils.working_directory(project_path):
         p = pr.Project()
-        p.add_target("web", "html")
+        p.new_target("web", "html")
         shutil.rmtree(p.target("web").generated_dir_abspath(), ignore_errors=True)
         p.target("web").build()
         assert p.target("web").output_abspath().exists()
