@@ -24,7 +24,7 @@ from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
 from typing import Any, cast, Callable, List, Optional
 
-from . import core, templates, BUILD_FORMATS
+from . import core, templates, constants
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -451,7 +451,7 @@ def show_target_hints(
     log.critical(
         f'There is not a target named "{target_format}" for this project.ptx manifest.'
     )
-    if target_format in BUILD_FORMATS:
+    if target_format in constants.BUILD_FORMATS:
         target_names = project.target_names(target_format)
         if len(target_names) == 1:
             log.info(

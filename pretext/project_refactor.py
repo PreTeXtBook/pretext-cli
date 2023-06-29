@@ -6,14 +6,12 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from . import ASSETS
-from . import ASSET_TO_XPATH
+from . import constants
 from . import core
 from . import utils
 from . import build
 from . import generate
-
-AssetTable = t.Dict[str, t.Dict[str, bytes]]
+from . import types as pt  # PreTeXt types
 
 
 class Project:
@@ -21,27 +19,6 @@ class Project:
     Representation of a PreTeXt project: a Path for the project
     on the disk, and Paths for where to build output and maintain a site.
     """
-
-    DEFAULT = {
-        "path": Path(),
-        "source": Path("source"),
-        "publication": Path("publication"),
-        "output": Path("output"),
-        "site": Path("site"),
-        "xsl": Path("xsl"),
-        "executables": {
-            "latex": "latex",
-            "pdflatex": "pdflatex",
-            "xelatex": "xelatex",
-            "pdfsvg": "pdf2svg",
-            "asy": "asy",
-            "sage": "sage",
-            "pdfpng": "convert",
-            "pdfeps": "pdftops",
-            "node": "node",
-            "liblouis": "file2brl",
-        },
-    }
 
     def __init__(
         self,
@@ -80,7 +57,7 @@ class Project:
         if element.get("ptx-version") == "2":
             if (dir_path / "executables.ptx").exists():
                 exec_ele = ET.parse(dir_path / "executables.ptx").getroot()
-                executables = cls().DEFAULT["executables"]
+                executables = constants.PROJECT_DEFAULT["executables"]
                 for key in executables:
                     if exec_ele.get(key) is not None:
                         executables[key] = exec_ele.get(key)
@@ -102,7 +79,7 @@ class Project:
             if element.find("executables") is None:
                 executables = None
             else:
-                executables = cls().DEFAULT["executables"]
+                executables = constants.PROJECT_DEFAULT["executables"]
                 for key in executables:
                     if element.find("executables").find(key) is not None:
                         executables[key] = element.find("executables").find(key).text
@@ -129,7 +106,7 @@ class Project:
         if p is None:
             self._path = Path()
         else:
-            self._path = self.DEFAULT["path"]
+            self._path = constants.PROJECT_DEFAULT["path"]
 
     @property
     def source(self) -> Path:
@@ -138,7 +115,7 @@ class Project:
     @source.setter
     def source(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._source = self.DEFAULT["source"]
+            self._source = constants.PROJECT_DEFAULT["source"]
         else:
             self._source = Path(p)
 
@@ -149,7 +126,7 @@ class Project:
     @publication.setter
     def publication(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._publication = self.DEFAULT["publication"]
+            self._publication = constants.PROJECT_DEFAULT["publication"]
         else:
             self._publication = Path(p)
 
@@ -160,7 +137,7 @@ class Project:
     @output.setter
     def output(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._output = self.DEFAULT["output"]
+            self._output = constants.PROJECT_DEFAULT["output"]
         else:
             self._output = Path(p)
 
@@ -171,7 +148,7 @@ class Project:
     @site.setter
     def site(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._site = self.DEFAULT["site"]
+            self._site = constants.PROJECT_DEFAULT["site"]
         else:
             self._site = Path(p)
 
@@ -182,7 +159,7 @@ class Project:
     @xsl.setter
     def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._xsl = self.DEFAULT["xsl"]
+            self._xsl = constants.PROJECT_DEFAULT["xsl"]
         else:
             self._xsl = Path(p)
 
@@ -193,7 +170,7 @@ class Project:
     @executables.setter
     def executables(self, ex: t.Optional[t.Dict[str, str]]) -> None:
         if ex is None:
-            self._executables = self.DEFAULT["executables"]
+            self._executables = constants.PROJECT_DEFAULT["executables"]
         else:
             self._executables = ex
 
@@ -265,42 +242,17 @@ class Target:
     build targeting a format such as HTML, LaTeX, etc.
     """
 
-    # List of valid formats for a target.
-    Format = t.Literal[
-        "html",
-        "latex",
-        "pdf",
-        "epub",
-        "kindle",
-        "braille",
-        "webwork",
-        "custom",
-    ]
-
-    # List of valid latex engines for a target.
-    LatexEngine = t.Literal["xelatex", "latex", "pdflatex"]
-
-    DEFAULT = {
-        "source": Path("main.ptx"),
-        "publication": Path("publication.ptx"),
-        # "output" depends on name
-        "site": None,
-        "xsl": None,
-        "latex_engine": "xelatex",
-        "stringparams": {},
-    }
-
     def __init__(
         self,
         project: Project,
         name: str,
-        format: Format,
+        format: pt.Format,
         source: t.Optional[t.Union[Path, str]] = None,
         publication: t.Optional[t.Union[Path, str]] = None,
         output: t.Optional[t.Union[Path, str]] = None,
         site: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
-        latex_engine: t.Optional[LatexEngine] = None,
+        latex_engine: t.Optional[pt.LatexEngine] = None,
         stringparams: t.Dict[str, str] = {},
     ):
         """
@@ -385,7 +337,7 @@ class Target:
     @source.setter
     def source(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._source = self.DEFAULT["source"]
+            self._source = constants.TARGET_DEFAULT["source"]
         else:
             self._source = Path(path)
 
@@ -396,7 +348,7 @@ class Target:
     @publication.setter
     def publication(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._publication = self.DEFAULT["publication"]
+            self._publication = constants.TARGET_DEFAULT["publication"]
         else:
             self._publication = Path(path)
 
@@ -418,7 +370,7 @@ class Target:
     @site.setter
     def site(self, path: t.Optional[t.Union[Path, str]]) -> None:
         if path is None:
-            self._site = self.DEFAULT["site"]
+            self._site = constants.TARGET_DEFAULT["site"]
         else:
             self._site = Path(path)
 
@@ -429,18 +381,18 @@ class Target:
     @xsl.setter
     def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
         if p is None:
-            self._xsl = self.DEFAULT["xsl"]
+            self._xsl = constants.TARGET_DEFAULT["xsl"]
         else:
             self._xsl = Path(p)
 
     @property
-    def latex_engine(self) -> LatexEngine:
+    def latex_engine(self) -> pt.LatexEngine:
         return self._latex_engine
 
     @latex_engine.setter
-    def latex_engine(self, engine: t.Optional[LatexEngine]) -> None:
+    def latex_engine(self, engine: t.Optional[pt.LatexEngine]) -> None:
         if engine is None:
-            self._latex_engine = self.DEFAULT["latex_engine"]
+            self._latex_engine = constants.TARGET_DEFAULT["latex_engine"]
         else:
             self._latex_engine = engine
 
@@ -500,7 +452,7 @@ class Target:
         self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
         self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
 
-    def load_asset_table(self) -> AssetTable:
+    def load_asset_table(self) -> pt.AssetTable:
         """
         Loads the asset table from a pickle file in the generated assets directory
         based on the target name.
@@ -513,9 +465,9 @@ class Target:
         except Exception:
             return {}
 
-    def generate_asset_table(self) -> AssetTable:
-        asset_hash_dict: AssetTable = {}
-        for asset in ASSET_TO_XPATH.keys():
+    def generate_asset_table(self) -> pt.AssetTable:
+        asset_hash_dict: pt.AssetTable = {}
+        for asset in constants.ASSET_TO_XPATH.keys():
             if asset == "webwork":
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
                 ww = self.source_element().xpath(".//webwork[@*|*]")
@@ -531,7 +483,9 @@ class Target:
                 asset_hash_dict["webwork"][""] = h.digest()
             else:
                 # everything else can be updated individually, if it has an xml:id
-                source_assets = self.source_element().xpath(f".//{ASSET_TO_XPATH[asset]}")
+                source_assets = self.source_element().xpath(
+                    f".//{constants.ASSET_TO_XPATH[asset]}"
+                )
                 assert isinstance(source_assets, t.List)
                 if len(source_assets) == 0:
                     # Only generate a hash if there are actually assets of this type in the source
@@ -556,7 +510,7 @@ class Target:
                         asset_hash_dict[asset][""] = h_no_id.digest()
         return asset_hash_dict
 
-    def save_asset_table(self, asset_table: AssetTable) -> None:
+    def save_asset_table(self, asset_table: pt.AssetTable) -> None:
         """
         Saves the asset_table to a pickle file in the generated assets directory
         based on the target name.
@@ -762,7 +716,7 @@ class Target:
         log_info: t.Callable = print,
     ) -> None:
         if specified_asset_types is None:
-            specified_asset_types = [a for a in ASSETS if a != "ALL"]
+            specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
         if check_cache:
             # TODO this ignores xmlid!
             asset_table_cache = self.load_asset_table()

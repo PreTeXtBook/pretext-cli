@@ -20,31 +20,6 @@ VERSION = get_version("pretext", Path(__file__).parent.parent)
 
 CORE_COMMIT = "3024ffd91203498bc9fba1c16681c9817ccce93a"
 
-# List of templates, build formats, and assets that are supported by the CLI.
-NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
-BUILD_FORMATS = [
-    "html",
-    "pdf",
-    "latex",
-    "epub",
-    "kindle",
-    "braille",
-    "html-zip",
-    "webwork-sets",
-    "webwork-sets-zipped",
-]
-ASSET_TO_XPATH = {
-    "webwork": "webwork",
-    "latex-image": "latex-image",
-    "sageplot": "sageplot",
-    "asymptote": "asymptote",
-    "youtube": "video[@youtube]",
-    "codelens": "program[@interactive='codelens']",
-    "datafile": "datafile",
-    "interactive": "interactive",
-}
-ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
-
 
 def activate() -> None:
     """

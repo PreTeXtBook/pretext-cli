@@ -7,7 +7,7 @@ import logging
 import tempfile
 from . import utils, generate, core
 from . import build as builder
-from . import ASSETS
+from . import constants
 from pathlib import Path
 import sys
 from .config.xml_overlay import ShadowXmlDocument
@@ -180,7 +180,7 @@ class Target:
 
     def asset_hash(self) -> asset_table_type:
         asset_hash_dict = {}
-        for asset in ASSETS:
+        for asset in constants.ASSETS:
             if asset == "webwork":
                 ww = self.source_xml().xpath(".//webwork[@*|*]")
                 assert isinstance(ww, List)
