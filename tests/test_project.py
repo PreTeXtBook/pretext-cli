@@ -1,6 +1,5 @@
 import time
 import json
-import os
 from pathlib import Path
 import requests
 import shutil
@@ -212,16 +211,21 @@ def test_manifest_legacy() -> None:
 
 
 def test_demo_build(tmp_path: Path) -> None:
-    path_without_spaces = "test-path-without-spaces"
+    path_without_spaces = (
+        "test-path-without-spaces"  # TODO codechat is broken with spaces
+    )
     project_path = tmp_path / path_without_spaces
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
-    # shutil.rmtree(project_path / "generated-assets", ignore_errors=True)
+    shutil.rmtree(project_path / "generated-assets", ignore_errors=True)
     with utils.working_directory(project_path):
         p = pr.Project()
         p.add_target("web", "html")
         p.add_target("print", "pdf")
-        p.target("web").build()  # TODO this is not generating assets...
+        p.target("web").build()
         assert p.target("web").output_abspath().exists()
+        assert (
+            p.target("web").generated_dir_abspath() / "play-button" / "play-button.png"
+        ).exists()
         with open(p.target("web").output_abspath() / ".mapping.json") as mpf:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
@@ -259,12 +263,12 @@ def test_subset_build(tmp_path: Path) -> None:
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         target = project.target("web")
-        target.build(xmlid_root="sec-first")
+        target.build(xmlid="sec-first")
         assert (target.output_dir_abspath() / "sec-first.html").exists()
         assert not (target.output_dir_abspath() / "index.html").exists()
 
 
-def test_assets(tmp_path: Path) -> None:
+def test_asset_table(tmp_path: Path) -> None:
     prj_path = tmp_path / "assets"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "assets", prj_path)
     with utils.working_directory(prj_path):

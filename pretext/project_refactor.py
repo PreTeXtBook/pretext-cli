@@ -600,35 +600,37 @@ class Target:
         self.ensure_asset_directories()
 
         if generate_assets:
-            asset_table_cache = self.load_asset_table()
-            asset_table = self.generate_asset_table()
-            if asset_table == asset_table_cache:
-                log_info(
-                    "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
-                )
-            else:
-                for asset in set(asset[0] for asset in asset_table.keys()):
-                    if asset in ["webwork"]:
-                        if (asset, "") not in asset_table or asset_table[
-                            (asset, "")
-                        ] != asset_table[(asset, "")]:
-                            self.generate(asset_list=[asset])
-                    elif (asset, "") not in asset_table or asset_table[
-                        (asset, "")
-                    ] != asset_table[(asset, "")]:
-                        self.generate(asset_list=[asset])
-                    else:
-                        for id in set(
-                            key[1] for key in asset_table.keys() if key[0] == asset
-                        ):
-                            if (asset, id) not in asset_table or asset_table[
-                                (asset, id)
-                            ] != asset_table[(asset, id)]:
-                                log_info(
-                                    f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
-                                )
-                                self.generate(asset_list=[asset], xmlid=id)
-                self.save_asset_table(asset_table)
+            self.generate_assets()
+            # # TODO move caching stuff to generate method
+            # asset_table_cache = self.load_asset_table()
+            # asset_table = self.generate_asset_table()
+            # if asset_table == asset_table_cache:
+            #     log_info(
+            #         "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
+            #     )
+            # else:
+            #     for asset in set(asset[0] for asset in asset_table.keys()):
+            #         if asset in ["webwork"]:
+            #             if (asset, "") not in asset_table or asset_table[
+            #                 (asset, "")
+            #             ] != asset_table[(asset, "")]:
+            #                 self.generate(asset_list=[asset])
+            #         elif (asset, "") not in asset_table or asset_table[
+            #             (asset, "")
+            #         ] != asset_table[(asset, "")]:
+            #             self.generate(asset_list=[asset])
+            #         else:
+            #             for id in set(
+            #                 key[1] for key in asset_table.keys() if key[0] == asset
+            #             ):
+            #                 if (asset, id) not in asset_table or asset_table[
+            #                     (asset, id)
+            #                 ] != asset_table[(asset, id)]:
+            #                     log_info(
+            #                         f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
+            #                     )
+            #                     self.generate(asset_list=[asset], xmlid=id)
+            #     self.save_asset_table(asset_table)
 
         with tempfile.TemporaryDirectory() as tmp_xsl_str:
             tmp_xsl_path = Path(tmp_xsl_str)
