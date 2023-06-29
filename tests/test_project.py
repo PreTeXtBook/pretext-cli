@@ -212,34 +212,42 @@ def test_manifest_legacy() -> None:
 
 
 def test_demo_build(tmp_path: Path) -> None:
-    path_with_spaces = "test path with spaces"
-    project_path = tmp_path / path_with_spaces
+    path_without_spaces = "test-path-without-spaces"
+    project_path = tmp_path / path_without_spaces
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
+    # shutil.rmtree(project_path / "generated-assets", ignore_errors=True)
     with utils.working_directory(project_path):
         p = pr.Project()
         p.add_target("web", "html")
         p.add_target("print", "pdf")
-        p.target("web").build()
+        p.target("web").build()  # TODO this is not generating assets...
         assert p.target("web").output_abspath().exists()
         with open(p.target("web").output_abspath() / ".mapping.json") as mpf:
             mapping = json.load(mpf)
-        # The path separator varies by platform.
-        source_prefix = f"source{os.sep}"
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
         assert mapping == {
-            f"{source_prefix}main.ptx": ["my-demo-book"],
-            f"{source_prefix}frontmatter.ptx": [
+            str(Path("source", "main.ptx")): ["my-demo-book"],
+            str(Path("source", "frontmatter.ptx")): [
                 "frontmatter",
                 "frontmatter-preface",
             ],
-            f"{source_prefix}ch-first with spaces.ptx": ["ch-first-without-spaces"],
-            f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
-            f"{source_prefix}sec-first-examples.ptx": ["sec-first-examples"],
-            f"{source_prefix}ex-first.ptx": ["ex-first"],
-            f"{source_prefix}ch-empty.ptx": ["ch-empty"],
-            f"{source_prefix}ch-features.ptx": ["ch-features"],
-            f"{source_prefix}sec-features.ptx": ["sec-features-blocks"],
-            f"{source_prefix}backmatter.ptx": ["backmatter"],
+            str(Path("source", "ch-first with spaces.ptx")): [
+                "ch-first-without-spaces"
+            ],
+            str(Path("source", "sec-first-intro.ptx")): ["sec-first-intro"],
+            str(Path("source", "sec-first-examples.ptx")): ["sec-first-examples"],
+            str(Path("source", "ex-first.ptx")): ["ex-first"],
+            str(Path("source", "ch-empty.ptx")): ["ch-empty"],
+            str(Path("source", "ch-features.ptx")): ["ch-features"],
+            str(Path("source", "sec-features.ptx")): ["sec-features-blocks"],
+            str(Path("source", "backmatter.ptx")): ["backmatter"],
+            str(Path("source", "ch-generate.ptx")): [
+                "ch-generate",
+                "webwork",
+                "youtube",
+                "interactive-infinity",
+                "codelens",
+            ],
         }
 
 

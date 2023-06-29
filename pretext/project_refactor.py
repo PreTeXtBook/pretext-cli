@@ -9,7 +9,8 @@ from lxml import etree as ET
 from . import ASSETS
 from . import core
 from . import utils
-from . import build as builder
+from . import build
+from . import generate
 
 AssetTable = t.Dict[t.Tuple[str, str], bytes]
 
@@ -579,7 +580,7 @@ class Target:
         self,
         clean: bool = False,
         generate_assets: bool = True,
-        xmlid_root: t.Optional[str] = None,
+        xmlid: t.Optional[str] = None,
         log_info: t.Callable = print,
         log_warning: t.Callable = print,
     ) -> None:
@@ -655,29 +656,29 @@ class Target:
             # try to build
             try:
                 if self.format == "html":
-                    builder.html(
+                    build.html(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
                         self.stringparams,
                         custom_xsl,
-                        xmlid_root,
+                        xmlid,
                         zipped=False,
                         project_path=self.project.abspath(),
                     )
                 elif self.format == "html-zip":
-                    builder.html(
+                    build.html(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
                         self.stringparams,
                         custom_xsl,
-                        xmlid_root,
+                        xmlid,
                         zipped=True,
                         project_path=self.project.abspath(),
                     )
                 elif self.format == "latex":
-                    builder.latex(
+                    build.latex(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
@@ -696,7 +697,7 @@ class Target:
                         dirs_exist_ok=True,
                     )
                 elif self.format == "pdf":
-                    builder.pdf(
+                    build.pdf(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
@@ -707,7 +708,7 @@ class Target:
                 elif self.format == "custom":
                     if custom_xsl is None:
                         raise RuntimeError("Must specify custom XSL for custom build.")
-                    builder.custom(
+                    build.custom(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_dir_abspath(),
@@ -716,21 +717,21 @@ class Target:
                         output_filename=self.output_filename(),
                     )
                 elif self.format == "epub":
-                    builder.epub(
+                    build.epub(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
                         self.stringparams,
                     )
                 elif self.format == "kindle":
-                    builder.kindle(
+                    build.kindle(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
                         self.stringparams,
                     )
                 elif self.format in ("braille", "braille-emboss"):
-                    builder.braille(
+                    build.braille(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
@@ -738,7 +739,7 @@ class Target:
                         page_format="emboss",
                     )
                 elif self.format == "braille-electronic":
-                    builder.braille(
+                    build.braille(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
@@ -746,7 +747,7 @@ class Target:
                         page_format="electronic",
                     )
                 elif self.format == "webwork-sets":
-                    builder.webwork_sets(
+                    build.webwork_sets(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
@@ -754,7 +755,7 @@ class Target:
                         False,
                     )
                 elif self.format == "webwork-sets-zip":
-                    builder.webwork_sets(
+                    build.webwork_sets(
                         self.source_abspath(),
                         self.publication_abspath(),
                         self.output_abspath(),
@@ -767,14 +768,110 @@ class Target:
                     )
             # except Exception:
             #     pass  # TODO handle in CLI
-            # log.critical(
-            #     f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`"
-            # )
-            # log.debug("Exception info:\n##################\n", exc_info=True)
-            # log_info("##################")
-            # sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
             finally:
                 # remove temp directories left by core.
                 core.release_temporary_directories()
         # build was successful
         log_info("\nSuccess! Run `pretext view` to see the results.\n")
+
+    def generate_assets(
+        self,
+        asset_tags: t.Optional[t.List[str]] = None,
+        all_formats: bool = False,
+        xmlid: t.Optional[str] = None,
+    ) -> None:
+        # set executables
+        core.set_executables(self.project.executables)
+
+        # build targets:
+        try:
+            if asset_tags is None or "webwork" in asset_tags:
+                webwork_output = self.generated_dir_abspath() / "webwork"
+                generate.webwork(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    webwork_output,
+                    self.stringparams,
+                    xmlid,
+                )
+            if asset_tags is None or "latex-image" in asset_tags:
+                generate.latex_image(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    self.format,
+                    xmlid,
+                    self.latex_engine,
+                    all_formats,
+                )
+            if asset_tags is None or "asymptote" in asset_tags:
+                generate.asymptote(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    self.format,
+                    xmlid,
+                    all_formats,
+                )
+            if asset_tags is None or "sageplot" in asset_tags:
+                generate.sageplot(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    self.format,
+                    xmlid,
+                    all_formats,
+                )
+            if asset_tags is None or "interactive" in asset_tags:
+                generate.interactive(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    xmlid,
+                )
+            if asset_tags is None or "youtube" in asset_tags:
+                generate.youtube(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    xmlid,
+                )
+                generate.play_button(
+                    self.generated_dir_abspath(),
+                )
+            if asset_tags is None or "codelens" in asset_tags:
+                generate.codelens(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    xmlid,
+                )
+            if asset_tags is None or "datafile" in asset_tags:
+                generate.datafiles(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    xmlid,
+                )
+            if (
+                asset_tags is None
+                or "interactive" in asset_tags
+                or "youtube" in asset_tags
+            ):
+                generate.qrcodes(
+                    self.source_abspath(),
+                    self.publication_abspath(),
+                    self.generated_dir_abspath(),
+                    self.stringparams,
+                    xmlid,
+                )
+        finally:
+            # Delete temporary directories left behind by core:
+            core.release_temporary_directories()
