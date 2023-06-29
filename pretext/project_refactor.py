@@ -254,7 +254,7 @@ class Target:
         xsl: t.Optional[t.Union[Path, str]] = None,
         latex_engine: t.Optional[pt.LatexEngine] = None,
         braille_mode: t.Optional[pt.BrailleMode] = None,
-        zipped: bool = constants.TARGET_DEFAULT["zipped"],
+        compression: t.Optional[pt.CompressionMode] = None,
         stringparams: t.Dict[str, str] = {},
     ):
         """
@@ -271,7 +271,7 @@ class Target:
         self.xsl = xsl
         self.latex_engine = latex_engine
         self.braille_mode = braille_mode
-        self.zipped = zipped
+        self.compression = compression
         self.stringparams = stringparams
 
     @classmethod
@@ -309,22 +309,20 @@ class Target:
                 xsl = element.find("xsl").text
             format = element.find("format").text
             braille_mode: t.Optional[pt.BrailleMode] = None
+            compression = None
             if format == "html-zip":
                 format = "html"
-                zipped = True
+                compression = "zip"
             elif format == "webwork-sets":
                 format = "webwork"
-                zipped = False
             elif format == "webwork-sets-zipped":
                 format = "webwork"
-                zipped = True
+                compression = "zip"
             elif format == "braille-electronic":
                 format = "braille"
                 braille_mode = "electronic"
             elif format == "braille-emboss":
                 format = "braille"
-            else:
-                zipped = False
             return cls(
                 project,
                 element.get("name"),
@@ -336,11 +334,10 @@ class Target:
                 xsl=xsl,
                 latex_engine=element.get("pdf-method"),
                 braille_mode=braille_mode,
-                zipped=zipped,
+                compression=compression,
                 stringparams=stringparams,
             )
         else:
-            zipped = element.get("zipped") is not None and element.get("zipped") != "no"
             return cls(
                 project,
                 element.get("name"),
@@ -352,7 +349,7 @@ class Target:
                 xsl=element.get("xsl"),
                 latex_engine=element.get("latex-engine"),
                 braille_mode=element.get("braille"),
-                zipped=zipped,
+                compression=element.get("compression"),
                 stringparams=stringparams,
             )
 
@@ -436,6 +433,17 @@ class Target:
             self._braille_mode = constants.TARGET_DEFAULT["braille_mode"]
         else:
             self._braille_mode = mode
+
+    @property
+    def compression(self) -> Path:
+        return self._compression
+
+    @compression.setter
+    def compression(self, path: t.Optional[t.Union[Path, str]]) -> None:
+        if path is None:
+            self._compression = constants.TARGET_DEFAULT["compression"]
+        else:
+            self._compression = Path(path)
 
     def source_abspath(self) -> Path:
         return self.project.source_abspath() / self.source
@@ -631,7 +639,7 @@ class Target:
                 self.stringparams,
                 custom_xsl=custom_xsl,
                 xmlid=xmlid,
-                zipped=self.zipped,
+                zipped=self.compression is not None,
                 project_path=self.project.abspath(),
                 latex_engine=self.latex_engine,
                 executables=self.project.executables,

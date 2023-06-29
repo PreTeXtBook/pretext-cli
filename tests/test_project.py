@@ -267,6 +267,20 @@ def test_subset_build(tmp_path: Path) -> None:
         assert not (target.output_dir_abspath() / "index.html").exists()
 
 
+def test_zip_build(tmp_path: Path) -> None:
+    prj_path = tmp_path / "elaborate"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.target("web")
+        target.compression = "zip"
+        target.build()
+        assert (target.output_dir_abspath() / "book.zip").exists()
+        assert not (target.output_dir_abspath() / "index.html").exists()
+
+
 def test_asset_table(tmp_path: Path) -> None:
     prj_path = tmp_path / "assets"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "assets", prj_path)

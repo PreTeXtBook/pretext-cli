@@ -18,4 +18,6 @@ LatexEngine = t.Literal["xelatex", "latex", "pdflatex"]
 
 BrailleMode = t.Literal["emboss", "electronic"]
 
+CompressionMode = t.Literal["zip"]
+
 AssetTable = t.Dict[str, t.Dict[str, bytes]]

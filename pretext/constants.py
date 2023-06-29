@@ -57,6 +57,6 @@ TARGET_DEFAULT = {
     "xsl": None,
     "latex_engine": "xelatex",
     "braille_mode": "emboss",
-    "zipped": False,
+    "compression": None,
     "stringparams": {},
 }
