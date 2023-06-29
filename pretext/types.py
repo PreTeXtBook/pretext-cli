@@ -1,6 +1,7 @@
 import typing as t
 
 # List of valid formats for a target.
+# TODO: sync with constants.BUILD_FORMATS
 Format = t.Literal[
     "html",
     "latex",
@@ -14,5 +15,7 @@ Format = t.Literal[
 
 # List of valid latex engines for a target.
 LatexEngine = t.Literal["xelatex", "latex", "pdflatex"]
+
+BrailleMode = t.Literal["emboss", "electronic"]
 
 AssetTable = t.Dict[str, t.Dict[str, bytes]]

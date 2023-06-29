@@ -253,11 +253,13 @@ class Target:
         site: t.Optional[t.Union[Path, str]] = None,
         xsl: t.Optional[t.Union[Path, str]] = None,
         latex_engine: t.Optional[pt.LatexEngine] = None,
+        braille_mode: t.Optional[pt.BrailleMode] = None,
+        zipped: bool = constants.TARGET_DEFAULT["zipped"],
         stringparams: t.Dict[str, str] = {},
     ):
         """
-        Construction of a new Target. Requires both a
-        `name` and `format`.
+        Construction of a new Target. Requires a `project`,
+        `name`, and `format`.
         """
         self._project = project
         self.name = name
@@ -268,12 +270,17 @@ class Target:
         self.site = site
         self.xsl = xsl
         self.latex_engine = latex_engine
+        self.braille_mode = braille_mode
+        self.zipped = zipped
         self.stringparams = stringparams
 
     @classmethod
     def parse(
         cls, project: Project, element: ET._Element, legacy: bool = False
     ) -> "Target":
+        """
+        Parses an lxml Element to produce a Target
+        """
         stringparams = {}
         for param in element.findall("stringparam"):
             if param.get("key") is None or param.get("value") is None:
@@ -300,19 +307,40 @@ class Target:
                 xsl = None
             else:
                 xsl = element.find("xsl").text
+            format = element.find("format").text
+            braille_mode: t.Optional[pt.BrailleMode] = None
+            if format == "html-zip":
+                format = "html"
+                zipped = True
+            elif format == "webwork-sets":
+                format = "webwork"
+                zipped = False
+            elif format == "webwork-sets-zipped":
+                format = "webwork"
+                zipped = True
+            elif format == "braille-electronic":
+                format = "braille"
+                braille_mode = "electronic"
+            elif format == "braille-emboss":
+                format = "braille"
+            else:
+                zipped = False
             return cls(
                 project,
                 element.get("name"),
-                element.find("format").text,
+                format,
                 source=source,
                 publication=publication,
                 output=output,
                 site=site,
                 xsl=xsl,
                 latex_engine=element.get("pdf-method"),
+                braille_mode=braille_mode,
+                zipped=zipped,
                 stringparams=stringparams,
             )
         else:
+            zipped = element.get("zipped") is not None and element.get("zipped") != "no"
             return cls(
                 project,
                 element.get("name"),
@@ -323,6 +351,8 @@ class Target:
                 site=element.get("site"),
                 xsl=element.get("xsl"),
                 latex_engine=element.get("latex-engine"),
+                braille_mode=element.get("braille"),
+                zipped=zipped,
                 stringparams=stringparams,
             )
 
@@ -395,6 +425,17 @@ class Target:
             self._latex_engine = constants.TARGET_DEFAULT["latex_engine"]
         else:
             self._latex_engine = engine
+
+    @property
+    def braille_mode(self) -> pt.LatexEngine:
+        return self._latex_engine
+
+    @braille_mode.setter
+    def braille_mode(self, mode: t.Optional[pt.BrailleMode]) -> None:
+        if mode is None:
+            self._braille_mode = constants.TARGET_DEFAULT["braille_mode"]
+        else:
+            self._braille_mode = mode
 
     def source_abspath(self) -> Path:
         return self.project.source_abspath() / self.source
@@ -590,13 +631,11 @@ class Target:
                 self.stringparams,
                 custom_xsl=custom_xsl,
                 xmlid=xmlid,
-                # TODO make zip an attribute
-                zipped=self.format in ["html-zip", "webwork-sets-zip"],
+                zipped=self.zipped,
                 project_path=self.project.abspath(),
                 latex_engine=self.latex_engine,
                 executables=self.project.executables,
-                # TODO make braille stuff an attribute
-                page_format=self.format != "braille-electronic",
+                braille_mode=self.braille_mode,
             )
         # build was successful
         log_info("\nSuccess! Run `pretext view` to see the results.\n")

@@ -22,7 +22,7 @@ def build(
     project_path: Optional[Path] = None,
     latex_engine: str = "xelatex",
     executables: Dict[str, str] = constants.EXECUTABLES_DEFAULT,
-    page_format: str = "emboss",
+    braille_mode: str = "emboss",
 ) -> None:
     core.set_executables(executables)
     try:
@@ -88,9 +88,9 @@ def build(
                 pub_file=pub_file,
                 output=output,
                 stringparams=stringparams,
-                page_format=page_format,
+                page_format=braille_mode,
             )
-        elif format == "webwork-sets":
+        elif format == "webwork":
             webwork_sets(
                 ptxfile=ptxfile,
                 pub_file=pub_file,

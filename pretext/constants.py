@@ -7,11 +7,11 @@ BUILD_FORMATS = [
     "pdf",
     "latex",
     "epub",
-    "kindle",
+    "kindle",  # TODO: mode of epub rather than separate format?
     "braille",
-    "html-zip",
-    "webwork-sets",
-    "webwork-sets-zipped",
+    "html-zip",  # TODO: deprecate
+    "webwork-sets",  # TODO: just "webwork"
+    "webwork-sets-zipped",  # TODO: deprecate
 ]
 
 ASSET_TO_XPATH = {
@@ -56,5 +56,7 @@ TARGET_DEFAULT = {
     "site": None,
     "xsl": None,
     "latex_engine": "xelatex",
+    "braille_mode": "emboss",
+    "zipped": False,
     "stringparams": {},
 }
