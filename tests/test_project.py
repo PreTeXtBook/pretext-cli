@@ -242,29 +242,6 @@ def test_demo_build(tmp_path: Path) -> None:
             f"{source_prefix}backmatter.ptx": ["backmatter"],
         }
 
-    # assert script_runner.run(
-    #     [PTX_CMD, "-v", "debug", "build", "subset", "-x", "ch-first-without-spaces"],
-    #     cwd=project_path,
-    # ).success
-    # assert (project_path / "output" / "subset").exists()
-    # assert not (project_path / "output" / "subset" / "ch-empty.html").exists()
-    # assert (
-    #     project_path / "output" / "subset" / "ch-first-without-spaces.html"
-    # ).exists()
-    # assert script_runner.run(
-    #     [PTX_CMD, "build", "print-latex"], cwd=project_path
-    # ).success
-    # assert (project_path / "output" / "print-latex").exists()
-    # assert script_runner.run(
-    #     [PTX_CMD, "-v", "debug", "build", "-g"], cwd=project_path
-    # ).success
-    # assert (project_path / "generated-assets").exists()
-    # shutil.rmtree(project_path / "generated-assets")
-    # assert script_runner.run(
-    #     [PTX_CMD, "-v", "debug", "build", "-g", "webwork"], cwd=project_path
-    # ).success
-    # assert (project_path / "generated-assets").exists()
-
 
 def test_subset_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
