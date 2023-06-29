@@ -132,6 +132,9 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.output == Path("build", "here")
         assert project.site == Path("build", "staging")
         assert project.xsl == Path("customizations")
+        assert project.executables.get("xelatex") == "xelatex"
+        assert project.executables.get("liblouis") == "foobar"
+        assert project.executables.get("baz") is None
 
         assert project.target("web") is not None
         assert project.target("web").format == "html"
@@ -173,6 +176,10 @@ def test_manifest_legacy() -> None:
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         assert len(project.targets) == 3
+
+        assert project.executables.get("xelatex") == "xelatex"
+        assert project.executables.get("liblouis") == "foobar"
+        assert project.executables.get("baz") is None
 
         assert project.target("html") is not None
         assert project.target("html").format == "html"

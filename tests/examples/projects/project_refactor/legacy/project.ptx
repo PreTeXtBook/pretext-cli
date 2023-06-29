@@ -35,6 +35,6 @@
         <pdfpng>convert</pdfpng>
         <pdfeps>pdftops</pdfeps>
         <node>node</node>
-        <liblouis>file2brl</liblouis>
+        <liblouis>foobar</liblouis>
     </executables>
 </project>

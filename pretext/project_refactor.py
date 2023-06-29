@@ -71,6 +71,14 @@ class Project:
                 dir_path = p
             element = ET.parse(file_path).getroot()
         if element.get("ptx-version") == "2":
+            if (dir_path / "executables.ptx").exists():
+                exec_ele = ET.parse(dir_path / "executables.ptx").getroot()
+                executables = cls().DEFAULT["executables"]
+                for key in executables:
+                    if exec_ele.get(key) is not None:
+                        executables[key] = exec_ele.get(key)
+            else:
+                executables = None
             project = cls(
                 path=dir_path,
                 source=element.get("source"),
@@ -78,11 +86,19 @@ class Project:
                 output=element.get("output"),
                 site=element.get("site"),
                 xsl=element.get("xsl"),
+                executables=executables,
             )
             for t_ele in element.findall("./targets/target"):
                 project.parse_target(t_ele)
             return project
         else:
+            if element.find("executables") is None:
+                executables = None
+            else:
+                executables = cls().DEFAULT["executables"]
+                for key in executables:
+                    if element.find("executables").find(key) is not None:
+                        executables[key] = element.find("executables").find(key).text
             # parse the old project manifest format
             project = cls(
                 path=dir_path,
@@ -91,6 +107,7 @@ class Project:
                 output=Path(""),
                 site=Path(""),
                 xsl=Path(""),
+                executables=executables,
             )
             for t_ele in element.findall("./targets/target"):
                 project.parse_target(t_ele, legacy=True)
