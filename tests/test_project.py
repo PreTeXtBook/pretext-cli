@@ -264,3 +264,16 @@ def test_demo_build(tmp_path: Path) -> None:
     #     [PTX_CMD, "-v", "debug", "build", "-g", "webwork"], cwd=project_path
     # ).success
     # assert (project_path / "generated-assets").exists()
+
+
+def test_subset_build(tmp_path: Path) -> None:
+    prj_path = tmp_path / "elaborate"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.target("web")
+        target.build(xmlid_root="sec-first")
+        assert (target.output_dir_abspath() / "sec-first.html").exists()
+        assert not (target.output_dir_abspath() / "index.html").exists()
