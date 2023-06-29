@@ -1,12 +1,17 @@
 import typing as t
+import hashlib
 import multiprocessing
 import shutil
 import tempfile
+import pickle
 from pathlib import Path
 from lxml import etree as ET
+from . import ASSETS
 from . import core
 from . import utils
 from . import build as builder
+
+AssetTable = t.Dict[t.Tuple[str, str], bytes]
 
 
 class Project:
@@ -440,6 +445,9 @@ class Target:
     def source_abspath(self) -> Path:
         return self.project.source_abspath() / self.source
 
+    def source_element(self) -> ET._Element:
+        return ET.parse(self.source_abspath()).getroot()
+
     def publication_abspath(self) -> Path:
         return self.project.publication_abspath() / self.publication
 
@@ -487,6 +495,68 @@ class Target:
         self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
         self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
 
+    def load_asset_table(self) -> AssetTable:
+        """
+        Loads the asset table from a pickle file in the generated assets directory
+        based on the target name.
+        """
+        try:
+            with open(
+                self.generated_dir_abspath() / f".{self.name}_assets.pkl", "rb"
+            ) as f:
+                return pickle.load(f)
+        except Exception:
+            return {}
+
+    def generate_asset_table(self) -> AssetTable:
+        asset_hash_dict = {}
+        for asset in ASSETS:
+            if asset == "webwork":
+                ww = self.source_element().xpath(".//webwork[@*|*]")
+                assert isinstance(ww, t.List)
+                # WeBWorK must be regenerated every time *any* of the ww exercises change.
+                if len(ww) == 0:
+                    # Only generate a hash if there are actually ww exercises in the source
+                    continue
+                h = hashlib.sha256()
+                for node in ww:
+                    assert isinstance(node, ET._Element)
+                    h.update(ET.tostring(node))
+                asset_hash_dict[(asset, "")] = h.digest()
+            elif asset != "ALL":
+                # everything else can be updated individually, if it has an xml:id
+                source_assets = self.source_element().xpath(f".//{asset}")
+                assert isinstance(source_assets, t.List)
+                if len(source_assets) == 0:
+                    # Only generate a hash if there are actually assets of this type in the source
+                    continue
+                h_no_id = hashlib.sha256()
+                for node in source_assets:
+                    assert isinstance(node, ET._Element)
+                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id (but we haven't already made this key)
+                    if (
+                        (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"))
+                        and isinstance(id, t.List)
+                        and (asset, id[0]) not in asset_hash_dict
+                    ):
+                        assert isinstance(id[0], str)
+                        asset_hash_dict[(asset, id[0])] = hashlib.sha256(
+                            ET.tostring(node)
+                        ).digest()
+                    # otherwise collect all non-id'd nodes into a single hash
+                    else:
+                        h_no_id.update(ET.tostring(node))
+                asset_hash_dict[(asset, "")] = h_no_id.digest()
+        return asset_hash_dict
+
+    def save_asset_table(self, asset_table: AssetTable) -> None:
+        """
+        Saves the asset_table to a pickle file in the generated assets directory
+        based on the target name.
+        """
+        with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
+            pickle.dump(asset_table, f)
+
     def clean_output(self, log_warning: t.Callable = print) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
         if self.project.abspath() not in self.output_abspath().parents:
@@ -508,6 +578,7 @@ class Target:
     def build(
         self,
         clean: bool = False,
+        generate_assets: bool = True,
         xmlid_root: t.Optional[str] = None,
         log_info: t.Callable = print,
         log_warning: t.Callable = print,
@@ -526,6 +597,37 @@ class Target:
 
         # Ensure the asset directories exist.
         self.ensure_asset_directories()
+
+        if generate_assets:
+            asset_table_cache = self.load_asset_table()
+            asset_table = self.generate_asset_table()
+            if asset_table == asset_table_cache:
+                log_info(
+                    "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
+                )
+            else:
+                for asset in set(asset[0] for asset in asset_table.keys()):
+                    if asset in ["webwork"]:
+                        if (asset, "") not in asset_table or asset_table[
+                            (asset, "")
+                        ] != asset_table[(asset, "")]:
+                            self.generate(asset_list=[asset])
+                    elif (asset, "") not in asset_table or asset_table[
+                        (asset, "")
+                    ] != asset_table[(asset, "")]:
+                        self.generate(asset_list=[asset])
+                    else:
+                        for id in set(
+                            key[1] for key in asset_table.keys() if key[0] == asset
+                        ):
+                            if (asset, id) not in asset_table or asset_table[
+                                (asset, id)
+                            ] != asset_table[(asset, id)]:
+                                log_info(
+                                    f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
+                                )
+                                self.generate(asset_list=[asset], xmlid=id)
+                self.save_asset_table(asset_table)
 
         with tempfile.TemporaryDirectory() as tmp_xsl_str:
             tmp_xsl_path = Path(tmp_xsl_str)

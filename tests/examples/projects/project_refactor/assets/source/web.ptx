@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pretext>
+  <article>
+    <title>Hello World!</title>
+    <p>This is a PreTeXt document.</p>
+    <figure xml:id="figure">
+      <caption>It says foo</caption>
+      <image xml:id="image">
+        <description>it says foo</description>
+        <latex-image>foo</latex-image>
+      </image>
+    </figure>
+  </article>
+</pretext>

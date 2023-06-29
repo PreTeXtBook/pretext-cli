@@ -277,3 +277,15 @@ def test_subset_build(tmp_path: Path) -> None:
         target.build(xmlid_root="sec-first")
         assert (target.output_dir_abspath() / "sec-first.html").exists()
         assert not (target.output_dir_abspath() / "index.html").exists()
+
+
+def test_assets(tmp_path: Path) -> None:
+    prj_path = tmp_path / "assets"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "assets", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        web = project.target("web")
+        same_as_web = project.target("same-as-web")
+        different_than_web = project.target("different-than-web")
+        assert web.generate_asset_table() == same_as_web.generate_asset_table()
+        assert web.generate_asset_table() != different_than_web.generate_asset_table()
