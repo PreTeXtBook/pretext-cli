@@ -4,10 +4,104 @@ from pathlib import Path
 import sys
 from typing import Dict, Optional
 
-from . import utils, core, codechat
+from . import utils, core, codechat, constants
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
+
+
+def build(
+    format: str,
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    stringparams: Dict[str, str],
+    custom_xsl: Optional[Path],
+    xmlid: Optional[str],
+    zipped: bool = False,
+    project_path: Optional[Path] = None,
+    latex_engine: str = "xelatex",
+    executables: Dict[str, str] = constants.EXECUTABLES_DEFAULT,
+    page_format: str = "emboss",
+) -> None:
+    core.set_executables(executables)
+    try:
+        if format == "html":
+            html(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+                xmlid_root=xmlid,
+                zipped=zipped,
+                project_path=project_path,
+            )
+        elif format == "latex":
+            latex(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+            )
+        elif format == "pdf":
+            pdf(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+                pdf_method=latex_engine,
+            )
+        elif format == "custom":
+            if output.is_file():
+                output_filename = output.name
+                output = output.parent
+            else:
+                output_filename = None
+            custom(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+                output_filename=output_filename,
+            )
+        elif format == "epub":
+            epub(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+            )
+        elif format == "kindle":
+            kindle(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+            )
+        elif format == "braille":
+            braille(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                page_format=page_format,
+            )
+        elif format == "webwork-sets":
+            webwork_sets(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                zipped=zipped,
+            )
+        else:
+            raise NotImplementedError(f"{format} is not supported")
+    finally:
+        core.release_temporary_directories()
 
 
 def html(

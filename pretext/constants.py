@@ -26,6 +26,19 @@ ASSET_TO_XPATH = {
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
+EXECUTABLES_DEFAULT = {
+    "latex": "latex",
+    "pdflatex": "pdflatex",
+    "xelatex": "xelatex",
+    "pdfsvg": "pdf2svg",
+    "asy": "asy",
+    "sage": "sage",
+    "pdfpng": "convert",
+    "pdfeps": "pdftops",
+    "node": "node",
+    "liblouis": "file2brl",
+}
+
 PROJECT_DEFAULT = {
     "path": Path(),
     "source": Path("source"),
@@ -33,18 +46,7 @@ PROJECT_DEFAULT = {
     "output": Path("output"),
     "site": Path("site"),
     "xsl": Path("xsl"),
-    "executables": {
-        "latex": "latex",
-        "pdflatex": "pdflatex",
-        "xelatex": "xelatex",
-        "pdfsvg": "pdf2svg",
-        "asy": "asy",
-        "sage": "sage",
-        "pdfpng": "convert",
-        "pdfeps": "pdftops",
-        "node": "node",
-        "liblouis": "file2brl",
-    },
+    "executables": EXECUTABLES_DEFAULT,
 }
 
 TARGET_DEFAULT = {

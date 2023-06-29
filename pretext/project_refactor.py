@@ -582,128 +582,22 @@ class Target:
 
             log_info(f"Preparing to build into {self.output_abspath()}.")
 
-            # set executables
-            # TODO core cruft belongs in the build/generate wrapper modules
-            core.set_executables(self.project.executables)
-
-            # try to build
-            try:
-                if self.format == "html":
-                    build.html(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        custom_xsl,
-                        xmlid,
-                        zipped=False,
-                        project_path=self.project.abspath(),
-                    )
-                elif self.format == "html-zip":
-                    build.html(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        custom_xsl,
-                        xmlid,
-                        zipped=True,
-                        project_path=self.project.abspath(),
-                    )
-                elif self.format == "latex":
-                    build.latex(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        custom_xsl,
-                    )
-                    # Manually copy over asset directories
-                    shutil.copytree(
-                        self.external_dir_abspath(),
-                        self.output_abspath() / "external",
-                        dirs_exist_ok=True,
-                    )
-                    shutil.copytree(
-                        self.generated_dir_abspath(),
-                        self.output_abspath() / "generated",
-                        dirs_exist_ok=True,
-                    )
-                elif self.format == "pdf":
-                    build.pdf(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        custom_xsl,
-                        self.latex_engine,
-                    )
-                elif self.format == "custom":
-                    if custom_xsl is None:
-                        raise RuntimeError("Must specify custom XSL for custom build.")
-                    build.custom(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_dir_abspath(),
-                        self.stringparams,
-                        custom_xsl,
-                        output_filename=self.output_filename(),
-                    )
-                elif self.format == "epub":
-                    build.epub(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                    )
-                elif self.format == "kindle":
-                    build.kindle(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                    )
-                elif self.format in ("braille", "braille-emboss"):
-                    build.braille(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        page_format="emboss",
-                    )
-                elif self.format == "braille-electronic":
-                    build.braille(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        page_format="electronic",
-                    )
-                elif self.format == "webwork-sets":
-                    build.webwork_sets(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        False,
-                    )
-                elif self.format == "webwork-sets-zip":
-                    build.webwork_sets(
-                        self.source_abspath(),
-                        self.publication_abspath(),
-                        self.output_abspath(),
-                        self.stringparams,
-                        True,
-                    )
-                else:
-                    raise NotImplementedError(
-                        f"Building {self.format} is not yet supported."
-                    )
-            # except Exception:
-            #     pass  # TODO handle in CLI
-            finally:
-                # remove temp directories left by core.
-                core.release_temporary_directories()
+            build.build(
+                self.format,
+                self.source_abspath(),
+                self.publication_abspath(),
+                self.output_abspath(),
+                self.stringparams,
+                custom_xsl=custom_xsl,
+                xmlid=xmlid,
+                # TODO make zip an attribute
+                zipped=self.format in ["html-zip", "webwork-sets-zip"],
+                project_path=self.project.abspath(),
+                latex_engine=self.latex_engine,
+                executables=self.project.executables,
+                # TODO make braille stuff an attribute
+                page_format=self.format != "braille-electronic",
+            )
         # build was successful
         log_info("\nSuccess! Run `pretext view` to see the results.\n")
 
@@ -796,7 +690,7 @@ class Target:
 
         # build targets:
         try:
-            if specified_asset_types is None or "webwork" in specified_asset_types:
+            if "webwork" in specified_asset_types:
                 generate.webwork(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -804,7 +698,7 @@ class Target:
                     self.stringparams,
                     xmlid,
                 )
-            if specified_asset_types is None or "latex-image" in specified_asset_types:
+            if "latex-image" in specified_asset_types:
                 generate.latex_image(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -815,7 +709,7 @@ class Target:
                     self.latex_engine,
                     all_formats,
                 )
-            if specified_asset_types is None or "asymptote" in specified_asset_types:
+            if "asymptote" in specified_asset_types:
                 generate.asymptote(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -825,7 +719,7 @@ class Target:
                     xmlid,
                     all_formats,
                 )
-            if specified_asset_types is None or "sageplot" in specified_asset_types:
+            if "sageplot" in specified_asset_types:
                 generate.sageplot(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -835,7 +729,7 @@ class Target:
                     xmlid,
                     all_formats,
                 )
-            if specified_asset_types is None or "interactive" in specified_asset_types:
+            if "interactive" in specified_asset_types:
                 generate.interactive(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -843,7 +737,7 @@ class Target:
                     self.stringparams,
                     xmlid,
                 )
-            if specified_asset_types is None or "youtube" in specified_asset_types:
+            if "youtube" in specified_asset_types:
                 generate.youtube(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -854,7 +748,7 @@ class Target:
                 generate.play_button(
                     self.generated_dir_abspath(),
                 )
-            if specified_asset_types is None or "codelens" in specified_asset_types:
+            if "codelens" in specified_asset_types:
                 generate.codelens(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -862,7 +756,7 @@ class Target:
                     self.stringparams,
                     xmlid,
                 )
-            if specified_asset_types is None or "datafile" in specified_asset_types:
+            if "datafile" in specified_asset_types:
                 generate.datafiles(
                     self.source_abspath(),
                     self.publication_abspath(),
@@ -871,8 +765,7 @@ class Target:
                     xmlid,
                 )
             if (
-                specified_asset_types is None
-                or "interactive" in specified_asset_types
+                "interactive" in specified_asset_types
                 or "youtube" in specified_asset_types
             ):
                 generate.qrcodes(
