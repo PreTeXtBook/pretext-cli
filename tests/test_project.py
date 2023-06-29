@@ -210,17 +210,16 @@ def test_manifest_legacy() -> None:
         assert project.target("foo") is None
 
 
-def test_demo_build(tmp_path: Path) -> None:
+def test_demo_html_build(tmp_path: Path) -> None:
     path_without_spaces = (
         "test-path-without-spaces"  # TODO codechat is broken with spaces
     )
     project_path = tmp_path / path_without_spaces
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
-    shutil.rmtree(project_path / "generated-assets", ignore_errors=True)
     with utils.working_directory(project_path):
         p = pr.Project()
         p.add_target("web", "html")
-        p.add_target("print", "pdf")
+        shutil.rmtree(p.target("web").generated_dir_abspath(), ignore_errors=True)
         p.target("web").build()
         assert p.target("web").output_abspath().exists()
         assert (

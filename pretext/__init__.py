@@ -33,17 +33,17 @@ BUILD_FORMATS = [
     "webwork-sets",
     "webwork-sets-zipped",
 ]
-ASSETS = [
-    "ALL",
-    "webwork",
-    "latex-image",
-    "sageplot",
-    "asymptote",
-    "interactive",
-    "youtube",
-    "codelens",
-    "datafile",
-]
+ASSET_TO_XPATH = {
+    "webwork": "webwork",
+    "latex-image": "latex-image",
+    "sageplot": "sageplot",
+    "asymptote": "asymptote",
+    "youtube": "video[@youtube]",
+    "codelens": "program[@interactive='codelens']",
+    "datafile": "datafile",
+    "interactive": "interactive",
+}
+ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
 
 def activate() -> None:
