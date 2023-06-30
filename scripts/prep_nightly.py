@@ -70,7 +70,7 @@ def main() -> None:
     import build_package
 
     build_package.main()
-    # print("Ready to deploy")
+    print("Ready to deploy")
 
 
 if __name__ == "__main__":
