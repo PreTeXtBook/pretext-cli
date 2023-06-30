@@ -76,7 +76,7 @@ jobs:
           output=$(poetry run python scripts/prep_nightly.py)
           echo "Finished steps to prep nightly deployment"
           echo $output
-          if [ contains($output, "Ready to deploy") ]; then
+          if [[ $output == *"Ready to deploy"* ]]; then
             poetry config pypi-token.pypi $PYPI_TOKEN
             poetry publish --build
           fi
