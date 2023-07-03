@@ -105,7 +105,7 @@ def test_manifest_simple(tmp_path: Path) -> None:
         assert default_project.path == project.path
 
 
-def test_manifest_simple_build(tmp_path: Path) -> Path:
+def test_manifest_simple_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
@@ -157,7 +157,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         }
 
 
-def test_manifest_elaborate_build(tmp_path: Path) -> Path:
+def test_manifest_elaborate_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
