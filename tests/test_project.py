@@ -3,12 +3,40 @@ import json
 from pathlib import Path
 import requests
 import shutil
+import subprocess
+
+import pytest
+
 from pretext import project_refactor as pr
 from pretext import utils
 
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
+
+
+# Return True if the given binary is installed and exits with a return code of 0; otherwise, return False. This provides an easy way to check that a given binary is installed.
+def check_installed(
+    # The command to run to check that a given binary is installed; for example, `["python", "--version"]` would check that Python is installed.
+    subprocess_args: list[str],
+) -> bool:
+    try:
+        subprocess.run(subprocess_args, check=True)
+    except Exception:
+        return False
+    return True
+
+
+HAS_XELATEX = check_installed(["xelatex", "--version"])
+
+
+# This "test" simply produces a skipped test to inform the developer that xelatex wasn't found, or does nothing if xelatex was found.
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Note: several tests are skipped, since xelatex wasn't installed.",
+)
+def test_note_if_no_xelatex() -> None:
+    pass
 
 
 def test_defaults() -> None:
@@ -112,8 +140,9 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
         project = pr.Project.parse()
         project.target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
-        project.target("print").build()
-        assert (prj_path / "output" / "print" / "main.pdf").exists()
+        if HAS_XELATEX:
+            project.target("print").build()
+            assert (prj_path / "output" / "print" / "main.pdf").exists()
 
 
 def test_manifest_elaborate(tmp_path: Path) -> None:
@@ -166,8 +195,9 @@ def test_manifest_elaborate_build(tmp_path: Path) -> None:
         project = pr.Project.parse()
         project.target("web").build()
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
-        project.target("print").build()
-        assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()
+        if HAS_XELATEX:
+            project.target("print").build()
+            assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()
 
 
 def test_manifest_legacy() -> None:
