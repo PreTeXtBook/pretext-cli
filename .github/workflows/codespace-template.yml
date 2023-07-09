@@ -21,8 +21,8 @@ jobs:
       - name: Checkout codespace
         uses: actions/checkout@v3
         with:
-          repository: oscarlevin/bug-free-fishstick
-          token: ${{ secrets.PUSH_FISHSTICK }}
+          repository: PreTeXtBook/pretext-codespace
+          token: ${{ secrets.PUSH_CODESPACES }}
 
       - name: Install pretext
         run: |
@@ -39,8 +39,8 @@ jobs:
       - name: setup git config
         run: |
           # setup the username and email.
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name ${{ github.actor }}
+          git config user.email ${{ github.actor }}@users.noreply.github.com
 
       - name: revert to previous README
         run: git restore README.md
