@@ -1,5 +1,6 @@
 import typing as t
 import pydantic_xml as pxml
+from .. import types as pt  # PreTeXt types
 
 
 class StringParamXml(pxml.BaseXmlModel):
@@ -9,15 +10,15 @@ class StringParamXml(pxml.BaseXmlModel):
 
 class TargetXml(pxml.BaseXmlModel):
     name: str = pxml.attr()
-    format: str = pxml.attr()
+    format: pt.Format = pxml.attr()
     source: t.Optional[str] = pxml.attr()
     publication: t.Optional[str] = pxml.attr()
     output: t.Optional[str] = pxml.attr()
     site: t.Optional[str] = pxml.attr()
     xsl: t.Optional[str] = pxml.attr()
-    latex_engine: t.Optional[str] = pxml.attr(name="latex-engine")
-    braille_mode: t.Optional[str] = pxml.attr(name="braille-mode")
-    compression: t.Optional[str] = pxml.attr()
+    latex_engine: t.Optional[pt.LatexEngine] = pxml.attr(name="latex-engine")
+    braille_mode: t.Optional[pt.BrailleMode] = pxml.attr(name="braille-mode")
+    compression: t.Optional[pt.Compression] = pxml.attr()
     stringparams: t.Tuple[StringParamXml] = pxml.element(tag="stringparam")
 
 
