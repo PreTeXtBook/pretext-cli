@@ -54,6 +54,8 @@ class Project:
                 file_path = p / "project.ptx"
                 dir_path = p
             element = ET.parse(file_path).getroot()
+        else:
+            dir_path = p
         if element.get("ptx-version") == "2":
             if (dir_path / "executables.ptx").exists():
                 exec_ele = ET.parse(dir_path / "executables.ptx").getroot()
@@ -81,8 +83,11 @@ class Project:
             else:
                 executables = constants.PROJECT_DEFAULT["executables"]
                 for key in executables:
-                    if element.find("executables").find(key) is not None:
-                        executables[key] = element.find("executables").find(key).text
+                    exe_ele = element.find("executables")
+                    if exe_ele is not None:
+                        executable = exe_ele.find(key)
+                        if executable is not None:
+                            executables[key] = executable.text
             # parse the old project manifest format
             project = cls(
                 path=dir_path,
@@ -287,27 +292,38 @@ class Target:
                 raise ValueError("stringparam must have a key and value")
             stringparams[param.get("key")] = param.get("value")
         if legacy:
-            if element.find("source") is None:
+            source_ele = element.find("source")
+            if source_ele is None:
                 source = None
             else:
-                source = element.find("source").text
-            if element.find("publication") is None:
+                source = source_ele.text
+            publication_ele = element.find("publication")
+            if publication_ele is None:
                 publication = None
             else:
-                publication = element.find("publication").text
-            if element.find("output-dir") is None:
+                publication = publication_ele.text
+            output_dir_ele = element.find("output-dir")
+            if output_dir_ele is None:
                 output = None
             else:
-                output = element.find("output-dir").text
-            if element.find("site") is None:
+                output = output_dir_ele.text
+            site_ele = element.find("site")
+            if site_ele is None:
                 site = None
             else:
-                site = element.find("site").text
-            if element.find("xsl") is None:
+                site = site_ele.text
+            xsl_ele = element.find("xsl")
+            if xsl_ele is None:
                 xsl = None
             else:
-                xsl = element.find("xsl").text
-            format = element.find("format").text
+                xsl = xsl_ele.text
+            name = element.get("name")
+            if name is None:
+                raise ValueError("name is required")
+            format_ele = element.find("format")
+            if format_ele is None:
+                raise ValueError("format is required")
+            format = format_ele.text
             braille_mode: t.Optional[pt.BrailleMode] = None
             compression = None
             if format == "html-zip":
@@ -325,7 +341,7 @@ class Target:
                 format = "braille"
             return cls(
                 project,
-                element.get("name"),
+                name,
                 format,
                 source=source,
                 publication=publication,
@@ -466,7 +482,7 @@ class Target:
         else:
             return self.output_abspath().parent
 
-    def output_filename(self) -> t.Optional[Path]:
+    def output_filename(self) -> t.Optional[str]:
         if self.output_abspath().is_dir():
             return None
         else:
@@ -685,45 +701,46 @@ class Target:
                         )
                     # The asset was used previously.
                     elif asset_table.get(asset) != asset_table_cache.get(asset):
-                        # Check each hashed id
-                        for id in asset_table.get(asset):
-                            # A chance has occurred.
-                            if asset_table.get(asset).get(id) != asset_table_cache.get(
-                                asset
-                            ).get(id):
-                                # No xmlid is associated
-                                if id == "":
-                                    # Webwork never stores an xmlid
-                                    if asset != "webwork":
-                                        log_info(
-                                            f"{asset} has been modified since the last generation, but lacks an xmlid. "
-                                            + f"Regenerating all {asset}."
+                        asset_ids = asset_table.get(asset)
+                        cached_asset_ids = asset_table_cache.get(asset)
+                        if asset_ids is not None and cached_asset_ids is not None:
+                            # Check each hashed id
+                            for id in asset_ids:
+                                # A change has occurred.
+                                if asset_ids.get(id) != cached_asset_ids.get(id):
+                                    # No xmlid is associated
+                                    if id == "":
+                                        # Webwork never stores an xmlid
+                                        if asset != "webwork":
+                                            log_info(
+                                                f"{asset} has been modified since the last generation, but lacks an xmlid. "
+                                                + f"Regenerating all {asset}."
+                                            )
+                                        else:
+                                            log_info(
+                                                "WebWork has been modified since the last generation. "
+                                                + "Regenerating all WebWork."
+                                            )
+                                        self.generate_assets(
+                                            specified_asset_types=[asset],
+                                            all_formats=all_formats,
+                                            check_cache=False,
+                                            xmlid=None,
+                                            log_info=log_info,
                                         )
+                                    # We have an xmlid we can focus on
                                     else:
                                         log_info(
-                                            "WebWork has been modified since the last generation. "
-                                            + "Regenerating all WebWork."
+                                            f"{asset} associated with xmlid `{id}` has been modified since the last generation. "
+                                            + "Regenerating."
                                         )
-                                    self.generate_assets(
-                                        specified_asset_types=[asset],
-                                        all_formats=all_formats,
-                                        check_cache=False,
-                                        xmlid=None,
-                                        log_info=log_info,
-                                    )
-                                # We have an xmlid we can focus on
-                                else:
-                                    log_info(
-                                        f"{asset} associated with xmlid `{id}` has been modified since the last generation. "
-                                        + "Regenerating."
-                                    )
-                                    self.generate_assets(
-                                        specified_asset_types=[asset],
-                                        all_formats=all_formats,
-                                        check_cache=False,
-                                        xmlid=id,
-                                        log_info=log_info,
-                                    )
+                                        self.generate_assets(
+                                            specified_asset_types=[asset],
+                                            all_formats=all_formats,
+                                            check_cache=False,
+                                            xmlid=id,
+                                            log_info=log_info,
+                                        )
                     # Nothing about this asset has changed.
                     else:
                         log_info(
