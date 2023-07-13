@@ -43,6 +43,7 @@ qrcode = "^7"
 
 # Development dependencies
 # ------------------------
+pydantic-xml = "^0.7.0"
 [tool.poetry.group.dev.dependencies]
 black = "^23"
 codechat-server = "^0"
