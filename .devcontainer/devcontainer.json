@@ -34,7 +34,6 @@
 				"oscarlevin.pretext-tools",
 				"ms-python.python",
 				"ms-python.flake8",
-				"matangover.mypy",
 				"streetsidesoftware.code-spell-checker"
 			]
 		}
