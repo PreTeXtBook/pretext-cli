@@ -6,12 +6,28 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
+import pydantic
+from .xml import (
+    ProjectXml,
+    LegacyProjectXml,
+    ExecutablesXml,
+    TargetXml,
+    LegacyTargetXml,
+)
 from .. import constants
 from .. import core
 from .. import utils
 from .. import build
 from .. import generate
 from .. import types as pt  # PreTeXt types
+
+
+# TODO Not yet used...
+# def optstrpth_to_posix(path: t.Optional[t.Union[Path, str]]) -> t.Optional[str]:
+#     if path is None:
+#         return None
+#     else:
+#         return Path(path).as_posix()
 
 
 class Project:
@@ -43,64 +59,129 @@ class Project:
     def parse(
         cls,
         path: t.Union[Path, str] = Path(),
-        element: t.Optional[ET._Element] = None,
     ) -> "Project":
-        p = Path(path)
-        if element is None:
-            if p.is_file():
-                file_path = p
-                dir_path = p.parent
-            else:
-                file_path = p / "project.ptx"
-                dir_path = p
-            element = ET.parse(file_path).getroot()
+        path = Path(path)
+        if path.is_dir():
+            dir_path = path
+            file_path = path / "project.ptx"
         else:
-            dir_path = p
-        if element.get("ptx-version") == "2":
-            if (dir_path / "executables.ptx").exists():
-                exec_ele = ET.parse(dir_path / "executables.ptx").getroot()
-                executables = constants.PROJECT_DEFAULT["executables"]
-                for key in executables:
-                    if exec_ele.get(key) is not None:
-                        executables[key] = exec_ele.get(key)
-            else:
-                executables = None
-            project = cls(
-                path=dir_path,
-                source=element.get("source"),
-                publication=element.get("publication"),
-                output=element.get("output"),
-                site=element.get("site"),
-                xsl=element.get("xsl"),
-                executables=executables,
+            dir_path = path.parent
+            file_path = path
+        try:
+            project_xml = ProjectXml.from_xml(file_path.read_bytes())
+            p = cls(
+                path=file_path,
+                source=project_xml.source,
+                publication=project_xml.publication,
+                output=project_xml.output,
+                site=project_xml.site,
+                xsl=project_xml.xsl,
             )
-            for t_ele in element.findall("./targets/target"):
-                project.parse_target(t_ele)
-            return project
-        else:
-            if element.find("executables") is None:
-                executables = None
+            p._targets = [
+                Target(
+                    name=target.name, format=target.format, target_xml=target, project=p
+                )
+                for target in project_xml.targets
+            ]
+            exec_path = dir_path / "executables.ptx"
+            if exec_path.exists():
+                exec_xml = ExecutablesXml.from_xml(exec_path.read_bytes())
+                p.executables["latex"] = (
+                    exec_xml.latex or constants.EXECUTABLES_DEFAULT["latex"]
+                )
+                p.executables["pdflatex"] = (
+                    exec_xml.pdflatex or constants.EXECUTABLES_DEFAULT["pdflatex"]
+                )
+                p.executables["xelatex"] = (
+                    exec_xml.xelatex or constants.EXECUTABLES_DEFAULT["xelatex"]
+                )
+                p.executables["pdfsvg"] = (
+                    exec_xml.pdfsvg or constants.EXECUTABLES_DEFAULT["pdfsvg"]
+                )
+                p.executables["asy"] = (
+                    exec_xml.asy or constants.EXECUTABLES_DEFAULT["asy"]
+                )
+                p.executables["sage"] = (
+                    exec_xml.sage or constants.EXECUTABLES_DEFAULT["sage"]
+                )
+                p.executables["pdfpng"] = (
+                    exec_xml.pdfpng or constants.EXECUTABLES_DEFAULT["pdfpng"]
+                )
+                p.executables["pdfeps"] = (
+                    exec_xml.pdfeps or constants.EXECUTABLES_DEFAULT["pdfeps"]
+                )
+                p.executables["node"] = (
+                    exec_xml.node or constants.EXECUTABLES_DEFAULT["node"]
+                )
+                p.executables["liblouis"] = (
+                    exec_xml.liblouis or constants.EXECUTABLES_DEFAULT["liblouis"]
+                )
             else:
-                executables = constants.PROJECT_DEFAULT["executables"]
-                for key in executables:
-                    exe_ele = element.find("executables")
-                    if exe_ele is not None:
-                        executable = exe_ele.find(key)
-                        if executable is not None:
-                            executables[key] = executable.text
-            # parse the old project manifest format
-            project = cls(
-                path=dir_path,
-                source=Path(""),
-                publication=Path(""),
-                output=Path(""),
-                site=Path(""),
-                xsl=Path(""),
-                executables=executables,
-            )
-            for t_ele in element.findall("./targets/target"):
-                project.parse_target(t_ele, legacy=True)
-            return project
+                p.executables = constants.EXECUTABLES_DEFAULT
+            return p
+        except pydantic.ValidationError as original_error:
+            # try legacy
+            try:
+                project_xml = LegacyProjectXml.from_xml(file_path.read_bytes())
+                p = cls(
+                    path=file_path,
+                    source="",
+                    publication="",
+                    output="",
+                    site="",
+                    xsl="",
+                )
+                p._targets = [
+                    Target(
+                        name=target.name,
+                        format=target.format,
+                        legacy_target_xml=target,
+                        project=p,
+                    )
+                    for target in project_xml.targets
+                ]
+                p.executables["latex"] = (
+                    project_xml.executables.latex
+                    or constants.EXECUTABLES_DEFAULT["latex"]
+                )
+                p.executables["pdflatex"] = (
+                    project_xml.executables.pdflatex
+                    or constants.EXECUTABLES_DEFAULT["pdflatex"]
+                )
+                p.executables["xelatex"] = (
+                    project_xml.executables.xelatex
+                    or constants.EXECUTABLES_DEFAULT["xelatex"]
+                )
+                p.executables["pdfsvg"] = (
+                    project_xml.executables.pdfsvg
+                    or constants.EXECUTABLES_DEFAULT["pdfsvg"]
+                )
+                p.executables["asy"] = (
+                    project_xml.executables.asy or constants.EXECUTABLES_DEFAULT["asy"]
+                )
+                p.executables["sage"] = (
+                    project_xml.executables.sage
+                    or constants.EXECUTABLES_DEFAULT["sage"]
+                )
+                p.executables["pdfpng"] = (
+                    project_xml.executables.pdfpng
+                    or constants.EXECUTABLES_DEFAULT["pdfpng"]
+                )
+                p.executables["pdfeps"] = (
+                    project_xml.executables.pdfeps
+                    or constants.EXECUTABLES_DEFAULT["pdfeps"]
+                )
+                p.executables["node"] = (
+                    project_xml.executables.node
+                    or constants.EXECUTABLES_DEFAULT["node"]
+                )
+                p.executables["liblouis"] = (
+                    project_xml.executables.liblouis
+                    or constants.EXECUTABLES_DEFAULT["liblouis"]
+                )
+                return p
+            except pydantic.ValidationError as legacy_error:
+                raise original_error and legacy_error
 
     @property
     def path(self) -> Path:
@@ -183,9 +264,6 @@ class Project:
     def targets(self) -> t.List["Target"]:
         return self._targets
 
-    def parse_target(self, element: ET._Element, legacy: bool = False) -> None:
-        self._targets.append(Target.parse(self, element, legacy=legacy))
-
     def new_target(self, *args, **kwargs) -> None:
         self._targets.append(Target(self, *args, **kwargs))
 
@@ -259,8 +337,10 @@ class Target:
         xsl: t.Optional[t.Union[Path, str]] = None,
         latex_engine: t.Optional[pt.LatexEngine] = None,
         braille_mode: t.Optional[pt.BrailleMode] = None,
-        compression: t.Optional[pt.CompressionMode] = None,
+        compression: t.Optional[pt.Compression] = None,
         stringparams: t.Dict[str, str] = {},
+        target_xml: t.Optional[TargetXml] = None,
+        legacy_target_xml: t.Optional[LegacyTargetXml] = None,
     ):
         """
         Construction of a new Target. Requires a `project`,
@@ -278,96 +358,43 @@ class Target:
         self.braille_mode = braille_mode
         self.compression = compression
         self.stringparams = stringparams
-
-    @classmethod
-    def parse(
-        cls, project: Project, element: ET._Element, legacy: bool = False
-    ) -> "Target":
-        """
-        Parses an lxml Element to produce a Target
-        """
-        stringparams = {}
-        for param in element.findall("stringparam"):
-            if param.get("key") is None or param.get("value") is None:
-                raise ValueError("stringparam must have a key and value")
-            stringparams[param.get("key")] = param.get("value")
-        if legacy:
-            source_ele = element.find("source")
-            if source_ele is None:
-                source = None
-            else:
-                source = source_ele.text
-            publication_ele = element.find("publication")
-            if publication_ele is None:
-                publication = None
-            else:
-                publication = publication_ele.text
-            output_dir_ele = element.find("output-dir")
-            if output_dir_ele is None:
-                output = None
-            else:
-                output = output_dir_ele.text
-            site_ele = element.find("site")
-            if site_ele is None:
-                site = None
-            else:
-                site = site_ele.text
-            xsl_ele = element.find("xsl")
-            if xsl_ele is None:
-                xsl = None
-            else:
-                xsl = xsl_ele.text
-            name = element.get("name")
-            if name is None:
-                raise ValueError("name is required")
-            format_ele = element.find("format")
-            if format_ele is None:
-                raise ValueError("format is required")
-            format = format_ele.text
-            braille_mode: t.Optional[pt.BrailleMode] = None
-            compression = None
-            if format == "html-zip":
-                format = "html"
-                compression = "zip"
-            elif format == "webwork-sets":
-                format = "webwork"
-            elif format == "webwork-sets-zipped":
-                format = "webwork"
-                compression = "zip"
-            elif format == "braille-electronic":
-                format = "braille"
-                braille_mode = "electronic"
+        if target_xml is not None:
+            self.source = target_xml.source
+            self.publication = target_xml.publication
+            self.output = target_xml.output
+            self.site = target_xml.site
+            self.xsl = target_xml.xsl
+            self.latex_engine = target_xml.latex_engine
+            self.braille_mode = target_xml.braille_mode
+            self.compression = target_xml.compression
+            self.stringparams = {
+                param.key: param.value for param in target_xml.stringparams
+            }
+        elif legacy_target_xml is not None:
+            self.source = legacy_target_xml.source
+            self.publication = legacy_target_xml.publication
+            self.output = legacy_target_xml.output_dir
+            self.site = legacy_target_xml.site
+            self.xsl = legacy_target_xml.xsl
+            self.latex_engine = legacy_target_xml.pdf_method
+            self.braille_mode = None
+            self.compression = None
+            if legacy_target_xml.format == "html-zip":
+                self.format = "html"
+                self.compression = "zip"
+            elif legacy_target_xml.format == "webwork-sets":
+                self.format = "webwork"
+            elif legacy_target_xml.format == "webwork-sets-zipped":
+                self.format = "webwork"
+                self.compression = "zip"
+            elif legacy_target_xml.format == "braille-electronic":
+                self.format = "braille"
+                self.braille_mode = "electronic"
             elif format == "braille-emboss":
-                format = "braille"
-            return cls(
-                project,
-                name,
-                format,
-                source=source,
-                publication=publication,
-                output=output,
-                site=site,
-                xsl=xsl,
-                latex_engine=element.get("pdf-method"),
-                braille_mode=braille_mode,
-                compression=compression,
-                stringparams=stringparams,
-            )
-        else:
-            return cls(
-                project,
-                element.get("name"),
-                element.get("format"),
-                source=element.get("source"),
-                publication=element.get("publication"),
-                output=element.get("output"),
-                site=element.get("site"),
-                xsl=element.get("xsl"),
-                latex_engine=element.get("latex-engine"),
-                braille_mode=element.get("braille"),
-                compression=element.get("compression"),
-                stringparams=stringparams,
-            )
+                self.format = "braille"
+            self.stringparams = {
+                param.key: param.value for param in legacy_target_xml.stringparams
+            }
 
     @property
     def project(self) -> Project:
