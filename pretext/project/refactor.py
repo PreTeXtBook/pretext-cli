@@ -6,12 +6,12 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from . import constants
-from . import core
-from . import utils
-from . import build
-from . import generate
-from . import types as pt  # PreTeXt types
+from .. import constants
+from .. import core
+from .. import utils
+from .. import build
+from .. import generate
+from .. import types as pt  # PreTeXt types
 
 
 class Project:

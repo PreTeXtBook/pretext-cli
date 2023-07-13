@@ -5,12 +5,12 @@ import os
 import shutil
 import logging
 import tempfile
-from . import utils, generate, core
-from . import build as builder
-from . import constants
+from .. import utils, generate, core
+from .. import build as builder
+from .. import constants
 from pathlib import Path
 import sys
-from .config.xml_overlay import ShadowXmlDocument
+from ..config.xml_overlay import ShadowXmlDocument
 from typing import Dict, List, Optional, Tuple
 import hashlib
 import subprocess

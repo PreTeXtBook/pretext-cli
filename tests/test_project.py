@@ -8,7 +8,7 @@ from typing import List
 
 import pytest
 
-from pretext import project_refactor as pr
+from pretext.project import refactor as pr
 from pretext import utils
 
 
