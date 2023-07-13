@@ -46,14 +46,15 @@ class ExecutablesXml(pxml.BaseXmlModel):
 
 class LegacyTargetXml(pxml.BaseXmlModel):
     name: str = pxml.attr()
-    pdf_method: str = pxml.attr(name="pdf-method")
+    pdf_method: t.Optional[str] = pxml.attr(name="pdf-method")
     format: str = pxml.element()
     source: str = pxml.element()
     publication: str = pxml.element()
     output_dir: str = pxml.element(tag="output-dir")
-    output_filename: str = pxml.element(tag="output-filename")
+    output_filename: t.Optional[str] = pxml.element(tag="output-filename")
     site: t.Optional[str] = pxml.element()
     xsl: t.Optional[str] = pxml.element()
+    stringparams: t.Tuple[StringParamXml] = pxml.element(tag="stringparam")
 
 
 class LegacyExecutablesXml(pxml.BaseXmlModel):
