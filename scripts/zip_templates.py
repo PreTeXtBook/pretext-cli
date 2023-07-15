@@ -30,12 +30,9 @@ def main() -> None:
                             Path("templates") / template_file,
                             copied_template_file,
                         )
-                dc_dir_path = temporary_path / ".devcontainer"
-                if not dc_dir_path.exists():
-                    dc_dir_path.mkdir()
                 shutil.copyfile(
-                    Path("templates") / "devcontainer.json",
-                    dc_dir_path / "devcontainer.json",
+                    Path("templates") / ".devcontainer.json",
+                    ".devcontainer.json",
                 )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
@@ -47,7 +44,7 @@ def main() -> None:
         "project.ptx",
         "publication.ptx",
         ".gitignore",
-        "devcontainer.json",
+        ".devcontainer.json",
     ]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
 

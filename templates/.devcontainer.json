@@ -13,34 +13,41 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
-  // The following was the previous version of this file, which used the Codespaces base image.  It is still available for reference, but is not recommended.
-  // "image": "mcr.microsoft.com/devcontainers/python:3",
-  // "features": {
-  //   "ghcr.io/devcontainers/features/node:1": {},
-  //   "ghcr.io/rocker-org/devcontainer-features/pandoc:1": {}
-  // },
-  // "forwardPorts": [
-  // 	27377,
-  // 	27378
-  // ],
-  // "portsAttributes": {
-  // 	"27378": {
-  // 		"label": "CodeChat",
-  // 		"onAutoForward": "openPreview",
-  // 		"requireLocalPort": true,
-  // 		"elevateIfNeeded": true,
-  // 		"protocol": "https"
-  // 	}
-  // },
-  // "onCreateCommand": "pip install pretext",
-  // // Use 'postCreateCommand' to run commands after the container is created.
+  // Port forwarding
+  // ---------------
+  // This is needed by the CodeChat Server.
+  "forwardPorts": [
+    // The port used for a Thrift connection between the VSCode CodeChat
+    // extension and the CodeChat Server.
+    27376,
+    // The port used for an HTTP connection from the CodeChat Client to
+    // the CodeChat Server.
+    27377,
+    // The port used by a websocket connection between the CodeChat
+    // Server and the CodeChat Client.
+    27378
+  ],
+  // See the [docs](https://containers.dev/implementors/json_reference/#port-attributes).
+  "portsAttributes": {
+    "27376": {
+      "label": "VSCode extension <-> CodeChat Server",
+      "requireLocalPort": true
+    },
+    "27377": {
+      "label": "CodeChat Client",
+      "requireLocalPort": true
+    },
+    "27378": {
+      "label": "CodeChat Client<->Server websocket",
+      "requireLocalPort": true
+      // This port needs to be public; however, there's no way to specify port visibility here. See `server.py` in the CodeChat Server for details.
+    }
+  },
 
   // Configure tool-specific properties.
   "customizations": {
     "codespaces": {
-      "openFiles": [
-        "source/main.ptx"
-      ]
+      "openFiles": ["source/main.ptx"]
     },
     "vscode": {
       "settings": {
@@ -51,7 +58,11 @@
         "xml.validation.enabled": false,
         "CodeChat.CodeChatServer.Command": "CodeChat_Server"
       },
-      "extensions": ["ms-vscode.live-server", "oscarlevin.pretext-tools", "CodeChat.codechat"]
+      "extensions": [
+        "ms-vscode.live-server",
+        "oscarlevin.pretext-tools",
+        "CodeChat.codechat"
+      ]
     }
   }
 
