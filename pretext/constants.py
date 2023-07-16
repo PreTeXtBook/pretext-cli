@@ -1,5 +1,3 @@
-from pathlib import Path
-
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
 BUILD_FORMATS = [

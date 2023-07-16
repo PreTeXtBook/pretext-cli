@@ -65,7 +65,7 @@ def test_defaults() -> None:
         assert target.stringparams == {}
 
 
-def xtest_serve(tmp_path: Path) -> None:
+def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
         project = pr.Project(ptx_version="2")
@@ -191,27 +191,21 @@ def test_manifest_legacy() -> None:
         assert t_html is not None
         assert t_html.format == "html"
         assert t_html.source == Path("source", "main.ptx")
-        assert t_html.publication == Path(
-            "publication", "publication.ptx"
-        )
+        assert t_html.publication == Path("publication", "publication.ptx")
         assert t_html.output == Path("output", "html")
         assert t_html.latex_engine == "xelatex"
 
         t_latex = project.get_target("latex")
         assert t_latex.format == "latex"
         assert t_latex.source == Path("source", "main.ptx")
-        assert t_latex.publication == Path(
-            "publication", "publication.ptx"
-        )
+        assert t_latex.publication == Path("publication", "publication.ptx")
         assert t_latex.output == Path("output", "latex")
         assert t_latex.latex_engine == "xelatex"
 
         t_pdf = project.get_target("pdf")
         assert t_pdf.format == "pdf"
         assert t_pdf.source == Path("source", "main.ptx")
-        assert t_pdf.publication == Path(
-            "publication", "publication.ptx"
-        )
+        assert t_pdf.publication == Path("publication", "publication.ptx")
         assert t_pdf.output == Path("output", "pdf")
         assert t_pdf.latex_engine == "pdflatex"
 

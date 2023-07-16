@@ -7,7 +7,6 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-import pydantic
 import pydantic_xml as pxml
 from .xml import Executables, LegacyProject
 from .. import constants
@@ -278,6 +277,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 project_path=self.project.abspath(),
                 latex_engine=self.latex_engine,
                 executables=self.project.executables.dict(),
+                # TODO: what if this isn't defined? Should we have a default in the project file instead?
                 braille_mode=self.braille_mode,
             )
         # build was successful
@@ -477,7 +477,9 @@ class Project(pxml.BaseXmlModel, tag="project"):
     output: Path = pxml.attr(default=Path("output"))
     site: Path = pxml.attr(default=Path("site"))
     xsl: Path = pxml.attr(default=Path("xsl"))
-    targets: t.List[Target] = pxml.wrapped("targets", pxml.element(tag="target", default=[]))
+    targets: t.List[Target] = pxml.wrapped(
+        "targets", pxml.element(tag="target", default=[])
+    )
 
     @classmethod
     def parse(
@@ -550,7 +552,9 @@ class Project(pxml.BaseXmlModel, tag="project"):
         return p
 
     def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
-        self.targets.append(Target(name=name, format=Format[format.upper()], project=self, **kwargs))
+        self.targets.append(
+            Target(name=name, format=Format[format.upper()], project=self, **kwargs)
+        )
 
     def _get_target(
         self,

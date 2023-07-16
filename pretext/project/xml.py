@@ -63,7 +63,5 @@ class LegacyExecutables(pxml.BaseXmlModel, tag="executables"):
 
 
 class LegacyProject(pxml.BaseXmlModel, tag="project"):
-    targets: t.List[LegacyTarget] = pxml.wrapped(
-        "targets", pxml.element(tag="target")
-    )
+    targets: t.List[LegacyTarget] = pxml.wrapped("targets", pxml.element(tag="target"))
     executables: LegacyExecutables = pxml.element()
