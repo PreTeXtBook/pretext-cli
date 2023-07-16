@@ -4,7 +4,8 @@ from pathlib import Path
 import sys
 from typing import Dict, Optional
 
-from . import utils, core, codechat, constants
+from . import utils, core, codechat
+from .project.xml import Executables
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -21,7 +22,7 @@ def build(
     zipped: bool = False,
     project_path: Optional[Path] = None,
     latex_engine: str = "xelatex",
-    executables: Dict[str, str] = constants.EXECUTABLES_DEFAULT,
+    executables: Dict[str, str] = Executables().dict(),
     braille_mode: str = "emboss",
 ) -> None:
     core.set_executables(executables)

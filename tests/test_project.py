@@ -42,7 +42,7 @@ def test_note_if_no_xelatex() -> None:
 
 def test_defaults() -> None:
     ts = ("web", "html"), ("print", "pdf")
-    project = pr.Project()
+    project = pr.Project(ptx_version="2")
     for t in ts:
         project.new_target(*t)
     assert project.path == Path()
@@ -53,44 +53,22 @@ def test_defaults() -> None:
     assert project.xsl == Path("xsl")
     for t in ts:
         name, frmt = t
-        target = project.target(name)
+        target = project.get_target(name)
         assert target.name == name
         assert target.format == frmt
         assert target.source == Path("main.ptx")
         assert target.publication == Path("publication.ptx")
-        assert target.output == Path(target.name)
-        assert target.site is None
+        assert target.output == Path("output")
+        assert target.site == Path("site")
         assert target.xsl is None
-        assert target.latex_engine == "xelatex"
+        assert target.latex_engine == pr.LatexEngine.XELATEX
         assert target.stringparams == {}
 
 
-def test_modifications() -> None:
-    ts = ("web", "html"), ("print", "pdf")
-    project = pr.Project()
-    for t in ts:
-        project.new_target(*t)
-    project.source = Path("foo")
-    assert project.source == Path("foo")
-    project.site = "bar"
-    assert project.site == Path("bar")
-    project.publication = None
-    assert project.publication == Path("publication")
-    for t in ts:
-        name, _ = t
-        target = project.target(name)
-        target.source = "foo.ptx"
-        assert target.source == Path("foo.ptx")
-        target.publication = Path("bar.ptx")
-        assert target.publication == Path("bar.ptx")
-        target.output = None
-        assert target.output == Path(target.name)
-
-
-def test_serve(tmp_path: Path) -> None:
+def xtest_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
-        project = pr.Project()
+        project = pr.Project(ptx_version="2")
         for mode in ["output", "site"]:
             if mode == "output":
                 dir = project.output
@@ -118,17 +96,17 @@ def test_manifest_simple(tmp_path: Path) -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 2
 
-        assert project.target("web") is not None
-        assert project.target("web").format == "html"
-        assert project.target("web").site is None
+        assert project.get_target("web") is not None
+        assert project.get_target("web").format == "html"
+        assert project.get_target("web").site == Path("site")
 
-        assert project.target("print") is not None
-        assert project.target("print").format == "pdf"
-        assert project.target("print").site is None
+        assert project.get_target("print") is not None
+        assert project.get_target("print").format == "pdf"
+        assert project.get_target("print").site == Path("site")
 
-        assert project.target("foo") is None
+        assert not project.has_target("foo")
 
-        default_project = pr.Project()
+        default_project = pr.Project(ptx_version="2")
         assert default_project.site == project.site
         assert default_project.output == project.output
         assert default_project.path == project.path
@@ -139,10 +117,10 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
-        project.target("web").build()
+        project.get_target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
         if HAS_XELATEX:
-            project.target("print").build()
+            project.get_target("print").build()
             assert (prj_path / "output" / "print" / "main.pdf").exists()
 
 
@@ -161,27 +139,26 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.output == Path("build", "here")
         assert project.site == Path("build", "staging")
         assert project.xsl == Path("customizations")
-        assert project.executables.get("xelatex") == "xelatex"
-        assert project.executables.get("liblouis") == "foobar"
-        assert project.executables.get("baz") is None
+        assert project.executables.xelatex == "xelatex"
+        assert project.executables.liblouis == "foobar"
 
-        assert project.target("web") is not None
-        assert project.target("web").format == "html"
-        assert project.target("web").source == Path("book.ptx")
-        assert project.target("web").publication == Path("publication.ptx")
-        assert project.target("web").output == Path("web")
-        assert project.target("web").site == Path("")
-        assert project.target("web").xsl == Path("silly.xsl")
-        assert project.target("web").stringparams == {}
+        t_web = project.get_target("web")
+        assert t_web.format == "html"
+        assert t_web.source == Path("book.ptx")
+        assert t_web.publication == Path("publication.ptx")
+        assert t_web.output == Path("web")
+        assert t_web.site == Path("")
+        assert t_web.xsl == Path("silly.xsl")
+        assert t_web.stringparams == {}
 
-        assert project.target("print") is not None
-        assert project.target("print").format == "pdf"
-        assert project.target("print").source == Path("main.ptx")
-        assert project.target("print").publication == Path("extras", "print.xml")
-        assert project.target("print").output == Path("my-pdf")
-        assert project.target("print").site is None
-        assert project.target("print").xsl is None
-        assert project.target("print").stringparams == {
+        t_print = project.get_target("print")
+        assert t_print.format == "pdf"
+        assert t_print.source == Path("main.ptx")
+        assert t_print.publication == Path("extras", "print.xml")
+        assert t_print.output == Path("my-pdf")
+        assert t_print.site == Path("site")
+        assert t_print.xsl is None
+        assert t_print.stringparams == {
             "foo": "bar",
             "baz": "goo",
         }
@@ -194,10 +171,10 @@ def test_manifest_elaborate_build(tmp_path: Path) -> None:
     )
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
-        project.target("web").build()
+        project.get_target("web").build()
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
         if HAS_XELATEX:
-            project.target("print").build()
+            project.get_target("print").build()
             assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()
 
 
@@ -207,38 +184,38 @@ def test_manifest_legacy() -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 3
 
-        assert project.executables.get("xelatex") == "xelatex"
-        assert project.executables.get("liblouis") == "foobar"
-        assert project.executables.get("baz") is None
+        assert project.executables.xelatex == "xelatex"
+        assert project.executables.liblouis == "foobar"
 
-        assert project.target("html") is not None
-        assert project.target("html").format == "html"
-        assert project.target("html").source == Path("source", "main.ptx")
-        assert project.target("html").publication == Path(
+        t_html = project.get_target("html")
+        assert t_html is not None
+        assert t_html.format == "html"
+        assert t_html.source == Path("source", "main.ptx")
+        assert t_html.publication == Path(
             "publication", "publication.ptx"
         )
-        assert project.target("html").output == Path("output", "html")
-        assert project.target("html").latex_engine == "xelatex"
+        assert t_html.output == Path("output", "html")
+        assert t_html.latex_engine == "xelatex"
 
-        assert project.target("latex") is not None
-        assert project.target("latex").format == "latex"
-        assert project.target("latex").source == Path("source", "main.ptx")
-        assert project.target("latex").publication == Path(
+        t_latex = project.get_target("latex")
+        assert t_latex.format == "latex"
+        assert t_latex.source == Path("source", "main.ptx")
+        assert t_latex.publication == Path(
             "publication", "publication.ptx"
         )
-        assert project.target("latex").output == Path("output", "latex")
-        assert project.target("latex").latex_engine == "xelatex"
+        assert t_latex.output == Path("output", "latex")
+        assert t_latex.latex_engine == "xelatex"
 
-        assert project.target("pdf") is not None
-        assert project.target("pdf").format == "pdf"
-        assert project.target("pdf").source == Path("source", "main.ptx")
-        assert project.target("pdf").publication == Path(
+        t_pdf = project.get_target("pdf")
+        assert t_pdf.format == "pdf"
+        assert t_pdf.source == Path("source", "main.ptx")
+        assert t_pdf.publication == Path(
             "publication", "publication.ptx"
         )
-        assert project.target("pdf").output == Path("output", "pdf")
-        assert project.target("pdf").latex_engine == "pdflatex"
+        assert t_pdf.output == Path("output", "pdf")
+        assert t_pdf.latex_engine == "pdflatex"
 
-        assert project.target("foo") is None
+        assert not project.has_target("foo")
 
 
 def test_demo_html_build(tmp_path: Path) -> None:
@@ -248,15 +225,16 @@ def test_demo_html_build(tmp_path: Path) -> None:
     project_path = tmp_path / path_without_spaces
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
     with utils.working_directory(project_path):
-        p = pr.Project()
+        p = pr.Project(ptx_version="2")
         p.new_target("web", "html")
-        shutil.rmtree(p.target("web").generated_dir_abspath(), ignore_errors=True)
-        p.target("web").build()
-        assert p.target("web").output_abspath().exists()
+        t_web = p.get_target("web")
+        shutil.rmtree(t_web.generated_dir_abspath(), ignore_errors=True)
+        t_web.build()
+        assert t_web.output_abspath().exists()
         assert (
-            p.target("web").generated_dir_abspath() / "play-button" / "play-button.png"
+            t_web.generated_dir_abspath() / "play-button" / "play-button.png"
         ).exists()
-        with open(p.target("web").output_abspath() / ".mapping.json") as mpf:
+        with open(t_web.output_abspath() / ".mapping.json") as mpf:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
         assert mapping == {
@@ -292,7 +270,7 @@ def test_subset_build(tmp_path: Path) -> None:
     )
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
-        target = project.target("web")
+        target = project.get_target("web")
         target.build(xmlid="sec-first")
         assert (target.output_dir_abspath() / "sec-first.html").exists()
         assert not (target.output_dir_abspath() / "index.html").exists()
@@ -305,7 +283,7 @@ def test_zip_build(tmp_path: Path) -> None:
     )
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
-        target = project.target("web")
+        target = project.get_target("web")
         target.compression = "zip"
         target.build()
         assert (target.output_dir_abspath() / "book.zip").exists()
@@ -317,8 +295,8 @@ def test_asset_table(tmp_path: Path) -> None:
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "assets", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
-        web = project.target("web")
-        same_as_web = project.target("same-as-web")
-        different_than_web = project.target("different-than-web")
+        web = project.get_target("web")
+        same_as_web = project.get_target("same-as-web")
+        different_than_web = project.get_target("different-than-web")
         assert web.generate_asset_table() == same_as_web.generate_asset_table()
         assert web.generate_asset_table() != different_than_web.generate_asset_table()

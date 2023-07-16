@@ -1,64 +1,55 @@
 import typing as t
+from enum import Enum
 import pydantic_xml as pxml
-from .. import types as pt  # PreTeXt types
 
 
-class StringParamXml(pxml.BaseXmlModel, tag="stringparam"):
+class Executables(pxml.BaseXmlModel, tag="executables"):
+    latex: str = pxml.attr(default="latex")
+    pdflatex: str = pxml.attr(default="pdflatex")
+    xelatex: str = pxml.attr(default="xelatex")
+    pdfsvg: str = pxml.attr(default="pdf2svg")
+    asy: str = pxml.attr(default="asy")
+    sage: str = pxml.attr(default="sage")
+    pdfpng: str = pxml.attr(default="convert")
+    pdfeps: str = pxml.attr(default="pdftops")
+    node: str = pxml.attr(default="node")
+    liblouis: str = pxml.attr(default="file2brl")
+
+
+class LegacyFormat(str, Enum):
+    HTML = "html"
+    HTML_ZIP = "html-zip"
+    LATEX = "latex"
+    PDF = "pdf"
+    EPUB = "epub"
+    KINDLE = "kindle"
+    BRAILLE_ELECTRONIC = "braille-electronic"
+    BRAILLE_EMBOSS = "braille-emboss"
+    WEBWORK = "webwork-sets"
+    WEBWORK_ZIPPED = "webwork-sets-zipped"
+    CUSTOM = "custom"
+
+
+class StringParam(pxml.BaseXmlModel, tag="stringparam"):
     key: str = pxml.attr()
     value: str = pxml.attr()
 
 
-class TargetXml(pxml.BaseXmlModel, tag="target"):
-    name: str = pxml.attr()
-    format: pt.Format = pxml.attr()
-    source: t.Optional[str] = pxml.attr()
-    publication: t.Optional[str] = pxml.attr()
-    output: t.Optional[str] = pxml.attr()
-    site: t.Optional[str] = pxml.attr()
-    xsl: t.Optional[str] = pxml.attr()
-    latex_engine: t.Optional[pt.LatexEngine] = pxml.attr(name="latex-engine")
-    braille_mode: t.Optional[pt.BrailleMode] = pxml.attr(name="braille-mode")
-    compression: t.Optional[pt.Compression] = pxml.attr()
-    stringparams: t.List[StringParamXml] = pxml.element(tag="stringparam", default=[])
-
-
-class ProjectXml(pxml.BaseXmlModel, tag="project"):
-    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
-    source: t.Optional[str] = pxml.attr()
-    publication: t.Optional[str] = pxml.attr()
-    output: t.Optional[str] = pxml.attr()
-    site: t.Optional[str] = pxml.attr()
-    xsl: t.Optional[str] = pxml.attr()
-    targets: t.List[TargetXml] = pxml.wrapped("targets", pxml.element(tag="target"))
-
-
-class ExecutablesXml(pxml.BaseXmlModel, tag="executables"):
-    latex: t.Optional[str] = pxml.attr()
-    pdflatex: t.Optional[str] = pxml.attr()
-    xelatex: t.Optional[str] = pxml.attr()
-    pdfsvg: t.Optional[str] = pxml.attr()
-    asy: t.Optional[str] = pxml.attr()
-    sage: t.Optional[str] = pxml.attr()
-    pdfpng: t.Optional[str] = pxml.attr()
-    pdfeps: t.Optional[str] = pxml.attr()
-    node: t.Optional[str] = pxml.attr()
-    liblouis: t.Optional[str] = pxml.attr()
-
-
-class LegacyTargetXml(pxml.BaseXmlModel, tag="target"):
+class LegacyTarget(pxml.BaseXmlModel, tag="target"):
     name: str = pxml.attr()
     pdf_method: t.Optional[str] = pxml.attr(name="pdf-method")
-    format: str = pxml.element()
+    format: LegacyFormat = pxml.element()
     source: str = pxml.element()
     publication: str = pxml.element()
-    output_dir: str = pxml.element(tag="output-dir")
+    # The v1 file called this `output-dir`; the v2 file uses just `output`.
+    output: str = pxml.element(tag="output-dir")
     output_filename: t.Optional[str] = pxml.element(tag="output-filename")
     site: t.Optional[str] = pxml.element()
     xsl: t.Optional[str] = pxml.element()
-    stringparams: t.List[StringParamXml] = pxml.element(tag="stringparam", default=[])
+    stringparams: t.List[StringParam] = pxml.element(tag="stringparam", default=[])
 
 
-class LegacyExecutablesXml(pxml.BaseXmlModel, tag="executables"):
+class LegacyExecutables(pxml.BaseXmlModel, tag="executables"):
     latex: str = pxml.element()
     pdflatex: str = pxml.element()
     xelatex: str = pxml.element()
@@ -71,8 +62,8 @@ class LegacyExecutablesXml(pxml.BaseXmlModel, tag="executables"):
     liblouis: str = pxml.element()
 
 
-class LegacyProjectXml(pxml.BaseXmlModel, tag="project"):
-    targets: t.List[LegacyTargetXml] = pxml.wrapped(
+class LegacyProject(pxml.BaseXmlModel, tag="project"):
+    targets: t.List[LegacyTarget] = pxml.wrapped(
         "targets", pxml.element(tag="target")
     )
-    executables: LegacyExecutablesXml = pxml.element()
+    executables: LegacyExecutables = pxml.element()

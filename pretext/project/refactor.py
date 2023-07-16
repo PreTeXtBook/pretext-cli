@@ -1,4 +1,5 @@
 import typing as t
+from enum import Enum
 import hashlib
 import multiprocessing
 import shutil
@@ -7,13 +8,8 @@ import pickle
 from pathlib import Path
 from lxml import etree as ET
 import pydantic
-from .xml import (
-    ProjectXml,
-    LegacyProjectXml,
-    ExecutablesXml,
-    TargetXml,
-    LegacyTargetXml,
-)
+import pydantic_xml as pxml
+from .xml import Executables, LegacyProject
 from .. import constants
 from .. import core
 from .. import utils
@@ -30,463 +26,57 @@ from .. import types as pt  # PreTeXt types
 #         return Path(path).as_posix()
 
 
-class Project:
-    """
-    Representation of a PreTeXt project: a Path for the project
-    on the disk, and Paths for where to build output and maintain a site.
-    """
-
-    def __init__(
-        self,
-        path: t.Optional[t.Union[Path, str]] = None,
-        source: t.Optional[t.Union[Path, str]] = None,
-        publication: t.Optional[t.Union[Path, str]] = None,
-        output: t.Optional[t.Union[Path, str]] = None,
-        site: t.Optional[t.Union[Path, str]] = None,
-        xsl: t.Optional[t.Union[Path, str]] = None,
-        executables: t.Optional[t.Dict[str, str]] = None,
-    ):
-        self._targets: t.List[Target] = []
-        self.path = path
-        self.source = source
-        self.publication = publication
-        self.output = output
-        self.site = site
-        self.xsl = xsl
-        self.executables = executables
-
-    @classmethod
-    def parse(
-        cls,
-        path: t.Union[Path, str] = Path(),
-    ) -> "Project":
-        path = Path(path)
-        if path.is_dir():
-            dir_path = path
-            file_path = path / "project.ptx"
-        else:
-            dir_path = path.parent
-            file_path = path
-        try:
-            project_xml = ProjectXml.from_xml(file_path.read_bytes())
-            p = cls(
-                path=file_path,
-                source=project_xml.source,
-                publication=project_xml.publication,
-                output=project_xml.output,
-                site=project_xml.site,
-                xsl=project_xml.xsl,
-            )
-            p._targets = [
-                Target(
-                    name=target.name, format=target.format, target_xml=target, project=p
-                )
-                for target in project_xml.targets
-            ]
-            exec_path = dir_path / "executables.ptx"
-            if exec_path.exists():
-                exec_xml = ExecutablesXml.from_xml(exec_path.read_bytes())
-                p.executables["latex"] = (
-                    exec_xml.latex or constants.EXECUTABLES_DEFAULT["latex"]
-                )
-                p.executables["pdflatex"] = (
-                    exec_xml.pdflatex or constants.EXECUTABLES_DEFAULT["pdflatex"]
-                )
-                p.executables["xelatex"] = (
-                    exec_xml.xelatex or constants.EXECUTABLES_DEFAULT["xelatex"]
-                )
-                p.executables["pdfsvg"] = (
-                    exec_xml.pdfsvg or constants.EXECUTABLES_DEFAULT["pdfsvg"]
-                )
-                p.executables["asy"] = (
-                    exec_xml.asy or constants.EXECUTABLES_DEFAULT["asy"]
-                )
-                p.executables["sage"] = (
-                    exec_xml.sage or constants.EXECUTABLES_DEFAULT["sage"]
-                )
-                p.executables["pdfpng"] = (
-                    exec_xml.pdfpng or constants.EXECUTABLES_DEFAULT["pdfpng"]
-                )
-                p.executables["pdfeps"] = (
-                    exec_xml.pdfeps or constants.EXECUTABLES_DEFAULT["pdfeps"]
-                )
-                p.executables["node"] = (
-                    exec_xml.node or constants.EXECUTABLES_DEFAULT["node"]
-                )
-                p.executables["liblouis"] = (
-                    exec_xml.liblouis or constants.EXECUTABLES_DEFAULT["liblouis"]
-                )
-            else:
-                p.executables = constants.EXECUTABLES_DEFAULT
-            return p
-        except pydantic.ValidationError as original_error:
-            # try legacy
-            try:
-                project_xml = LegacyProjectXml.from_xml(file_path.read_bytes())
-                p = cls(
-                    path=file_path,
-                    source="",
-                    publication="",
-                    output="",
-                    site="",
-                    xsl="",
-                )
-                p._targets = [
-                    Target(
-                        name=target.name,
-                        format=target.format,
-                        legacy_target_xml=target,
-                        project=p,
-                    )
-                    for target in project_xml.targets
-                ]
-                p.executables["latex"] = (
-                    project_xml.executables.latex
-                    or constants.EXECUTABLES_DEFAULT["latex"]
-                )
-                p.executables["pdflatex"] = (
-                    project_xml.executables.pdflatex
-                    or constants.EXECUTABLES_DEFAULT["pdflatex"]
-                )
-                p.executables["xelatex"] = (
-                    project_xml.executables.xelatex
-                    or constants.EXECUTABLES_DEFAULT["xelatex"]
-                )
-                p.executables["pdfsvg"] = (
-                    project_xml.executables.pdfsvg
-                    or constants.EXECUTABLES_DEFAULT["pdfsvg"]
-                )
-                p.executables["asy"] = (
-                    project_xml.executables.asy or constants.EXECUTABLES_DEFAULT["asy"]
-                )
-                p.executables["sage"] = (
-                    project_xml.executables.sage
-                    or constants.EXECUTABLES_DEFAULT["sage"]
-                )
-                p.executables["pdfpng"] = (
-                    project_xml.executables.pdfpng
-                    or constants.EXECUTABLES_DEFAULT["pdfpng"]
-                )
-                p.executables["pdfeps"] = (
-                    project_xml.executables.pdfeps
-                    or constants.EXECUTABLES_DEFAULT["pdfeps"]
-                )
-                p.executables["node"] = (
-                    project_xml.executables.node
-                    or constants.EXECUTABLES_DEFAULT["node"]
-                )
-                p.executables["liblouis"] = (
-                    project_xml.executables.liblouis
-                    or constants.EXECUTABLES_DEFAULT["liblouis"]
-                )
-                return p
-            except pydantic.ValidationError as legacy_error:
-                raise original_error and legacy_error
-
-    @property
-    def path(self) -> Path:
-        return self._path
-
-    @path.setter
-    def path(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._path = Path()
-        else:
-            self._path = constants.PROJECT_DEFAULT["path"]
-
-    @property
-    def source(self) -> Path:
-        return self._source
-
-    @source.setter
-    def source(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._source = constants.PROJECT_DEFAULT["source"]
-        else:
-            self._source = Path(p)
-
-    @property
-    def publication(self) -> Path:
-        return self._publication
-
-    @publication.setter
-    def publication(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._publication = constants.PROJECT_DEFAULT["publication"]
-        else:
-            self._publication = Path(p)
-
-    @property
-    def output(self) -> Path:
-        return self._output
-
-    @output.setter
-    def output(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._output = constants.PROJECT_DEFAULT["output"]
-        else:
-            self._output = Path(p)
-
-    @property
-    def site(self) -> Path:
-        return self._site
-
-    @site.setter
-    def site(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._site = constants.PROJECT_DEFAULT["site"]
-        else:
-            self._site = Path(p)
-
-    @property
-    def xsl(self) -> Path:
-        return self._xsl
-
-    @xsl.setter
-    def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._xsl = constants.PROJECT_DEFAULT["xsl"]
-        else:
-            self._xsl = Path(p)
-
-    @property
-    def executables(self) -> t.Dict[str, str]:
-        return self._executables
-
-    @executables.setter
-    def executables(self, ex: t.Optional[t.Dict[str, str]]) -> None:
-        if ex is None:
-            self._executables = constants.PROJECT_DEFAULT["executables"]
-        else:
-            self._executables = ex
-
-    @property
-    def targets(self) -> t.List["Target"]:
-        return self._targets
-
-    def new_target(self, *args, **kwargs) -> None:
-        self._targets.append(Target(self, *args, **kwargs))
-
-    def target(self, name: t.Optional[str] = None) -> t.Optional["Target"]:
-        """
-        Attempts to return a target matching `name`.
-        If `name` isn't provided, returns the default (first) target.
-        """
-        if len(self._targets) == 0:
-            # no target to return
-            return None
-        if name is None:
-            # return default target
-            return self._targets[0]
-        try:
-            # return first target matching the provided name
-            return next(t for t in self._targets if t.name == name)
-        except StopIteration:
-            # but no such target was found
-            return None
-
-    def abspath(self) -> Path:
-        return self.path.resolve()
-
-    def source_abspath(self) -> Path:
-        return self.abspath() / self.source
-
-    def publication_abspath(self) -> Path:
-        return self.abspath() / self.publication
-
-    def output_abspath(self) -> Path:
-        return self.abspath() / self.output
-
-    def xsl_abspath(self) -> Path:
-        return self.abspath() / self.xsl
-
-    def server_process(
-        self,
-        mode: t.Literal["output", "site"] = "output",
-        access: t.Literal["public", "private"] = "private",
-        port: int = 8000,
-        launch: bool = True,
-    ) -> multiprocessing.Process:
-        """
-        Returns a process for running a simple local web server
-        providing either the contents of `output` or `site`
-        """
-        if mode == "output":
-            directory = self.output
-        else:  # "site"
-            directory = self.site
-
-        return utils.server_process(directory, access, port, launch=launch)
+class Format(str, Enum):
+    HTML = "html"
+    LATEX = "latex"
+    PDF = "pdf"
+    EPUB = "epub"
+    KINDLE = "kindle"
+    BRAILLE = "braille"
+    WEBWORK = "webwork"
+    CUSTOM = "custom"
 
 
-class Target:
+class LatexEngine(str, Enum):
+    XELATEX = "xelatex"
+    LATEX = "latex"
+    PDFLATEX = "pdflatex"
+
+
+class BrailleMode(str, Enum):
+    EMBOSS = "emboss"
+    ELECTRONIC = "electronic"
+
+
+class Compression(str, Enum):
+    ZIP = "zip"
+
+
+class Target(pxml.BaseXmlModel, tag="target"):
     """
     Representation of a target for a PreTeXt project: a specific
     build targeting a format such as HTML, LaTeX, etc.
     """
 
-    def __init__(
-        self,
-        project: Project,
-        name: str,
-        format: pt.Format,
-        source: t.Optional[t.Union[Path, str]] = None,
-        publication: t.Optional[t.Union[Path, str]] = None,
-        output: t.Optional[t.Union[Path, str]] = None,
-        site: t.Optional[t.Union[Path, str]] = None,
-        xsl: t.Optional[t.Union[Path, str]] = None,
-        latex_engine: t.Optional[pt.LatexEngine] = None,
-        braille_mode: t.Optional[pt.BrailleMode] = None,
-        compression: t.Optional[pt.Compression] = None,
-        stringparams: t.Dict[str, str] = {},
-        target_xml: t.Optional[TargetXml] = None,
-        legacy_target_xml: t.Optional[LegacyTargetXml] = None,
-    ):
-        """
-        Construction of a new Target. Requires a `project`,
-        `name`, and `format`.
-        """
-        self._project = project
-        self.name = name
-        self.format = format
-        self.source = source
-        self.publication = publication
-        self.output = output
-        self.site = site
-        self.xsl = xsl
-        self.latex_engine = latex_engine
-        self.braille_mode = braille_mode
-        self.compression = compression
-        self.stringparams = stringparams
-        if target_xml is not None:
-            self.source = target_xml.source
-            self.publication = target_xml.publication
-            self.output = target_xml.output
-            self.site = target_xml.site
-            self.xsl = target_xml.xsl
-            self.latex_engine = target_xml.latex_engine
-            self.braille_mode = target_xml.braille_mode
-            self.compression = target_xml.compression
-            self.stringparams = {
-                param.key: param.value for param in target_xml.stringparams
-            }
-        elif legacy_target_xml is not None:
-            self.source = legacy_target_xml.source
-            self.publication = legacy_target_xml.publication
-            self.output = legacy_target_xml.output_dir
-            self.site = legacy_target_xml.site
-            self.xsl = legacy_target_xml.xsl
-            self.latex_engine = legacy_target_xml.pdf_method
-            self.braille_mode = None
-            self.compression = None
-            if legacy_target_xml.format == "html-zip":
-                self.format = "html"
-                self.compression = "zip"
-            elif legacy_target_xml.format == "webwork-sets":
-                self.format = "webwork"
-            elif legacy_target_xml.format == "webwork-sets-zipped":
-                self.format = "webwork"
-                self.compression = "zip"
-            elif legacy_target_xml.format == "braille-electronic":
-                self.format = "braille"
-                self.braille_mode = "electronic"
-            elif format == "braille-emboss":
-                self.format = "braille"
-            self.stringparams = {
-                param.key: param.value for param in legacy_target_xml.stringparams
-            }
-
-    @property
-    def project(self) -> Project:
-        return self._project
-
-    @property
-    def source(self) -> Path:
-        return self._source
-
-    @source.setter
-    def source(self, path: t.Optional[t.Union[Path, str]]) -> None:
-        if path is None:
-            self._source = constants.TARGET_DEFAULT["source"]
-        else:
-            self._source = Path(path)
-
-    @property
-    def publication(self) -> Path:
-        return self._publication
-
-    @publication.setter
-    def publication(self, path: t.Optional[t.Union[Path, str]]) -> None:
-        if path is None:
-            self._publication = constants.TARGET_DEFAULT["publication"]
-        else:
-            self._publication = Path(path)
-
-    @property
-    def output(self) -> Path:
-        return self._output
-
-    @output.setter
-    def output(self, path: t.Optional[t.Union[Path, str]]) -> None:
-        if path is None:
-            self._output = Path(self.name)
-        else:
-            self._output = Path(path)
-
-    @property
-    def site(self) -> Path:
-        return self._site
-
-    @site.setter
-    def site(self, path: t.Optional[t.Union[Path, str]]) -> None:
-        if path is None:
-            self._site = constants.TARGET_DEFAULT["site"]
-        else:
-            self._site = Path(path)
-
-    @property
-    def xsl(self) -> t.Optional[Path]:
-        return self._xsl
-
-    @xsl.setter
-    def xsl(self, p: t.Optional[t.Union[Path, str]]) -> None:
-        if p is None:
-            self._xsl = constants.TARGET_DEFAULT["xsl"]
-        else:
-            self._xsl = Path(p)
-
-    @property
-    def latex_engine(self) -> pt.LatexEngine:
-        return self._latex_engine
-
-    @latex_engine.setter
-    def latex_engine(self, engine: t.Optional[pt.LatexEngine]) -> None:
-        if engine is None:
-            self._latex_engine = constants.TARGET_DEFAULT["latex_engine"]
-        else:
-            self._latex_engine = engine
-
-    @property
-    def braille_mode(self) -> pt.LatexEngine:
-        return self._latex_engine
-
-    @braille_mode.setter
-    def braille_mode(self, mode: t.Optional[pt.BrailleMode]) -> None:
-        if mode is None:
-            self._braille_mode = constants.TARGET_DEFAULT["braille_mode"]
-        else:
-            self._braille_mode = mode
-
-    @property
-    def compression(self) -> Path:
-        return self._compression
-
-    @compression.setter
-    def compression(self, path: t.Optional[t.Union[Path, str]]) -> None:
-        if path is None:
-            self._compression = constants.TARGET_DEFAULT["compression"]
-        else:
-            self._compression = Path(path)
+    # Provide access to the containing project. Call this types `Any` to avoid pydantic-xml problems. Failing other approaches:
+    #
+    # - A type of `Project` makes pydantic-xml get confused, thinking it somehow needs to load this in. The error is `pydantic_xml.errors.ModelFieldError: Target.project field type incorrect: field is not yet prepared so type is still a ForwardRef, you might need to call update_forward_refs()`.
+    # - Naming it `_project` to make it private somehow prevents access! The error: `E   ValueError: "Target" object has no field "_project"`. This is a pydantic-xml error; how can it do this?
+    project: t.Any
+    name: str = pxml.attr()
+    format: Format = pxml.attr()
+    source: Path = pxml.attr(default=Path("main.ptx"))
+    publication: Path = pxml.attr(default=Path("publication.ptx"))
+    # TODO: this is an odd default. A better default would be: use `name` if this is an empty string? (Would require a custom validator, which is easy.)
+    output: Path = pxml.attr(default=Path("output"))
+    site: Path = pxml.attr(default=Path("site"))
+    xsl: t.Optional[Path] = pxml.attr(default=None)
+    latex_engine: LatexEngine = pxml.attr(
+        name="latex-engine", default=LatexEngine.XELATEX
+    )
+    braille_mode: t.Optional[BrailleMode] = pxml.attr(name="braille-mode")
+    compression: t.Optional[Compression] = pxml.attr()
+    stringparams: t.Dict[str, str] = pxml.element(default={})
 
     def source_abspath(self) -> Path:
         return self.project.source_abspath() / self.source
@@ -521,6 +111,7 @@ class Target:
         return self.project.xsl_abspath() / self.xsl
 
     def external_dir(self) -> Path:
+        # TODO: what if the publication file isn't present? What should this return? Also, need to parse this using the a validator.
         return Path(
             ET.parse(self.publication_abspath())
             .find("./source/directories")
@@ -531,6 +122,7 @@ class Target:
         return (self.source_abspath().parent / self.external_dir()).resolve()
 
     def generated_dir(self) -> Path:
+        # TODO: what if the publication file isn't present? What should this return? Also, need to parse this using the a validator.
         return Path(
             ET.parse(self.publication_abspath())
             .find("./source/directories")
@@ -685,7 +277,7 @@ class Target:
                 zipped=self.compression is not None,
                 project_path=self.project.abspath(),
                 latex_engine=self.latex_engine,
-                executables=self.project.executables,
+                executables=self.project.executables.dict(),
                 braille_mode=self.braille_mode,
             )
         # build was successful
@@ -777,7 +369,7 @@ class Target:
             return
 
         # set executables
-        core.set_executables(self.project.executables)
+        core.set_executables(self.project.executables.dict())
 
         # build targets:
         try:
@@ -869,3 +461,162 @@ class Target:
         finally:
             # Delete temporary directories left behind by core:
             core.release_temporary_directories()
+
+
+class Project(pxml.BaseXmlModel, tag="project"):
+    """
+    Representation of a PreTeXt project: a Path for the project
+    on the disk, and Paths for where to build output and maintain a site.
+    """
+
+    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
+    executables: Executables = Executables()
+    source: Path = pxml.attr(default=Path("source"))
+    path: Path = Path(".")
+    publication: Path = pxml.attr(default=Path("publication"))
+    output: Path = pxml.attr(default=Path("output"))
+    site: Path = pxml.attr(default=Path("site"))
+    xsl: Path = pxml.attr(default=Path("xsl"))
+    targets: t.List[Target] = pxml.wrapped("targets", pxml.element(tag="target", default=[]))
+
+    @classmethod
+    def parse(
+        cls,
+        path: t.Union[Path, str] = Path("."),
+    ) -> "Project":
+        _path = Path(path)
+        if _path.is_dir():
+            file_path = _path / "project.ptx"
+        else:
+            file_path = _path
+        # TODO: nicer errors if these files aren't found.
+        xml_bytes = file_path.read_bytes()
+
+        # Determine the version of this project file.
+        class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
+            ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
+
+        p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
+        if p_version_only.ptx_version is not None:
+            p = Project.from_xml(xml_bytes)
+        else:
+            legacy_project = LegacyProject.from_xml(file_path.read_bytes())
+            # Translate from old target format to new target format.
+            new_targets: t.List[Target] = []
+            for tgt in legacy_project.targets:
+                compression: t.Optional[Compression] = None
+                braille_mode: t.Optional[BrailleMode] = None
+                if tgt.format == "html-zip":
+                    format = Format.HTML
+                    compression = Compression.ZIP
+                elif tgt.format == "webwork-sets":
+                    format = Format.WEBWORK
+                elif tgt.format == "webwork-sets-zipped":
+                    format = Format.WEBWORK
+                    compression = Compression.ZIP
+                elif tgt.format == "braille-electronic":
+                    format = Format.BRAILLE
+                    braille_mode = BrailleMode.ELECTRONIC
+                elif tgt.format == "braille-emboss":
+                    format = Format.BRAILLE
+                    braille_mode = BrailleMode.EMBOSS
+                else:
+                    format = Format[tgt.format.value.upper()]
+                d = tgt.dict()
+                del d["format"]
+                new_target = Target(
+                    format=format,
+                    braille_mode=braille_mode,
+                    compression=compression,
+                    **d,
+                )
+                new_targets.append(new_target)
+            # Incorrect from a type perspective, but used to translate from old to new classes.
+            legacy_project.targets = new_targets  # type: ignore
+            p = Project(ptx_version="2", **legacy_project.dict())
+
+        # Now that the project is loaded, load / set up what isn't in the project XML.
+        p.path = _path
+        try:
+            e_bytes = (p.path.parent / "executables.ptx").read_bytes()
+        except FileNotFoundError:
+            # If this isn't found, use the already-assigned default value.
+            pass
+        else:
+            p.executables = Executables.from_xml(e_bytes)
+        # Set the `project` for each target, which isn't handled in the XML.
+        for _tgt in p.targets:
+            _tgt.project = p
+        return p
+
+    def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
+        self.targets.append(Target(name=name, format=Format[format.upper()], project=self, **kwargs))
+
+    def _get_target(
+        self,
+        # If `name` is `None`, return the default (first) target; otherwise, return the target given by `name`.
+        name: t.Optional[str] = None
+        # Returns the target if found, or `None`` if it's not found.
+    ) -> t.Optional["Target"]:
+        if len(self.targets) == 0:
+            # no target to return
+            return None
+        if name is None:
+            # return default target
+            return self.targets[0]
+        try:
+            # return first target matching the provided name
+            return next(t for t in self.targets if t.name == name)
+        except StopIteration:
+            # but no such target was found
+            return None
+
+    # Return `True` if the target exists.
+    def has_target(
+        self,
+        # See `name` from `_get_target`.
+        name: t.Optional[str] = None,
+    ) -> bool:
+        return self._get_target(name) is not None
+
+    def get_target(
+        self,
+        # See `name` from `_get_target`.
+        name: t.Optional[str] = None,
+    ) -> "Target":
+        t = self._get_target(name)
+        assert t is not None
+        return t
+
+    def abspath(self) -> Path:
+        return self.path.resolve()
+
+    def source_abspath(self) -> Path:
+        return self.abspath() / self.source
+
+    def publication_abspath(self) -> Path:
+        return self.abspath() / self.publication
+
+    def output_abspath(self) -> Path:
+        return self.abspath() / self.output
+
+    def xsl_abspath(self) -> Path:
+        return self.abspath() / self.xsl
+
+    def server_process(
+        self,
+        mode: t.Literal["output", "site"] = "output",
+        access: t.Literal["public", "private"] = "private",
+        port: int = 8000,
+        launch: bool = True,
+    ) -> multiprocessing.Process:
+        """
+        Returns a process for running a simple local web server
+        providing either the contents of `output` or `site`
+        """
+        if mode == "output":
+            directory = self.output
+        else:  # "site"
+            directory = self.site
+
+        return utils.server_process(directory, access, port, launch=launch)

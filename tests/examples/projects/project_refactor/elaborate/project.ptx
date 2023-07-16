@@ -11,6 +11,7 @@
       name="web"
       format="html"
       source="book.ptx"
+      output = "web"
       site=""
       xsl="silly.xsl" />
     <target
@@ -18,8 +19,7 @@
       format="pdf"
       publication="extras/print.xml"
       output="my-pdf">
-      <stringparam key="foo" value="bar" />
-      <stringparam key="baz" value="goo" />
+      <stringparams foo="bar" baz="goo" />
     </target>
   </targets>
 </project>
