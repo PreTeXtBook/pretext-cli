@@ -30,6 +30,12 @@ class LegacyFormat(str, Enum):
     CUSTOM = "custom"
 
 
+class LatexEngine(str, Enum):
+    XELATEX = "xelatex"
+    LATEX = "latex"
+    PDFLATEX = "pdflatex"
+
+
 class StringParam(pxml.BaseXmlModel, tag="stringparam"):
     key: str = pxml.attr()
     value: str = pxml.attr()
@@ -37,7 +43,7 @@ class StringParam(pxml.BaseXmlModel, tag="stringparam"):
 
 class LegacyTarget(pxml.BaseXmlModel, tag="target"):
     name: str = pxml.attr()
-    pdf_method: t.Optional[str] = pxml.attr(name="pdf-method")
+    latex_engine: t.Optional[LatexEngine] = pxml.attr(name="pdf-method")
     format: LegacyFormat = pxml.element()
     source: str = pxml.element()
     publication: str = pxml.element()

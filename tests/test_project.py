@@ -58,7 +58,7 @@ def test_defaults() -> None:
         assert target.format == frmt
         assert target.source == Path("main.ptx")
         assert target.publication == Path("publication.ptx")
-        assert target.output == Path("output")
+        assert target.output == Path(name)
         assert target.site == Path("site")
         assert target.xsl is None
         assert target.latex_engine == pr.LatexEngine.XELATEX

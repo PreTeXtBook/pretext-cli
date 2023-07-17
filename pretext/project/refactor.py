@@ -7,8 +7,9 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
+from pydantic import validator
 import pydantic_xml as pxml
-from .xml import Executables, LegacyProject
+from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
 from .. import core
 from .. import utils
@@ -36,12 +37,6 @@ class Format(str, Enum):
     CUSTOM = "custom"
 
 
-class LatexEngine(str, Enum):
-    XELATEX = "xelatex"
-    LATEX = "latex"
-    PDFLATEX = "pdflatex"
-
-
 class BrailleMode(str, Enum):
     EMBOSS = "emboss"
     ELECTRONIC = "electronic"
@@ -66,8 +61,8 @@ class Target(pxml.BaseXmlModel, tag="target"):
     format: Format = pxml.attr()
     source: Path = pxml.attr(default=Path("main.ptx"))
     publication: Path = pxml.attr(default=Path("publication.ptx"))
-    # TODO: this is an odd default. A better default would be: use `name` if this is an empty string? (Would require a custom validator, which is easy.)
-    output: Path = pxml.attr(default=Path("output"))
+    # Make the default value for this `self.name`. Specifying a `default_factor` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` (ugly hack: a type violation) with `self.name`.
+    output: Path = pxml.attr(default=None)
     site: Path = pxml.attr(default=Path("site"))
     xsl: t.Optional[Path] = pxml.attr(default=None)
     latex_engine: LatexEngine = pxml.attr(
@@ -76,6 +71,10 @@ class Target(pxml.BaseXmlModel, tag="target"):
     braille_mode: t.Optional[BrailleMode] = pxml.attr(name="braille-mode")
     compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
+
+    @validator("output", always=True)
+    def output_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
+        return Path(v) if v is not None else Path(values["name"])
 
     def source_abspath(self) -> Path:
         return self.project.source_abspath() / self.source
@@ -523,9 +522,13 @@ class Project(pxml.BaseXmlModel, tag="project"):
                     format = Format.BRAILLE
                     braille_mode = BrailleMode.EMBOSS
                 else:
-                    format = Format[tgt.format.value.upper()]
+                    format = Format(tgt.format.value)
                 d = tgt.dict()
                 del d["format"]
+                # Remove the `None` from optional values, so the new format can replace these.
+                for key in ("site", "xsl", "latex_engine"):
+                    if d[key] is None:
+                        del d[key]
                 new_target = Target(
                     format=format,
                     braille_mode=braille_mode,
@@ -553,7 +556,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
 
     def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
         self.targets.append(
-            Target(name=name, format=Format[format.upper()], project=self, **kwargs)
+            Target(name=name, format=Format(format), project=self, **kwargs)
         )
 
     def _get_target(
