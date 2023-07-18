@@ -7,7 +7,7 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from pydantic import validator
+from pydantic import validator, PrivateAttr
 import pydantic_xml as pxml
 from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
@@ -52,11 +52,8 @@ class Target(pxml.BaseXmlModel, tag="target"):
     build targeting a format such as HTML, LaTeX, etc.
     """
 
-    # Provide access to the containing project. Call this types `Any` to avoid pydantic-xml problems. Failing other approaches:
-    #
-    # - A type of `Project` makes pydantic-xml get confused, thinking it somehow needs to load this in. The error is `pydantic_xml.errors.ModelFieldError: Target.project field type incorrect: field is not yet prepared so type is still a ForwardRef, you might need to call update_forward_refs()`.
-    # - Naming it `_project` to make it private somehow prevents access! The error: `E   ValueError: "Target" object has no field "_project"`. This is a pydantic-xml error; how can it do this?
-    project: t.Any
+    # Provide access to the containing project.
+    _project: "Project" = PrivateAttr()
     name: str = pxml.attr()
     format: Format = pxml.attr()
     source: Path = pxml.attr(default=Path("main.ptx"))
@@ -72,12 +69,18 @@ class Target(pxml.BaseXmlModel, tag="target"):
     compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
 
+    # Allow specifying `_project` in the constructor. (Since it's private, pydantic ignores it by default).
+    def __init__(self, **kwargs: t.Any):
+        super().__init__(**kwargs)
+        if "_project" in kwargs:
+            self._project = kwargs["_project"]
+
     @validator("output", always=True)
     def output_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
         return Path(v) if v is not None else Path(values["name"])
 
     def source_abspath(self) -> Path:
-        return self.project.source_abspath() / self.source
+        return self._project.source_abspath() / self.source
 
     def source_element(self) -> ET._Element:
         source_doc = ET.parse(self.source_abspath())
@@ -86,10 +89,10 @@ class Target(pxml.BaseXmlModel, tag="target"):
         return source_doc.getroot()
 
     def publication_abspath(self) -> Path:
-        return self.project.publication_abspath() / self.publication
+        return self._project.publication_abspath() / self.publication
 
     def output_abspath(self) -> Path:
-        return self.project.output_abspath() / self.output
+        return self._project.output_abspath() / self.output
 
     def output_dir_abspath(self) -> Path:
         if self.output_abspath().is_dir():
@@ -106,7 +109,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
             return None
-        return self.project.xsl_abspath() / self.xsl
+        return self._project.xsl_abspath() / self.xsl
 
     def external_dir(self) -> Path:
         # TODO: what if the publication file isn't present? What should this return? Also, need to parse this using the a validator.
@@ -202,7 +205,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
 
     def clean_output(self, log_warning: t.Callable = print) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
-        if self.project.abspath() not in self.output_abspath().parents:
+        if self._project.abspath() not in self.output_abspath().parents:
             log_warning(
                 "Refusing to clean output directory that isn't a proper subdirectory of the project."
             )
@@ -273,9 +276,9 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 custom_xsl=custom_xsl,
                 xmlid=xmlid,
                 zipped=self.compression is not None,
-                project_path=self.project.abspath(),
+                project_path=self._project.abspath(),
                 latex_engine=self.latex_engine,
-                executables=self.project.executables.dict(),
+                executables=self._project._executables.dict(),
                 # TODO: what if this isn't defined? Should we have a default in the project file instead?
                 braille_mode=self.braille_mode,
             )
@@ -368,7 +371,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
             return
 
         # set executables
-        core.set_executables(self.project.executables.dict())
+        core.set_executables(self._project._executables.dict())
 
         # build targets:
         try:
@@ -469,9 +472,9 @@ class Project(pxml.BaseXmlModel, tag="project"):
     """
 
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
-    executables: Executables = Executables()
+    _executables: Executables = PrivateAttr(default=Executables())
     source: Path = pxml.attr(default=Path("source"))
-    path: Path = Path(".")
+    _path: Path = PrivateAttr(default=Path("."))
     publication: Path = pxml.attr(default=Path("publication"))
     output: Path = pxml.attr(default=Path("output"))
     site: Path = pxml.attr(default=Path("site"))
@@ -479,6 +482,13 @@ class Project(pxml.BaseXmlModel, tag="project"):
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
     )
+
+    # Allow specifying `_path` or `_executables` in the constructor. (Since they're private, pydantic ignores them by default).
+    def __init__(self, **kwargs: t.Any):
+        super().__init__(**kwargs)
+        for k in ("_path", "_executables"):
+            if k in kwargs:
+                setattr(self, k, kwargs[k])
 
     @classmethod
     def parse(
@@ -500,6 +510,17 @@ class Project(pxml.BaseXmlModel, tag="project"):
         p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
         if p_version_only.ptx_version is not None:
             p = Project.from_xml(xml_bytes)
+
+            # Now that the project is loaded, load / set up what isn't in the project XML.
+            p._path = _path
+            try:
+                e_bytes = (p._path.parent / "executables.ptx").read_bytes()
+            except FileNotFoundError:
+                # If this isn't found, use the already-set default value.
+                pass
+            else:
+                p._executables = Executables.from_xml(e_bytes)
+
         else:
             legacy_project = LegacyProject.from_xml(file_path.read_bytes())
             # Translate from old target format to new target format.
@@ -536,27 +557,25 @@ class Project(pxml.BaseXmlModel, tag="project"):
                     **d,
                 )
                 new_targets.append(new_target)
+
             # Incorrect from a type perspective, but used to translate from old to new classes.
             legacy_project.targets = new_targets  # type: ignore
-            p = Project(ptx_version="2", **legacy_project.dict())
+            p = Project(
+                ptx_version="2",
+                _path=_path,
+                # Rename from `executables` to `_executables` when moving from the old to new project format.
+                _executables=legacy_project.executables,
+                **legacy_project.dict(),
+            )
 
-        # Now that the project is loaded, load / set up what isn't in the project XML.
-        p.path = _path
-        try:
-            e_bytes = (p.path.parent / "executables.ptx").read_bytes()
-        except FileNotFoundError:
-            # If this isn't found, use the already-assigned default value.
-            pass
-        else:
-            p.executables = Executables.from_xml(e_bytes)
-        # Set the `project` for each target, which isn't handled in the XML.
+        # Set the `_project` for each target, which isn't handled in the XML.
         for _tgt in p.targets:
-            _tgt.project = p
+            _tgt._project = p
         return p
 
     def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
         self.targets.append(
-            Target(name=name, format=Format(format), project=self, **kwargs)
+            Target(name=name, format=Format(format), _project=self, **kwargs)
         )
 
     def _get_target(
@@ -596,7 +615,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
         return t
 
     def abspath(self) -> Path:
-        return self.path.resolve()
+        return self._path.resolve()
 
     def source_abspath(self) -> Path:
         return self.abspath() / self.source

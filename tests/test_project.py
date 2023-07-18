@@ -45,7 +45,7 @@ def test_defaults() -> None:
     project = pr.Project(ptx_version="2")
     for t in ts:
         project.new_target(*t)
-    assert project.path == Path()
+    assert project._path == Path()
     assert project.source == Path("source")
     assert project.publication == Path("publication")
     assert project.output == Path("output")
@@ -109,7 +109,7 @@ def test_manifest_simple(tmp_path: Path) -> None:
         default_project = pr.Project(ptx_version="2")
         assert default_project.site == project.site
         assert default_project.output == project.output
-        assert default_project.path == project.path
+        assert default_project._path == project._path
 
 
 def test_manifest_simple_build(tmp_path: Path) -> None:
@@ -133,14 +133,14 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 2
 
-        assert project.path == Path()
+        assert project._path == Path()
         assert project.source == Path("my_ptx_source")
         assert project.publication == Path("dont-touch")
         assert project.output == Path("build", "here")
         assert project.site == Path("build", "staging")
         assert project.xsl == Path("customizations")
-        assert project.executables.xelatex == "xelatex"
-        assert project.executables.liblouis == "foobar"
+        assert project._executables.xelatex == "xelatex"
+        assert project._executables.liblouis == "foobar"
 
         t_web = project.get_target("web")
         assert t_web.format == "html"
@@ -184,8 +184,8 @@ def test_manifest_legacy() -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 3
 
-        assert project.executables.xelatex == "xelatex"
-        assert project.executables.liblouis == "foobar"
+        assert project._executables.xelatex == "xelatex"
+        assert project._executables.liblouis == "foobar"
 
         t_html = project.get_target("html")
         assert t_html is not None
