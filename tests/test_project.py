@@ -9,6 +9,7 @@ from typing import List
 import pytest
 
 from pretext.project import refactor as pr
+from pretext import templates
 from pretext import utils
 
 
@@ -40,29 +41,33 @@ def test_note_if_no_xelatex() -> None:
     pass
 
 
-def test_defaults() -> None:
-    ts = ("web", "html"), ("print", "pdf")
-    project = pr.Project(ptx_version="2")
-    for t in ts:
-        project.new_target(*t)
-    assert project._path == Path()
-    assert project.source == Path("source")
-    assert project.publication == Path("publication")
-    assert project.output == Path("output")
-    assert project.site == Path("site")
-    assert project.xsl == Path("xsl")
-    for t in ts:
-        name, frmt = t
-        target = project.get_target(name)
-        assert target.name == name
-        assert target.format == frmt
-        assert target.source == Path("main.ptx")
-        assert target.publication == Path("publication.ptx")
-        assert target.output == Path(name)
-        assert target.site == Path("site")
-        assert target.xsl is None
-        assert target.latex_engine == pr.LatexEngine.XELATEX
-        assert target.stringparams == {}
+def test_defaults(tmp_path: Path) -> None:
+    # This test fails if there happens to be a publication.ptx in publication/. So, switch to a clean directory to avoid this.
+    with utils.working_directory(tmp_path):
+        ts = ("web", "html"), ("print", "pdf")
+        project = pr.Project(ptx_version="2")
+        for t in ts:
+            project.new_target(*t)
+        with templates.resource_path("publication.ptx") as pub_path:
+            pass
+        assert project._path == Path("project.ptx").resolve()
+        assert project.source == Path("source")
+        assert project.publication == Path("publication")
+        assert project.output == Path("output")
+        assert project.site == Path("site")
+        assert project.xsl == Path("xsl")
+        for t in ts:
+            name, frmt = t
+            target = project.get_target(name)
+            assert target.name == name
+            assert target.format == frmt
+            assert target.source == Path("main.ptx")
+            assert target.publication == pub_path
+            assert target.output == Path(name)
+            assert target.site == Path("site")
+            assert target.xsl is None
+            assert target.latex_engine == pr.LatexEngine.XELATEX
+            assert target.stringparams == {}
 
 
 def test_serve(tmp_path: Path) -> None:
@@ -74,7 +79,8 @@ def test_serve(tmp_path: Path) -> None:
                 dir = project.output
             else:
                 dir = project.site
-            p = project.server_process(mode=mode, port=port, launch=False)
+            # mypy seems `mode` as a str, so the type check fails.
+            p = project.server_process(mode=mode, port=port, launch=False)  # type: ignore
             p.start()
             time.sleep(1)
             assert not (dir / "index.html").exists()
@@ -133,7 +139,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 2
 
-        assert project._path == Path()
+        assert project._path == Path("project.ptx").resolve()
         assert project.source == Path("my_ptx_source")
         assert project.publication == Path("dont-touch")
         assert project.output == Path("build", "here")
@@ -213,10 +219,8 @@ def test_manifest_legacy() -> None:
 
 
 def test_demo_html_build(tmp_path: Path) -> None:
-    path_without_spaces = (
-        "test-path-without-spaces"  # TODO codechat is broken with spaces
-    )
-    project_path = tmp_path / path_without_spaces
+    path_with_spaces = "test path with spaces"
+    project_path = tmp_path / path_with_spaces
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
     with utils.working_directory(project_path):
         p = pr.Project(ptx_version="2")
@@ -278,7 +282,7 @@ def test_zip_build(tmp_path: Path) -> None:
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         target = project.get_target("web")
-        target.compression = "zip"
+        target.compression = pr.Compression.ZIP
         target.build()
         assert (target.output_dir_abspath() / "book.zip").exists()
         assert not (target.output_dir_abspath() / "index.html").exists()

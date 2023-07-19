@@ -16,6 +16,7 @@ from .. import utils
 from .. import build
 from .. import generate
 from .. import types as pt  # PreTeXt types
+from .. import templates
 
 
 # TODO Not yet used...
@@ -57,15 +58,48 @@ class Target(pxml.BaseXmlModel, tag="target"):
     name: str = pxml.attr()
     format: Format = pxml.attr()
     source: Path = pxml.attr(default=Path("main.ptx"))
-    publication: Path = pxml.attr(default=Path("publication.ptx"))
-    # Make the default value for this `self.name`. Specifying a `default_factor` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` (ugly hack: a type violation) with `self.name`.
+    publication: Path = pxml.attr(default=None)
+
+    # If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+    #
+    # This can't be placed in a Pydantic validator, since `self._project` isn't set until after validation finishes. So, this must be manually called after that's done.
+    def post_validate_publication(self) -> None:
+        if self.publication is None:
+            self.publication = Path("publication.ptx")
+            if self.publication_abspath().exists():
+                return
+            # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
+            with templates.resource_path("publication.ptx") as self.publication:
+                return
+        p_full = self.publication_abspath()
+        if not p_full.exists():
+            raise FileNotFoundError(
+                f"Provided publication file {p_full} does not exist."
+            )
+
     output: Path = pxml.attr(default=None)
+
+    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` (hack: a type violation) with `self.name`.
+    @validator("output", always=True)
+    def output_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
+        return Path(v) if v is not None else Path(values["name"])
+
     site: Path = pxml.attr(default=Path("site"))
     xsl: t.Optional[Path] = pxml.attr(default=None)
+
+    # If the `format == Format.CUSTOM`, then `xsl` must be defined.
+    @validator("xsl")
+    def xsl_validator(cls, v: t.Optional[Path], values: t.Any) -> t.Optional[Path]:
+        if v is None and values["format"] == Format.CUSTOM:
+            raise ValueError("A custom format requires a value for xsl.")
+        return v
+
     latex_engine: LatexEngine = pxml.attr(
         name="latex-engine", default=LatexEngine.XELATEX
     )
-    braille_mode: t.Optional[BrailleMode] = pxml.attr(name="braille-mode")
+    braille_mode: BrailleMode = pxml.attr(
+        name="braille-mode", default=BrailleMode.EMBOSS
+    )
     compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
 
@@ -74,10 +108,8 @@ class Target(pxml.BaseXmlModel, tag="target"):
         super().__init__(**kwargs)
         if "_project" in kwargs:
             self._project = kwargs["_project"]
-
-    @validator("output", always=True)
-    def output_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
-        return Path(v) if v is not None else Path(values["name"])
+            # Since we now have the project, perform validation.
+            self.post_validate_publication()
 
     def source_abspath(self) -> Path:
         return self._project.source_abspath() / self.source
@@ -112,12 +144,13 @@ class Target(pxml.BaseXmlModel, tag="target"):
         return self._project.xsl_abspath() / self.xsl
 
     def external_dir(self) -> Path:
-        # TODO: what if the publication file isn't present? What should this return? Also, need to parse this using the a validator.
-        return Path(
-            ET.parse(self.publication_abspath())
-            .find("./source/directories")
-            .get("external")
-        )
+        et = ET.parse(self.publication_abspath())
+        assert et is not None
+        el = et.find("./source/directories")
+        assert el is not None
+        path = el.get("external")
+        assert path is not None
+        return Path(path)
 
     def external_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.external_dir()).resolve()
@@ -474,7 +507,16 @@ class Project(pxml.BaseXmlModel, tag="project"):
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
     _executables: Executables = PrivateAttr(default=Executables())
     source: Path = pxml.attr(default=Path("source"))
+    # The absolute path of the project file (typically, `project.ptx`).
     _path: Path = PrivateAttr(default=Path("."))
+
+    # Allow a relative path; if it's a directory, assume a `project.ptx` suffix. Make the path absolute.
+    @classmethod
+    def validate_path(cls, path: t.Union[Path, str]) -> Path:
+        path = Path(path).resolve()
+        # Note: we don't require the `project.ptx` file to exist, since this can be created from API calls instead of being read in from a project file.
+        return path / "project.ptx" if path.is_dir() else path
+
     publication: Path = pxml.attr(default=Path("publication"))
     output: Path = pxml.attr(default=Path("output"))
     site: Path = pxml.attr(default=Path("site"))
@@ -489,19 +531,16 @@ class Project(pxml.BaseXmlModel, tag="project"):
         for k in ("_path", "_executables"):
             if k in kwargs:
                 setattr(self, k, kwargs[k])
+        self._path = self.validate_path(self._path)
 
     @classmethod
     def parse(
         cls,
         path: t.Union[Path, str] = Path("."),
     ) -> "Project":
-        _path = Path(path)
-        if _path.is_dir():
-            file_path = _path / "project.ptx"
-        else:
-            file_path = _path
+        _path = cls.validate_path(path)
         # TODO: nicer errors if these files aren't found.
-        xml_bytes = file_path.read_bytes()
+        xml_bytes = _path.read_bytes()
 
         # Determine the version of this project file.
         class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
@@ -522,7 +561,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
                 p._executables = Executables.from_xml(e_bytes)
 
         else:
-            legacy_project = LegacyProject.from_xml(file_path.read_bytes())
+            legacy_project = LegacyProject.from_xml(_path.read_bytes())
             # Translate from old target format to new target format.
             new_targets: t.List[Target] = []
             for tgt in legacy_project.targets:
@@ -550,9 +589,11 @@ class Project(pxml.BaseXmlModel, tag="project"):
                 for key in ("site", "xsl", "latex_engine"):
                     if d[key] is None:
                         del d[key]
+                # Include the braille mode only if it was specified.
+                if braille_mode is not None:
+                    d["braille_mode"] = braille_mode
                 new_target = Target(
                     format=format,
-                    braille_mode=braille_mode,
                     compression=compression,
                     **d,
                 )
@@ -565,12 +606,15 @@ class Project(pxml.BaseXmlModel, tag="project"):
                 _path=_path,
                 # Rename from `executables` to `_executables` when moving from the old to new project format.
                 _executables=legacy_project.executables,
+                # Since there was no `publication` path in the old format, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
+                publication=Path("."),
                 **legacy_project.dict(),
             )
 
         # Set the `_project` for each target, which isn't handled in the XML.
         for _tgt in p.targets:
             _tgt._project = p
+            _tgt.post_validate_publication()
         return p
 
     def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
@@ -615,7 +659,8 @@ class Project(pxml.BaseXmlModel, tag="project"):
         return t
 
     def abspath(self) -> Path:
-        return self._path.resolve()
+        # Since `_path` stores the path to the project file, the parent of this gives the directory it resides in.
+        return self._path.parent
 
     def source_abspath(self) -> Path:
         return self.abspath() / self.source
