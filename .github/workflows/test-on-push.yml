@@ -65,7 +65,8 @@ jobs:
     - name: Install apt packages (Linux only)
       if: runner.os == 'Linux'
       run: |
-          sudo apt update && sudo apt install -y --no-install-recommends texlive-fonts-extra sagemath
+          sudo apt update
+          sudo apt install -y --no-install-recommends texlive texlive-science texlive-xetex ghostscript pdf2svg texlive-fonts-extra sagemath
 
     - name: Install poetry ${{ matrix.poetry-version }}
       run: |
