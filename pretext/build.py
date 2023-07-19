@@ -61,6 +61,7 @@ def build(
                 output = output.parent
             else:
                 output_filename = None
+            assert custom_xsl is not None
             custom(
                 ptxfile=ptxfile,
                 pub_file=pub_file,

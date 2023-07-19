@@ -290,7 +290,7 @@ def serve_forever(
 
 def run_server(
     directory: Path,
-    access: str,
+    access: t.Literal["public", "private"],
     port: int,
     watch_directory: t.Optional[Path] = None,
     watch_callback: Callable[[], None] = lambda: None,
@@ -318,7 +318,7 @@ def run_server(
 
 def server_process(
     directory: Path,
-    access: str,
+    access: t.Literal["public", "private"],
     port: int,
     launch: bool = True,
 ) -> multiprocessing.Process:

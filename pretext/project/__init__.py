@@ -11,7 +11,7 @@ from .. import constants
 from pathlib import Path
 import sys
 from ..config.xml_overlay import ShadowXmlDocument
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple
 import hashlib
 import subprocess
 
@@ -310,7 +310,7 @@ class Project:
     def view(
         self,
         target_name: str,
-        access: str,
+        access: Literal["public", "private"],
         port: int,
         watch: bool = False,
         no_launch: bool = False,
