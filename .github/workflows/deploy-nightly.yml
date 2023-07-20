@@ -3,7 +3,7 @@ name: deploy-nightly
 on:
   schedule:
     # * is a special character in YAML so you have to quote this string
-    - cron:  '00 6 * * *'
+    - cron: "00 6 * * *"
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -13,36 +13,36 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.8']
-        poetry-version: ['1.5.1']
+        python-version: ["3.8"]
+        poetry-version: ["1.5.1"]
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Install poetry ${{ matrix.poetry-version }}
-      run: |
-        python -m ensurepip
-        python -m pip install --upgrade pip
-        python -m pip install poetry==${{ matrix.poetry-version }}
+      - name: Install poetry ${{ matrix.poetry-version }}
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+          python -m pip install poetry==${{ matrix.poetry-version }}
 
-    - name: Install dependencies
-      shell: bash
-      run:  |
-        python -m poetry install
-        python -m poetry run python scripts/fetch_core.py
-        python -m poetry run python scripts/zip_templates.py
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m poetry install
+          python -m poetry run python scripts/fetch_core.py
+          python -m poetry run python scripts/zip_templates.py
 
-    - name: Test with pytest
-      run: |
-        python -m poetry run pytest -v --cov
+      - name: Test with pytest
+        run: |
+          python -m poetry run pytest -v --cov
 
   deploy:
     needs: test
@@ -68,16 +68,15 @@ jobs:
         shell: bash
         run: python -m poetry install
 
-
-      - name: Run prep-nightly script
-        run: |
-          echo "Updating core commit and version; building"
-          poetry run python scripts/prep_nightly.py
-          echo "Finished steps to prep nightly deployment"
-
-      - name: Publish
+      - name: Run prep-nightly script and publish if ready
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish --build
+          echo "Updating core commit and version; building"
+          output=$(poetry run python scripts/prep_nightly.py)
+          echo "Finished steps to prep nightly deployment"
+          if [[ $output == *"Ready to deploy"* ]]; then
+            poetry config pypi-token.pypi $PYPI_TOKEN
+            poetry publish --build
+            echo "Published to pypi"
+          fi

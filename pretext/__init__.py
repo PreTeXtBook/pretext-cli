@@ -13,12 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 from pathlib import Path
 from single_version import get_version
 
+log = logging.getLogger("ptxlogger")
+
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
-CORE_COMMIT = "3024ffd91203498bc9fba1c16681c9817ccce93a"
+CORE_COMMIT = "9bce7e55911fb14e3e6e362bfa78bd6431c38597"
 
 
 def activate() -> None:

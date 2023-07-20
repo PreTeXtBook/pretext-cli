@@ -270,7 +270,7 @@ def init(refresh: bool) -> None:
         "project.ptx": "project.ptx",
         "publication.ptx": "publication/publication.ptx",
         ".gitignore": ".gitignore",
-        "devcontainer.json": ".devcontainer/devcontainer.json",
+        ".devcontainer.json": ".devcontainer.json",
     }
     for resource in resource_to_dest:
         with templates.resource_path(resource) as resource_path:
