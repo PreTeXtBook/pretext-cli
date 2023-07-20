@@ -1,4 +1,4 @@
-# .. Copyright (C) 2012-2020 Bryan A. Jones.
+# .. Copyright (C) 2012-2023 Bryan A. Jones.
 #
 #  This file is part of the CodeChat System.
 #
@@ -19,7 +19,7 @@
 # ************************************************
 # |docname| - Configuration for a CodeChat project
 # ************************************************
-# This file defines the configuration for a CodeChat project. It contains a working `Sphinx <https://www.sphinx-doc.org/>`_ configuration.
+# This file defines the configuration for a CodeChat project. It contains a working `PreTeXt <https://pretextbook.org/>`_ configuration.
 #
 # ``source_path``: optional; defaults to ``.`` (the current directory). A path to the root of the source tree. Relative paths are rooted in the directory containing this configuration file.
 source_path: source
@@ -32,7 +32,9 @@ output_path: output/web
 # - ``{project_path}``: an absolute path to the directory containing this file.
 # - ``{source_path}``: the ``source_path`` above, but as an absolute path.
 # - ``{output_path}``: the ``output_path`` above, but as an absolute path.
-args: pretext build web
+# - ``{sys_executable}``: the value of the running Python's `sys.executable <https://docs.python.org/3/library/sys.html#sys.executable>`_.
+# - ``{xml_id}``: The value of the the first ``xml:id`` attribute in the currently open file.
+args: "{sys_executable} -m pretext build web --xmlid {xml_id}"
 
 # ``html_ext``: optional; defaults to ``.html``. The extension used by this renderer when generating HTML files.
 #html_ext: .html
