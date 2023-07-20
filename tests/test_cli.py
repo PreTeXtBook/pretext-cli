@@ -92,6 +92,13 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         f"{source_prefix}ch-empty.ptx": ["ch-empty"],
         f"{source_prefix}ch-features.ptx": ["ch-features"],
         f"{source_prefix}sec-features.ptx": ["sec-features-blocks"],
+        f"{source_prefix}ch-generate.ptx": [
+            "ch-generate",
+            "webwork",
+            "youtube",
+            "interactive-infinity",
+            "codelens",
+        ],
         f"{source_prefix}backmatter.ptx": ["backmatter"],
     }
     assert script_runner.run(
