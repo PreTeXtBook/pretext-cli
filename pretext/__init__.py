@@ -21,7 +21,7 @@ log = logging.getLogger("ptxlogger")
 
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
-CORE_COMMIT = "3024ffd91203498bc9fba1c16681c9817ccce93a"
+CORE_COMMIT = "9bce7e55911fb14e3e6e362bfa78bd6431c38597"
 
 # List of templates, build formats, and assets that are supported by the CLI.
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
