@@ -388,6 +388,12 @@ def build(
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
         return
+    # First, make sure a webwork-representations file exists if needed:
+    if target.needs_ww_reps() and not target.has_ww_reps():
+        log.info(
+            "This target needs a webwork-representations.xml file, but it wasn't found (possibly manually deleted?).  Generating it now."
+        )
+        project.generate_webwork(target.name(), xmlid=xmlid)
     # Automatically generate any assets that have changed.
     if not no_generate:
         asset_table = target.load_asset_table()
@@ -397,13 +403,14 @@ def build(
                 "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
             )
         else:
-            for asset in set(asset[0] for asset in asset_hash_dict.keys()):
-                if asset in ["webwork"]:
-                    if (asset, "") not in asset_table or asset_hash_dict[
-                        (asset, "")
-                    ] != asset_table[(asset, "")]:
-                        project.generate(target.name(), asset_list=[asset])
-                elif (asset, "") not in asset_table or asset_hash_dict[
+            if ("webwork", "") not in asset_table or asset_hash_dict[
+                ("webwork", "")
+            ] != asset_table[("webwork", "")]:
+                project.generate_webwork(target.name(), xmlid=xmlid)
+            assets = set(asset[0] for asset in asset_hash_dict.keys())
+            assets.discard("webwork")
+            for asset in assets:
+                if (asset, "") not in asset_table or asset_hash_dict[
                     (asset, "")
                 ] != asset_table[(asset, "")]:
                     project.generate(target.name(), asset_list=[asset])
@@ -428,18 +435,17 @@ def build(
         log.info(
             "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
         )
-        project.generate(target.name())
+        project.generate_webwork(target.name(), xmlid=xmlid)
+        project.generate(target.name(), xmlid=xmlid)
     elif generate is not None:
         log.info(f"Generating {generate} assets as requested.")
         log.info(
             "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
         )
-        project.generate(target.name(), asset_list=[generate])
-    if target.needs_ww_reps() and not target.has_ww_reps():
-        log.info(
-            "This target needs a webwork-representations.xml file, but it wasn't found (possibly manually deleted?).  Generating it now."
-        )
-        project.generate(target.name(), asset_list=["webwork"])
+        if "webwork" in generate:
+            project.generate_webwork(target.name(), xmlid=xmlid)
+        project.generate(target.name(), asset_list=[generate], xmlid=xmlid)
+    # Now finally build the target
     project.build(target.name(), clean)
 
 
@@ -512,6 +518,8 @@ def generate(
         log.info(
             f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
         )
+    if "webwork" in assets or assets == "ALL":
+        project.generate_webwork(target.name(), xmlid=xmlid)
     if all_formats and assets == "ALL":
         log.info(
             f'Generating all assets in all asset formats for the target "{target.name()}".'
