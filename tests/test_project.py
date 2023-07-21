@@ -217,6 +217,8 @@ def test_manifest_legacy() -> None:
 
         assert not project.has_target("foo")
 
+        assert project._executables.latex == "latex1"
+
 
 def test_demo_html_build(tmp_path: Path) -> None:
     path_with_spaces = "test path with spaces"
