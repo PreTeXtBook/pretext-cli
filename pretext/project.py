@@ -495,6 +495,25 @@ class Project:
             # errors may occur in Windows so we do the best we can
             shutil.rmtree(custom_xsl.parent, ignore_errors=True)
 
+    # Webwork is special since its generation is required for all builds and generates when webwork is in source, so we use a dedicated method for it.
+    def generate_webwork(self, target_name: str, xmlid: Optional[str] = None) -> None:
+        target = self.target(target_name)
+        if target is None:
+            log.error(f"Target `{target_name}` not found.")
+            return
+        xmlid = xmlid or target.xmlid_root()
+        webwork_output = target.generated_dir_found() / "webwork"
+        generate.webwork(
+            target.source(),
+            target.publication(),
+            webwork_output,
+            target.stringparams(),
+            xmlid,
+        )
+        # Delete temporary directories left behind by core:
+        core.release_temporary_directories()
+
+    # Generate all non-webwork targets
     def generate(
         self,
         target_name: str,
@@ -513,15 +532,6 @@ class Project:
             return
         xmlid = xmlid or target.xmlid_root()
         # build targets:
-        if gen_all or "webwork" in asset_list:
-            webwork_output = target.generated_dir_found() / "webwork"
-            generate.webwork(
-                target.source(),
-                target.publication(),
-                webwork_output,
-                target.stringparams(),
-                xmlid,
-            )
         if gen_all or "latex-image" in asset_list:
             generate.latex_image(
                 target.source(),
