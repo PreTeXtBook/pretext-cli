@@ -57,7 +57,9 @@ class Target(pxml.BaseXmlModel, tag="target"):
     _project: "Project" = PrivateAttr()
     name: str = pxml.attr()
     format: Format = pxml.attr()
+    # A path to the root source for this target, relative to the project's `source` path.
     source: Path = pxml.attr(default=Path("main.ptx"))
+    # A path to the publication file for this target, relative to the project's `publication` path.
     publication: Path = pxml.attr(default=None)
 
     # If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
@@ -77,6 +79,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 f"Provided publication file {p_full} does not exist."
             )
 
+    # A path to the output directory for this target, relative to the project's `output` path.
     output: Path = pxml.attr(default=None)
 
     # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` (hack: a type violation) with `self.name`.
@@ -84,7 +87,9 @@ class Target(pxml.BaseXmlModel, tag="target"):
     def output_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
         return Path(v) if v is not None else Path(values["name"])
 
+    # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
     site: Path = pxml.attr(default=Path("site"))
+    # A path to custom XSL for this target, relative to the project's `xsl` path.
     xsl: t.Optional[Path] = pxml.attr(default=None)
 
     # If the `format == Format.CUSTOM`, then `xsl` must be defined.
@@ -506,6 +511,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
 
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
     _executables: Executables = PrivateAttr(default=Executables())
+    # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
     # The absolute path of the project file (typically, `project.ptx`).
     _path: Path = PrivateAttr(default=Path("."))
@@ -517,9 +523,13 @@ class Project(pxml.BaseXmlModel, tag="project"):
         # Note: we don't require the `project.ptx` file to exist, since this can be created from API calls instead of being read in from a project file.
         return path / "project.ptx" if path.is_dir() else path
 
+    # A path, relative to the project directory, prepended to any target's `publication`.
     publication: Path = pxml.attr(default=Path("publication"))
+    # A path, relative to the project directory, prepended to any target's `output`.
     output: Path = pxml.attr(default=Path("output"))
+    # A path, relative to the project directory, prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
+    # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
@@ -585,6 +595,8 @@ class Project(pxml.BaseXmlModel, tag="project"):
                     format = Format(tgt.format.value)
                 d = tgt.dict()
                 del d["format"]
+                # The v2 `output` is a combination of these two v1 fields.
+                d["output"] = tgt.output_dir / tgt.output_filename
                 # Remove the `None` from optional values, so the new format can replace these.
                 for key in ("site", "xsl", "latex_engine"):
                     if d[key] is None:
@@ -608,8 +620,11 @@ class Project(pxml.BaseXmlModel, tag="project"):
                 _executables=legacy_project.executables,
                 # Since there was no `publication` path in the old format, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
                 publication=Path(""),
-                # Same for source.
+                # The same is true for these paths.
                 source=Path(""),
+                output=Path(""),
+                site=Path(""),
+                xsl=Path(""),
                 **legacy_project.dict(),
             )
 
