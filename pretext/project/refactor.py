@@ -607,7 +607,9 @@ class Project(pxml.BaseXmlModel, tag="project"):
                 # Rename from `executables` to `_executables` when moving from the old to new project format.
                 _executables=legacy_project.executables,
                 # Since there was no `publication` path in the old format, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
-                publication=Path("."),
+                publication=Path(""),
+                # Same for source.
+                source=Path(""),
                 **legacy_project.dict(),
             )
 
