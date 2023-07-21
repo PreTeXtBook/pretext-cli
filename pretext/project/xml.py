@@ -41,7 +41,7 @@ class StringParam(pxml.BaseXmlModel, tag="stringparam"):
     value: str = pxml.attr()
 
 
-class LegacyTarget(pxml.BaseXmlModel, tag="target"):
+class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     name: str = pxml.attr()
     latex_engine: t.Optional[LatexEngine] = pxml.attr(name="pdf-method")
     format: LegacyFormat = pxml.element()
@@ -55,7 +55,7 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target"):
     stringparams: t.List[StringParam] = pxml.element(tag="stringparam", default=[])
 
 
-class LegacyExecutables(pxml.BaseXmlModel, tag="executables"):
+class LegacyExecutables(pxml.BaseXmlModel, tag="executables", search_mode="unordered"):
     latex: str = pxml.element()
     pdflatex: str = pxml.element()
     xelatex: str = pxml.element()
@@ -68,6 +68,6 @@ class LegacyExecutables(pxml.BaseXmlModel, tag="executables"):
     liblouis: str = pxml.element()
 
 
-class LegacyProject(pxml.BaseXmlModel, tag="project"):
+class LegacyProject(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     targets: t.List[LegacyTarget] = pxml.wrapped("targets", pxml.element(tag="target"))
     executables: LegacyExecutables = pxml.element()
