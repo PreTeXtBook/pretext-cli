@@ -50,17 +50,17 @@ def test_defaults(tmp_path: Path) -> None:
             project.new_target(*t)
         with templates.resource_path("publication.ptx") as pub_path:
             pass
-        assert project._path == Path("project.ptx").resolve()
+        assert project._path == Path.cwd() / Path("project.ptx")
         assert project.source == Path("source")
         assert project.publication == Path("publication")
         assert project.output == Path("output")
         assert project.site == Path("site")
         assert project.xsl == Path("xsl")
         for t in ts:
-            name, frmt = t
+            name, format = t
             target = project.get_target(name)
             assert target.name == name
-            assert target.format == frmt
+            assert target.format == format
             assert target.source == Path("main.ptx")
             assert target.publication == pub_path
             assert target.output == Path(name)
