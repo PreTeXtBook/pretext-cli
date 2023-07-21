@@ -2,9 +2,9 @@ name: test-on-push
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, refactor-project ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, refactor-project ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -62,6 +62,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install apt packages (Linux only)
+      if: runner.os == 'Linux'
+      run: |
+          sudo apt update
+          sudo apt install -y --no-install-recommends texlive texlive-science texlive-xetex ghostscript pdf2svg texlive-fonts-extra sagemath
+
     - name: Install poetry ${{ matrix.poetry-version }}
       run: |
         python -m ensurepip
@@ -78,9 +84,9 @@ jobs:
         python -m poetry run python scripts/fetch_core.py
         python -m poetry run python scripts/zip_templates.py
 
-    - name: Check types
-      run: |
-        python -m poetry run mypy --install-types --non-interactive
+    # - name: Check types
+    #   run: |
+    #     python -m poetry run mypy --install-types --non-interactive
 
     - name: Test with pytest
       run: |

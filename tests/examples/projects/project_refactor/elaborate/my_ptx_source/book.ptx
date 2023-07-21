@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <article>
+    <title>Hello World! (web)</title>
+    <section xml:id="sec-first">
+      <title>First</title>
+      <xi:include href="./para.ptx" />
+    </section>
+    <section xml:id="sec-another">
+      <title>Another</title>
+      <p>Another</p>
+    </section>
+  </article>
+</pretext>

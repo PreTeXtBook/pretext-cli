@@ -5,9 +5,105 @@ import sys
 from typing import Dict, Optional
 
 from . import utils, core, codechat
+from .project.xml import Executables
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
+
+
+def build(
+    format: str,
+    ptxfile: Path,
+    pub_file: Path,
+    output: Path,
+    stringparams: Dict[str, str],
+    custom_xsl: Optional[Path],
+    xmlid: Optional[str],
+    zipped: bool = False,
+    project_path: Optional[Path] = None,
+    latex_engine: str = "xelatex",
+    executables: Dict[str, str] = Executables().dict(),
+    braille_mode: str = "emboss",
+) -> None:
+    core.set_executables(executables)
+    try:
+        if format == "html":
+            html(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+                xmlid_root=xmlid,
+                zipped=zipped,
+                project_path=project_path,
+            )
+        elif format == "latex":
+            latex(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+            )
+        elif format == "pdf":
+            pdf(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+                pdf_method=latex_engine,
+            )
+        elif format == "custom":
+            if output.is_file():
+                output_filename = output.name
+                output = output.parent
+            else:
+                output_filename = None
+            assert custom_xsl is not None
+            custom(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                custom_xsl=custom_xsl,
+                output_filename=output_filename,
+            )
+        elif format == "epub":
+            epub(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+            )
+        elif format == "kindle":
+            kindle(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+            )
+        elif format == "braille":
+            braille(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                page_format=braille_mode,
+            )
+        elif format == "webwork":
+            webwork_sets(
+                ptxfile=ptxfile,
+                pub_file=pub_file,
+                output=output,
+                stringparams=stringparams,
+                zipped=zipped,
+            )
+        else:
+            raise NotImplementedError(f"{format} is not supported")
+    finally:
+        core.release_temporary_directories()
 
 
 def html(
@@ -18,6 +114,7 @@ def html(
     custom_xsl: Optional[Path],
     xmlid_root: Optional[str],
     zipped: bool = False,
+    project_path: Optional[Path] = None,
 ) -> None:
     os.makedirs(output, exist_ok=True)
     log.info(f"\nNow building HTML into {output}\n")
@@ -40,9 +137,10 @@ def html(
                 None,
                 output.as_posix(),
             )
-            pp = utils.project_path(ptxfile)
-            assert pp is not None, f"Invalid project path to {ptxfile}."
-            codechat.map_path_to_xml_id(ptxfile, pp, output.as_posix())
+            if project_path is None:
+                project_path = utils.project_path(ptxfile)
+            assert project_path is not None, f"Invalid project path to {ptxfile}."
+            codechat.map_path_to_xml_id(ptxfile, project_path, output.as_posix())
         except Exception as e:
             log.critical(e)
             log.debug("Exception info:\n##################\n", exc_info=True)
@@ -114,6 +212,7 @@ def custom(
     custom_xsl: Path,
     output_filename: Optional[str] = None,
 ) -> None:
+    stringparams["publisher"] = pub_file.as_posix()
     os.makedirs(output, exist_ok=True)
     if output_filename is not None:
         output_filepath = output / output_filename

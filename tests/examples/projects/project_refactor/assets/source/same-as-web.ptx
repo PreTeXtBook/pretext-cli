@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pretext>
+  <article>
+    <title>Hello World!</title>
+    <figure xml:id="figure">
+      <caption>It says what goes before bar</caption>
+      <image xml:id="image">
+        <description>it says what goes before bar</description>
+        <latex-image>foo</latex-image>
+      </image>
+    </figure>
+    <p>This is a PreTeXt document.</p>
+  </article>
+</pretext>

@@ -13,6 +13,7 @@ import socket
 import subprocess
 import logging
 import logging.handlers
+import multiprocessing
 import threading
 import watchdog.events
 import watchdog.observers
@@ -23,7 +24,7 @@ from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
 from typing import Any, cast, Callable, List, Optional
 
-from . import core, templates, BUILD_FORMATS
+from . import core, templates, constants
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -127,17 +128,15 @@ def target_xml(
 
 
 # check xml syntax
-def xml_syntax_is_valid(xmlfile: Path) -> bool:
+def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
     # parse xml
     try:
         source_xml = ET.parse(xmlfile)
-        # we need to call xinclude once for each level of nesting (just to check for errors).  25 levels should be more than sufficient
-        for i in range(25):
-            source_xml.xinclude()
+        source_xml.xinclude()
         log.debug("XML syntax appears well formed.")
-        if source_xml.getroot().tag != "pretext":
+        if source_xml.getroot().tag != root_tag:
             log.error(
-                f'The file {xmlfile} does not have "<pretext>" as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx).'
+                f'The file {xmlfile} does not have "<{root_tag}>" as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx).'
             )
             return False
     # check for file IO error
@@ -165,6 +164,7 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 
     # Parse xml file:
     source_xml = ET.parse(xmlfile)
+    source_xml.xinclude()
 
     # just for testing
     # ----------------
@@ -216,14 +216,16 @@ class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
 
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
-def binding_for_access(access: str = "private") -> str:
+def binding_for_access(access: t.Literal["public", "private"] = "private") -> str:
     if access == "private":
         return "localhost"
     else:
         return "0.0.0.0"
 
 
-def url_for_access(access: str = "private", port: int = 8000) -> str:
+def url_for_access(
+    access: t.Literal["public", "private"] = "private", port: int = 8000
+) -> str:
     if access == "public":
         return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
     else:
@@ -231,7 +233,10 @@ def url_for_access(access: str = "private", port: int = 8000) -> str:
 
 
 def serve_forever(
-    directory: Path, access: str = "private", port: int = 8000, no_launch: bool = False
+    directory: Path,
+    access: t.Literal["public", "private"] = "private",
+    port: int = 8000,
+    no_launch: bool = False,
 ) -> None:
     log.info(f"Now preparing local server to preview directory `{directory}`.")
     log.info(
@@ -285,7 +290,7 @@ def serve_forever(
 
 def run_server(
     directory: Path,
-    access: str,
+    access: t.Literal["public", "private"],
     port: int,
     watch_directory: t.Optional[Path] = None,
     watch_callback: Callable[[], None] = lambda: None,
@@ -309,6 +314,17 @@ def run_server(
             observer.stop()
     if watch_directory is not None:
         observer.join()
+
+
+def server_process(
+    directory: Path,
+    access: t.Literal["public", "private"],
+    port: int,
+    launch: bool = True,
+) -> multiprocessing.Process:
+    return multiprocessing.Process(
+        target=serve_forever, args=[directory, access, port, not launch]
+    )
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
@@ -435,7 +451,7 @@ def show_target_hints(
     log.critical(
         f'There is not a target named "{target_format}" for this project.ptx manifest.'
     )
-    if target_format in BUILD_FORMATS:
+    if target_format in constants.BUILD_FORMATS:
         target_names = project.target_names(target_format)
         if len(target_names) == 1:
             log.info(

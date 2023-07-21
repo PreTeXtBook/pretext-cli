@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project ptx-version="2">
+  <targets>
+    <target name="web" format="html" source="web.ptx" />
+    <target name="same-as-web" format="html" source="same-as-web.ptx" />
+    <target name="different-than-web" format="html" source="different-than-web.ptx" />
+  </targets>
+</project>

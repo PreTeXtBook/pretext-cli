@@ -72,10 +72,13 @@ def map_path_to_xml_id(
     xml_base_attrib = f"{xml_ns}base"
     xml_id_attrib = f"{xml_ns}id"
 
-    # Define a loader which sets the ``xml:base`` of an xincluded element. While lxml `evidently used to do this in 2013 <https://stackoverflow.com/a/18158472/16038919>`_, a change eliminated this ability per some `dicussion <https://mail.gnome.org/archives/xml/2014-April/msg00015.html>`_, which included a rejected patch fixing this problem. `Current source <https://github.com/GNOME/libxml2/blob/master/xinclude.c#L1689>`_ lacks this patch.
+    # Define a loader which sets the ``xml:base`` of an xincluded element. While lxml `evidently used to do this in 2013 <https://stackoverflow.com/a/18158472/16038919>`_, a change eliminated this ability per some `discussion <https://mail.gnome.org/archives/xml/2014-April/msg00015.html>`_, which included a rejected patch fixing this problem. `Current source <https://github.com/GNOME/libxml2/blob/master/xinclude.c#L1689>`_ lacks this patch.
     #
     # Since there's few docs on this function, ignore the lack of types.
-    def my_loader(href, parse, encoding=None, parser=None):  # type: ignore
+    def my_loader(href: str, parse: str, encoding: str = None, parser=None):  # type: ignore
+        # Decode the URL-encoded filename for non-xml, on-disk data. See `lxml.ElementInclude._lxml_default_loader`.
+        if parse != "xml" and "://" not in href:
+            href = urllib.parse.unquote(href)
         ret = lxml.ElementInclude._lxml_default_loader(href, parse, encoding, parser)
         # The return value may not be an element.
         if isinstance(ret, ET._Element):

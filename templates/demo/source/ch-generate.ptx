@@ -3,8 +3,7 @@
   <title><pretext /> features that require generation</title>
   <introduction>
     <p>
-      In <c>main.ptx</c>, uncomment this chapter to try building various
-      types of assets.
+      Here we demonstrate various kinds of assets.
     </p>
   </introduction>
   <section>
@@ -17,36 +16,12 @@
   <section xml:id="webwork">
     <title><webwork /> Example</title>
     <exercise>
-      <webwork>
-        <pg-code>
-          $a = Compute(random(1, 9, 1));
-          $b = Compute(random(1, 9, 1));
-          $c = $a + $b;
-        </pg-code>
-        <statement>
-          <p>
-            Compute the sum of <m><var name="$a" /></m> and <m><var name="$b" /></m>:
-          </p>
-          <p>
-            <m><var name="$a" /> + <var name="$b" /> =</m> <var name="$c" width="5" />
-          </p>
-        </statement>
-        <hint>
-          <p>
-            Add <m><var name="$a" /></m> and <m><var name="$b" /></m> together.
-          </p>
-        </hint>
-        <solution>
-          <p>
-            <m><var name="$a" /> + <var name="$b" /> = <var name="$c" /></m>.
-          </p>
-        </solution>
-      </webwork>
+      <xi:include href="./ww.ptx" />
     </exercise>
   </section>
   <section xml:id="youtube">
     <title>YouTube Example</title>
-    <video youtube="dQw4w9WgXcQ"/>
+    <video youtube="dQw4w9WgXcQ" />
   </section>
   <section>
     <title>Interactive Example</title>

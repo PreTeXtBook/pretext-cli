@@ -21,10 +21,9 @@ from . import (
     utils,
     templates,
     core,
+    constants,
     VERSION,
     CORE_COMMIT,
-    NEW_TEMPLATES,
-    ASSETS,
 )
 from .project import Project
 
@@ -178,7 +177,7 @@ def devscript(args: List[str]) -> None:
 @click.argument(
     "template",
     default="book",
-    type=click.Choice(NEW_TEMPLATES, case_sensitive=False),
+    type=click.Choice(constants.NEW_TEMPLATES, case_sensitive=False),
 )
 @click.option(
     "-d",
@@ -325,7 +324,7 @@ def init(refresh: bool) -> None:
     is_flag=False,
     flag_value="ALL",
     default=None,
-    type=click.Choice(ASSETS, case_sensitive=False),
+    type=click.Choice(constants.ASSETS, case_sensitive=False),
     help="Generates assets for target.  -g [asset] will generate the specific assets given.",
 )
 @click.option(
@@ -455,7 +454,7 @@ def build(
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument(
-    "assets", default="ALL", type=click.Choice(ASSETS, case_sensitive=False)
+    "assets", default="ALL", type=click.Choice(constants.ASSETS, case_sensitive=False)
 )
 @click.option(
     "-t",
@@ -611,7 +610,7 @@ def generate(
     is_flag=False,
     flag_value="ALL",
     default=None,
-    type=click.Choice(ASSETS, case_sensitive=False),
+    type=click.Choice(constants.ASSETS, case_sensitive=False),
     help="Generate all or specific assets before viewing",
 )
 @click.option(
