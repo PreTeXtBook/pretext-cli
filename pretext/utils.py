@@ -323,7 +323,7 @@ def server_process(
     launch: bool = True,
 ) -> multiprocessing.Process:
     return multiprocessing.Process(
-        target=lambda: serve_forever(directory, access, port, not launch)
+        target=serve_forever, args=[directory, access, port, not launch]
     )
 
 
