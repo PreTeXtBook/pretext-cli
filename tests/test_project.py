@@ -196,9 +196,11 @@ def test_manifest_legacy() -> None:
         t_html = project.get_target("html")
         assert t_html is not None
         assert t_html.format == "html"
-        assert t_html.source == Path("source", "main.ptx")
-        assert t_html.publication == Path("publication", "publication.ptx")
-        assert t_html.output == Path("output", "html")
+        assert t_html.source_abspath() == project.abspath() / Path("source", "main.ptx")
+        assert t_html.publication_abspath() == project.abspath() / Path(
+            "publication", "publication.ptx"
+        )
+        assert t_html.output_abspath() == project.abspath() / Path("output", "html")
         assert t_html.latex_engine == "xelatex"
 
         t_latex = project.get_target("latex")
