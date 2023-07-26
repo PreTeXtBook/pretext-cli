@@ -38,7 +38,8 @@ class Format(str, Enum):
     CUSTOM = "custom"
 
 
-class Publication(pxml.BaseXmlModel, tag="publication", search_mode="unordered"):
+# The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
+class PublicationSubset(pxml.BaseXmlModel, tag="publication", search_mode="unordered"):
     external: Path = pxml.wrapped("source/directories", pxml.attr())
     generated: Path = pxml.wrapped("source/directories", pxml.attr())
 
@@ -148,19 +149,18 @@ class Target(pxml.BaseXmlModel, tag="target"):
             return None
         return self._project.xsl_abspath() / self.xsl
 
-    def _read_publication_file(self) -> Publication:
+    def _read_publication_file_subset(self) -> PublicationSubset:
         p_bytes = self.publication_abspath().read_bytes()
-        p = Publication.from_xml(p_bytes)
-        return p
+        return PublicationSubset.from_xml(p_bytes)
 
     def external_dir(self) -> Path:
-        return self._read_publication_file().external
+        return self._read_publication_file_subset().external
 
     def external_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.external_dir()).resolve()
 
     def generated_dir(self) -> Path:
-        return self._read_publication_file().generated
+        return self._read_publication_file_subset().generated
 
     def generated_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.generated_dir()).resolve()
