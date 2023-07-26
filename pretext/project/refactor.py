@@ -38,6 +38,12 @@ class Format(str, Enum):
     CUSTOM = "custom"
 
 
+# The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
+class PublicationSubset(pxml.BaseXmlModel, tag="publication", search_mode="unordered"):
+    external: Path = pxml.wrapped("source/directories", pxml.attr())
+    generated: Path = pxml.wrapped("source/directories", pxml.attr())
+
+
 class BrailleMode(str, Enum):
     EMBOSS = "emboss"
     ELECTRONIC = "electronic"
@@ -148,25 +154,18 @@ class Target(pxml.BaseXmlModel, tag="target"):
             return None
         return self._project.xsl_abspath() / self.xsl
 
+    def _read_publication_file_subset(self) -> PublicationSubset:
+        p_bytes = self.publication_abspath().read_bytes()
+        return PublicationSubset.from_xml(p_bytes)
+
     def external_dir(self) -> Path:
-        et = ET.parse(self.publication_abspath())
-        assert et is not None
-        el = et.find("./source/directories")
-        assert el is not None
-        path = el.get("external")
-        assert path is not None
-        return Path(path)
+        return self._read_publication_file_subset().external
 
     def external_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.external_dir()).resolve()
 
     def generated_dir(self) -> Path:
-        # TODO: what if the publication file isn't present? What should this return? Also, need to parse this using the a validator.
-        return Path(
-            ET.parse(self.publication_abspath())
-            .find("./source/directories")
-            .get("generated")
-        )
+        return self._read_publication_file_subset().generated
 
     def generated_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.generated_dir()).resolve()

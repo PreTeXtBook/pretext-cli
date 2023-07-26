@@ -14,7 +14,7 @@ import platform
 from pathlib import Path
 import atexit
 import subprocess
-from typing import List, Optional, Tuple
+from typing import List, Literal, Optional, Tuple
 from .config import xml_overlay
 
 from . import (
@@ -620,7 +620,7 @@ def generate(
 )
 def view(
     target_name: str,
-    access: str,
+    access: Literal["public", "private"],
     port: Optional[int],
     directory: Optional[str],
     watch: bool,
