@@ -35,6 +35,7 @@
 				"oscarlevin.pretext-tools",
 				"ms-python.python",
 				"ms-python.flake8",
+				"ms-python.black-formatter",
 				"streetsidesoftware.code-spell-checker"
 			]
 		}
