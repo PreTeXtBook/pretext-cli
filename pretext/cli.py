@@ -144,7 +144,7 @@ def support() -> None:
         log.info("------------------------")
         project = Project()
         project.init_ptxcore()
-        for exec_name in project.executables():
+        for exec_name in project.get_executables().dict():
             if utils.check_executable(exec_name) is None:
                 log.warning(
                     f"Unable to locate the command for <{exec_name}> on your system."

@@ -705,3 +705,9 @@ class Project(pxml.BaseXmlModel, tag="project"):
             directory = self.site
 
         return utils.server_process(directory, access, port, launch=launch)
+
+    def get_executables(self) -> Executables:
+        return self._executables
+
+    def init_ptxcore(self) -> None:
+        core.set_executables(self._executables.dict())
