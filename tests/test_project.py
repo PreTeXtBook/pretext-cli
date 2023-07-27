@@ -53,7 +53,7 @@ def test_defaults(tmp_path: Path) -> None:
         assert project._path == Path.cwd() / Path("project.ptx")
         assert project.source == Path("source")
         assert project.publication == Path("publication")
-        assert project.output == Path("output")
+        assert project.output_dir == Path("output")
         assert project.site == Path("site")
         assert project.xsl == Path("xsl")
         for t in ts:
@@ -76,7 +76,7 @@ def test_serve(tmp_path: Path) -> None:
         project = pr.Project(ptx_version="2")
         for mode in ["output", "site"]:
             if mode == "output":
-                dir = project.output
+                dir = project.output_dir
             else:
                 dir = project.site
             # mypy seems `mode` as a str, so the type check fails.
@@ -114,7 +114,7 @@ def test_manifest_simple(tmp_path: Path) -> None:
 
         default_project = pr.Project(ptx_version="2")
         assert default_project.site == project.site
-        assert default_project.output == project.output
+        assert default_project.output_dir == project.output_dir
         assert default_project._path == project._path
 
 
@@ -142,7 +142,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project._path == Path("project.ptx").resolve()
         assert project.source == Path("my_ptx_source")
         assert project.publication == Path("dont-touch")
-        assert project.output == Path("build", "here")
+        assert project.output_dir == Path("build", "here")
         assert project.site == Path("build", "staging")
         assert project.xsl == Path("customizations")
         assert project._executables.xelatex == "xelatex"

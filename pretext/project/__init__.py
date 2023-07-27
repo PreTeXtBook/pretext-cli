@@ -97,16 +97,16 @@ class Target(pxml.BaseXmlModel, tag="target"):
         return Path(v) if v is not None else Path(values["name"])
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
-    output_file: t.Optional[str] = pxml.attr(name="output-file", default=None)
+    output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
 
-    @validator("output_file", always=True)
-    def output_file_validator(
+    @validator("output_filename", always=True)
+    def output_filename_validator(
         cls, v: t.Optional[str], values: t.Any
     ) -> t.Optional[str]:
         # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
         if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None:
             raise ValueError(
-                "The output_file must not be present when the format is HTML."
+                "The output_filename must not be present when the format is HTML or Webwork."
             )
         # Verify that this is just a file name, without any prefixed path.
         assert v is None or Path(v).name == v
@@ -154,7 +154,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
         return self._project.publication_abspath() / self.publication
 
     def output_dir_abspath(self) -> Path:
-        return self._project.output_abspath() / self.output_dir
+        return self._project.output_dir_abspath() / self.output_dir
 
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
@@ -314,7 +314,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 self.source_abspath(),
                 self.publication_abspath(),
                 self.output_dir_abspath(),
-                self.output_file,
+                self.output_filename,
                 self.stringparams,
                 custom_xsl=custom_xsl,
                 xmlid=xmlid,
@@ -526,8 +526,8 @@ class Project(pxml.BaseXmlModel, tag="project"):
 
     # A path, relative to the project directory, prepended to any target's `publication`.
     publication: Path = pxml.attr(default=Path("publication"))
-    # A path, relative to the project directory, prepended to any target's `output`.
-    output: Path = pxml.attr(default=Path("output"))
+    # A path, relative to the project directory, prepended to any target's `output_dir`.
+    output_dir: Path = pxml.attr(default=Path("output"))
     # A path, relative to the project directory, prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
@@ -684,8 +684,8 @@ class Project(pxml.BaseXmlModel, tag="project"):
     def publication_abspath(self) -> Path:
         return self.abspath() / self.publication
 
-    def output_abspath(self) -> Path:
-        return self.abspath() / self.output
+    def output_dir_abspath(self) -> Path:
+        return self.abspath() / self.output_dir
 
     def xsl_abspath(self) -> Path:
         return self.abspath() / self.xsl
@@ -702,7 +702,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
         providing either the contents of `output` or `site`
         """
         if mode == "output":
-            directory = self.output
+            directory = self.output_dir
         else:  # "site"
             directory = self.site
 
