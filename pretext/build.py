@@ -15,7 +15,8 @@ def build(
     format: str,
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
+    output_filename: Optional[str],
     stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
     xmlid: Optional[str],
@@ -31,7 +32,7 @@ def build(
             html(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
                 stringparams=stringparams,
                 custom_xsl=custom_xsl,
                 xmlid_root=xmlid,
@@ -42,7 +43,8 @@ def build(
             latex(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
+                output_filename=output_filename,
                 stringparams=stringparams,
                 custom_xsl=custom_xsl,
             )
@@ -50,45 +52,45 @@ def build(
             pdf(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
+                output_filename=output_filename,
                 stringparams=stringparams,
                 custom_xsl=custom_xsl,
                 pdf_method=latex_engine,
             )
         elif format == "custom":
-            if output.is_file():
-                output_filename = output.name
-                output = output.parent
-            else:
-                output_filename = None
+            # TODO: validator for new project format already ensures this.
             assert custom_xsl is not None
             custom(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
+                output_filename=output_filename,
                 stringparams=stringparams,
                 custom_xsl=custom_xsl,
-                output_filename=output_filename,
             )
         elif format == "epub":
             epub(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
+                output_filename=output_filename,
                 stringparams=stringparams,
             )
         elif format == "kindle":
             kindle(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
+                output_filename=output_filename,
                 stringparams=stringparams,
             )
         elif format == "braille":
             braille(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
+                output_filename=output_filename,
                 stringparams=stringparams,
                 page_format=braille_mode,
             )
@@ -96,7 +98,7 @@ def build(
             webwork_sets(
                 ptxfile=ptxfile,
                 pub_file=pub_file,
-                output=output,
+                output_dir=output_dir,
                 stringparams=stringparams,
                 zipped=zipped,
             )
@@ -109,15 +111,15 @@ def build(
 def html(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
     stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
     xmlid_root: Optional[str],
     zipped: bool = False,
     project_path: Optional[Path] = None,
 ) -> None:
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building HTML into {output}\n")
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building HTML into {output_dir}\n")
     if xmlid_root is not None:
         log.info(f"Only building @xml:id `{xmlid_root}`\n")
     if zipped:
@@ -135,12 +137,12 @@ def html(
                 file_format,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
                 None,
-                output.as_posix(),
+                output_dir.as_posix(),
             )
             if project_path is None:
                 project_path = utils.project_path(ptxfile)
             assert project_path is not None, f"Invalid project path to {ptxfile}."
-            codechat.map_path_to_xml_id(ptxfile, project_path, output.as_posix())
+            codechat.map_path_to_xml_id(ptxfile, project_path, output_dir.as_posix())
         except Exception as e:
             log.critical(e)
             log.debug("Exception info:\n##################\n", exc_info=True)
@@ -151,12 +153,13 @@ def html(
 def latex(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
+    output_filename: Optional[str],
     stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
 ) -> None:
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building LaTeX into {output}\n")
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building LaTeX into {output_dir}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -165,8 +168,8 @@ def latex(
                 pub_file.as_posix(),
                 stringparams,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
-                None,
-                output.as_posix(),
+                output_filename,
+                output_dir.as_posix(),
             )
         except Exception as e:
             log.critical(e)
@@ -178,13 +181,14 @@ def latex(
 def pdf(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
+    output_filename: Optional[str],
     stringparams: Dict[str, str],
     custom_xsl: Optional[Path],
     pdf_method: str,
 ) -> None:
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building LaTeX into {output}\n")
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building LaTeX into {output_dir}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -193,8 +197,8 @@ def pdf(
                 pub_file.as_posix(),
                 stringparams,
                 custom_xsl and custom_xsl.as_posix(),  # pass None or posix string
-                None,
-                dest_dir=output.as_posix(),
+                output_filename,
+                dest_dir=output_dir.as_posix(),
                 method=pdf_method,
             )
         except Exception as e:
@@ -207,21 +211,21 @@ def pdf(
 def custom(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
     stringparams: Dict[str, str],
     custom_xsl: Path,
-    output_filename: Optional[str] = None,
+    output_filename: Optional[str],
 ) -> None:
     stringparams["publisher"] = pub_file.as_posix()
-    os.makedirs(output, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     if output_filename is not None:
-        output_filepath = output / output_filename
-        output_dir = None
+        output_filepath = output_dir / output_filename
+        _output_dir = None
         log.info(f"\nNow building with custom {custom_xsl} into {output_filepath}\n")
     else:
         output_filepath = None
-        output_dir = output
-        log.info(f"\nNow building with custom {custom_xsl} into {output}\n")
+        _output_dir = output_dir
+        log.info(f"\nNow building with custom {custom_xsl} into {output_dir}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -229,7 +233,7 @@ def custom(
                 custom_xsl,
                 ptxfile,
                 output_filepath,
-                output_dir=output_dir,
+                output_dir=_output_dir,
                 stringparams=stringparams,
             )
         except Exception as e:
@@ -241,9 +245,13 @@ def custom(
 
 # build (non Kindle) ePub:
 def epub(
-    ptxfile: Path, pub_file: Path, output: Path, stringparams: Dict[str, str]
+    ptxfile: Path,
+    pub_file: Path,
+    output_dir: Path,
+    output_filename: Optional[str],
+    stringparams: Dict[str, str],
 ) -> None:
-    os.makedirs(output, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     try:
         utils.npm_install()
     except Exception as e:
@@ -251,14 +259,14 @@ def epub(
         sys.exit(
             "Unable to build epub because node packages are not installed.  Exiting..."
         )
-    log.info(f"\nNow building ePub into {output}\n")
+    log.info(f"\nNow building ePub into {output_dir}\n")
     with utils.working_directory(Path()):
         try:
             core.epub(
                 ptxfile,
                 pub_file.as_posix(),
-                out_file=None,  # will be derived from source
-                dest_dir=output.as_posix(),
+                out_file=output_filename,
+                dest_dir=output_dir.as_posix(),
                 math_format="svg",
                 stringparams=stringparams,
             )
@@ -271,9 +279,13 @@ def epub(
 
 # build Kindle ePub:
 def kindle(
-    ptxfile: Path, pub_file: Path, output: Path, stringparams: Dict[str, str]
+    ptxfile: Path,
+    pub_file: Path,
+    output_dir: Path,
+    output_filename: Optional[str],
+    stringparams: Dict[str, str],
 ) -> None:
-    os.makedirs(output, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     try:
         utils.npm_install()
     except Exception as e:
@@ -281,14 +293,14 @@ def kindle(
         sys.exit(
             "Unable to build Kindle ePub because node packages are not installed.  Exiting..."
         )
-    log.info(f"\nNow building Kindle ePub into {output}\n")
+    log.info(f"\nNow building Kindle ePub into {output_dir}\n")
     with utils.working_directory(Path()):
         try:
             core.epub(
                 ptxfile,
                 pub_file.as_posix(),
-                out_file=None,  # will be derived from source
-                dest_dir=output.as_posix(),
+                out_file=output_filename,
+                dest_dir=output_dir.as_posix(),
                 math_format="kindle",
                 stringparams=stringparams,
             )
@@ -303,11 +315,12 @@ def kindle(
 def braille(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
+    output_filename: Optional[str],
     stringparams: Dict[str, str],
     page_format: str = "emboss",
 ) -> None:
-    os.makedirs(output, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     log.warning(
         "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
     )
@@ -318,14 +331,14 @@ def braille(
         sys.exit(
             "Unable to build braille because node packages could not be installed.  Exiting..."
         )
-    log.info(f"\nNow building braille into {output}\n")
+    log.info(f"\nNow building braille into {output_dir}\n")
     with utils.working_directory(Path()):
         try:
             core.braille(
                 xml_source=ptxfile,
                 pub_file=pub_file.as_posix(),
-                out_file=None,  # will be derived from source
-                dest_dir=output.as_posix(),
+                out_file=output_filename,
+                dest_dir=output_dir.as_posix(),
                 page_format=page_format,  # could be "eboss" or "electronic"
                 stringparams=stringparams,
             )
@@ -340,12 +353,12 @@ def braille(
 def webwork_sets(
     ptxfile: Path,
     pub_file: Path,
-    output: Path,
+    output_dir: Path,
     stringparams: Dict[str, str],
     zipped: bool = False,
 ) -> None:
-    os.makedirs(output, exist_ok=True)
-    log.info(f"\nNow building WeBWorK Sets into {output}\n")
+    os.makedirs(output_dir, exist_ok=True)
+    log.info(f"\nNow building WeBWorK Sets into {output_dir}\n")
     # ensure working directory is preserved
     with utils.working_directory(Path()):
         try:
@@ -353,7 +366,7 @@ def webwork_sets(
                 xml_source=ptxfile,
                 pub_file=pub_file.as_posix(),
                 stringparams=stringparams,
-                dest_dir=output.as_posix(),
+                dest_dir=output_dir.as_posix(),
                 tgz=zipped,
             )
         except Exception as e:
