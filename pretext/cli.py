@@ -78,7 +78,7 @@ def main(ctx: click.Context, targets: bool) -> None:
     """
     if (pp := utils.project_path()) is not None:
         if targets:
-            Project().print_target_names()
+            Project.parse().print_target_names()
             return
         # create file handler which logs even debug messages
         fh = logging.FileHandler(pp / "cli.log", mode="w")
@@ -142,7 +142,7 @@ def support() -> None:
         log.info("------------------------")
         log.info(utils.project_xml_string())
         log.info("------------------------")
-        project = Project()
+        project = Project.parse()
         project.init_ptxcore()
         for exec_name in project.get_executables().dict():
             if utils.check_executable(exec_name) is None:
@@ -500,7 +500,7 @@ def generate(
     for path, value in project_ptx_override:
         overlay.upsert_node_or_attribute(path, value)
 
-    project = Project()
+    project = Project.parse()
     if len(project_ptx_override) > 0:
         messages = project.apply_overlay(overlay)
         for message in messages:
@@ -643,7 +643,7 @@ def view(
         return
     if utils.no_project(task="view the output for"):
         return
-    project = Project()
+    project = Project.parse()
     target = project.target(name=target_name)
     if target is None:
         utils.show_target_hints(target_name, project, task="view")
@@ -695,7 +695,7 @@ def deploy(target_name: str, site: str, update_source: bool) -> None:
     """
     if utils.no_project(task="deploy"):
         return
-    project = Project()
+    project = Project.parse()
     target = project.target(name=target_name)
     if target is None or target.format() != "html":
         log.critical("Target could not be found in project.ptx manifest.")
