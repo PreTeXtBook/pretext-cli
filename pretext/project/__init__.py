@@ -505,7 +505,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
     on the disk, and Paths for where to build output and maintain a site.
     """
 
-    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
+    ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
     _executables: Executables = PrivateAttr(default=Executables())
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
@@ -549,11 +549,12 @@ class Project(pxml.BaseXmlModel, tag="project"):
         xml_bytes = _path.read_bytes()
 
         # Determine the version of this project file.
+
         class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
             ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
 
         p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
-        if p_version_only.ptx_version is not None:
+        if p_version_only.ptx_version != "2":
             p = Project.from_xml(xml_bytes)
 
             # Now that the project is loaded, load / set up what isn't in the project XML.
