@@ -8,7 +8,7 @@ from typing import List
 
 import pytest
 
-from pretext.project import refactor as pr
+from pretext import project as pr
 from pretext import templates
 from pretext import utils
 
@@ -63,7 +63,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.format == format
             assert target.source == Path("main.ptx")
             assert target.publication == pub_path
-            assert target.output == Path(name)
+            assert target.output_dir == Path(name)
             assert target.site == Path("site")
             assert target.xsl is None
             assert target.latex_engine == pr.LatexEngine.XELATEX
@@ -152,7 +152,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_web.format == "html"
         assert t_web.source == Path("book.ptx")
         assert t_web.publication == Path("publication.ptx")
-        assert t_web.output == Path("web")
+        assert t_web.output_dir == Path("web")
         assert t_web.site == Path("")
         assert t_web.xsl == Path("silly.xsl")
         assert t_web.stringparams == {}
@@ -161,7 +161,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_print.format == "pdf"
         assert t_print.source == Path("main.ptx")
         assert t_print.publication == Path("extras", "print.xml")
-        assert t_print.output == Path("my-pdf")
+        assert t_print.output_dir == Path("my-pdf")
         assert t_print.site == Path("site")
         assert t_print.xsl is None
         assert t_print.stringparams == {
@@ -200,21 +200,21 @@ def test_manifest_legacy() -> None:
         assert t_html.publication_abspath() == project.abspath() / Path(
             "publication", "publication.ptx"
         )
-        assert t_html.output_abspath() == project.abspath() / Path("output", "html")
+        assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
         assert t_html.latex_engine == "xelatex"
 
         t_latex = project.get_target("latex")
         assert t_latex.format == "latex"
         assert t_latex.source == Path("source", "main.ptx")
         assert t_latex.publication == Path("publication", "publication.ptx")
-        assert t_latex.output == Path("output", "latex")
+        assert t_latex.output_dir == Path("output", "latex")
         assert t_latex.latex_engine == "xelatex"
 
         t_pdf = project.get_target("pdf")
         assert t_pdf.format == "pdf"
         assert t_pdf.source == Path("source", "main.ptx")
         assert t_pdf.publication == Path("publication", "publication.ptx")
-        assert t_pdf.output == Path("output", "pdf")
+        assert t_pdf.output_dir == Path("output", "pdf")
         assert t_pdf.latex_engine == "pdflatex"
 
         assert not project.has_target("foo")
@@ -232,11 +232,11 @@ def test_demo_html_build(tmp_path: Path) -> None:
         t_web = p.get_target("web")
         shutil.rmtree(t_web.generated_dir_abspath(), ignore_errors=True)
         t_web.build()
-        assert t_web.output_abspath().exists()
+        assert t_web.output_dir_abspath().exists()
         assert (
             t_web.generated_dir_abspath() / "play-button" / "play-button.png"
         ).exists()
-        with open(t_web.output_abspath() / ".mapping.json") as mpf:
+        with open(t_web.output_dir_abspath() / ".mapping.json") as mpf:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
         assert mapping == {

@@ -404,6 +404,7 @@ class Project:
                     target.source(),
                     target.publication(),
                     target.output_dir(),
+                    None,
                     target.stringparams(),
                     custom_xsl,
                 )
@@ -423,6 +424,7 @@ class Project:
                     target.source(),
                     target.publication(),
                     target.output_dir(),
+                    None,
                     target.stringparams(),
                     custom_xsl,
                     target.pdf_method(),
@@ -443,6 +445,7 @@ class Project:
                     target.source(),
                     target.publication(),
                     target.output_dir(),
+                    None,
                     target.stringparams(),
                 )
             elif target.format() == "kindle":
@@ -450,6 +453,7 @@ class Project:
                     target.source(),
                     target.publication(),
                     target.output_dir(),
+                    None,
                     target.stringparams(),
                 )
             elif target.format() == "braille" or target.format() == "braille-emboss":
@@ -457,6 +461,7 @@ class Project:
                     target.source(),
                     target.publication(),
                     target.output_dir(),
+                    None,
                     target.stringparams(),
                     page_format="emboss",
                 )
@@ -465,6 +470,7 @@ class Project:
                     target.source(),
                     target.publication(),
                     target.output_dir(),
+                    None,
                     target.stringparams(),
                     page_format="electronic",
                 )

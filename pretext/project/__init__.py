@@ -89,12 +89,28 @@ class Target(pxml.BaseXmlModel, tag="target"):
             )
 
     # A path to the output directory for this target, relative to the project's `output` path.
-    output: Path = pxml.attr(default=None)
+    output_dir: Path = pxml.attr(name="output-dir", default=None)
 
     # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` (hack: a type violation) with `self.name`.
-    @validator("output", always=True)
-    def output_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
+    @validator("output_dir", always=True)
+    def output_dir_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
         return Path(v) if v is not None else Path(values["name"])
+
+    # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
+    output_file: t.Optional[str] = pxml.attr(name="output-file", default=None)
+
+    @validator("output_file", always=True)
+    def output_file_validator(
+        cls, v: t.Optional[str], values: t.Any
+    ) -> t.Optional[str]:
+        # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
+        if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None:
+            raise ValueError(
+                "The output_file must not be present when the format is HTML."
+            )
+        # Verify that this is just a file name, without any prefixed path.
+        assert v is None or Path(v).name == v
+        return v
 
     # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
     site: Path = pxml.attr(default=Path("site"))
@@ -137,20 +153,8 @@ class Target(pxml.BaseXmlModel, tag="target"):
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
 
-    def output_abspath(self) -> Path:
-        return self._project.output_abspath() / self.output
-
     def output_dir_abspath(self) -> Path:
-        if self.output_abspath().is_dir():
-            return self.output_abspath()
-        else:
-            return self.output_abspath().parent
-
-    def output_filename(self) -> t.Optional[str]:
-        if self.output_abspath().is_dir():
-            return None
-        else:
-            return self.output_abspath().name
+        return self._project.output_abspath() / self.output_dir
 
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
@@ -245,21 +249,21 @@ class Target(pxml.BaseXmlModel, tag="target"):
 
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
-        if self._project.abspath() not in self.output_abspath().parents:
+        if self._project.abspath() not in self.output_dir_abspath().parents:
             log.warning(
                 "Refusing to clean output directory that isn't a proper subdirectory of the project."
             )
         # handle request to clean directory that does not exist
-        elif not self.output_abspath().exists():
+        elif not self.output_dir_abspath().exists():
             log.warning(
-                f"Directory {self.output_abspath()} already does not exist, nothing to clean."
+                f"Directory {self.output_dir_abspath()} already does not exist, nothing to clean."
             )
         # destroy the output directory
         else:
             log.warning(
-                f"Destroying directory {self.output_abspath()} to clean previously built files."
+                f"Destroying directory {self.output_dir_abspath()} to clean previously built files."
             )
-            shutil.rmtree(self.output_abspath())
+            shutil.rmtree(self.output_dir_abspath())
 
     def build(
         self,
@@ -303,13 +307,14 @@ class Target(pxml.BaseXmlModel, tag="target"):
                     + "<publication> element in the project manifest."
                 )
 
-            log.info(f"Preparing to build into {self.output_abspath()}.")
+            log.info(f"Preparing to build into {self.output_dir_abspath()}.")
 
             build.build(
                 self.format,
                 self.source_abspath(),
                 self.publication_abspath(),
-                self.output_abspath(),
+                self.output_dir_abspath(),
+                self.output_file,
                 self.stringparams,
                 custom_xsl=custom_xsl,
                 xmlid=xmlid,
@@ -505,7 +510,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
     on the disk, and Paths for where to build output and maintain a site.
     """
 
-    ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
+    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
     _executables: Executables = PrivateAttr(default=Executables())
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
@@ -549,12 +554,11 @@ class Project(pxml.BaseXmlModel, tag="project"):
         xml_bytes = _path.read_bytes()
 
         # Determine the version of this project file.
-
         class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
             ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
 
         p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
-        if p_version_only.ptx_version != "2":
+        if p_version_only.ptx_version is not None:
             p = Project.from_xml(xml_bytes)
 
             # Now that the project is loaded, load / set up what isn't in the project XML.
@@ -592,8 +596,6 @@ class Project(pxml.BaseXmlModel, tag="project"):
                     format = Format(tgt.format.value)
                 d = tgt.dict()
                 del d["format"]
-                # The v2 `output` is a combination of these two v1 fields.
-                d["output"] = tgt.output_dir / tgt.output_filename
                 # Remove the `None` from optional values, so the new format can replace these.
                 for key in ("site", "xsl", "latex_engine"):
                     if d[key] is None:

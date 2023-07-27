@@ -48,9 +48,8 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     format: LegacyFormat = pxml.element()
     source: str = pxml.element()
     publication: str = pxml.element()
-    # The v1 file called these `output-dir` and `output-filename`; the v2 file uses just `output`, which is `output-dir/output-filename`.
     output_dir: Path = pxml.element(tag="output-dir")
-    output_filename: Path = pxml.element(tag="output-filename", default=Path(""))
+    output_filename: t.Optional[str] = pxml.element(tag="output-filename")
     # The v1 file called this `deploy-dir`; the v2 file uses `site`.
     site: t.Optional[str] = pxml.element(name="deploy-dir")
     xsl: t.Optional[str] = pxml.element()
