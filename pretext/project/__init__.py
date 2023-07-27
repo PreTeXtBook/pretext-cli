@@ -355,7 +355,6 @@ class Target(pxml.BaseXmlModel, tag="target"):
                             all_formats=all_formats,
                             check_cache=False,
                             xmlid=None,
-                            log.info=log.info,
                         )
                     # The asset was used previously.
                     elif asset_table.get(asset) != asset_table_cache.get(asset):
@@ -384,7 +383,6 @@ class Target(pxml.BaseXmlModel, tag="target"):
                                             all_formats=all_formats,
                                             check_cache=False,
                                             xmlid=None,
-                                            log.info=log.info,
                                         )
                                     # We have an xmlid we can focus on
                                     else:
@@ -397,7 +395,6 @@ class Target(pxml.BaseXmlModel, tag="target"):
                                             all_formats=all_formats,
                                             check_cache=False,
                                             xmlid=id,
-                                            log.info=log.info,
                                         )
                     # Nothing about this asset has changed.
                     else:
