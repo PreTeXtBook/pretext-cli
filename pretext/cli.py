@@ -372,17 +372,16 @@ def build(
 
     if utils.no_project(task="build"):
         return
-    project = Project()
+    project = Project.parse()
     if len(project_ptx_override) > 0:
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-    target = project.target(name=target_name)
+    target = project.get_target(name=target_name)
     if target_name is None:
         log.info(
-            f"Since no build target was supplied, the first target of the project.ptx manifest ({target.name()}) will be built.\n"
+            f"Since no build target was supplied, the first target of the project.ptx manifest ({target.name}) will be built.\n"
         )
-        target_name = target.name()
     if target is None:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
@@ -392,7 +391,7 @@ def build(
         log.info(
             "This target needs a webwork-representations.xml file, but it wasn't found (possibly manually deleted?).  Generating it now."
         )
-        project.generate_webwork(target.name(), xmlid=xmlid)
+        project.generate_webwork(target.name, xmlid=xmlid)
     # Automatically generate any assets that have changed.
     if not no_generate:
         asset_table = target.load_asset_table()
@@ -405,14 +404,14 @@ def build(
             if ("webwork", "") not in asset_table or asset_hash_dict[
                 ("webwork", "")
             ] != asset_table[("webwork", "")]:
-                project.generate_webwork(target.name(), xmlid=xmlid)
+                project.generate_webwork(target.name, xmlid=xmlid)
             assets = set(asset[0] for asset in asset_hash_dict.keys())
             assets.discard("webwork")
             for asset in assets:
                 if (asset, "") not in asset_table or asset_hash_dict[
                     (asset, "")
                 ] != asset_table[(asset, "")]:
-                    project.generate(target.name(), asset_list=[asset])
+                    project.generate(target.name, asset_list=[asset])
                 else:
                     for id in set(
                         key[1] for key in asset_hash_dict.keys() if key[0] == asset
@@ -423,9 +422,7 @@ def build(
                             log.info(
                                 f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
                             )
-                            project.generate(
-                                target.name(), asset_list=[asset], xmlid=id
-                            )
+                            project.generate(target.name, asset_list=[asset], xmlid=id)
             target.save_asset_table(target.asset_hash())
     else:
         log.info("Skipping asset generation as requested.")
@@ -434,18 +431,18 @@ def build(
         log.info(
             "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
         )
-        project.generate_webwork(target.name(), xmlid=xmlid)
-        project.generate(target.name(), xmlid=xmlid)
+        project.generate_webwork(target.name, xmlid=xmlid)
+        project.generate(target.name, xmlid=xmlid)
     elif generate is not None:
         log.info(f"Generating {generate} assets as requested.")
         log.info(
             "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
         )
         if "webwork" in generate:
-            project.generate_webwork(target.name(), xmlid=xmlid)
-        project.generate(target.name(), asset_list=[generate], xmlid=xmlid)
+            project.generate_webwork(target.name, xmlid=xmlid)
+        project.generate(target.name, asset_list=[generate], xmlid=xmlid)
     # Now finally build the target
-    project.build(target.name(), clean)
+    project.build(target.name, clean)
 
 
 # pretext generate
