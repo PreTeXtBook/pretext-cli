@@ -240,22 +240,20 @@ def test_demo_html_build(tmp_path: Path) -> None:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
         assert mapping == {
-            str(Path("source", "main.ptx")): ["my-demo-book"],
-            str(Path("source", "frontmatter.ptx")): [
+            "source/main.ptx": ["my-demo-book"],
+            "source/frontmatter.ptx": [
                 "frontmatter",
                 "frontmatter-preface",
             ],
-            str(Path("source", "ch-first with spaces.ptx")): [
-                "ch-first-without-spaces"
-            ],
-            str(Path("source", "sec-first-intro.ptx")): ["sec-first-intro"],
-            str(Path("source", "sec-first-examples.ptx")): ["sec-first-examples"],
-            str(Path("source", "ex-first.ptx")): ["ex-first"],
-            str(Path("source", "ch-empty.ptx")): ["ch-empty"],
-            str(Path("source", "ch-features.ptx")): ["ch-features"],
-            str(Path("source", "sec-features.ptx")): ["sec-features-blocks"],
-            str(Path("source", "backmatter.ptx")): ["backmatter"],
-            str(Path("source", "ch-generate.ptx")): [
+            "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
+            "source/sec-first-intro.ptx": ["sec-first-intro"],
+            "source/sec-first-examples.ptx": ["sec-first-examples"],
+            "source/ex-first.ptx": ["ex-first"],
+            "source/ch-empty.ptx": ["ch-empty"],
+            "source/ch-features.ptx": ["ch-features"],
+            "source/sec-features.ptx": ["sec-features-blocks"],
+            "source/backmatter.ptx": ["backmatter"],
+            "source/ch-generate.ptx": [
                 "ch-generate",
                 "webwork",
                 "youtube",
