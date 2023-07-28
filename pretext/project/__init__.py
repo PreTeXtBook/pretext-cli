@@ -13,8 +13,8 @@ import pydantic_xml as pxml
 from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
 from .. import core
+from .. import codechat
 from .. import utils
-from .. import build
 from .. import generate
 from .. import types as pt  # PreTeXt types
 from .. import templates
@@ -350,14 +350,15 @@ class Target(pxml.BaseXmlModel, tag="target"):
                     out_file=None,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
-                # if project_path is None:
-                #     project_path = utils.project_path(ptxfile)
-                # assert (
-                #     project_path is not None
-                # ), f"Invalid project path to {ptxfile}."
-                # codechat.map_path_to_xml_id(
-                #     ptxfile, project_path, output_dir.as_posix()
-                # )
+                # For codechat:
+                project_path = utils.project_path(self.source_abspath())
+                assert (
+                    project_path is not None
+                ), f"Invalid project path to {self.source_abspath()}."
+                codechat.map_path_to_xml_id(
+                    self.source_abspath(), project_path, self.output_dir_abspath().as_posix()
+                )
+                log.debug(f"Set up codechat map using {project_path} as the project path.")
             elif self.format == "pdf":
                 pass
             elif self.format == "latex":
