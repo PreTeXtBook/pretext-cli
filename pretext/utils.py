@@ -14,6 +14,7 @@ import subprocess
 import logging
 import logging.handlers
 import multiprocessing
+import tempfile
 import threading
 import watchdog.events
 import watchdog.observers
@@ -445,7 +446,7 @@ def show_target_hints(
     This will give the user hints about why they have provided a bad target and make helpful suggestions for them to fix the problem.  We will only run this function when the target_name is not the name in any target in project.ptx.
     """
     # just in case this was called in the wrong place:
-    if project.target(name=target_format) is not None:
+    if project.has_target(name=target_format):
         return
     # Otherwise continue with hints:
     log.critical(
@@ -676,3 +677,21 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     log.info("")
     log.info("Your built project will soon be available to the public at:")
     log.info(f"    {pages_url}")
+
+
+def toss(folder: Path) -> Path:
+    """
+    Move the contents of a folder to a temporary directory, and return the name of the temporary directory.
+    """
+    temp = Path(tempfile.mkdtemp())
+    shutil.move(folder, temp)
+    return temp
+
+
+def retrieve(temp: Path, folder: Path) -> None:
+    """
+    Move the contents of a temporary directory back to a folder.
+    """
+    for f in temp.iterdir():
+        shutil.move(f, folder)
+    shutil.rmtree(temp)

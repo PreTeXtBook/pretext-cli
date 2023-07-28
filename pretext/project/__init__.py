@@ -267,8 +267,9 @@ class Target(pxml.BaseXmlModel, tag="target"):
 
     def build(
         self,
-        clean: bool = False,
-        generate_assets: bool = True,
+        # clean: bool = False,
+        # generate_assets: bool = True,
+        no_generate: bool = False,
         xmlid: t.Optional[str] = None,
     ) -> None:
         # Check for xml syntax errors and quit if xml invalid:
@@ -280,13 +281,16 @@ class Target(pxml.BaseXmlModel, tag="target"):
         utils.xml_source_validates_against_schema(self.source_abspath())
 
         # Clean output upon request
-        if clean:
-            self.clean_output()
+        # if clean:
+        #     self.clean_output()
 
         # Ensure the asset directories exist.
         self.ensure_asset_directories()
 
-        if generate_assets:
+        # if generate_assets:
+        #     self.generate_all_assets()
+
+        if not no_generate:
             self.generate_assets()
 
         with tempfile.TemporaryDirectory() as tmp_xsl_str:
@@ -651,6 +655,9 @@ class Project(pxml.BaseXmlModel, tag="project"):
             return None
         if name is None:
             # return default target
+            log.info(
+                f'Since no target was supplied, we will use "{self.targets[0].name}" (the first target in the project.ptx manifest).\n'
+            )
             return self.targets[0]
         try:
             # return first target matching the provided name

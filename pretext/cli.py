@@ -370,37 +370,84 @@ def build(
 
     # Set up project and target based on command line arguments and project.ptx
 
-    # Take care of clean flag (probably backup in case the build fails)
-
-    # Call generate if flag is set
-
-    # Call build
-
-    # Report success or failure
-
     # Add xmlid value to project_ptx_override (a tuple of tuples)
+    # TODO: This might no longer work, if xmlid isn't a valid target attribute.
     if xmlid:
         project_ptx_override += (("targets.target.xmlid-root", xmlid),)
     overlay = xml_overlay.ShadowXmlDocument()
     for path, value in project_ptx_override:
         overlay.upsert_node_or_attribute(path, value)
-
+    # Supply help if not in project subfolder
     if utils.no_project(task="build"):
         return
+    # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
     project = Project.parse()
     if len(project_ptx_override) > 0:
+        # TODO: this need to be implemented still
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-    target = project.get_target(name=target_name)
-    if target_name is None:
-        log.info(
-            f"Since no build target was supplied, the first target of the project.ptx manifest ({target.name}) will be built.\n"
-        )
-    if target is None:
+
+    # Now create the target if the target_name is not missing.
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
+        log.debug(e, exc_info=True)
         return
+    print(target)
+    # Take care of clean flag (probably backup in case the build fails)
+    trash = None
+    if clean:
+        # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
+        if Path() not in target.output_dir.parents:
+            log.warning(
+                "Refusing to clean output directory that isn't a proper subdirectory of the project."
+            )
+        elif (
+            target.output_dir in target.source.parents
+            or target.output_dir in target.publication.parents
+        ):
+            log.warning(
+                "Refusing to clean output directory that contains source or publication files."
+            )
+        # handle request to clean directory that does not exist
+        elif not target.output_dir.exists():
+            log.warning(
+                f"Directory {target.output_dir} does not exist, nothing to clean."
+            )
+        else:
+            log.warning(
+                f"Destroying directory {target.output_dir} to clean previously built files."
+            )
+            trash = utils.toss(target.output_dir)
+            log.debug(f"Moving {target.output_dir} to trash: {trash}")
+
+    # Call generate if flag is set
+    if generate:
+        try:
+            target.generate(check_cache=False)
+        except Exception as e:
+            pass
+    # Call build
+    try:
+        target.build(no_generate=no_generate)
+        success = True
+    except Exception as e:
+        success = False
+
+    # Restore trashed output folder if clean was requested but build failed.
+    if clean and trash is not None:
+        if not success:
+            log.warning("Restoring directory that was destroyed to clean build.")
+            utils.retrieve(trash, target.output_dir)
+        # Or just delete the temporary folder.
+        else:
+            shutil.rmtree(trash)
+
+    return
+
     # First, make sure a webwork-representations file exists if needed:
     if target.needs_ww_reps() and not target.has_ww_reps():
         log.info(
