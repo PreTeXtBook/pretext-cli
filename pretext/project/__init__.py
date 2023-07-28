@@ -181,6 +181,12 @@ class Target(pxml.BaseXmlModel, tag="target"):
         self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
         self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
 
+    def ensure_output_directory(self) -> None:
+        log.debug(
+            f"Ensuring output directory for {self.name}: {self.output_dir_abspath()}"
+        )
+        self.output_dir_abspath().mkdir(parents=True, exist_ok=True)
+
     def load_asset_table(self) -> pt.AssetTable:
         """
         Loads the asset table from a pickle file in the generated assets directory
@@ -247,6 +253,22 @@ class Target(pxml.BaseXmlModel, tag="target"):
         with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
             pickle.dump(asset_table, f)
 
+    def ensure_webwork_reps(self) -> None:
+        """
+        Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
+        """
+        if len(self.source_element().xpath(".//webwork[@*|*]")) > 0:
+            log.debug("Source contains webwork problems")
+            if not (
+                self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
+            ).exists():
+                log.debug("Webwork representations file does not exist, generating")
+                self.generate_assets(specified_asset_types=["webwork"])
+            else:
+                log.debug("Webwork representations file exists, not generating")
+        else:
+            log.debug("Source does not contain webwork problems")
+
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
         if self._project.abspath() not in self.output_dir_abspath().parents:
@@ -290,9 +312,16 @@ class Target(pxml.BaseXmlModel, tag="target"):
         # if generate_assets:
         #     self.generate_all_assets()
 
+        # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
+        self.ensure_webwork_reps()
+
         if not no_generate:
             self.generate_assets()
 
+        # Ensure the output directories exist.
+        self.ensure_output_directory()
+
+        # Proceed with the build
         with tempfile.TemporaryDirectory() as tmp_xsl_str:
             tmp_xsl_path = Path(tmp_xsl_str)
             # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
@@ -549,6 +578,8 @@ class Project(pxml.BaseXmlModel, tag="project"):
             if k in kwargs:
                 setattr(self, k, kwargs[k])
         self._path = self.validate_path(self._path)
+        # Always initialize core when a project is created:
+        self.init_core()
 
     @classmethod
     def parse(
@@ -579,6 +610,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
 
         else:
             legacy_project = LegacyProject.from_xml(_path.read_bytes())
+            # Legacy projects didn't specify a base output directory, so we need to move up one level.
             # Translate from old target format to new target format.
             new_targets: t.List[Target] = []
             for tgt in legacy_project.targets:
@@ -627,7 +659,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
                 publication=Path(""),
                 # The same is true for these paths.
                 source=Path(""),
-                output=Path(""),
+                output_dir=Path(""),
                 site=Path(""),
                 xsl=Path(""),
                 **legacy_project.dict(),

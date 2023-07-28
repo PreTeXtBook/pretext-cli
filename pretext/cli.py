@@ -401,28 +401,28 @@ def build(
     trash = None
     if clean:
         # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
-        if Path() not in target.output_dir.parents:
+        if Path().resolve() not in target.output_dir_abspath().parents:
             log.warning(
                 "Refusing to clean output directory that isn't a proper subdirectory of the project."
             )
         elif (
-            target.output_dir in target.source.parents
-            or target.output_dir in target.publication.parents
+            target.output_dir_abspath() in target.source.parents
+            or target.output_dir_abspath() in target.publication.parents
         ):
             log.warning(
                 "Refusing to clean output directory that contains source or publication files."
             )
         # handle request to clean directory that does not exist
-        elif not target.output_dir.exists():
+        elif not target.output_dir_abspath().exists():
             log.warning(
-                f"Directory {target.output_dir} does not exist, nothing to clean."
+                f"Directory {target.output_dir_abspath()} does not exist, nothing to clean."
             )
         else:
             log.warning(
-                f"Destroying directory {target.output_dir} to clean previously built files."
+                f"Destroying directory {target.output_dir_abspath()} to clean previously built files."
             )
-            trash = utils.toss(target.output_dir)
-            log.debug(f"Moving {target.output_dir} to trash: {trash}")
+            trash = utils.toss(target.output_dir_abspath())
+            log.debug(f"Moving {target.output_dir_abspath()} to trash: {trash}")
 
     # Call generate if flag is set
     if generate:
@@ -448,12 +448,6 @@ def build(
 
     return
 
-    # First, make sure a webwork-representations file exists if needed:
-    if target.needs_ww_reps() and not target.has_ww_reps():
-        log.info(
-            "This target needs a webwork-representations.xml file, but it wasn't found (possibly manually deleted?).  Generating it now."
-        )
-        project.generate_webwork(target.name, xmlid=xmlid)
     # Automatically generate any assets that have changed.
     if not no_generate:
         asset_table = target.load_asset_table()
