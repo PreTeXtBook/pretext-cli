@@ -508,6 +508,8 @@ class Project(pxml.BaseXmlModel, tag="project"):
     """
     Representation of a PreTeXt project: a Path for the project
     on the disk, and Paths for where to build output and maintain a site.
+
+    To create a Project object from a project.ptx file, use the `Project.parse()` method.
     """
 
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
@@ -674,6 +676,14 @@ class Project(pxml.BaseXmlModel, tag="project"):
         assert t is not None
         return t
 
+    def target_names(self, *args: str) -> t.List[str]:
+        # Optional arguments are formats: returns list of targets that have that format.
+        names = []
+        for target in self.targets:
+            if not args or target.format in args:
+                names.append(target.name)
+        return names
+
     def abspath(self) -> Path:
         # Since `_path` stores the path to the project file, the parent of this gives the directory it resides in.
         return self._path.parent
@@ -711,5 +721,5 @@ class Project(pxml.BaseXmlModel, tag="project"):
     def get_executables(self) -> Executables:
         return self._executables
 
-    def init_ptxcore(self) -> None:
+    def init_core(self) -> None:
         core.set_executables(self._executables.dict())

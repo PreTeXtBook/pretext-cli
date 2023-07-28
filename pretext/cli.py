@@ -78,7 +78,8 @@ def main(ctx: click.Context, targets: bool) -> None:
     """
     if (pp := utils.project_path()) is not None:
         if targets:
-            Project.parse().print_target_names()
+            for target in Project.parse(pp).target_names():
+                print(target)
             return
         # create file handler which logs even debug messages
         fh = logging.FileHandler(pp / "cli.log", mode="w")
@@ -142,8 +143,9 @@ def support() -> None:
         log.info("------------------------")
         log.info(utils.project_xml_string())
         log.info("------------------------")
+        # Create a project from the project.ptx file
         project = Project.parse()
-        project.init_ptxcore()
+        project.init_core()
         for exec_name in project.get_executables().dict():
             if utils.check_executable(exec_name) is None:
                 log.warning(
@@ -325,7 +327,7 @@ def init(refresh: bool) -> None:
     flag_value="ALL",
     default=None,
     type=click.Choice(constants.ASSETS, case_sensitive=False),
-    help="Generates assets for target.  -g [asset] will generate the specific assets given.",
+    help="Force (re)generates assets for target.  -g [asset] will generate the specific assets given.",
 )
 @click.option(
     "-q",
@@ -335,7 +337,10 @@ def init(refresh: bool) -> None:
     help="Do not generate assets for target, even if their source has changed since last build.",
 )
 @click.option(
-    "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
+    "-x",
+    "--xmlid",
+    type=click.STRING,
+    help="xml:id of the root of the subtree to be built.",
 )
 @click.option(
     "-p",
@@ -362,6 +367,16 @@ def build(
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+
+    # Set up project and target based on command line arguments and project.ptx
+
+    # Take care of clean flag (probably backup in case the build fails)
+
+    # Call generate if flag is set
+
+    # Call build
+
+    # Report success or failure
 
     # Add xmlid value to project_ptx_override (a tuple of tuples)
     if xmlid:
