@@ -289,8 +289,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
 
     def build(
         self,
-        # clean: bool = False,
-        # generate_assets: bool = True,
+        clean: bool = False,
         no_generate: bool = False,
         xmlid: t.Optional[str] = None,
     ) -> None:
@@ -303,18 +302,16 @@ class Target(pxml.BaseXmlModel, tag="target"):
         utils.xml_source_validates_against_schema(self.source_abspath())
 
         # Clean output upon request
-        # if clean:
-        #     self.clean_output()
+        if clean:
+            self.clean_output()
 
         # Ensure the asset directories exist.
         self.ensure_asset_directories()
 
-        # if generate_assets:
-        #     self.generate_all_assets()
-
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
 
+        # Generate needed assets unless requested not to.
         if not no_generate:
             self.generate_assets()
 
@@ -342,24 +339,59 @@ class Target(pxml.BaseXmlModel, tag="target"):
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
 
-            build.build(
-                self.format,
-                self.source_abspath(),
-                self.publication_abspath(),
-                self.output_dir_abspath(),
-                self.output_filename,
-                self.stringparams,
-                custom_xsl=custom_xsl,
-                xmlid=xmlid,
-                zipped=self.compression is not None,
-                project_path=self._project.abspath(),
-                latex_engine=self.latex_engine,
-                executables=self._project._executables.dict(),
-                # TODO: what if this isn't defined? Should we have a default in the project file instead?
-                braille_mode=self.braille_mode,
-            )
+            if self.format == "html":
+                core.html(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    xmlid_root=xmlid,
+                    file_format="html",
+                    extra_xsl=custom_xsl,
+                    out_file=None,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+                # if project_path is None:
+                #     project_path = utils.project_path(ptxfile)
+                # assert (
+                #     project_path is not None
+                # ), f"Invalid project path to {ptxfile}."
+                # codechat.map_path_to_xml_id(
+                #     ptxfile, project_path, output_dir.as_posix()
+                # )
+            elif self.format == "pdf":
+                pass
+            elif self.format == "latex":
+                pass
+            elif self.format == "custom":
+                pass
+            elif self.format == "epub":
+                pass
+            elif self.format == "kindle":
+                pass
+            elif self.format == "braille":
+                pass
+            elif self.format == "webwork":
+                pass
+            else:
+                log.critical(f"Unknown format {self.format}")
+
+            # build.build(
+            #     self.format,
+            #     self.source_abspath(),
+            #     self.publication_abspath(),
+            #     self.output_dir_abspath(),
+            #     self.output_filename,
+            #     self.stringparams,
+            #     custom_xsl=custom_xsl,
+            #     xmlid=xmlid,
+            #     zipped=self.compression is not None,
+            #     project_path=self._project.abspath(),
+            #     latex_engine=self.latex_engine,
+            #     executables=self._project._executables.dict(),
+            #     # TODO: what if this isn't defined? Should we have a default in the project file instead?
+            #     braille_mode=self.braille_mode,
+            # )
         # build was successful
-        log.info("\nSuccess! Run `pretext view` to see the results.\n")
 
     def generate_assets(
         self,

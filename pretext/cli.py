@@ -396,56 +396,22 @@ def build(
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
-    print(target)
-    # Take care of clean flag (probably backup in case the build fails)
-    trash = None
-    if clean:
-        # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
-        if Path().resolve() not in target.output_dir_abspath().parents:
-            log.warning(
-                "Refusing to clean output directory that isn't a proper subdirectory of the project."
-            )
-        elif (
-            target.output_dir_abspath() in target.source.parents
-            or target.output_dir_abspath() in target.publication.parents
-        ):
-            log.warning(
-                "Refusing to clean output directory that contains source or publication files."
-            )
-        # handle request to clean directory that does not exist
-        elif not target.output_dir_abspath().exists():
-            log.warning(
-                f"Directory {target.output_dir_abspath()} does not exist, nothing to clean."
-            )
-        else:
-            log.warning(
-                f"Destroying directory {target.output_dir_abspath()} to clean previously built files."
-            )
-            trash = utils.toss(target.output_dir_abspath())
-            log.debug(f"Moving {target.output_dir_abspath()} to trash: {trash}")
 
     # Call generate if flag is set
     if generate:
         try:
-            target.generate(check_cache=False)
+            target.generate_assets(check_cache=False)
         except Exception as e:
             pass
     # Call build
     try:
-        target.build(no_generate=no_generate)
-        success = True
+        target.build(clean=clean, no_generate=no_generate)
+        log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except Exception as e:
-        success = False
-
-    # Restore trashed output folder if clean was requested but build failed.
-    if clean and trash is not None:
-        if not success:
-            log.warning("Restoring directory that was destroyed to clean build.")
-            utils.retrieve(trash, target.output_dir)
-        # Or just delete the temporary folder.
-        else:
-            shutil.rmtree(trash)
-
+        log.critical(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        sys.exit("Failed to build.  Exiting...")
     return
 
     # Automatically generate any assets that have changed.
