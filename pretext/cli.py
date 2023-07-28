@@ -80,6 +80,9 @@ def main(ctx: click.Context, targets: bool) -> None:
     if (pp := utils.project_path()) is not None:
         try:
             ProjectRefactor.parse(pp)
+            log.info(
+                "------------------------------------\n Good news: \n Your project.ptx file is ready for\n the 2.0.0 release of PreTeXt-CLI.\n------------------------------------\n"
+            )
         except Exception as e:
             log.warning(
                 "Your project.ptx or publication file may not be compatible with the "
@@ -161,8 +164,22 @@ def support() -> None:
         log.info("------------------------")
         log.info(utils.project_xml_string())
         log.info("------------------------")
+        try:
+            ProjectRefactor.parse()
+            log.info(
+                "Your project.ptx file will be compatible with the upcoming 2.0.0 release of PreTeXt-CLI."
+            )
+        except Exception as e:
+            log.warning(
+                "Your project.ptx or publication file may not be compatible with the "
+                + "upcoming 2.0.0 release of PreTeXt-CLI."
+            )
+            log.info("")
+            log.warning(f"Exception info: {e}")
+            log.info("")
         project = Project()
         project.init_ptxcore()
+        log.info("------------------------")
         for exec_name in project.executables():
             if utils.check_executable(exec_name) is None:
                 log.warning(
