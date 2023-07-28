@@ -26,6 +26,7 @@ from . import (
     CORE_COMMIT,
 )
 from .project import Project
+from .project.refactor import Project as ProjectRefactor
 
 
 log = logging.getLogger("ptxlogger")
@@ -77,6 +78,24 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
+        try:
+            ProjectRefactor.parse(pp)
+        except Exception as e:
+            log.warning(
+                "Your project.ptx or publication file may not be compatible with the "
+                + "upcoming 2.0.0 release of PreTeXt-CLI."
+            )
+            log.warning(
+                "For more information or to help us fix a possible bug, please visit"
+            )
+            log.warning("    https://groups.google.com/g/pretext-support/c/bwf51qOoT9c")
+            log.warning(
+                "and share the result of running `pretext support` on your machine with us."
+            )
+            log.info("")
+            log.warning(f"Exception info: {e}")
+            log.info("")
+            log.warning("Continuing with current version...")
         if targets:
             Project().print_target_names()
             return
