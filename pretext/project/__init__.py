@@ -96,6 +96,9 @@ class Target(pxml.BaseXmlModel, tag="target"):
     def output_dir_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
         return Path(v) if v is not None else Path(values["name"])
 
+    # We validate compression before output_filename to use its value to check if we can have an output_filename
+    compression: t.Optional[Compression] = pxml.attr()
+
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
 
@@ -104,7 +107,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
         cls, v: t.Optional[str], values: t.Any
     ) -> t.Optional[str]:
         # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
-        if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None:
+        if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None and not values["compression"]:
             raise ValueError(
                 "The output_filename must not be present when the format is HTML or Webwork."
             )
@@ -130,7 +133,6 @@ class Target(pxml.BaseXmlModel, tag="target"):
     braille_mode: BrailleMode = pxml.attr(
         name="braille-mode", default=BrailleMode.EMBOSS
     )
-    compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
 
     # Allow specifying `_project` in the constructor. (Since it's private, pydantic ignores it by default).
@@ -338,7 +340,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
-            if self.format == "html":
+            if self.format == Format.HTML:
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -346,14 +348,14 @@ class Target(pxml.BaseXmlModel, tag="target"):
                     xmlid_root=xmlid,
                     file_format=self.compression or "html",
                     extra_xsl=custom_xsl,
-                    out_file=None,
+                    out_file=self.output_filename,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
                 # For codechat:
-                project_path = utils.project_path(self.source_abspath())
+                project_path = self._project.abspath()
                 assert (
                     project_path is not None
-                ), f"Invalid project path to {self.source_abspath()}."
+                ), f"Invalid project path to {self._project.abspath()}."
                 codechat.map_path_to_xml_id(
                     self.source_abspath(), project_path, self.output_dir_abspath().as_posix()
                 )
