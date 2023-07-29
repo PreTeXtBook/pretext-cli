@@ -338,14 +338,13 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
-
             if self.format == "html":
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=self.stringparams,
                     xmlid_root=xmlid,
-                    file_format="html",
+                    file_format=self.compression or "html",
                     extra_xsl=custom_xsl,
                     out_file=None,
                     dest_dir=self.output_dir_abspath().as_posix(),
