@@ -429,7 +429,15 @@ class Target(pxml.BaseXmlModel, tag="target"):
                     tgz=self.compression,
                 )
             elif self.format == Format.CUSTOM:
-                pass
+                # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
+                self.stringparams["publisher"] = self.publication_abspath.as_posix()
+                core.xsltproc(
+                    xsl=custom_xsl,
+                    xml=self.source_abspath(),
+                    result=self.output_filename,
+                    output_dir=self.output_dir_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                )
             else:
                 log.critical(f"Unknown format {self.format}")
 
