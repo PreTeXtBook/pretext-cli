@@ -107,7 +107,11 @@ class Target(pxml.BaseXmlModel, tag="target"):
         cls, v: t.Optional[str], values: t.Any
     ) -> t.Optional[str]:
         # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
-        if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None and not values["compression"]:
+        if (
+            values["format"] in (Format.HTML, Format.WEBWORK)
+            and v is not None
+            and not values["compression"]
+        ):
             raise ValueError(
                 "The output_filename must not be present when the format is HTML or Webwork."
             )
@@ -357,43 +361,77 @@ class Target(pxml.BaseXmlModel, tag="target"):
                     project_path is not None
                 ), f"Invalid project path to {self._project.abspath()}."
                 codechat.map_path_to_xml_id(
-                    self.source_abspath(), project_path, self.output_dir_abspath().as_posix()
+                    self.source_abspath(),
+                    project_path,
+                    self.output_dir_abspath().as_posix(),
                 )
-                log.debug(f"Set up codechat map using {project_path} as the project path.")
-            elif self.format == "pdf":
-                pass
-            elif self.format == "latex":
-                pass
-            elif self.format == "custom":
-                pass
-            elif self.format == "epub":
-                pass
-            elif self.format == "kindle":
-                pass
-            elif self.format == "braille":
-                pass
-            elif self.format == "webwork":
+                log.debug(
+                    f"Set up codechat map using {project_path} as the project path."
+                )
+            elif self.format == Format.PDF:
+                core.pdf(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    method=self.latex_engine,
+                )
+            elif self.format == Format.LATEX:
+                core.latex(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+            elif self.format == Format.EPUB:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="svg",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.KINDLE:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="kindle",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.BRAILLE:
+                log.warning(
+                    "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
+                )
+                utils.npm_install()
+                core.braille(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    page_format=self.braille_mode,
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.WEBWORK:
+                core.webwork_sets(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    tgz=self.compression,
+                )
+            elif self.format == Format.CUSTOM:
                 pass
             else:
                 log.critical(f"Unknown format {self.format}")
-
-            # build.build(
-            #     self.format,
-            #     self.source_abspath(),
-            #     self.publication_abspath(),
-            #     self.output_dir_abspath(),
-            #     self.output_filename,
-            #     self.stringparams,
-            #     custom_xsl=custom_xsl,
-            #     xmlid=xmlid,
-            #     zipped=self.compression is not None,
-            #     project_path=self._project.abspath(),
-            #     latex_engine=self.latex_engine,
-            #     executables=self._project._executables.dict(),
-            #     # TODO: what if this isn't defined? Should we have a default in the project file instead?
-            #     braille_mode=self.braille_mode,
-            # )
-        # build was successful
 
     def generate_assets(
         self,
