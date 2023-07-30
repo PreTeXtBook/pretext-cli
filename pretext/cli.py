@@ -146,6 +146,7 @@ def support() -> None:
         # Create a project from the project.ptx file
         project = Project.parse()
         project.init_core()
+
         for exec_name in project.get_executables().dict():
             if utils.check_executable(exec_name) is None:
                 log.warning(
@@ -503,11 +504,11 @@ def build(
 
 # pretext generate
 @main.command(
-    short_help="Generate specified assets for specified target",
+    short_help="Generate specified assets for default target or targets specified by `-t`",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument(
-    "assets", default="ALL", type=click.Choice(constants.ASSETS, case_sensitive=False)
+    "assets", type=click.Choice(constants.ASSETS, case_sensitive=False), nargs=-1
 )
 @click.option(
     "-t",
@@ -518,6 +519,13 @@ def build(
 )
 @click.option(
     "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
+)
+@click.option(
+    "-q",
+    "--only-changed",
+    is_flag=True,
+    default=False,
+    help="Limit generation of assets to only those that have changed since last call to pretext.",
 )
 @click.option(
     "--all-formats",
@@ -533,9 +541,10 @@ def build(
     help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
 )
 def generate(
-    assets: str,
+    assets: List[str],
     target_name: Optional[str],
     all_formats: bool,
+    only_changed: bool,
     xmlid: Optional[str],
     project_ptx_override: Tuple[Tuple[str, str], ...],
 ) -> None:
@@ -549,6 +558,11 @@ def generate(
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+
+    # If no assets are given as arguments, then assume 'ALL'
+    if assets == ():
+        assets = ['ALL']
+        
     if utils.no_project(task="generate assets for"):
         return
 
@@ -561,39 +575,29 @@ def generate(
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-    target = project.target(name=target_name)
-    if target is None:
+
+        # Now create the target if the target_name is not missing.
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="generating assets for")
-        log.critical("Exiting without generating any assets.")
+        log.critical("Exiting without completing build.")
+        log.debug(e, exc_info=True)
         return
-    if target_name is None:
-        log.info(
-            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
+    try:
+        f'Generating assets in for the target "{target.name}".'
+        target.generate_assets(
+            specified_asset_types=assets,
+            all_formats=all_formats,
+            check_cache=only_changed,  # Unless requested, generate all assets, so don't check the cache.
+            xmlid=xmlid,
         )
-    if "webwork" in assets or assets == "ALL":
-        project.generate_webwork(target.name(), xmlid=xmlid)
-    if all_formats and assets == "ALL":
-        log.info(
-            f'Generating all assets in all asset formats for the target "{target.name()}".'
-        )
-        project.generate(target.name(), all_formats=True, xmlid=xmlid)
-    elif all_formats:
-        log.info(
-            f'Generating only {assets} assets in all asset formats for the target "{target.name()}".'
-        )
-        project.generate(
-            target.name(), asset_list=[assets], all_formats=True, xmlid=xmlid
-        )
-    elif assets == "ALL":
-        log.info(
-            f'Generating all assets in default formats for the target "{target.name()}".'
-        )
-        project.generate(target.name(), xmlid=xmlid)
-    else:
-        log.info(
-            f'Generating only {assets} assets in default formats for the target "{target.name()}".'
-        )
-        project.generate(target.name(), asset_list=[assets], xmlid=xmlid)
+        log.info("Finished generating assets.\n")
+    except Exception as e:
+        log.critical(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        sys.exit("Generating assets as failed.  Exiting...")
 
 
 # pretext view
