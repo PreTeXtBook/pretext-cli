@@ -263,7 +263,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
-        if len(self.source_element().xpath(".//webwork[@*|*]")) > 0:
+        if self.source_element().xpath(".//webwork[@*|*]"):
             log.debug("Source contains webwork problems")
             if not (
                 self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
@@ -274,6 +274,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 log.debug("Webwork representations file exists, not generating")
         else:
             log.debug("Source does not contain webwork problems")
+        input()
 
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
