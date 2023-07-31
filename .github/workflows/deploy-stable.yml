@@ -111,5 +111,5 @@ jobs:
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
           repository: oscarlevin/pretext-docker
-          event-type: my-event
+          event-type: pretext-publish
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
