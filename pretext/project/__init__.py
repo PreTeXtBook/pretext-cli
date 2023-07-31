@@ -254,19 +254,19 @@ class Target(pxml.BaseXmlModel, tag="target"):
             pickle.dump(asset_table, f)
 
     def required_assets(self) -> t.List[str]:
-        asset_list: t.Dict[str, t.any] = {}
+        asset_list: t.List[str] = []
         for asset in constants.ASSET_TO_XPATH.keys():
-            asset_list[asset] = self.source_element().xpath(
-                f"{constants.ASSET_TO_XPATH[asset]}"
-            )
-        print(asset_list)
-        return []
+            if self.source_element().find(
+                f".//{constants.ASSET_TO_XPATH[asset]}"
+            ) is not None:
+                asset_list.append(asset)
+        return asset_list
 
     def ensure_webwork_reps(self) -> None:
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
-        if len(self.source_element().xpath(".//webwork[@*|*]")) > 0:
+        if self.source_element().xpath(".//webwork[@*|*]"):
             log.debug("Source contains webwork problems")
             if not (
                 self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
@@ -381,6 +381,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
             specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
         log.debug(f"The targets to be built are {specified_asset_types}.")
         log.debug(f"check_cache is {check_cache}.")
+        self.required_assets()
         if check_cache:
             # TODO this ignores xmlid!
             asset_table_cache = self.load_asset_table()
