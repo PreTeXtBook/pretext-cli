@@ -25,7 +25,7 @@ from . import (
     VERSION,
     CORE_COMMIT,
 )
-from .project import Project
+from .project import Project, Format
 
 log = logging.getLogger("ptxlogger")
 click_log.basic_config(log)
@@ -400,7 +400,7 @@ def build(
     if generate:
         try:
             target.generate_assets(check_cache=False)
-        except Exception as e:
+        except Exception:
             pass
     # Call build
     try:
@@ -526,39 +526,39 @@ def generate(
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-    target = project.target(name=target_name)
+    target = project.get_target(name=target_name)
     if target is None:
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without generating any assets.")
         return
     if target_name is None:
         log.info(
-            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
+            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name})."
         )
     if "webwork" in assets or assets == "ALL":
-        project.generate_webwork(target.name(), xmlid=xmlid)
+        project.generate_webwork(target.name, xmlid=xmlid)
     if all_formats and assets == "ALL":
         log.info(
-            f'Generating all assets in all asset formats for the target "{target.name()}".'
+            f'Generating all assets in all asset formats for the target "{target.name}".'
         )
-        project.generate(target.name(), all_formats=True, xmlid=xmlid)
+        project.generate(target.name, all_formats=True, xmlid=xmlid)
     elif all_formats:
         log.info(
-            f'Generating only {assets} assets in all asset formats for the target "{target.name()}".'
+            f'Generating only {assets} assets in all asset formats for the target "{target.name}".'
         )
         project.generate(
-            target.name(), asset_list=[assets], all_formats=True, xmlid=xmlid
+            target.name, asset_list=[assets], all_formats=True, xmlid=xmlid
         )
     elif assets == "ALL":
         log.info(
-            f'Generating all assets in default formats for the target "{target.name()}".'
+            f'Generating all assets in default formats for the target "{target.name}".'
         )
-        project.generate(target.name(), xmlid=xmlid)
+        project.generate(target.name, xmlid=xmlid)
     else:
         log.info(
-            f'Generating only {assets} assets in default formats for the target "{target.name()}".'
+            f'Generating only {assets} assets in default formats for the target "{target.name}".'
         )
-        project.generate(target.name(), asset_list=[assets], xmlid=xmlid)
+        project.generate(target.name, asset_list=[assets], xmlid=xmlid)
 
 
 # pretext view
@@ -665,7 +665,7 @@ def view(
     if utils.no_project(task="view the output for"):
         return
     project = Project.parse()
-    target = project.target(name=target_name)
+    target = project.get_target(name=target_name)
     if target is None:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
@@ -673,7 +673,7 @@ def view(
     # Easter egg to spin up a local server at a specified directory:
     if utils.cocalc_project_id() is not None:
         try:
-            subdir = target.output_dir().relative_to(Path.home())
+            subdir = target.output_dir_abspath().relative_to(Path.home())
         except ValueError:
             subdir = Path()
         log.info("Built project can be previewed at the following link at any time:")
@@ -717,8 +717,8 @@ def deploy(target_name: str, site: str, update_source: bool) -> None:
     if utils.no_project(task="deploy"):
         return
     project = Project.parse()
-    target = project.target(name=target_name)
-    if target is None or target.format() != "html":
+    target = project.get_target(name=target_name)
+    if target.format != Format.HTML:
         log.critical("Target could not be found in project.ptx manifest.")
         # only list targets with html format.
         log.critical(

@@ -467,7 +467,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 )
             elif self.format == Format.CUSTOM:
                 # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
-                self.stringparams["publisher"] = self.publication_abspath.as_posix()
+                self.stringparams["publisher"] = self.publication_abspath().as_posix()
                 core.xsltproc(
                     xsl=custom_xsl,
                     xml=self.source_abspath(),
