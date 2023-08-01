@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from typing import List
 
+import pydantic
 import pytest
 
 from pretext import project as pr
@@ -153,21 +154,36 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_web.source == Path("book.ptx")
         assert t_web.publication == Path("publication.ptx")
         assert t_web.output_dir == Path("web")
+        assert t_web.output_dir_abspath().relative_to(project.abspath()) == Path(
+            "build/here/web"
+        )
         assert t_web.site == Path("")
         assert t_web.xsl == Path("silly.xsl")
         assert t_web.stringparams == {}
+        assert sorted(t_web.server, key=lambda k: k.name) == [
+            pr.Server(name="asy", url="http://example1.com"),
+            pr.Server(name="sage", url="http://example2.com"),
+        ]
 
         t_print = project.get_target("print")
         assert t_print.format == "pdf"
         assert t_print.source == Path("main.ptx")
         assert t_print.publication == Path("extras", "print.xml")
         assert t_print.output_dir == Path("my-pdf")
+        assert t_print.output_dir_abspath().relative_to(project.abspath()) == Path(
+            "build/here/my-pdf"
+        )
+        assert t_print.output_filename == "out.pdf"
         assert t_print.site == Path("site")
         assert t_print.xsl is None
         assert t_print.stringparams == {
             "foo": "bar",
             "baz": "goo",
         }
+        assert sorted(t_print.server, key=lambda k: k.name) == [
+            pr.Server(name="asy", url="http://example3.com"),
+            pr.Server(name="sage", url="http://example2.com"),
+        ]
 
 
 def test_manifest_elaborate_build(tmp_path: Path) -> None:
@@ -240,22 +256,20 @@ def test_demo_html_build(tmp_path: Path) -> None:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
         assert mapping == {
-            str(Path("source", "main.ptx")): ["my-demo-book"],
-            str(Path("source", "frontmatter.ptx")): [
+            "source/main.ptx": ["my-demo-book"],
+            "source/frontmatter.ptx": [
                 "frontmatter",
                 "frontmatter-preface",
             ],
-            str(Path("source", "ch-first with spaces.ptx")): [
-                "ch-first-without-spaces"
-            ],
-            str(Path("source", "sec-first-intro.ptx")): ["sec-first-intro"],
-            str(Path("source", "sec-first-examples.ptx")): ["sec-first-examples"],
-            str(Path("source", "ex-first.ptx")): ["ex-first"],
-            str(Path("source", "ch-empty.ptx")): ["ch-empty"],
-            str(Path("source", "ch-features.ptx")): ["ch-features"],
-            str(Path("source", "sec-features.ptx")): ["sec-features-blocks"],
-            str(Path("source", "backmatter.ptx")): ["backmatter"],
-            str(Path("source", "ch-generate.ptx")): [
+            "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
+            "source/sec-first-intro.ptx": ["sec-first-intro"],
+            "source/sec-first-examples.ptx": ["sec-first-examples"],
+            "source/ex-first.ptx": ["ex-first"],
+            "source/ch-empty.ptx": ["ch-empty"],
+            "source/ch-features.ptx": ["ch-features"],
+            "source/sec-features.ptx": ["sec-features-blocks"],
+            "source/backmatter.ptx": ["backmatter"],
+            "source/ch-generate.ptx": [
                 "ch-generate",
                 "webwork",
                 "youtube",
@@ -302,3 +316,17 @@ def test_asset_table(tmp_path: Path) -> None:
         different_than_web = project.get_target("different-than-web")
         assert web.generate_asset_table() == same_as_web.generate_asset_table()
         assert web.generate_asset_table() != different_than_web.generate_asset_table()
+
+
+def test_server() -> None:
+    project = pr.Project(ptx_version="2")
+    # Verify that repeated server names cause a validation error.
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(
+            name="test",
+            format="html",
+            server=[
+                pr.Server(name="sage", url="http://test1.com"),
+                pr.Server(name="sage", url="http://test2.com"),
+            ],
+        )

@@ -109,8 +109,8 @@ def map_path_to_xml_id(
             path = urllib.parse.unquote(path)
             # Use ``resolve()`` to standardize capitalization on Windows.
             stdpath = Path(path).resolve()
-            # Make this path relative to the project directory, to avoid writing potentially confidential information (username / local filesystem paths) to the mapping file, which might be published to the web.
-            relpath = stdpath.relative_to(project_path)
+            # Make this path relative to the project directory, to avoid writing potentially confidential information (username / local filesystem paths) to the mapping file, which might be published to the web. Do this in posix, to avoid platform-specific paths.
+            relpath = stdpath.relative_to(project_path).as_posix()
             # Add this XML ID to others for this path.
             path_to_xml_id[str(relpath)].append(xml_id)
 

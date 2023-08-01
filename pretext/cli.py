@@ -26,6 +26,7 @@ from . import (
     CORE_COMMIT,
 )
 from .project import Project
+from .project.refactor import Project as ProjectRefactor
 
 
 log = logging.getLogger("ptxlogger")
@@ -77,6 +78,27 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
+        try:
+            ProjectRefactor.parse(pp)
+            log.info(
+                "------------------------------------\n Good news: \n Your project.ptx file is ready for\n the 2.0.0 release of PreTeXt-CLI.\n------------------------------------\n"
+            )
+        except Exception as e:
+            log.warning(
+                "Your project.ptx or publication file may not be compatible with the "
+                + "upcoming 2.0.0 release of PreTeXt-CLI."
+            )
+            log.warning(
+                "For more information or to help us fix a possible bug, please visit"
+            )
+            log.warning("    https://groups.google.com/g/pretext-support/c/bwf51qOoT9c")
+            log.warning(
+                "and share the result of running `pretext support` on your machine with us."
+            )
+            log.info("")
+            log.warning(f"Exception info: {e}")
+            log.info("")
+            log.warning("Continuing with current version...")
         if targets:
             for target in Project.parse(pp).target_names():
                 print(target)
@@ -397,56 +419,22 @@ def build(
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
-    print(target)
-    # Take care of clean flag (probably backup in case the build fails)
-    trash = None
-    if clean:
-        # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
-        if Path().resolve() not in target.output_dir_abspath().parents:
-            log.warning(
-                "Refusing to clean output directory that isn't a proper subdirectory of the project."
-            )
-        elif (
-            target.output_dir_abspath() in target.source.parents
-            or target.output_dir_abspath() in target.publication.parents
-        ):
-            log.warning(
-                "Refusing to clean output directory that contains source or publication files."
-            )
-        # handle request to clean directory that does not exist
-        elif not target.output_dir_abspath().exists():
-            log.warning(
-                f"Directory {target.output_dir_abspath()} does not exist, nothing to clean."
-            )
-        else:
-            log.warning(
-                f"Destroying directory {target.output_dir_abspath()} to clean previously built files."
-            )
-            trash = utils.toss(target.output_dir_abspath())
-            log.debug(f"Moving {target.output_dir_abspath()} to trash: {trash}")
 
     # Call generate if flag is set
     if generate:
         try:
-            target.generate(check_cache=False)
+            target.generate_assets(check_cache=False)
         except Exception as e:
             pass
     # Call build
     try:
-        target.build(no_generate=no_generate)
-        success = True
+        target.build(clean=clean, no_generate=no_generate)
+        log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except Exception as e:
-        success = False
-
-    # Restore trashed output folder if clean was requested but build failed.
-    if clean and trash is not None:
-        if not success:
-            log.warning("Restoring directory that was destroyed to clean build.")
-            utils.retrieve(trash, target.output_dir)
-        # Or just delete the temporary folder.
-        else:
-            shutil.rmtree(trash)
-
+        log.critical(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        sys.exit("Failed to build.  Exiting...")
     return
 
     # Automatically generate any assets that have changed.

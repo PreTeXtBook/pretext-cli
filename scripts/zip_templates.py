@@ -30,10 +30,6 @@ def main() -> None:
                             Path("templates") / template_file,
                             copied_template_file,
                         )
-                shutil.copyfile(
-                    Path("templates") / ".devcontainer.json",
-                    ".devcontainer.json",
-                )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
                     str(static_template_path / template_zip_basename),

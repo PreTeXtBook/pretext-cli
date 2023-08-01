@@ -11,7 +11,7 @@
 # ----------------
 [tool.poetry]
 name = "pretext"
-version = "1.7.3"
+version = "1.7.5"
 description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 homepage = "https://pretextbook.org"
@@ -30,7 +30,7 @@ include = [
 python = "^3.8.5"
 lxml = "^4.8"
 requests = "^2"
-watchdog = "^2"
+watchdog = "^3"
 GitPython = "^3"
 click = "^8"
 pdfCropMargins = "~1.0.9"

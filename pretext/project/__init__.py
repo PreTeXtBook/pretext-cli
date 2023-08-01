@@ -8,13 +8,13 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from pydantic import validator, PrivateAttr
+from pydantic import validator, HttpUrl, PrivateAttr
 import pydantic_xml as pxml
 from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
 from .. import core
+from .. import codechat
 from .. import utils
-from .. import build
 from .. import generate
 from .. import types as pt  # PreTeXt types
 from .. import templates
@@ -56,7 +56,21 @@ class Compression(str, Enum):
     ZIP = "zip"
 
 
-class Target(pxml.BaseXmlModel, tag="target"):
+# See `Target.server`.
+class ServerName(str, Enum):
+    SAGE = "sage"
+    # Short for Asymptote.
+    ASY = "asy"
+    # Possible servers to add: Jing, WebWork.
+
+
+# Allow the author to specify a server instead of a local executable for asset generation. See `Target.server`.
+class Server(pxml.BaseXmlModel, tag="server"):
+    name: ServerName = pxml.attr()
+    url: HttpUrl = pxml.attr()
+
+
+class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     """
     Representation of a target for a PreTeXt project: a specific
     build targeting a format such as HTML, LaTeX, etc.
@@ -71,22 +85,34 @@ class Target(pxml.BaseXmlModel, tag="target"):
     # A path to the publication file for this target, relative to the project's `publication` path.
     publication: Path = pxml.attr(default=None)
 
-    # If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+    # Perform validation which requires the parent `Project` object:
+    # - If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+    # - Merge the `Project.server` with `self.server`.
     #
     # This can't be placed in a Pydantic validator, since `self._project` isn't set until after validation finishes. So, this must be manually called after that's done.
-    def post_validate_publication(self) -> None:
+    def post_validate(self) -> None:
+        # Select a default publication file if it's not provided.
         if self.publication is None:
             self.publication = Path("publication.ptx")
-            if self.publication_abspath().exists():
-                return
-            # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
-            with templates.resource_path("publication.ptx") as self.publication:
-                return
-        p_full = self.publication_abspath()
-        if not p_full.exists():
-            raise FileNotFoundError(
-                f"Provided publication file {p_full} does not exist."
-            )
+            # If this publication file doesn't exist, ...
+            if not self.publication_abspath().exists():
+                # ... then use the CLI's built-in template file.
+                # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
+                with templates.resource_path("publication.ptx") as self.publication:
+                    pass
+        # Otherwise, verify that the provided publication file exists. TODO: perhaps skip this, instead reporting a file open error when this is read?
+        else:
+            p_full = self.publication_abspath()
+            if not p_full.exists():
+                raise FileNotFoundError(
+                    f"Provided publication file {p_full} does not exist."
+                )
+
+        # Merge in servers from the parent Project that aren't specified in this Target.
+        self_server_names = [server.name for server in self.server]
+        for server in self._project.server:
+            if server.name not in self_server_names:
+                self.server.append(server)
 
     # A path to the output directory for this target, relative to the project's `output` path.
     output_dir: Path = pxml.attr(name="output-dir", default=None)
@@ -96,6 +122,9 @@ class Target(pxml.BaseXmlModel, tag="target"):
     def output_dir_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
         return Path(v) if v is not None else Path(values["name"])
 
+    # We validate compression before output_filename to use its value to check if we can have an output_filename
+    compression: t.Optional[Compression] = pxml.attr()
+
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
 
@@ -104,7 +133,11 @@ class Target(pxml.BaseXmlModel, tag="target"):
         cls, v: t.Optional[str], values: t.Any
     ) -> t.Optional[str]:
         # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
-        if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None:
+        if (
+            values["format"] in (Format.HTML, Format.WEBWORK)
+            and v is not None
+            and not values["compression"]
+        ):
             raise ValueError(
                 "The output_filename must not be present when the format is HTML or Webwork."
             )
@@ -130,8 +163,17 @@ class Target(pxml.BaseXmlModel, tag="target"):
     braille_mode: BrailleMode = pxml.attr(
         name="braille-mode", default=BrailleMode.EMBOSS
     )
-    compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
+
+    # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
+    server: t.List[Server] = pxml.element(default=[])
+
+    @validator("server")
+    def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
+        # Ensure the names are unique.
+        if len(set([server.name for server in v])) != len(v):
+            raise ValueError("Server names must not be repeated.")
+        return v
 
     # Allow specifying `_project` in the constructor. (Since it's private, pydantic ignores it by default).
     def __init__(self, **kwargs: t.Any):
@@ -139,7 +181,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
         if "_project" in kwargs:
             self._project = kwargs["_project"]
             # Since we now have the project, perform validation.
-            self.post_validate_publication()
+            self.post_validate()
 
     def source_abspath(self) -> Path:
         return self._project.source_abspath() / self.source
@@ -277,6 +319,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 log.debug("Webwork representations file exists, not generating")
         else:
             log.debug("Source does not contain webwork problems")
+        input()
 
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
@@ -298,8 +341,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
 
     def build(
         self,
-        # clean: bool = False,
-        # generate_assets: bool = True,
+        clean: bool = False,
         no_generate: bool = False,
         xmlid: t.Optional[str] = None,
     ) -> None:
@@ -312,18 +354,16 @@ class Target(pxml.BaseXmlModel, tag="target"):
         utils.xml_source_validates_against_schema(self.source_abspath())
 
         # Clean output upon request
-        # if clean:
-        #     self.clean_output()
+        if clean:
+            self.clean_output()
 
         # Ensure the asset directories exist.
         self.ensure_asset_directories()
 
-        # if generate_assets:
-        #     self.generate_all_assets()
-
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
 
+        # Generate needed assets unless requested not to.
         if not no_generate:
             self.generate_assets()
 
@@ -350,25 +390,102 @@ class Target(pxml.BaseXmlModel, tag="target"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
-
-            build.build(
-                self.format,
-                self.source_abspath(),
-                self.publication_abspath(),
-                self.output_dir_abspath(),
-                self.output_filename,
-                self.stringparams,
-                custom_xsl=custom_xsl,
-                xmlid=xmlid,
-                zipped=self.compression is not None,
-                project_path=self._project.abspath(),
-                latex_engine=self.latex_engine,
-                executables=self._project._executables.dict(),
-                # TODO: what if this isn't defined? Should we have a default in the project file instead?
-                braille_mode=self.braille_mode,
-            )
-        # build was successful
-        log.info("\nSuccess! Run `pretext view` to see the results.\n")
+            if self.format == Format.HTML:
+                core.html(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    xmlid_root=xmlid,
+                    file_format=self.compression or "html",
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+                # For codechat:
+                project_path = self._project.abspath()
+                assert (
+                    project_path is not None
+                ), f"Invalid project path to {self._project.abspath()}."
+                codechat.map_path_to_xml_id(
+                    self.source_abspath(),
+                    project_path,
+                    self.output_dir_abspath().as_posix(),
+                )
+                log.debug(
+                    f"Set up codechat map using {project_path} as the project path."
+                )
+            elif self.format == Format.PDF:
+                core.pdf(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    method=self.latex_engine,
+                )
+            elif self.format == Format.LATEX:
+                core.latex(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+            elif self.format == Format.EPUB:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="svg",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.KINDLE:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="kindle",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.BRAILLE:
+                log.warning(
+                    "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
+                )
+                utils.npm_install()
+                core.braille(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    page_format=self.braille_mode,
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.WEBWORK:
+                core.webwork_sets(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    tgz=self.compression,
+                )
+            elif self.format == Format.CUSTOM:
+                # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
+                self.stringparams["publisher"] = self.publication_abspath.as_posix()
+                core.xsltproc(
+                    xsl=custom_xsl,
+                    xml=self.source_abspath(),
+                    result=self.output_filename,
+                    output_dir=self.output_dir_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                )
+            else:
+                log.critical(f"Unknown format {self.format}")
 
     def generate_assets(
         self,
@@ -549,7 +666,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
             core.release_temporary_directories()
 
 
-class Project(pxml.BaseXmlModel, tag="project"):
+class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     """
     Representation of a PreTeXt project: a Path for the project
     on the disk, and Paths for where to build output and maintain a site.
@@ -574,7 +691,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
     # A path, relative to the project directory, prepended to any target's `publication`.
     publication: Path = pxml.attr(default=Path("publication"))
     # A path, relative to the project directory, prepended to any target's `output_dir`.
-    output_dir: Path = pxml.attr(default=Path("output"))
+    output_dir: Path = pxml.attr(name="output-dir", default=Path("output"))
     # A path, relative to the project directory, prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
@@ -582,6 +699,16 @@ class Project(pxml.BaseXmlModel, tag="project"):
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
     )
+
+    # See the docs on `Target.server`; they apply here as well.
+    server: t.List[Server] = pxml.element(default=[])
+
+    @validator("server")
+    def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
+        # Ensure the names are unique.
+        if len(set([server.name for server in v])) != len(v):
+            raise ValueError("Server names must not be repeated.")
+        return v
 
     # Allow specifying `_path` or `_executables` in the constructor. (Since they're private, pydantic ignores them by default).
     def __init__(self, **kwargs: t.Any):
@@ -680,7 +807,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
         # Set the `_project` for each target, which isn't handled in the XML.
         for _tgt in p.targets:
             _tgt._project = p
-            _tgt.post_validate_publication()
+            _tgt.post_validate()
         return p
 
     def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
