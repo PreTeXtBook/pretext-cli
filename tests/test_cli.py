@@ -78,28 +78,27 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
     #
     # The path separator varies by platform.
-    source_prefix = f"source{os.sep}"
     assert mapping == {
-        f"{source_prefix}main.ptx": ["my-demo-book"],
-        f"{source_prefix}frontmatter.ptx": [
+        "source/main.ptx": ["my-demo-book"],
+        "source/frontmatter.ptx": [
             "frontmatter",
             "frontmatter-preface",
         ],
-        f"{source_prefix}ch-first with spaces.ptx": ["ch-first-without-spaces"],
-        f"{source_prefix}sec-first-intro.ptx": ["sec-first-intro"],
-        f"{source_prefix}sec-first-examples.ptx": ["sec-first-examples"],
-        f"{source_prefix}ex-first.ptx": ["ex-first"],
-        f"{source_prefix}ch-empty.ptx": ["ch-empty"],
-        f"{source_prefix}ch-features.ptx": ["ch-features"],
-        f"{source_prefix}sec-features.ptx": ["sec-features-blocks"],
-        f"{source_prefix}ch-generate.ptx": [
+        "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
+        "source/sec-first-intro.ptx": ["sec-first-intro"],
+        "source/sec-first-examples.ptx": ["sec-first-examples"],
+        "source/ex-first.ptx": ["ex-first"],
+        "source/ch-empty.ptx": ["ch-empty"],
+        "source/ch-features.ptx": ["ch-features"],
+        "source/sec-features.ptx": ["sec-features-blocks"],
+        "source/ch-generate.ptx": [
             "ch-generate",
             "webwork",
             "youtube",
             "interactive-infinity",
             "codelens",
         ],
-        f"{source_prefix}backmatter.ptx": ["backmatter"],
+        "source/backmatter.ptx": ["backmatter"],
     }
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "subset", "-x", "ch-first-without-spaces"],
