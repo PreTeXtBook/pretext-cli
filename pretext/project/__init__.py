@@ -13,8 +13,8 @@ import pydantic_xml as pxml
 from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
 from .. import core
+from .. import codechat
 from .. import utils
-from .. import build
 from .. import generate
 from .. import types as pt  # PreTeXt types
 from .. import templates
@@ -122,6 +122,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def output_dir_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
         return Path(v) if v is not None else Path(values["name"])
 
+    # We validate compression before output_filename to use its value to check if we can have an output_filename
+    compression: t.Optional[Compression] = pxml.attr()
+
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
 
@@ -130,7 +133,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         cls, v: t.Optional[str], values: t.Any
     ) -> t.Optional[str]:
         # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
-        if values["format"] in (Format.HTML, Format.WEBWORK) and v is not None:
+        if (
+            values["format"] in (Format.HTML, Format.WEBWORK)
+            and v is not None
+            and not values["compression"]
+        ):
             raise ValueError(
                 "The output_filename must not be present when the format is HTML or Webwork."
             )
@@ -156,7 +163,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     braille_mode: BrailleMode = pxml.attr(
         name="braille-mode", default=BrailleMode.EMBOSS
     )
-    compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
 
     # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
@@ -293,7 +299,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
-        if len(self.source_element().xpath(".//webwork[@*|*]")) > 0:
+        if self.source_element().xpath(".//webwork[@*|*]"):
             log.debug("Source contains webwork problems")
             if not (
                 self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
@@ -304,6 +310,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 log.debug("Webwork representations file exists, not generating")
         else:
             log.debug("Source does not contain webwork problems")
+        input()
 
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
@@ -325,8 +332,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
 
     def build(
         self,
-        # clean: bool = False,
-        # generate_assets: bool = True,
+        clean: bool = False,
         no_generate: bool = False,
         xmlid: t.Optional[str] = None,
     ) -> None:
@@ -339,18 +345,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         utils.xml_source_validates_against_schema(self.source_abspath())
 
         # Clean output upon request
-        # if clean:
-        #     self.clean_output()
+        if clean:
+            self.clean_output()
 
         # Ensure the asset directories exist.
         self.ensure_asset_directories()
 
-        # if generate_assets:
-        #     self.generate_all_assets()
-
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
 
+        # Generate needed assets unless requested not to.
         if not no_generate:
             self.generate_assets()
 
@@ -377,25 +381,102 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
-
-            build.build(
-                self.format,
-                self.source_abspath(),
-                self.publication_abspath(),
-                self.output_dir_abspath(),
-                self.output_filename,
-                self.stringparams,
-                custom_xsl=custom_xsl,
-                xmlid=xmlid,
-                zipped=self.compression is not None,
-                project_path=self._project.abspath(),
-                latex_engine=self.latex_engine,
-                executables=self._project._executables.dict(),
-                # TODO: what if this isn't defined? Should we have a default in the project file instead?
-                braille_mode=self.braille_mode,
-            )
-        # build was successful
-        log.info("\nSuccess! Run `pretext view` to see the results.\n")
+            if self.format == Format.HTML:
+                core.html(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    xmlid_root=xmlid,
+                    file_format=self.compression or "html",
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+                # For codechat:
+                project_path = self._project.abspath()
+                assert (
+                    project_path is not None
+                ), f"Invalid project path to {self._project.abspath()}."
+                codechat.map_path_to_xml_id(
+                    self.source_abspath(),
+                    project_path,
+                    self.output_dir_abspath().as_posix(),
+                )
+                log.debug(
+                    f"Set up codechat map using {project_path} as the project path."
+                )
+            elif self.format == Format.PDF:
+                core.pdf(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    method=self.latex_engine,
+                )
+            elif self.format == Format.LATEX:
+                core.latex(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+            elif self.format == Format.EPUB:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="svg",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.KINDLE:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="kindle",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.BRAILLE:
+                log.warning(
+                    "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
+                )
+                utils.npm_install()
+                core.braille(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    page_format=self.braille_mode,
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.WEBWORK:
+                core.webwork_sets(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    tgz=self.compression,
+                )
+            elif self.format == Format.CUSTOM:
+                # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
+                self.stringparams["publisher"] = self.publication_abspath.as_posix()
+                core.xsltproc(
+                    xsl=custom_xsl,
+                    xml=self.source_abspath(),
+                    result=self.output_filename,
+                    output_dir=self.output_dir_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                )
+            else:
+                log.critical(f"Unknown format {self.format}")
 
     def generate_assets(
         self,
