@@ -1,16 +1,20 @@
 from pathlib import Path
+import shutil
 import typing as t
 from enum import Enum
 import pydantic_xml as pxml
 
 
+# To prevent circular imports, put this here instead of in `__init__`; however, it's not used in the file.
 class Executables(pxml.BaseXmlModel, tag="executables"):
     latex: str = pxml.attr(default="latex")
     pdflatex: str = pxml.attr(default="pdflatex")
     xelatex: str = pxml.attr(default="xelatex")
     pdfsvg: str = pxml.attr(default="pdf2svg")
-    asy: str = pxml.attr(default="asy")
-    sage: str = pxml.attr(default="sage")
+    # If not specified, use a local executable if it exists; if it doesn't exist, choose `None`, which allows the generation logic to use the server instead.
+    asy: t.Optional[str] = pxml.attr(default=shutil.which("asy"))
+    # The same applies to Sage.
+    sage: t.Optional[str] = pxml.attr(default=shutil.which("sage"))
     pdfpng: str = pxml.attr(default="convert")
     pdfeps: str = pxml.attr(default="pdftops")
     node: str = pxml.attr(default="node")

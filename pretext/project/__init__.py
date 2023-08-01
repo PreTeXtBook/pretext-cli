@@ -8,7 +8,7 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from pydantic import validator, PrivateAttr
+from pydantic import validator, HttpUrl, PrivateAttr
 import pydantic_xml as pxml
 from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
@@ -56,7 +56,21 @@ class Compression(str, Enum):
     ZIP = "zip"
 
 
-class Target(pxml.BaseXmlModel, tag="target"):
+# See `Target.server`.
+class ServerName(str, Enum):
+    SAGE = "sage"
+    # Short for Asymptote.
+    ASY = "asy"
+    # Possible servers to add: Jing, WebWork.
+
+
+# Allow the author to specify a server instead of a local executable for asset generation. See `Target.server`.
+class Server(pxml.BaseXmlModel, tag="server"):
+    name: ServerName = pxml.attr()
+    url: HttpUrl = pxml.attr()
+
+
+class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     """
     Representation of a target for a PreTeXt project: a specific
     build targeting a format such as HTML, LaTeX, etc.
@@ -71,22 +85,34 @@ class Target(pxml.BaseXmlModel, tag="target"):
     # A path to the publication file for this target, relative to the project's `publication` path.
     publication: Path = pxml.attr(default=None)
 
-    # If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+    # Perform validation which requires the parent `Project` object:
+    # - If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+    # - Merge the `Project.server` with `self.server`.
     #
     # This can't be placed in a Pydantic validator, since `self._project` isn't set until after validation finishes. So, this must be manually called after that's done.
-    def post_validate_publication(self) -> None:
+    def post_validate(self) -> None:
+        # Select a default publication file if it's not provided.
         if self.publication is None:
             self.publication = Path("publication.ptx")
-            if self.publication_abspath().exists():
-                return
-            # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
-            with templates.resource_path("publication.ptx") as self.publication:
-                return
-        p_full = self.publication_abspath()
-        if not p_full.exists():
-            raise FileNotFoundError(
-                f"Provided publication file {p_full} does not exist."
-            )
+            # If this publication file doesn't exist, ...
+            if not self.publication_abspath().exists():
+                # ... then use the CLI's built-in template file.
+                # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
+                with templates.resource_path("publication.ptx") as self.publication:
+                    pass
+        # Otherwise, verify that the provided publication file exists. TODO: perhaps skip this, instead reporting a file open error when this is read?
+        else:
+            p_full = self.publication_abspath()
+            if not p_full.exists():
+                raise FileNotFoundError(
+                    f"Provided publication file {p_full} does not exist."
+                )
+
+        # Merge in servers from the parent Project that aren't specified in this Target.
+        self_server_names = [server.name for server in self.server]
+        for server in self._project.server:
+            if server.name not in self_server_names:
+                self.server.append(server)
 
     # A path to the output directory for this target, relative to the project's `output` path.
     output_dir: Path = pxml.attr(name="output-dir", default=None)
@@ -133,13 +159,23 @@ class Target(pxml.BaseXmlModel, tag="target"):
     compression: t.Optional[Compression] = pxml.attr()
     stringparams: t.Dict[str, str] = pxml.element(default={})
 
+    # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
+    server: t.List[Server] = pxml.element(default=[])
+
+    @validator("server")
+    def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
+        # Ensure the names are unique.
+        if len(set([server.name for server in v])) != len(v):
+            raise ValueError("Server names must not be repeated.")
+        return v
+
     # Allow specifying `_project` in the constructor. (Since it's private, pydantic ignores it by default).
     def __init__(self, **kwargs: t.Any):
         super().__init__(**kwargs)
         if "_project" in kwargs:
             self._project = kwargs["_project"]
             # Since we now have the project, perform validation.
-            self.post_validate_publication()
+            self.post_validate()
 
     def source_abspath(self) -> Path:
         return self._project.source_abspath() / self.source
@@ -537,7 +573,7 @@ class Target(pxml.BaseXmlModel, tag="target"):
             core.release_temporary_directories()
 
 
-class Project(pxml.BaseXmlModel, tag="project"):
+class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     """
     Representation of a PreTeXt project: a Path for the project
     on the disk, and Paths for where to build output and maintain a site.
@@ -562,7 +598,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
     # A path, relative to the project directory, prepended to any target's `publication`.
     publication: Path = pxml.attr(default=Path("publication"))
     # A path, relative to the project directory, prepended to any target's `output_dir`.
-    output_dir: Path = pxml.attr(default=Path("output"))
+    output_dir: Path = pxml.attr(name="output-dir", default=Path("output"))
     # A path, relative to the project directory, prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
@@ -570,6 +606,16 @@ class Project(pxml.BaseXmlModel, tag="project"):
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
     )
+
+    # See the docs on `Target.server`; they apply here as well.
+    server: t.List[Server] = pxml.element(default=[])
+
+    @validator("server")
+    def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
+        # Ensure the names are unique.
+        if len(set([server.name for server in v])) != len(v):
+            raise ValueError("Server names must not be repeated.")
+        return v
 
     # Allow specifying `_path` or `_executables` in the constructor. (Since they're private, pydantic ignores them by default).
     def __init__(self, **kwargs: t.Any):
@@ -668,7 +714,7 @@ class Project(pxml.BaseXmlModel, tag="project"):
         # Set the `_project` for each target, which isn't handled in the XML.
         for _tgt in p.targets:
             _tgt._project = p
-            _tgt.post_validate_publication()
+            _tgt.post_validate()
         return p
 
     def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
