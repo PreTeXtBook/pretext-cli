@@ -435,59 +435,6 @@ def build(
         log.debug("Exception info:\n##################\n", exc_info=True)
         log.info("##################")
         sys.exit("Failed to build.  Exiting...")
-    return
-
-    # Automatically generate any assets that have changed.
-    if not no_generate:
-        asset_table = target.load_asset_table()
-        asset_hash_dict = target.asset_hash()
-        if asset_table == asset_hash_dict:
-            log.info(
-                "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
-            )
-        else:
-            if ("webwork", "") not in asset_table or asset_hash_dict[
-                ("webwork", "")
-            ] != asset_table[("webwork", "")]:
-                project.generate_webwork(target.name, xmlid=xmlid)
-            assets = set(asset[0] for asset in asset_hash_dict.keys())
-            assets.discard("webwork")
-            for asset in assets:
-                if (asset, "") not in asset_table or asset_hash_dict[
-                    (asset, "")
-                ] != asset_table[(asset, "")]:
-                    project.generate(target.name, asset_list=[asset])
-                else:
-                    for id in set(
-                        key[1] for key in asset_hash_dict.keys() if key[0] == asset
-                    ):
-                        if (asset, id) not in asset_table or asset_hash_dict[
-                            (asset, id)
-                        ] != asset_table[(asset, id)]:
-                            log.info(
-                                f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
-                            )
-                            project.generate(target.name, asset_list=[asset], xmlid=id)
-            target.save_asset_table(target.asset_hash())
-    else:
-        log.info("Skipping asset generation as requested.")
-    if generate == "ALL":
-        log.info("Generating all assets in default formats as requested.")
-        log.info(
-            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
-        )
-        project.generate_webwork(target.name, xmlid=xmlid)
-        project.generate(target.name, xmlid=xmlid)
-    elif generate is not None:
-        log.info(f"Generating {generate} assets as requested.")
-        log.info(
-            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
-        )
-        if "webwork" in generate:
-            project.generate_webwork(target.name, xmlid=xmlid)
-        project.generate(target.name, asset_list=[generate], xmlid=xmlid)
-    # Now finally build the target
-    project.build(target.name, clean)
 
 
 # pretext generate
