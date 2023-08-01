@@ -549,8 +549,8 @@ def generate(
 
     # If no assets are given as arguments, then assume 'ALL'
     if assets == ():
-        assets = ['ALL']
-        
+        assets = ["ALL"]
+
     if utils.no_project(task="generate assets for"):
         return
 

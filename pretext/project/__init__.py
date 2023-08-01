@@ -298,9 +298,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def required_assets(self) -> t.List[str]:
         asset_list: t.List[str] = []
         for asset in constants.ASSET_TO_XPATH.keys():
-            if self.source_element().find(
-                f".//{constants.ASSET_TO_XPATH[asset]}"
-            ) is not None:
+            if (
+                self.source_element().find(f".//{constants.ASSET_TO_XPATH[asset]}")
+                is not None
+            ):
                 asset_list.append(asset)
         return asset_list
 
@@ -494,7 +495,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         check_cache: bool = True,
         xmlid: t.Optional[str] = None,
     ) -> None:
-        if specified_asset_types is None or 'ALL' in specified_asset_types:
+        if specified_asset_types is None or "ALL" in specified_asset_types:
             specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
         log.debug(f"The targets to be built are {specified_asset_types}.")
         log.debug(f"check_cache is {check_cache}.")
