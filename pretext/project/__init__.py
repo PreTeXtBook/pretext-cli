@@ -295,15 +295,15 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
             pickle.dump(asset_table, f)
 
-    def required_assets(self) -> t.List[str]:
-        asset_list: t.List[str] = []
-        for asset in constants.ASSET_TO_XPATH.keys():
+    def required_assets(self, assets: t.List[str]) -> t.List[str]:
+        # asset_list: t.List[str] = []
+        for asset in assets:
             if (
                 self.source_element().find(f".//{constants.ASSET_TO_XPATH[asset]}")
-                is not None
+                is None
             ):
-                asset_list.append(asset)
-        return asset_list
+                assets.remove(asset)
+        return assets
 
     def ensure_webwork_reps(self) -> None:
         """
@@ -497,9 +497,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     ) -> None:
         if specified_asset_types is None or "ALL" in specified_asset_types:
             specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
-        log.debug(f"The targets to be built are {specified_asset_types}.")
-        log.debug(f"check_cache is {check_cache}.")
-        self.required_assets()
+        log.debug(f"The assets requested to be generated are: {specified_asset_types}.")
+        assets = self.required_assets(specified_asset_types)
+        log.debug(
+            f"Of those, the assets found in source that can be generated are: {assets}."
+        )
+        input()
         if check_cache:
             # TODO this ignores xmlid!
             asset_table_cache = self.load_asset_table()
