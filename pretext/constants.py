@@ -13,13 +13,24 @@ BUILD_FORMATS = [
 ]
 
 ASSET_TO_XPATH = {
-    "webwork": "webwork",
-    "latex-image": "latex-image",
-    "sageplot": "sageplot",
-    "asymptote": "asymptote",
-    "youtube": "video[@youtube]",
-    "codelens": "program[@interactive='codelens']",
-    "datafile": "datafile",
-    "interactive": "interactive",
+    "webwork": ".//webwork[*|@*]",
+    "latex-image": ".//latex-image",
+    "sageplot": ".//sageplot",
+    "asymptote": ".//asymptote",
+    "youtube": ".//video[@youtube]",
+    "codelens": ".//program[@interactive = 'codelens']",
+    "datafile": ".//datafile",
+    "interactive": ".//interactive",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
+
+ASSET_TO_DIR = {
+    "webwork": ["webwork"],
+    "latex-image": ["latex-image"],
+    "sageplot": ["sageplot"],
+    "asymptote": ["asymptote"],
+    "youtube": ["youtube", "play-button", "qr-code"],
+    "interactive": ["preview", "qr-code"],
+    "codelens": ["trace"],
+    "datafile": ["datafile"],
+}

@@ -219,9 +219,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def generated_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.generated_dir()).resolve()
 
-    def ensure_asset_directories(self) -> None:
-        self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
-        self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
+    def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
+        if asset is None:
+            self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
+            self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
+        else:
+            # make directories for each asset type that would be generated from "asset":
+            for asset_dir in constants.ASSET_TO_DIR[asset]:
+                (self.generated_dir_abspath() / asset_dir).mkdir(
+                    parents=True, exist_ok=True
+                )
 
     def ensure_output_directory(self) -> None:
         log.debug(
@@ -245,6 +252,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def generate_asset_table(self) -> pt.AssetTable:
         asset_hash_dict: pt.AssetTable = {}
         for asset in constants.ASSET_TO_XPATH.keys():
+            asset_hash_dict[asset] = {}
             if asset == "webwork":
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
                 ww = self.source_element().xpath(".//webwork[@*|*]")
@@ -252,39 +260,40 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 if len(ww) == 0:
                     # Only generate a hash if there are actually ww exercises in the source
                     continue
-                asset_hash_dict["webwork"] = {}
                 h = hashlib.sha256()
                 for node in ww:
                     assert isinstance(node, ET._Element)
-                    h.update(ET.tostring(node))
+                    h.update(ET.tostring(node).strip())
                 asset_hash_dict["webwork"][""] = h.digest()
             else:
-                # everything else can be updated individually, if it has an xml:id
+                # everything else can be updated individually.
+                # get all the nodes for the asset attribute
                 source_assets = self.source_element().xpath(
-                    f".//{constants.ASSET_TO_XPATH[asset]}"
+                    constants.ASSET_TO_XPATH[asset]
                 )
                 assert isinstance(source_assets, t.List)
                 if len(source_assets) == 0:
                     # Only generate a hash if there are actually assets of this type in the source
                     continue
-                asset_hash_dict[asset] = {}
-                h_no_id = hashlib.sha256()
+
+                # We will have a dictionary of id's that we will get their own hash:
+                hash_ids = {}
                 for node in source_assets:
                     assert isinstance(node, ET._Element)
-                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id that hasn't already been used
-                    if (
-                        (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"))
-                        and isinstance(id, t.List)
-                        and id[0] not in asset_hash_dict[asset]
-                    ):
-                        assert isinstance(id[0], str)
-                        asset_hash_dict[asset][id[0]] = hashlib.sha256(
-                            ET.tostring(node)
-                        ).digest()
-                    # otherwise collect all non-id'd nodes into a single hash
-                    else:
-                        h_no_id.update(ET.tostring(node))
-                        asset_hash_dict[asset][""] = h_no_id.digest()
+                    # assign the xml:id of the youngest ancestor of the node with an xml:id as the node's id (or "" if none)
+                    ancestor_xmlids = node.xpath("ancestor::*/@xml:id")
+                    assert isinstance(ancestor_xmlids, t.List)
+                    id = str(ancestor_xmlids[-1]) if len(ancestor_xmlids) > 0 else ""
+                    assert isinstance(id, str)
+                    # create a new hash object when id is first encountered
+                    if id not in hash_ids:
+                        log.debug(f"asset: {asset}, id: {id}")
+                        input()
+                        hash_ids[id] = hashlib.sha256()
+                    # update the hash with the node's xml:
+                    hash_ids[id].update(ET.tostring(node).strip())
+                    # and update the value of the hash for that asset/id pair
+                    asset_hash_dict[asset][id] = hash_ids[id].digest()
         return asset_hash_dict
 
     def save_asset_table(self, asset_table: pt.AssetTable) -> None:
@@ -296,14 +305,15 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             pickle.dump(asset_table, f)
 
     def required_assets(self, assets: t.List[str]) -> t.List[str]:
-        # asset_list: t.List[str] = []
+        found_assets = []
         for asset in assets:
-            if (
-                self.source_element().find(f".//{constants.ASSET_TO_XPATH[asset]}")
-                is None
-            ):
-                assets.remove(asset)
-        return assets
+            log.debug(f"Checking for asset {asset}")
+            if self.source_element().xpath(constants.ASSET_TO_XPATH[asset]):
+                log.debug(f"Assets of type {asset} found in source")
+                found_assets.append(asset)
+            else:
+                log.debug(f"No assets of type {asset} not found in source")
+        return found_assets
 
     def ensure_webwork_reps(self) -> None:
         """
@@ -320,7 +330,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 log.debug("Webwork representations file exists, not generating")
         else:
             log.debug("Source does not contain webwork problems")
-        input()
 
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
@@ -502,6 +511,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         log.debug(
             f"Of those, the assets found in source that can be generated are: {assets}."
         )
+        # TODO: ensure asset directories for each format that will be built.
+        for asset in assets:
+            self.ensure_asset_directories(asset)
         input()
         if check_cache:
             # TODO this ignores xmlid!
