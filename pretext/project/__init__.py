@@ -100,13 +100,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     # We validate compression before output_filename to use its value to check if we can have an output_filename.
     compression: t.Optional[Compression] = pxml.attr()
 
-    # Compression is only supported for HTML.
+    # Compression is only supported for HTML and WeBWorK formats.
     @validator("compression")
     def compression_validator(
         cls, v: t.Optional[Compression], values: t.Any
     ) -> t.Optional[Compression]:
-        if values["format"] != Format.HTML and v is not None:
-            raise ValueError("Only the HTML format supports compression.")
+        if values["format"] not in (Format.HTML, Format.WEBWORK) and v is not None:
+            raise ValueError("Only the HTML and WeBWorK formats support compression.")
         return v
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
