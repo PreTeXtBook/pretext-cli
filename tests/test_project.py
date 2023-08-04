@@ -101,15 +101,18 @@ def test_manifest_simple(tmp_path: Path) -> None:
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
-        assert len(project.targets) == 2
+        assert len(project.targets) == 3
 
-        assert project.get_target("web") is not None
         assert project.get_target("web").format == "html"
         assert project.get_target("web").site == Path("site")
 
-        assert project.get_target("print") is not None
         assert project.get_target("print").format == "pdf"
         assert project.get_target("print").site == Path("site")
+
+        assert project.get_target("rs").format == "runestone"
+        assert project.get_target("rs").output_dir_abspath().resolve().relative_to(
+            project.abspath()
+        ) == Path("published/runestone-document-id")
 
         assert not project.has_target("foo")
 
@@ -126,6 +129,13 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
         project = pr.Project.parse()
         project.get_target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
+        project.get_target("rs").build()
+        assert (
+            prj_path / "published" / "runestone-document-id" / "index.html"
+        ).exists()
+        assert (
+            prj_path / "published" / "runestone-document-id" / "runestone-manifest.xml"
+        ).exists()
         if HAS_XELATEX:
             project.get_target("print").build()
             assert (prj_path / "output" / "print" / "main.pdf").exists()
@@ -318,7 +328,7 @@ def test_asset_table(tmp_path: Path) -> None:
         assert web.generate_asset_table() != different_than_web.generate_asset_table()
 
 
-def test_server() -> None:
+def test_validation() -> None:
     project = pr.Project(ptx_version="2")
     # Verify that repeated server names cause a validation error.
     with pytest.raises(pydantic.ValidationError):
@@ -330,3 +340,15 @@ def test_server() -> None:
                 pr.Server(name="sage", url="http://test2.com"),
             ],
         )
+
+    # An output-filename should cause a validation error for specific project types.
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(name="test", format="html", output_filename="not-allowed")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(
+            name="test", format="runestone", output_filename="not-allowed"
+        )
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(name="test", format="runestone", output_dir="not-allowed")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(name="test", format="pdf", compression="zip")
