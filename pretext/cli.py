@@ -400,7 +400,7 @@ def build(
     # Call generate if flag is set
     if generate:
         try:
-            target.generate_assets(check_cache=False)
+            target.generate_assets(only_changed=False)
         except Exception as e:
             pass
     # Call build
@@ -501,7 +501,7 @@ def generate(
         target.generate_assets(
             specified_asset_types=assets,
             all_formats=all_formats,
-            check_cache=only_changed,  # Unless requested, generate all assets, so don't check the cache.
+            only_changed=only_changed,  # Unless requested, generate all assets, so don't check the cache.
             xmlid=xmlid,
         )
         log.info("Finished generating assets.\n")

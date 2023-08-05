@@ -34,3 +34,27 @@ ASSET_TO_DIR = {
     "codelens": ["trace"],
     "datafile": ["datafile"],
 }
+
+ASSET_FORMATS = {
+    "asymptote": {
+        "pdf": ["pdf"],
+        "latex": ["pdf"],
+        "html": ["html"],
+        "epub": ["svg"],
+        "kindle": ["png"],
+    },
+    "latex-image": {
+        "pdf": [],
+        "latex": [],
+        "html": ["svg"],
+        "epub": ["svg"],
+        "kindle": ["png"],
+    },
+    "sageplot": {
+        "pdf": ["pdf", "png"],
+        "latex": ["pdf", "png"],
+        "html": ["html", "svg"],
+        "epub": ["svg"],
+        "kindle": ["png"],
+    },
+}
