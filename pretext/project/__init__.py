@@ -15,7 +15,6 @@ from .. import constants
 from .. import core
 from .. import codechat
 from .. import utils
-from .. import generate
 from .. import types as pt  # PreTeXt types
 from .. import templates
 
@@ -505,25 +504,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         log.debug(f"Assets generation requested for: {specified_asset_types}.")
         # We always build the asset hash table, even if only_changed=False: this tells us which assets need to be built, and how to update the saved asset hash table.
         source_asset_table = self.generate_asset_table()
-        saved_asset_table = self.load_asset_table()
+        saved_asset_table = utils.clean_asset_table(
+            self.load_asset_table(), source_asset_table
+        )
         log.debug(f"source_asset_table: {source_asset_table}")
         log.debug(f"saved_asset_table: {saved_asset_table}")
-        # TODO: should the next two bits go inside `load_asset_table()`?
-        # While we have both asset tables, purge any saved assets that no longer exist in source.
-        # First purge any asset types that are no longer in the source:
-        saved_asset_table = {
-            asset: saved_asset_table[asset]
-            for asset in saved_asset_table
-            if asset in source_asset_table
-        }
-        # Then purge ids of assets that no longer exist in the source:
-        for asset in saved_asset_table:
-            saved_asset_table[asset] = {
-                id: saved_asset_table[asset][id]
-                for id in saved_asset_table[asset]
-                if id in source_asset_table[asset]
-            }
 
+        # Now we repeatedly pass through the source asset table, and purge any assets that we shouldn't build for any reason.
         # Throw away any asset types that were not requested:
         source_asset_table = {
             asset: source_asset_table[asset]
@@ -531,7 +518,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             if asset in specified_asset_types
         }
 
-        log.debug(f"source_assets_table after filtering (534): {source_asset_table}")
         # If we limit by xml:id, only look for assets below that id in the source tree
         if xmlid is not None:
             log.debug(f"Limiting asset generation to assets below xml:id={xmlid}.")
@@ -555,7 +541,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     }
             log.debug(f"Eligible assets are: {source_asset_table}")
 
-        log.debug(f"source_asset_table after xmlid filtering: {source_asset_table}")
         # TODO: check which assets can be generated based on the user's system (and executables).
 
         # Now further limit the assets to be built by those that have changed since the last build, if only_changed is true.  Either way create a dictionary of asset: [ids] to be built, where asset:[] means to generate all of them.
@@ -568,7 +553,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 source_asset_table[asset] = {
                     id: source_asset_table[asset][id]
                     for id in source_asset_table[asset]
-                    if saved_asset_table[asset].get(id, None)
+                    if saved_asset_table.get(asset, {}).get(id, None)
                     != source_asset_table[asset][id]
                 }
             log.debug(f"Assets to be regenerated: {source_asset_table}")
@@ -576,6 +561,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             assets_to_generate = {
                 asset: [id for id in source_asset_table[asset]]
                 for asset in source_asset_table
+                if len(source_asset_table[asset]) > 0
             }
         else:
             assets_to_generate = {
@@ -583,7 +569,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 for asset in source_asset_table
                 if (asset == "webwork" or len(source_asset_table[asset]) > 0)
             }
-        log.debug(f"sources_asset_table after only_changed: {source_asset_table}")
 
         # Finally, if we removed all assets from an asset type, remove that asset type:
         source_asset_table = {
@@ -592,24 +577,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             if len(source_asset_table[asset]) > 0
         }
 
-        log.debug(f"sources_asset_table after final purge: {source_asset_table}")
-        log.debug(f"Assets to be generated: {assets_to_generate}")
-
         # Now we have the correct list of assets we want to build.
-        # TODO: We will decide whether to build all of them or each individually, based on benchmarking, defined in the constants file.
-        # Passing xmlid to core functions will automatically limit to the subtree of interest
-        # However, the only_changed step removes assets that do not need to be regenerated.  Unless we test on only_changed again, we don't know whether it would be faster to regenerate all assets or to regenerate only the ones that have changed.  That is, if only_changed is false, then we have lots of individual assets that need to be regenerated, and we won't want to regenerate each individually.
-        input()
-        # Now we proceed to generate the assets that were requested.
+        # We proceed to generate the assets that were requested.
         for asset in source_asset_table:
             self.ensure_asset_directories(asset)
 
         # Check if all formats are requested and modify accordingly.
-        asset_formats = constants.ASSET_FORMATS
+        asset_formats = constants.ASSET_FORMATS[self.format]
         if all_formats:
             for asset in assets_to_generate:
-                asset_formats[asset][self.format] = ["all"]
+                asset_formats[asset] = ["all"]
 
+        log.debug(f"Assets will be generated in these formats: {asset_formats}.")
         # We will keep track of the assets that were successful to update cache at the end.
         successful_assets = []
         # generate assets by calling appropriate core functions :
@@ -731,6 +710,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 except Exception as e:
                     log.debug(f"Unable to generate some datafiles: {e}")
         # Finally, also generate the qrcodes for interactive and youtube assets:
+        # NOTE: we do not currently check for success of this for saving assets to the asset cache.
         if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
             for xmlid in set(
                 assets_to_generate.get("interactive", [])
@@ -750,25 +730,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         # Delete temporary directories left behind by core:
         core.release_temporary_directories()
         # After all assets are generated, update the asset cache:
-        log.debug(f"Updated assets successfully: {successful_assets}")
+        log.debug(f"Updated these assets successfully: {successful_assets}")
         for asset_type, xmlid in successful_assets:
             assert isinstance(xmlid, str)
+            if asset_type not in saved_asset_table:
+                saved_asset_table[asset_type] = {}
             if xmlid == "":
-                if asset_type in saved_asset_table:
-                    for id in source_asset_table[asset_type]:
-                        saved_asset_table[asset_type][id] = source_asset_table[
-                            asset_type
-                        ][id]
-                    else:
-                        saved_asset_table[asset_type] = source_asset_table[asset_type]
+                # We have updated all assets of this type, so update all of them in the saved asset table:
+                for id in source_asset_table[asset_type]:
+                    saved_asset_table[asset_type][id] = source_asset_table[asset_type][
+                        id
+                    ]
             else:
                 if xmlid in source_asset_table[asset_type]:
                     saved_asset_table[asset_type][xmlid] = source_asset_table[
                         asset_type
                     ][xmlid]
-
-        log.debug(f"saved_asset_table: {saved_asset_table}")
-        log.debug(f"source_asset_table: {source_asset_table}")
+        # Save the asset table to disk:
+        self.save_asset_table(saved_asset_table)
+        log.debug(f"Saved asset table to disk: {saved_asset_table}")
 
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):

@@ -36,25 +36,44 @@ ASSET_TO_DIR = {
 }
 
 ASSET_FORMATS = {
-    "asymptote": {
-        "pdf": ["pdf"],
-        "latex": ["pdf"],
-        "html": ["html"],
-        "epub": ["svg"],
-        "kindle": ["png"],
+    "pdf": {
+        "asymptote": ["pdf"],
+        "latex-image": [],
+        "sageplot": ["pdf", "png"],
     },
-    "latex-image": {
-        "pdf": [],
-        "latex": [],
-        "html": ["svg"],
-        "epub": ["svg"],
-        "kindle": ["png"],
+    "latex": {
+        "asymptote": ["pdf"],
+        "latex-image": [],
+        "sageplot": ["pdf", "png"],
     },
-    "sageplot": {
-        "pdf": ["pdf", "png"],
-        "latex": ["pdf", "png"],
-        "html": ["html", "svg"],
-        "epub": ["svg"],
-        "kindle": ["png"],
+    "html": {
+        "asymptote": ["html"],
+        "latex-image": ["svg"],
+        "sageplot": ["html", "svg"],
+    },
+    "runestone": {
+        "asymptote": ["html"],
+        "latex-image": ["svg"],
+        "sageplot": ["html", "svg"],
+    },
+    "epub": {
+        "asymptote": ["svg"],
+        "latex-image": ["svg"],
+        "sageplot": ["svg"],
+    },
+    "kindle": {
+        "asymptote": ["png"],
+        "latex-image": ["png"],
+        "sageplot": ["png"],
+    },
+    "braille": {
+        "asymptote": ["all"],
+        "latex-image": ["all"],
+        "sageplot": ["all"],
+    },
+    "custom": {
+        "asymptote": ["all"],
+        "latex-image": ["all"],
+        "sageplot": ["all"],
     },
 }
