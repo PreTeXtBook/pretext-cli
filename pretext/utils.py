@@ -21,9 +21,11 @@ import watchdog.observers
 import time
 import webbrowser
 import typing as t
+from . import types as pt  # PreTeXt types
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
 from typing import Any, cast, Callable, List, Optional
+
 
 from . import core, templates, constants
 
@@ -419,6 +421,26 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             )
             # print installation hints based on operating system and missing program.
             log.info(install_hints[required_exec][platform.system()])
+
+
+def clean_asset_table(
+    dirty_table: pt.AssetTable, clean_table: pt.AssetTable
+) -> pt.AssetTable:
+    """
+    Removes any assets from the dirty_table that are not in the clean_table.
+    """
+    # First purge any asset types that are no longer in the clean table:
+    dirty_table = {
+        asset: dirty_table[asset] for asset in dirty_table if asset in clean_table
+    }
+    # Then purge ids of assets that no longer exist in the clean table:
+    for asset in dirty_table:
+        dirty_table[asset] = {
+            id: dirty_table[asset][id]
+            for id in dirty_table[asset]
+            if id in clean_table[asset]
+        }
+    return dirty_table
 
 
 def no_project(task: str) -> bool:

@@ -15,7 +15,6 @@ from .. import constants
 from .. import core
 from .. import codechat
 from .. import utils
-from .. import generate
 from .. import types as pt  # PreTeXt types
 from .. import templates
 
@@ -219,9 +218,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def generated_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.generated_dir()).resolve()
 
-    def ensure_asset_directories(self) -> None:
-        self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
-        self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
+    def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
+        if asset is None:
+            self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
+            self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
+        else:
+            # make directories for each asset type that would be generated from "asset":
+            for asset_dir in constants.ASSET_TO_DIR[asset]:
+                (self.generated_dir_abspath() / asset_dir).mkdir(
+                    parents=True, exist_ok=True
+                )
 
     def ensure_output_directory(self) -> None:
         log.debug(
@@ -245,6 +251,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def generate_asset_table(self) -> pt.AssetTable:
         asset_hash_dict: pt.AssetTable = {}
         for asset in constants.ASSET_TO_XPATH.keys():
+            asset_hash_dict[asset] = {}
             if asset == "webwork":
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
                 ww = self.source_element().xpath(".//webwork[@*|*]")
@@ -252,39 +259,38 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 if len(ww) == 0:
                     # Only generate a hash if there are actually ww exercises in the source
                     continue
-                asset_hash_dict["webwork"] = {}
                 h = hashlib.sha256()
                 for node in ww:
                     assert isinstance(node, ET._Element)
-                    h.update(ET.tostring(node))
+                    h.update(ET.tostring(node).strip())
                 asset_hash_dict["webwork"][""] = h.digest()
             else:
-                # everything else can be updated individually, if it has an xml:id
+                # everything else can be updated individually.
+                # get all the nodes for the asset attribute
                 source_assets = self.source_element().xpath(
-                    f".//{constants.ASSET_TO_XPATH[asset]}"
+                    constants.ASSET_TO_XPATH[asset]
                 )
                 assert isinstance(source_assets, t.List)
                 if len(source_assets) == 0:
                     # Only generate a hash if there are actually assets of this type in the source
                     continue
-                asset_hash_dict[asset] = {}
-                h_no_id = hashlib.sha256()
+
+                # We will have a dictionary of id's that we will get their own hash:
+                hash_ids = {}
                 for node in source_assets:
                     assert isinstance(node, ET._Element)
-                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id that hasn't already been used
-                    if (
-                        (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"))
-                        and isinstance(id, t.List)
-                        and id[0] not in asset_hash_dict[asset]
-                    ):
-                        assert isinstance(id[0], str)
-                        asset_hash_dict[asset][id[0]] = hashlib.sha256(
-                            ET.tostring(node)
-                        ).digest()
-                    # otherwise collect all non-id'd nodes into a single hash
-                    else:
-                        h_no_id.update(ET.tostring(node))
-                        asset_hash_dict[asset][""] = h_no_id.digest()
+                    # assign the xml:id of the youngest ancestor of the node with an xml:id as the node's id (or "" if none)
+                    ancestor_xmlids = node.xpath("ancestor::*/@xml:id")
+                    assert isinstance(ancestor_xmlids, t.List)
+                    id = str(ancestor_xmlids[-1]) if len(ancestor_xmlids) > 0 else ""
+                    assert isinstance(id, str)
+                    # create a new hash object when id is first encountered
+                    if id not in hash_ids:
+                        hash_ids[id] = hashlib.sha256()
+                    # update the hash with the node's xml:
+                    hash_ids[id].update(ET.tostring(node).strip())
+                    # and update the value of the hash for that asset/id pair
+                    asset_hash_dict[asset][id] = hash_ids[id].digest()
         return asset_hash_dict
 
     def save_asset_table(self, asset_table: pt.AssetTable) -> None:
@@ -305,12 +311,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
             ).exists():
                 log.debug("Webwork representations file does not exist, generating")
-                self.generate_assets(specified_asset_types=["webwork"])
+                self.generate_assets(
+                    specified_asset_types=["webwork"], only_changed=False
+                )
             else:
                 log.debug("Webwork representations file exists, not generating")
         else:
             log.debug("Source does not contain webwork problems")
-        input()
+
+    def ensure_play_button(self) -> None:
+        try:
+            core.play_button(dest_dir=(self.generated_dir_abspath() / "play-button"))
+            log.debug("Play button generated")
+        except Exception as e:
+            log.warning(f"Failed to generate play button: {e}")
 
     def clean_output(self) -> None:
         # refuse to clean if output is not a subdirectory of the project or contains source/publication
@@ -482,176 +496,261 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         self,
         specified_asset_types: t.Optional[t.List[str]] = None,
         all_formats: bool = False,
-        check_cache: bool = True,
+        only_changed: bool = True,
         xmlid: t.Optional[str] = None,
     ) -> None:
-        if specified_asset_types is None:
+        if specified_asset_types is None or "ALL" in specified_asset_types:
             specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
-        if check_cache:
-            # TODO this ignores xmlid!
-            asset_table_cache = self.load_asset_table()
-            asset_table = self.generate_asset_table()
-            if asset_table == asset_table_cache:
-                log.info("All generated assets were found within the cache.")
-            else:
-                # Loop over assets used in the document.
-                for asset in specified_asset_types:
-                    # This asset type was not used.
-                    if asset not in asset_table:
-                        log.info(f"No {asset} were found in the document.")
-                    # A new asset was used, so regenerate everything.
-                    elif asset not in asset_table_cache:
-                        log.info(
-                            f"{asset} was found, but no {asset} were previously cached. "
-                            + f"Regenerating all {asset}."
-                        )
-                        self.generate_assets(
-                            specified_asset_types=[asset],
-                            all_formats=all_formats,
-                            check_cache=False,
-                            xmlid=None,
-                        )
-                    # The asset was used previously.
-                    elif asset_table.get(asset) != asset_table_cache.get(asset):
-                        asset_ids = asset_table.get(asset)
-                        cached_asset_ids = asset_table_cache.get(asset)
-                        if asset_ids is not None and cached_asset_ids is not None:
-                            # Check each hashed id
-                            for id in asset_ids:
-                                # A change has occurred.
-                                if asset_ids.get(id) != cached_asset_ids.get(id):
-                                    # No xmlid is associated
-                                    if id == "":
-                                        # Webwork never stores an xmlid
-                                        if asset != "webwork":
-                                            log.info(
-                                                f"{asset} has been modified since the last generation, but lacks an xmlid. "
-                                                + f"Regenerating all {asset}."
-                                            )
-                                        else:
-                                            log.info(
-                                                "WebWork has been modified since the last generation. "
-                                                + "Regenerating all WebWork."
-                                            )
-                                        self.generate_assets(
-                                            specified_asset_types=[asset],
-                                            all_formats=all_formats,
-                                            check_cache=False,
-                                            xmlid=None,
-                                        )
-                                    # We have an xmlid we can focus on
-                                    else:
-                                        log.info(
-                                            f"{asset} associated with xmlid `{id}` has been modified since the last generation. "
-                                            + "Regenerating."
-                                        )
-                                        self.generate_assets(
-                                            specified_asset_types=[asset],
-                                            all_formats=all_formats,
-                                            check_cache=False,
-                                            xmlid=id,
-                                        )
-                    # Nothing about this asset has changed.
-                    else:
-                        log.info(
-                            f"No {asset} has been modified since the last generation."
-                        )
-                self.save_asset_table(asset_table)
-            return
+        log.debug(f"Assets generation requested for: {specified_asset_types}.")
+        # We always build the asset hash table, even if only_changed=False: this tells us which assets need to be built, and how to update the saved asset hash table.
+        source_asset_table = self.generate_asset_table()
+        saved_asset_table = utils.clean_asset_table(
+            self.load_asset_table(), source_asset_table
+        )
+        log.debug(f"source_asset_table: {source_asset_table}")
+        log.debug(f"saved_asset_table: {saved_asset_table}")
 
-        # set executables
-        core.set_executables(self._project._executables.dict())
+        # Now we repeatedly pass through the source asset table, and purge any assets that we shouldn't build for any reason.
+        # Throw away any asset types that were not requested:
+        source_asset_table = {
+            asset: source_asset_table[asset]
+            for asset in source_asset_table
+            if asset in specified_asset_types
+        }
 
-        # build targets:
-        try:
-            if "webwork" in specified_asset_types:
-                generate.webwork(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath() / "webwork",
-                    self.stringparams,
-                    xmlid,
+        # If we limit by xml:id, only look for assets below that id in the source tree
+        if xmlid is not None:
+            log.debug(f"Limiting asset generation to assets below xml:id={xmlid}.")
+            # Keep webwork if only there is a webwork below the xmlid:
+            ww_nodes = self.source_element().xpath(f"//*[@xml:id='{xmlid}']//webwork")
+            assert isinstance(ww_nodes, t.List)
+            if len(ww_nodes) == 0:
+                source_asset_table.pop("webwork", None)
+            # All other assets: we only need to keep the assets whose id is not above the xmlid (we would have used the xmlid as their id if there wasn't any other xmlid below it):
+            # Get list of xml:ids below 'xmlid':
+            id_list = self.source_element().xpath(f"//*[@xml:id='{xmlid}']//@xml:id")
+            assert isinstance(id_list, t.List)
+            # Filter by non-webwork assets whose id is in ID list:
+            # Note: if an id = "", that means that no ancestor of that asset had an id, which means that it would not be a child of the xml:id we are subsetting.
+            for asset in source_asset_table:
+                if asset != "webwork":
+                    source_asset_table[asset] = {
+                        id: source_asset_table[asset][id]
+                        for id in source_asset_table[asset]
+                        if id in id_list
+                    }
+            log.debug(f"Eligible assets are: {source_asset_table}")
+
+        # TODO: check which assets can be generated based on the user's system (and executables).
+
+        # Now further limit the assets to be built by those that have changed since the last build, if only_changed is true.  Either way create a dictionary of asset: [ids] to be built, where asset:[] means to generate all of them.
+        if only_changed:
+            log.debug(
+                "Checking whether any assets of changed and need to be regenerated."
+            )
+            for asset in source_asset_table:
+                # Keep only the changed assets:
+                source_asset_table[asset] = {
+                    id: source_asset_table[asset][id]
+                    for id in source_asset_table[asset]
+                    if saved_asset_table.get(asset, {}).get(id, None)
+                    != source_asset_table[asset][id]
+                }
+            log.debug(f"Assets to be regenerated: {source_asset_table}")
+            # TODO: check if there are too many individual assets to make generating individually is worthwhile.
+            assets_to_generate = {
+                asset: [id for id in source_asset_table[asset]]
+                for asset in source_asset_table
+                if len(source_asset_table[asset]) > 0
+            }
+        else:
+            assets_to_generate = {
+                asset: [""]
+                for asset in source_asset_table
+                if (asset == "webwork" or len(source_asset_table[asset]) > 0)
+            }
+
+        # Finally, if we removed all assets from an asset type, remove that asset type:
+        source_asset_table = {
+            asset: source_asset_table[asset]
+            for asset in source_asset_table
+            if len(source_asset_table[asset]) > 0
+        }
+
+        # Now we have the correct list of assets we want to build.
+        # We proceed to generate the assets that were requested.
+        for asset in source_asset_table:
+            self.ensure_asset_directories(asset)
+
+        # Check if all formats are requested and modify accordingly.
+        asset_formats = constants.ASSET_FORMATS[self.format]
+        if all_formats:
+            for asset in assets_to_generate:
+                asset_formats[asset] = ["all"]
+
+        log.debug(f"Assets will be generated in these formats: {asset_formats}.")
+        # We will keep track of the assets that were successful to update cache at the end.
+        successful_assets = []
+        # generate assets by calling appropriate core functions :
+        if "webwork" in assets_to_generate:
+            try:
+                core.webwork_to_xml(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    xmlid_root=xmlid,
+                    abort_early=True,
+                    dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
+                    server_params=None,
                 )
-            if "latex-image" in specified_asset_types:
-                generate.latex_image(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    self.format,
-                    xmlid,
-                    self.latex_engine,
-                    all_formats,
-                )
-            if "asymptote" in specified_asset_types:
-                generate.asymptote(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    self.format,
-                    xmlid,
-                    all_formats,
-                )
-            if "sageplot" in specified_asset_types:
-                generate.sageplot(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    self.format,
-                    xmlid,
-                    all_formats,
-                )
-            if "interactive" in specified_asset_types:
-                generate.interactive(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    xmlid,
-                )
-            if "youtube" in specified_asset_types:
-                generate.youtube(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    xmlid,
-                )
-                generate.play_button(
-                    self.generated_dir_abspath(),
-                )
-            if "codelens" in specified_asset_types:
-                generate.codelens(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    xmlid,
-                )
-            if "datafile" in specified_asset_types:
-                generate.datafiles(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    xmlid,
-                )
-            if (
-                "interactive" in specified_asset_types
-                or "youtube" in specified_asset_types
+                successful_assets.append(("webwork", ""))
+            except Exception as e:
+                log.debug(f"Unable to generate webwork: {e}")
+        if "latex-image" in assets_to_generate:
+            for xmlid in assets_to_generate["latex-image"]:
+                try:
+                    for outformat in asset_formats["latex-image"]:
+                        core.latex_image_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=self.stringparams,
+                            xmlid_root=xmlid,
+                            dest_dir=self.generated_dir_abspath() / "latex-image",
+                            outformat=outformat,
+                            method=self.latex_engine,
+                        )
+                    successful_assets.append(("latex-image", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some latex-image assets: {e}")
+        if "asymptote" in assets_to_generate:
+            for xmlid in assets_to_generate["asymptote"]:
+                try:
+                    for outformat in asset_formats["asymptote"]:
+                        core.asymptote_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=self.stringparams,
+                            xmlid_root=xmlid,
+                            dest_dir=self.generated_dir_abspath() / "asymptote",
+                            outformat=outformat,
+                            method=(
+                                "server" if self.server else "local"
+                            ),  # TODO: change
+                        )
+                    successful_assets.append(("asymptote", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some asymptote elements: {e}")
+
+        if "sageplot" in assets_to_generate:
+            for xmlid in assets_to_generate["sageplot"]:
+                try:
+                    for outformat in asset_formats["sageplot"]:
+                        core.sage_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=self.stringparams,
+                            xmlid_root=xmlid,
+                            dest_dir=self.generated_dir_abspath() / "sageplot",
+                            outformat=outformat,
+                        )
+                    successful_assets.append(("sageplot", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some sageplot images: {e}")
+
+        if "interactive" in assets_to_generate:
+            for xmlid in assets_to_generate["interactive"]:
+                try:
+                    core.preview_images(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "preview",
+                    )
+                    successful_assets.append(("interactive", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some interactive previews: {e}")
+        if "youtube" in assets_to_generate:
+            for xmlid in assets_to_generate["youtube"]:
+                try:
+                    core.youtube_thumbnail(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "youtube",
+                    )
+                    successful_assets.append(("youtube", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some youtube thumbnails: {e}")
+            # youtube also requires the play button.
+            self.ensure_play_button()
+        if "codelens" in assets_to_generate:
+            for xmlid in assets_to_generate["codelens"]:
+                try:
+                    core.tracer(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "trace",
+                    )
+                    successful_assets.append(("codelens", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some codelens traces: {e}")
+        if "datafile" in assets_to_generate:
+            for xmlid in assets_to_generate["datafile"]:
+                try:
+                    core.datafiles_to_xml(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "datafile",
+                    )
+                    successful_assets.append(("datafile", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some datafiles: {e}")
+        # Finally, also generate the qrcodes for interactive and youtube assets:
+        # NOTE: we do not currently check for success of this for saving assets to the asset cache.
+        if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
+            for xmlid in set(
+                assets_to_generate.get("interactive", [])
+                + assets_to_generate.get("youtube", [])
             ):
-                generate.qrcodes(
-                    self.source_abspath(),
-                    self.publication_abspath(),
-                    self.generated_dir_abspath(),
-                    self.stringparams,
-                    xmlid,
-                )
-        finally:
-            # Delete temporary directories left behind by core:
-            core.release_temporary_directories()
+                try:
+                    core.qrcode(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "qrcode",
+                    )
+                except Exception as e:
+                    log.debug(f"Unable to generate some qrcodes: {e}")
+
+        # Delete temporary directories left behind by core:
+        core.release_temporary_directories()
+        # After all assets are generated, update the asset cache:
+        log.debug(f"Updated these assets successfully: {successful_assets}")
+        for asset_type, xmlid in successful_assets:
+            assert isinstance(xmlid, str)
+            if asset_type not in saved_asset_table:
+                saved_asset_table[asset_type] = {}
+            if xmlid == "":
+                # We have updated all assets of this type, so update all of them in the saved asset table:
+                for id in source_asset_table[asset_type]:
+                    saved_asset_table[asset_type][id] = source_asset_table[asset_type][
+                        id
+                    ]
+            else:
+                if xmlid in source_asset_table[asset_type]:
+                    saved_asset_table[asset_type][xmlid] = source_asset_table[
+                        asset_type
+                    ][xmlid]
+        # Save the asset table to disk:
+        self.save_asset_table(saved_asset_table)
+        log.debug(f"Saved asset table to disk: {saved_asset_table}")
 
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):

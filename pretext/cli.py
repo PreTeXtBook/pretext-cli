@@ -145,6 +145,7 @@ def support() -> None:
         # Create a project from the project.ptx file
         project = Project.parse()
         project.init_core()
+
         for exec_name in project.get_executables().dict():
             if utils.check_executable(exec_name) is None:
                 log.warning(
@@ -399,9 +400,9 @@ def build(
     # Call generate if flag is set
     if generate:
         try:
-            target.generate_assets(check_cache=False)
-        except Exception:
-            pass
+            target.generate_assets(only_changed=False)
+        except Exception as e:
+            log.debug(f"Failed to generate assets: {e}", exc_info=True)
     # Call build
     try:
         target.build(clean=clean, no_generate=no_generate)
@@ -411,68 +412,15 @@ def build(
         log.debug("Exception info:\n##################\n", exc_info=True)
         log.info("##################")
         sys.exit("Failed to build.  Exiting...")
-    return
-
-    # Automatically generate any assets that have changed.
-    if not no_generate:
-        asset_table = target.load_asset_table()
-        asset_hash_dict = target.asset_hash()
-        if asset_table == asset_hash_dict:
-            log.info(
-                "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
-            )
-        else:
-            if ("webwork", "") not in asset_table or asset_hash_dict[
-                ("webwork", "")
-            ] != asset_table[("webwork", "")]:
-                project.generate_webwork(target.name, xmlid=xmlid)
-            assets = set(asset[0] for asset in asset_hash_dict.keys())
-            assets.discard("webwork")
-            for asset in assets:
-                if (asset, "") not in asset_table or asset_hash_dict[
-                    (asset, "")
-                ] != asset_table[(asset, "")]:
-                    project.generate(target.name, asset_list=[asset])
-                else:
-                    for id in set(
-                        key[1] for key in asset_hash_dict.keys() if key[0] == asset
-                    ):
-                        if (asset, id) not in asset_table or asset_hash_dict[
-                            (asset, id)
-                        ] != asset_table[(asset, id)]:
-                            log.info(
-                                f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
-                            )
-                            project.generate(target.name, asset_list=[asset], xmlid=id)
-            target.save_asset_table(target.asset_hash())
-    else:
-        log.info("Skipping asset generation as requested.")
-    if generate == "ALL":
-        log.info("Generating all assets in default formats as requested.")
-        log.info(
-            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
-        )
-        project.generate_webwork(target.name, xmlid=xmlid)
-        project.generate(target.name, xmlid=xmlid)
-    elif generate is not None:
-        log.info(f"Generating {generate} assets as requested.")
-        log.info(
-            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
-        )
-        if "webwork" in generate:
-            project.generate_webwork(target.name, xmlid=xmlid)
-        project.generate(target.name, asset_list=[generate], xmlid=xmlid)
-    # Now finally build the target
-    project.build(target.name, clean)
 
 
 # pretext generate
 @main.command(
-    short_help="Generate specified assets for specified target",
+    short_help="Generate specified assets for default target or targets specified by `-t`",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument(
-    "assets", default="ALL", type=click.Choice(constants.ASSETS, case_sensitive=False)
+    "assets", type=click.Choice(constants.ASSETS, case_sensitive=False), nargs=-1
 )
 @click.option(
     "-t",
@@ -483,6 +431,13 @@ def build(
 )
 @click.option(
     "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
+)
+@click.option(
+    "-q",
+    "--only-changed",
+    is_flag=True,
+    default=False,
+    help="Limit generation of assets to only those that have changed since last call to pretext.",
 )
 @click.option(
     "--all-formats",
@@ -498,9 +453,10 @@ def build(
     help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
 )
 def generate(
-    assets: str,
+    assets: List[str],
     target_name: Optional[str],
     all_formats: bool,
+    only_changed: bool,
     xmlid: Optional[str],
     project_ptx_override: Tuple[Tuple[str, str], ...],
 ) -> None:
@@ -514,6 +470,11 @@ def generate(
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+
+    # If no assets are given as arguments, then assume 'ALL'
+    if assets == ():
+        assets = ["ALL"]
+
     if utils.no_project(task="generate assets for"):
         return
 
@@ -526,39 +487,30 @@ def generate(
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-    target = project.get_target(name=target_name)
-    if target is None:
+        # Now create the target if the target_name is not missing.
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
+
         utils.show_target_hints(target_name, project, task="generating assets for")
-        log.critical("Exiting without generating any assets.")
+        log.critical("Exiting without completing build.")
+        log.debug(e, exc_info=True)
         return
-    if target_name is None:
-        log.info(
-            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name})."
+      
+    try:
+        f'Generating assets in for the target "{target.name}".'
+        target.generate_assets(
+            specified_asset_types=assets,
+            all_formats=all_formats,
+            only_changed=only_changed,  # Unless requested, generate all assets, so don't check the cache.
+            xmlid=xmlid,
         )
-    if "webwork" in assets or assets == "ALL":
-        project.generate_webwork(target.name, xmlid=xmlid)
-    if all_formats and assets == "ALL":
-        log.info(
-            f'Generating all assets in all asset formats for the target "{target.name}".'
-        )
-        project.generate(target.name, all_formats=True, xmlid=xmlid)
-    elif all_formats:
-        log.info(
-            f'Generating only {assets} assets in all asset formats for the target "{target.name}".'
-        )
-        project.generate(
-            target.name, asset_list=[assets], all_formats=True, xmlid=xmlid
-        )
-    elif assets == "ALL":
-        log.info(
-            f'Generating all assets in default formats for the target "{target.name}".'
-        )
-        project.generate(target.name, xmlid=xmlid)
-    else:
-        log.info(
-            f'Generating only {assets} assets in default formats for the target "{target.name}".'
-        )
-        project.generate(target.name, asset_list=[assets], xmlid=xmlid)
+        log.info("Finished generating assets.\n")
+    except Exception as e:
+        log.critical(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        sys.exit("Generating assets as failed.  Exiting...")
 
 
 # pretext view
