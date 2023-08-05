@@ -31,6 +31,7 @@ log = logging.getLogger("ptxlogger")
 
 class Format(str, Enum):
     HTML = "html"
+    RUNESTONE = "runestone"
     LATEX = "latex"
     PDF = "pdf"
     EPUB = "epub"
@@ -84,45 +85,28 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     # A path to the publication file for this target, relative to the project's `publication` path.
     publication: Path = pxml.attr(default=None)
 
-    # Perform validation which requires the parent `Project` object:
-    # - If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
-    # - Merge the `Project.server` with `self.server`.
-    #
-    # This can't be placed in a Pydantic validator, since `self._project` isn't set until after validation finishes. So, this must be manually called after that's done.
-    def post_validate(self) -> None:
-        # Select a default publication file if it's not provided.
-        if self.publication is None:
-            self.publication = Path("publication.ptx")
-            # If this publication file doesn't exist, ...
-            if not self.publication_abspath().exists():
-                # ... then use the CLI's built-in template file.
-                # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
-                with templates.resource_path("publication.ptx") as self.publication:
-                    pass
-        # Otherwise, verify that the provided publication file exists. TODO: perhaps skip this, instead reporting a file open error when this is read?
-        else:
-            p_full = self.publication_abspath()
-            if not p_full.exists():
-                raise FileNotFoundError(
-                    f"Provided publication file {p_full} does not exist."
-                )
-
-        # Merge in servers from the parent Project that aren't specified in this Target.
-        self_server_names = [server.name for server in self.server]
-        for server in self._project.server:
-            if server.name not in self_server_names:
-                self.server.append(server)
-
     # A path to the output directory for this target, relative to the project's `output` path.
     output_dir: Path = pxml.attr(name="output-dir", default=None)
 
-    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` (hack: a type violation) with `self.name`.
+    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
     @validator("output_dir", always=True)
-    def output_dir_defaults_to_name(cls, v: t.Optional[Path], values: t.Any) -> Path:
+    def output_dir_validator(cls, v: t.Optional[Path], values: t.Any) -> Path:
+        # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
+        if values["format"] == Format.RUNESTONE and v is not None:
+            raise ValueError("The Runestone format's output-dir must not be specified.")
         return Path(v) if v is not None else Path(values["name"])
 
-    # We validate compression before output_filename to use its value to check if we can have an output_filename
+    # We validate compression before output_filename to use its value to check if we can have an output_filename.
     compression: t.Optional[Compression] = pxml.attr()
+
+    # Compression is only supported for HTML and WeBWorK formats.
+    @validator("compression")
+    def compression_validator(
+        cls, v: t.Optional[Compression], values: t.Any
+    ) -> t.Optional[Compression]:
+        if values["format"] not in (Format.HTML, Format.WEBWORK) and v is not None:
+            raise ValueError("Only the HTML and WeBWorK formats support compression.")
+        return v
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
@@ -131,14 +115,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def output_filename_validator(
         cls, v: t.Optional[str], values: t.Any
     ) -> t.Optional[str]:
-        # The HTML and webwork formats allows only an `output_dir`. All other formats produce a single file; therefore, they allow `output_file` as well.
+        # See if `output-filename` is allowed.
         if (
-            values["format"] in (Format.HTML, Format.WEBWORK)
+            # These formats always produce multiple files, so `output-filename` makes no sense.
+            values["format"] in (Format.RUNESTONE, Format.WEBWORK)
             and v is not None
+        ) or (
+            # The same is true for non-zipped HTML.
+            values["format"] == Format.HTML
             and not values["compression"]
+            and v is not None
         ):
             raise ValueError(
-                "The output_filename must not be present when the format is HTML or Webwork."
+                "The output_filename must not be present when the format is uncompressed HTML, Runestone, or Webwork."
             )
         # Verify that this is just a file name, without any prefixed path.
         assert v is None or Path(v).name == v
@@ -181,6 +170,53 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             self._project = kwargs["_project"]
             # Since we now have the project, perform validation.
             self.post_validate()
+
+    # Perform validation which requires the parent `Project` object. This can't be placed in a Pydantic validator, since `self._project` isn't set until after validation finishes. So, this must be manually called after that's done.
+    def post_validate(self) -> None:
+        # If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+        #
+        # Select a default publication file if it's not provided.
+        if self.publication is None:
+            self.publication = Path("publication.ptx")
+            # If this publication file doesn't exist, ...
+            if not self.publication_abspath().exists():
+                # ... then use the CLI's built-in template file.
+                # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
+                with templates.resource_path("publication.ptx") as self.publication:
+                    pass
+        # Otherwise, verify that the provided publication file exists. TODO: perhaps skip this, instead reporting a file open error when this is read?
+        else:
+            p_full = self.publication_abspath()
+            if not p_full.exists():
+                raise FileNotFoundError(
+                    f"Provided publication file {p_full} does not exist."
+                )
+
+        # Merge `Project.server` with `self.server`; entries in `self.server` take precedence.
+        self_server_names = [server.name for server in self.server]
+        for server in self._project.server:
+            if server.name not in self_server_names:
+                self.server.append(server)
+
+        # For the Runestone format, determine the `<document-id>`, which specifies the `output_dir`.
+        if self.format == Format.RUNESTONE:
+            # We expect `d_list ==  ["document-id contents here"]`.
+            d_list = self.source_element().xpath("/pretext/docinfo/document-id/text()")
+            if isinstance(d_list, list):
+                if len(d_list) != 1:
+                    raise ValueError(
+                        "Only one <document-id> is allowed in a PreTeXt document."
+                    )
+                d = d_list[0]
+                assert isinstance(d, str)
+                # Use the correct number of `../` to undo the project's `output-dir`, so the output from the build is located in the correct directory of `published/document-id`.
+                self.output_dir = Path(
+                    f"{'../'*len(self._project.output_dir.parents)}published/{d}"
+                )
+            else:
+                raise ValueError(
+                    "The <document-id> must be defined for the Runestone format."
+                )
 
     def source_abspath(self) -> Path:
         return self._project.source_abspath() / self.source
@@ -395,29 +431,29 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
-            if self.format == Format.HTML:
+            if self.format in (Format.HTML, Format.RUNESTONE):
+                # The copy allows us to modify these for the Runestone format below without affecting the original.
+                sp = self.stringparams.copy()
+                if self.format == Format.RUNESTONE:
+                    # The validator guarantees this.
+                    assert self.compression is None
+                    assert self.output_filename is None
+                    # This is equivalent to setting `<platform host="runestone">` in the publication file.
+                    sp |= {"host-platform": "runestone"}
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=sp,
                     xmlid_root=xmlid,
                     file_format=self.compression or "html",
                     extra_xsl=custom_xsl,
                     out_file=self.output_filename,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
-                # For codechat:
-                project_path = self._project.abspath()
-                assert (
-                    project_path is not None
-                ), f"Invalid project path to {self._project.abspath()}."
                 codechat.map_path_to_xml_id(
                     self.source_abspath(),
-                    project_path,
+                    self._project.abspath(),
                     self.output_dir_abspath().as_posix(),
-                )
-                log.debug(
-                    f"Set up codechat map using {project_path} as the project path."
                 )
             elif self.format == Format.PDF:
                 core.pdf(

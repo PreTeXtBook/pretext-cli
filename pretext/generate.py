@@ -26,6 +26,7 @@ def latex_image(
         "pdf": [],
         "latex": [],
         "html": ["svg"],
+        "runestone": ["svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
@@ -78,6 +79,7 @@ def sageplot(
         "pdf": ["pdf", "png"],
         "latex": ["pdf", "png"],
         "html": ["html", "svg"],
+        "runestone": ["html", "svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
@@ -130,6 +132,7 @@ def asymptote(
         "pdf": ["pdf"],
         "latex": ["pdf"],
         "html": ["html"],
+        "runestone": ["html"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
