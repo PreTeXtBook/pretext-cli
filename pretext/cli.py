@@ -402,6 +402,7 @@ def build(
         try:
             target.generate_assets(only_changed=False)
         except Exception as e:
+            log.debug(f"Failed to generate assets: {e}", exc_info=True)
             pass
     # Call build
     try:
