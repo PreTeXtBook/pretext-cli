@@ -13,13 +13,67 @@ BUILD_FORMATS = [
 ]
 
 ASSET_TO_XPATH = {
-    "webwork": "webwork",
-    "latex-image": "latex-image",
-    "sageplot": "sageplot",
-    "asymptote": "asymptote",
-    "youtube": "video[@youtube]",
-    "codelens": "program[@interactive='codelens']",
-    "datafile": "datafile",
-    "interactive": "interactive",
+    "webwork": ".//webwork[*|@*]",
+    "latex-image": ".//latex-image",
+    "sageplot": ".//sageplot",
+    "asymptote": ".//asymptote",
+    "youtube": ".//video[@youtube]",
+    "codelens": ".//program[@interactive = 'codelens']",
+    "datafile": ".//datafile",
+    "interactive": ".//interactive",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
+
+ASSET_TO_DIR = {
+    "webwork": ["webwork"],
+    "latex-image": ["latex-image"],
+    "sageplot": ["sageplot"],
+    "asymptote": ["asymptote"],
+    "youtube": ["youtube", "play-button", "qr-code"],
+    "interactive": ["preview", "qr-code"],
+    "codelens": ["trace"],
+    "datafile": ["datafile"],
+}
+
+ASSET_FORMATS = {
+    "pdf": {
+        "asymptote": ["pdf"],
+        "latex-image": [],
+        "sageplot": ["pdf", "png"],
+    },
+    "latex": {
+        "asymptote": ["pdf"],
+        "latex-image": [],
+        "sageplot": ["pdf", "png"],
+    },
+    "html": {
+        "asymptote": ["html"],
+        "latex-image": ["svg"],
+        "sageplot": ["html", "svg"],
+    },
+    "runestone": {
+        "asymptote": ["html"],
+        "latex-image": ["svg"],
+        "sageplot": ["html", "svg"],
+    },
+    "epub": {
+        "asymptote": ["svg"],
+        "latex-image": ["svg"],
+        "sageplot": ["svg"],
+    },
+    "kindle": {
+        "asymptote": ["png"],
+        "latex-image": ["png"],
+        "sageplot": ["png"],
+    },
+    "braille": {
+        "asymptote": ["all"],
+        "latex-image": ["all"],
+        "sageplot": ["all"],
+    },
+    "custom": {
+        "asymptote": ["all"],
+        "latex-image": ["all"],
+        "sageplot": ["all"],
+    },
+}

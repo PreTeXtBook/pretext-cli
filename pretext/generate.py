@@ -26,53 +26,40 @@ def latex_image(
         "pdf": [],
         "latex": [],
         "html": ["svg"],
+        "runestone": ["svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
     # set overwrite formats to all when appropriate
     if all_formats:
         formats[target_format] = ["all"]
-    # We assume passed paths are absolute.
-    # set images directory
-    # parse source so we can check for latex-image.
-    source_xml = ET.parse(ptxfile)
-    for _ in range(20):
-        source_xml.xinclude()
-    if (
-        isinstance(
-            li := source_xml.xpath("/pretext/*[not(docinfo)]//latex-image"), List
-        )
-        and len(li) > 0
-        and formats[target_format] != []
-    ):
-        image_output = (output / "latex-image").resolve()
-        os.makedirs(image_output, exist_ok=True)
-        log.info("Now generating latex-images\n\n")
-        # Check for external requirements
-        utils.check_asset_execs("latex-image", formats[target_format])
-        # call pretext-core's latex image module:
-        with utils.working_directory(Path()):
-            for outformat in formats[target_format]:
-                try:
-                    core.latex_image_conversion(
-                        xml_source=ptxfile,
-                        pub_file=pub_file.as_posix(),
-                        stringparams=params,
-                        xmlid_root=xmlid_root,
-                        dest_dir=image_output.as_posix(),
-                        outformat=outformat,
-                        method=pdf_method,
-                    )
-                except Exception as e:
-                    log.error(e)
-                    log.debug("Exception info:\n##################\n", exc_info=True)
-                    log.info("##################")
-                    log.error(
-                        "Failed to generate some latex-image elements.  Check your source and partial output to diagnose the issue."
-                    )
-                    log.warning("Continuing...")
-    else:
-        log.info("Note: No latex-image elements found.")
+
+    image_output = (output / "latex-image").resolve()
+    os.makedirs(image_output, exist_ok=True)
+    log.info("Now generating latex-images\n\n")
+    # Check for external requirements
+    utils.check_asset_execs("latex-image", formats[target_format])
+    # call pretext-core's latex image module:
+    # with utils.working_directory(Path()):
+    for outformat in formats[target_format]:
+        try:
+            core.latex_image_conversion(
+                xml_source=ptxfile,
+                pub_file=pub_file.as_posix(),
+                stringparams=params,
+                xmlid_root=xmlid_root,
+                dest_dir=image_output.as_posix(),
+                outformat=outformat,
+                method=pdf_method,
+            )
+        except Exception as e:
+            log.error(e)
+            log.debug("Exception info:\n##################\n", exc_info=True)
+            log.info("##################")
+            log.error(
+                "Failed to generate some latex-image elements.  Check your source and partial output to diagnose the issue."
+            )
+            log.warning("Continuing...")
 
 
 # generate sageplot assets
@@ -92,6 +79,7 @@ def sageplot(
         "pdf": ["pdf", "png"],
         "latex": ["pdf", "png"],
         "html": ["html", "svg"],
+        "runestone": ["html", "svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
@@ -100,41 +88,31 @@ def sageplot(
         formats[target_format] = ["all"]
     # We assume passed paths are absolute.
     # set images directory
-    # parse source so we can check for sageplot.
-    source_xml = ET.parse(ptxfile)
-    for _ in range(20):
-        source_xml.xinclude()
-    if (
-        isinstance(li := source_xml.xpath("/pretext/*[not(docinfo)]//sageplot"), List)
-        and len(li) > 0
-        and formats[target_format] is not None
-    ):
-        image_output = (output / "sageplot").resolve()
-        os.makedirs(image_output, exist_ok=True)
-        log.info("Now generating sageplot images\n\n")
-        # Check for external requirements
-        utils.check_asset_execs("sageplot", formats[target_format])
-        with utils.working_directory(Path()):
-            try:
-                for outformat in formats[target_format]:
-                    core.sage_conversion(
-                        xml_source=ptxfile,
-                        pub_file=pub_file.as_posix(),
-                        stringparams=params,
-                        xmlid_root=xmlid_root,
-                        dest_dir=image_output.as_posix(),
-                        outformat=outformat,
-                    )
-            except Exception as e:
-                log.error(e)
-                log.debug("Exception info:\n##################\n", exc_info=True)
-                log.info("##################")
-                log.error(
-                    "Failed to generate some sageplot elements.  Check your source and partial output to diagnose the issue."
-                )
-                log.warning("Continuing...")
-    else:
-        log.info("Note: No sageplot elements found.")
+
+    image_output = (output / "sageplot").resolve()
+    os.makedirs(image_output, exist_ok=True)
+    log.info("Now generating sageplot images\n\n")
+    # Check for external requirements
+    utils.check_asset_execs("sageplot", formats[target_format])
+    # with utils.working_directory(Path()):
+    try:
+        for outformat in formats[target_format]:
+            core.sage_conversion(
+                xml_source=ptxfile,
+                pub_file=pub_file.as_posix(),
+                stringparams=params,
+                xmlid_root=xmlid_root,
+                dest_dir=image_output.as_posix(),
+                outformat=outformat,
+            )
+    except Exception as e:
+        log.error(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        log.error(
+            "Failed to generate some sageplot elements.  Check your source and partial output to diagnose the issue."
+        )
+        log.warning("Continuing...")
 
 
 # generate asymptote assets
@@ -154,6 +132,7 @@ def asymptote(
         "pdf": ["pdf"],
         "latex": ["pdf"],
         "html": ["html"],
+        "runestone": ["html"],
         "epub": ["svg"],
         "kindle": ["png"],
     }

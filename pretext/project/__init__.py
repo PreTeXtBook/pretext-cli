@@ -1,733 +1,1026 @@
-import pickle
-from lxml import etree as ET
-from lxml.etree import _Element
-import os
-import shutil
-import logging
-import tempfile
-from .. import utils, generate, core
-from .. import build as builder
-from .. import constants
-from pathlib import Path
-import sys
-from ..config.xml_overlay import ShadowXmlDocument
-from typing import Dict, List, Literal, Optional, Tuple
+import typing as t
+from enum import Enum
 import hashlib
-import subprocess
+import logging
+import multiprocessing
+import shutil
+import tempfile
+import pickle
+from pathlib import Path
+from lxml import etree as ET
+from pydantic import validator, HttpUrl, PrivateAttr
+import pydantic_xml as pxml
+from .xml import Executables, LegacyProject, LatexEngine
+from .. import constants
+from .. import core
+from .. import codechat
+from .. import utils
+from .. import types as pt  # PreTeXt types
+from .. import templates
+
 
 log = logging.getLogger("ptxlogger")
 
-asset_table_type = Dict[Tuple[str, str], bytes]
+# TODO Not yet used...
+# def optstrpth_to_posix(path: t.Optional[t.Union[Path, str]]) -> t.Optional[str]:
+#     if path is None:
+#         return None
+#     else:
+#         return Path(path).as_posix()
 
 
-class Target:
-    def __init__(self, xml_element: _Element, project_path: Path):
-        # construction is done!
-        self.__xml_element = xml_element
-        self.__project_path = Path(project_path).resolve()
-        # ensure assets directories exist as assumed by core PreTeXt
-        if (ex_dir := self.external_dir()) is not None:
-            os.makedirs(ex_dir, exist_ok=True)
-        if (gen_dir := self.generated_dir()) is not None:
-            os.makedirs(gen_dir, exist_ok=True)
+class Format(str, Enum):
+    HTML = "html"
+    RUNESTONE = "runestone"
+    LATEX = "latex"
+    PDF = "pdf"
+    EPUB = "epub"
+    KINDLE = "kindle"
+    BRAILLE = "braille"
+    WEBWORK = "webwork"
+    CUSTOM = "custom"
 
-    def xml_element(self) -> _Element:
-        return self.__xml_element
 
-    def project_path(self) -> Path:
-        return self.__project_path
+# The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
+class PublicationSubset(pxml.BaseXmlModel, tag="publication", search_mode="unordered"):
+    external: Path = pxml.wrapped("source/directories", pxml.attr())
+    generated: Path = pxml.wrapped("source/directories", pxml.attr())
 
-    # Perform basic schema checking of the project file: the given attribute must be present.
-    def require_str_value(self, value: Optional[str], err: str) -> str:
-        assert value is not None, f"Invalid project file: missing {err}."
-        return value
 
-    def require_tag_text(self, tag_name: str) -> str:
-        element = self.xml_element().find(tag_name)
-        assert element is not None, f"Invalid project file: missing {tag_name} tag."
-        return self.require_str_value(element.text, f"{tag_name} contents")
+class BrailleMode(str, Enum):
+    EMBOSS = "emboss"
+    ELECTRONIC = "electronic"
 
-    def name(self) -> str:
-        # Targets should have a name attribute.
-        return self.require_str_value(
-            self.xml_element().get("name"), "name attribute"
-        ).strip()
 
-    def pdf_method(self) -> str:
-        pdf_method = self.xml_element().get("pdf-method")
-        if pdf_method is not None:
-            return pdf_method.strip()
-        else:
-            return "xelatex"  # default
+class Compression(str, Enum):
+    ZIP = "zip"
 
-    def format(self) -> str:
-        return self.require_tag_text("format").strip()
 
-    def source(self) -> Path:
-        return self.project_path() / self.require_tag_text("source").strip()
+# See `Target.server`.
+class ServerName(str, Enum):
+    SAGE = "sage"
+    # Short for Asymptote.
+    ASY = "asy"
+    # Possible servers to add: Jing, WebWork.
 
-    def source_dir(self) -> Path:
-        return Path(self.source()).parent
 
-    def source_xml(self) -> _Element:
-        ele_tree = ET.parse(self.source())
-        ele_tree.xinclude()
-        return ele_tree.getroot()
+# Allow the author to specify a server instead of a local executable for asset generation. See `Target.server`.
+class Server(pxml.BaseXmlModel, tag="server"):
+    name: ServerName = pxml.attr()
+    url: HttpUrl = pxml.attr()
 
-    def publication(self) -> Path:
-        return self.project_path() / self.require_tag_text("publication").strip()
 
-    def publication_dir(self) -> Path:
-        return self.publication().parent
+class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
+    """
+    Representation of a target for a PreTeXt project: a specific
+    build targeting a format such as HTML, LaTeX, etc.
+    """
 
-    def publication_rel_from_source(self) -> Path:
-        return self.publication().relative_to(self.source_dir())
+    # Provide access to the containing project.
+    _project: "Project" = PrivateAttr()
+    name: str = pxml.attr()
+    format: Format = pxml.attr()
+    # A path to the root source for this target, relative to the project's `source` path.
+    source: Path = pxml.attr(default=Path("main.ptx"))
+    # A path to the publication file for this target, relative to the project's `publication` path.
+    publication: Path = pxml.attr(default=None)
 
-    def publication_xml(self) -> _Element:
-        ele_tree = ET.parse(self.publication())
-        ele_tree.xinclude()
-        return ele_tree.getroot()
+    # A path to the output directory for this target, relative to the project's `output` path.
+    output_dir: Path = pxml.attr(name="output-dir", default=None)
 
-    def external_dir(self) -> Optional[Path]:
-        dir_ele = self.publication_xml().find("source/directories")
-        if dir_ele is None:
-            log.error("Publication file does not specify asset directories.")
-            return None
-        rel_dir = dir_ele.get("external")
-        assert (
-            rel_dir is not None
-        ), "Invalid project file: missing value in source/directories/external tag."
-        return self.source_dir() / rel_dir
+    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
+    @validator("output_dir", always=True)
+    def output_dir_validator(cls, v: t.Optional[Path], values: t.Any) -> Path:
+        # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
+        if values["format"] == Format.RUNESTONE and v is not None:
+            raise ValueError("The Runestone format's output-dir must not be specified.")
+        return Path(v) if v is not None else Path(values["name"])
 
-    # Like the above function, but asserts if the external directory wasn't found.
-    def external_dir_found(self) -> Path:
-        ed = self.external_dir()
-        assert ed is not None, "Internal error: external directory not found."
-        return ed
+    # We validate compression before output_filename to use its value to check if we can have an output_filename.
+    compression: t.Optional[Compression] = pxml.attr()
 
-    def generated_dir(self) -> Optional[Path]:
-        dir_ele = self.publication_xml().find("source/directories")
-        if dir_ele is None:
-            log.error("Publication file does not specify asset directories.")
-            return None
-        rel_dir = dir_ele.get("generated")
-        assert (
-            rel_dir is not None
-        ), "Invalid project file: missing value in source/directories/generated tag."
-        return self.source_dir() / rel_dir
+    # Compression is only supported for HTML and WeBWorK formats.
+    @validator("compression")
+    def compression_validator(
+        cls, v: t.Optional[Compression], values: t.Any
+    ) -> t.Optional[Compression]:
+        if values["format"] not in (Format.HTML, Format.WEBWORK) and v is not None:
+            raise ValueError("Only the HTML and WeBWorK formats support compression.")
+        return v
 
-    # Like the above function, but asserts if the external directory wasn't found.
-    def generated_dir_found(self) -> Path:
-        gd = self.generated_dir()
-        assert gd is not None, "Internal error: generated directory not found."
-        return gd
+    # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
+    output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
 
-    def output_dir(self) -> Path:
-        return (
-            Path(self.__project_path) / self.require_tag_text("output-dir").strip()
-        ).resolve()
-
-    def output_filename(self) -> Optional[str]:
-        if self.xml_element().find("output-filename") is None:
-            return None
-        else:
-            return self.require_tag_text("output-filename").strip()
-
-    def deploy_dir(self) -> Optional[str]:
-        if self.xml_element().find("deploy-dir") is None:
-            return None
-        else:
-            return self.require_tag_text("deploy-dir").strip()
-
-    def port(self) -> int:
-        view_ele = self.xml_element().find("view")
-        if view_ele is not None and (port := view_ele.get("port")) is not None:
-            return int(port)
-        else:
-            return 8000
-
-    def stringparams(self) -> Dict[str, str]:
-        sp = self.xml_element().xpath("stringparam")
-        assert isinstance(sp, List), "Project file error: stringparam is empty."
-        ret = {}
-        for sp_ele in sp:
-            assert isinstance(
-                sp_ele, _Element
-            ), "Project file error: stringparam contents must be key/value pairs."
-            key = self.require_str_value(
-                sp_ele.get("key"), "Project  file error: stringparam missing key."
+    @validator("output_filename", always=True)
+    def output_filename_validator(
+        cls, v: t.Optional[str], values: t.Any
+    ) -> t.Optional[str]:
+        # See if `output-filename` is allowed.
+        if (
+            # These formats always produce multiple files, so `output-filename` makes no sense.
+            values["format"] in (Format.RUNESTONE, Format.WEBWORK)
+            and v is not None
+        ) or (
+            # The same is true for non-zipped HTML.
+            values["format"] == Format.HTML
+            and not values["compression"]
+            and v is not None
+        ):
+            raise ValueError(
+                "The output_filename must not be present when the format is uncompressed HTML, Runestone, or Webwork."
             )
-            value = self.require_str_value(
-                sp_ele.get("value"), "Project  file error: stringparam missing value."
-            )
-            ret[key.strip()] = value.strip()
-        return ret
+        # Verify that this is just a file name, without any prefixed path.
+        assert v is None or Path(v).name == v
+        return v
 
-    def xsl_path(self) -> Optional[Path]:
-        if self.xml_element().find("xsl") is not None:
-            return (
-                Path(self.__project_path) / self.require_tag_text("xsl").strip()
-            ).resolve()
+    # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
+    site: Path = pxml.attr(default=Path("site"))
+    # A path to custom XSL for this target, relative to the project's `xsl` path.
+    xsl: t.Optional[Path] = pxml.attr(default=None)
+
+    # If the `format == Format.CUSTOM`, then `xsl` must be defined.
+    @validator("xsl")
+    def xsl_validator(cls, v: t.Optional[Path], values: t.Any) -> t.Optional[Path]:
+        if v is None and values["format"] == Format.CUSTOM:
+            raise ValueError("A custom format requires a value for xsl.")
+        return v
+
+    latex_engine: LatexEngine = pxml.attr(
+        name="latex-engine", default=LatexEngine.XELATEX
+    )
+    braille_mode: BrailleMode = pxml.attr(
+        name="braille-mode", default=BrailleMode.EMBOSS
+    )
+    stringparams: t.Dict[str, str] = pxml.element(default={})
+
+    # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
+    server: t.List[Server] = pxml.element(default=[])
+
+    @validator("server")
+    def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
+        # Ensure the names are unique.
+        if len(set([server.name for server in v])) != len(v):
+            raise ValueError("Server names must not be repeated.")
+        return v
+
+    # Allow specifying `_project` in the constructor. (Since it's private, pydantic ignores it by default).
+    def __init__(self, **kwargs: t.Any):
+        super().__init__(**kwargs)
+        if "_project" in kwargs:
+            self._project = kwargs["_project"]
+            # Since we now have the project, perform validation.
+            self.post_validate()
+
+    # Perform validation which requires the parent `Project` object. This can't be placed in a Pydantic validator, since `self._project` isn't set until after validation finishes. So, this must be manually called after that's done.
+    def post_validate(self) -> None:
+        # If no publication file is specified, assume either `publication.ptx` (if it exists) or the CLI's template `publication.ptx` (which always exists). If a publication file is specified, ensure that it exists.
+        #
+        # Select a default publication file if it's not provided.
+        if self.publication is None:
+            self.publication = Path("publication.ptx")
+            # If this publication file doesn't exist, ...
+            if not self.publication_abspath().exists():
+                # ... then use the CLI's built-in template file.
+                # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
+                with templates.resource_path("publication.ptx") as self.publication:
+                    pass
+        # Otherwise, verify that the provided publication file exists. TODO: perhaps skip this, instead reporting a file open error when this is read?
         else:
-            return None
+            p_full = self.publication_abspath()
+            if not p_full.exists():
+                raise FileNotFoundError(
+                    f"Provided publication file {p_full} does not exist."
+                )
 
-    def xmlid_root(self) -> Optional[str]:
-        ele = self.xml_element().find("xmlid-root")
-        if ele is None:
+        # Merge `Project.server` with `self.server`; entries in `self.server` take precedence.
+        self_server_names = [server.name for server in self.server]
+        for server in self._project.server:
+            if server.name not in self_server_names:
+                self.server.append(server)
+
+        # For the Runestone format, determine the `<document-id>`, which specifies the `output_dir`.
+        if self.format == Format.RUNESTONE:
+            # We expect `d_list ==  ["document-id contents here"]`.
+            d_list = self.source_element().xpath("/pretext/docinfo/document-id/text()")
+            if isinstance(d_list, list):
+                if len(d_list) != 1:
+                    raise ValueError(
+                        "Only one <document-id> is allowed in a PreTeXt document."
+                    )
+                d = d_list[0]
+                assert isinstance(d, str)
+                # Use the correct number of `../` to undo the project's `output-dir`, so the output from the build is located in the correct directory of `published/document-id`.
+                self.output_dir = Path(
+                    f"{'../'*len(self._project.output_dir.parents)}published/{d}"
+                )
+            else:
+                raise ValueError(
+                    "The <document-id> must be defined for the Runestone format."
+                )
+
+    def source_abspath(self) -> Path:
+        return self._project.source_abspath() / self.source
+
+    def source_element(self) -> ET._Element:
+        source_doc = ET.parse(self.source_abspath())
+        for _ in range(25):
+            source_doc.xinclude()
+        return source_doc.getroot()
+
+    def publication_abspath(self) -> Path:
+        return self._project.publication_abspath() / self.publication
+
+    def output_dir_abspath(self) -> Path:
+        return self._project.output_dir_abspath() / self.output_dir
+
+    def xsl_abspath(self) -> t.Optional[Path]:
+        if self.xsl is None:
             return None
+        return self._project.xsl_abspath() / self.xsl
+
+    def _read_publication_file_subset(self) -> PublicationSubset:
+        p_bytes = self.publication_abspath().read_bytes()
+        return PublicationSubset.from_xml(p_bytes)
+
+    def external_dir(self) -> Path:
+        return self._read_publication_file_subset().external
+
+    def external_dir_abspath(self) -> Path:
+        return (self.source_abspath().parent / self.external_dir()).resolve()
+
+    def generated_dir(self) -> Path:
+        return self._read_publication_file_subset().generated
+
+    def generated_dir_abspath(self) -> Path:
+        return (self.source_abspath().parent / self.generated_dir()).resolve()
+
+    def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
+        if asset is None:
+            self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
+            self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
         else:
-            return self.require_str_value(ele.text, "xmlid-root").strip()
+            # make directories for each asset type that would be generated from "asset":
+            for asset_dir in constants.ASSET_TO_DIR[asset]:
+                (self.generated_dir_abspath() / asset_dir).mkdir(
+                    parents=True, exist_ok=True
+                )
 
-    def asset_hash(self) -> asset_table_type:
-        asset_hash_dict = {}
-        for asset in constants.ASSETS:
-            if asset == "webwork":
-                ww = self.source_xml().xpath(".//webwork[@*|*]")
-                assert isinstance(ww, List)
-                # WeBWorK must be regenerated every time *any* of the ww exercises change.
-                if len(ww) == 0:
-                    # Only generate a hash if there are actually ww exercises in the source
-                    continue
-                h = hashlib.sha256()
-                for node in ww:
-                    assert isinstance(node, _Element)
-                    h.update(ET.tostring(node))
-                asset_hash_dict[(asset, "")] = h.digest()
-            elif asset != "ALL":
-                # everything else can be updated individually, if it has an xml:id
-                source_assets = self.source_xml().xpath(f".//{asset}")
-                assert isinstance(source_assets, List)
-                if len(source_assets) == 0:
-                    # Only generate a hash if there are actually assets of this type in the source
-                    continue
-                h_no_id = hashlib.sha256()
-                for node in source_assets:
-                    assert isinstance(node, _Element)
-                    # First see if the node has an xml:id, or if it is a child of a node with an xml:id (but we haven't already made this key)
-                    if (
-                        (id := node.xpath("@xml:id") or node.xpath("parent::*/@xml:id"))
-                        and isinstance(id, List)
-                        and (asset, id[0]) not in asset_hash_dict
-                    ):
-                        assert isinstance(id[0], str)
-                        asset_hash_dict[(asset, id[0])] = hashlib.sha256(
-                            ET.tostring(node)
-                        ).digest()
-                    # otherwise collect all non-id'd nodes into a single hash
-                    else:
-                        h_no_id.update(ET.tostring(node))
-                asset_hash_dict[(asset, "")] = h_no_id.digest()
-        return asset_hash_dict
+    def ensure_output_directory(self) -> None:
+        log.debug(
+            f"Ensuring output directory for {self.name}: {self.output_dir_abspath()}"
+        )
+        self.output_dir_abspath().mkdir(parents=True, exist_ok=True)
 
-    def save_asset_table(self, asset_table: asset_table_type) -> None:
+    def load_asset_table(self) -> pt.AssetTable:
         """
-        Saves the asset_table to a pickle file in the generated assets directory based on the target name.
-        """
-        with open(
-            self.generated_dir_found().joinpath(f".{self.name()}_assets.pkl"), "wb"
-        ) as f:
-            pickle.dump(asset_table, f)
-
-    def load_asset_table(self) -> asset_table_type:
-        """
-        Loads the asset_table from a pickle file in the generated assets directory based on the target name.
+        Loads the asset table from a pickle file in the generated assets directory
+        based on the target name.
         """
         try:
             with open(
-                self.generated_dir_found().joinpath(f".{self.name()}_assets.pkl"), "rb"
+                self.generated_dir_abspath() / f".{self.name}_assets.pkl", "rb"
             ) as f:
                 return pickle.load(f)
         except Exception:
             return {}
 
-    def needs_ww_reps(self) -> bool:
-        return self.source_xml().find(".//webwork/statement") is not None
+    def generate_asset_table(self) -> pt.AssetTable:
+        asset_hash_dict: pt.AssetTable = {}
+        for asset in constants.ASSET_TO_XPATH.keys():
+            asset_hash_dict[asset] = {}
+            if asset == "webwork":
+                # WeBWorK must be regenerated every time *any* of the ww exercises change.
+                ww = self.source_element().xpath(".//webwork[@*|*]")
+                assert isinstance(ww, t.List)
+                if len(ww) == 0:
+                    # Only generate a hash if there are actually ww exercises in the source
+                    continue
+                h = hashlib.sha256()
+                for node in ww:
+                    assert isinstance(node, ET._Element)
+                    h.update(ET.tostring(node).strip())
+                asset_hash_dict["webwork"][""] = h.digest()
+            else:
+                # everything else can be updated individually.
+                # get all the nodes for the asset attribute
+                source_assets = self.source_element().xpath(
+                    constants.ASSET_TO_XPATH[asset]
+                )
+                assert isinstance(source_assets, t.List)
+                if len(source_assets) == 0:
+                    # Only generate a hash if there are actually assets of this type in the source
+                    continue
 
-    def has_ww_reps(self) -> bool:
-        return Path.exists(
-            self.generated_dir_found() / "webwork" / "webwork-representations.xml"
+                # We will have a dictionary of id's that we will get their own hash:
+                hash_ids = {}
+                for node in source_assets:
+                    assert isinstance(node, ET._Element)
+                    # assign the xml:id of the youngest ancestor of the node with an xml:id as the node's id (or "" if none)
+                    ancestor_xmlids = node.xpath("ancestor::*/@xml:id")
+                    assert isinstance(ancestor_xmlids, t.List)
+                    id = str(ancestor_xmlids[-1]) if len(ancestor_xmlids) > 0 else ""
+                    assert isinstance(id, str)
+                    # create a new hash object when id is first encountered
+                    if id not in hash_ids:
+                        hash_ids[id] = hashlib.sha256()
+                    # update the hash with the node's xml:
+                    hash_ids[id].update(ET.tostring(node).strip())
+                    # and update the value of the hash for that asset/id pair
+                    asset_hash_dict[asset][id] = hash_ids[id].digest()
+        return asset_hash_dict
+
+    def save_asset_table(self, asset_table: pt.AssetTable) -> None:
+        """
+        Saves the asset_table to a pickle file in the generated assets directory
+        based on the target name.
+        """
+        with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
+            pickle.dump(asset_table, f)
+
+    def ensure_webwork_reps(self) -> None:
+        """
+        Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
+        """
+        if self.source_element().xpath(".//webwork[@*|*]"):
+            log.debug("Source contains webwork problems")
+            if not (
+                self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
+            ).exists():
+                log.debug("Webwork representations file does not exist, generating")
+                self.generate_assets(
+                    specified_asset_types=["webwork"], only_changed=False
+                )
+            else:
+                log.debug("Webwork representations file exists, not generating")
+        else:
+            log.debug("Source does not contain webwork problems")
+
+    def ensure_play_button(self) -> None:
+        try:
+            core.play_button(dest_dir=(self.generated_dir_abspath() / "play-button"))
+            log.debug("Play button generated")
+        except Exception as e:
+            log.warning(f"Failed to generate play button: {e}")
+
+    def clean_output(self) -> None:
+        # refuse to clean if output is not a subdirectory of the project or contains source/publication
+        if self._project.abspath() not in self.output_dir_abspath().parents:
+            log.warning(
+                "Refusing to clean output directory that isn't a proper subdirectory of the project."
+            )
+        # handle request to clean directory that does not exist
+        elif not self.output_dir_abspath().exists():
+            log.warning(
+                f"Directory {self.output_dir_abspath()} already does not exist, nothing to clean."
+            )
+        # destroy the output directory
+        else:
+            log.warning(
+                f"Destroying directory {self.output_dir_abspath()} to clean previously built files."
+            )
+            shutil.rmtree(self.output_dir_abspath())
+
+    def build(
+        self,
+        clean: bool = False,
+        no_generate: bool = False,
+        xmlid: t.Optional[str] = None,
+    ) -> None:
+        # Check for xml syntax errors and quit if xml invalid:
+        if not utils.xml_syntax_is_valid(self.source_abspath()):
+            raise RuntimeError("XML syntax for source file is invalid")
+        if not utils.xml_syntax_is_valid(self.publication_abspath(), "publication"):
+            raise RuntimeError("XML syntax for publication file is invalid")
+        # Validate xml against schema; continue with warning if invalid:
+        utils.xml_source_validates_against_schema(self.source_abspath())
+
+        # Clean output upon request
+        if clean:
+            self.clean_output()
+
+        # Ensure the asset directories exist.
+        self.ensure_asset_directories()
+
+        # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
+        self.ensure_webwork_reps()
+
+        # Generate needed assets unless requested not to.
+        if not no_generate:
+            self.generate_assets()
+
+        # Ensure the output directories exist.
+        self.ensure_output_directory()
+
+        # Proceed with the build
+        with tempfile.TemporaryDirectory() as tmp_xsl_str:
+            tmp_xsl_path = Path(tmp_xsl_str)
+            # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
+            if (txp := self.xsl_abspath()) is not None:
+                log.info(f"Building with custom xsl {txp}")
+                utils.copy_custom_xsl(txp, tmp_xsl_path)
+                custom_xsl = tmp_xsl_path / txp.name
+            else:
+                custom_xsl = None
+
+            # warn if "publisher" is one of the string-param keys:
+            if "publisher" in self.stringparams:
+                log.warning(
+                    "You specified a publication file via a stringparam. "
+                    + "This is ignored in favor of the publication file given by the "
+                    + "<publication> element in the project manifest."
+                )
+
+            log.info(f"Preparing to build into {self.output_dir_abspath()}.")
+            if self.format in (Format.HTML, Format.RUNESTONE):
+                # The copy allows us to modify these for the Runestone format below without affecting the original.
+                sp = self.stringparams.copy()
+                if self.format == Format.RUNESTONE:
+                    # The validator guarantees this.
+                    assert self.compression is None
+                    assert self.output_filename is None
+                    # This is equivalent to setting `<platform host="runestone">` in the publication file.
+                    sp |= {"host-platform": "runestone"}
+                core.html(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=sp,
+                    xmlid_root=xmlid,
+                    file_format=self.compression or "html",
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+                codechat.map_path_to_xml_id(
+                    self.source_abspath(),
+                    self._project.abspath(),
+                    self.output_dir_abspath().as_posix(),
+                )
+            elif self.format == Format.PDF:
+                core.pdf(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    method=self.latex_engine,
+                )
+            elif self.format == Format.LATEX:
+                core.latex(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    extra_xsl=custom_xsl,
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                )
+            elif self.format == Format.EPUB:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="svg",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.KINDLE:
+                utils.npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    math_format="kindle",
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.BRAILLE:
+                log.warning(
+                    "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
+                )
+                utils.npm_install()
+                core.braille(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=self.output_filename,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    page_format=self.braille_mode,
+                    stringparams=self.stringparams,
+                )
+            elif self.format == Format.WEBWORK:
+                core.webwork_sets(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    tgz=self.compression,
+                )
+            elif self.format == Format.CUSTOM:
+                # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
+                self.stringparams["publisher"] = self.publication_abspath().as_posix()
+                core.xsltproc(
+                    xsl=custom_xsl,
+                    xml=self.source_abspath(),
+                    result=self.output_filename,
+                    output_dir=self.output_dir_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                )
+            else:
+                log.critical(f"Unknown format {self.format}")
+
+    def generate_assets(
+        self,
+        specified_asset_types: t.Optional[t.List[str]] = None,
+        all_formats: bool = False,
+        only_changed: bool = True,
+        xmlid: t.Optional[str] = None,
+    ) -> None:
+        if specified_asset_types is None or "ALL" in specified_asset_types:
+            specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
+        log.debug(f"Assets generation requested for: {specified_asset_types}.")
+        # We always build the asset hash table, even if only_changed=False: this tells us which assets need to be built, and how to update the saved asset hash table.
+        source_asset_table = self.generate_asset_table()
+        saved_asset_table = utils.clean_asset_table(
+            self.load_asset_table(), source_asset_table
+        )
+        log.debug(f"source_asset_table: {source_asset_table}")
+        log.debug(f"saved_asset_table: {saved_asset_table}")
+
+        # Now we repeatedly pass through the source asset table, and purge any assets that we shouldn't build for any reason.
+        # Throw away any asset types that were not requested:
+        source_asset_table = {
+            asset: source_asset_table[asset]
+            for asset in source_asset_table
+            if asset in specified_asset_types
+        }
+
+        # If we limit by xml:id, only look for assets below that id in the source tree
+        if xmlid is not None:
+            log.debug(f"Limiting asset generation to assets below xml:id={xmlid}.")
+            # Keep webwork if only there is a webwork below the xmlid:
+            ww_nodes = self.source_element().xpath(f"//*[@xml:id='{xmlid}']//webwork")
+            assert isinstance(ww_nodes, t.List)
+            if len(ww_nodes) == 0:
+                source_asset_table.pop("webwork", None)
+            # All other assets: we only need to keep the assets whose id is not above the xmlid (we would have used the xmlid as their id if there wasn't any other xmlid below it):
+            # Get list of xml:ids below 'xmlid':
+            id_list = self.source_element().xpath(f"//*[@xml:id='{xmlid}']//@xml:id")
+            assert isinstance(id_list, t.List)
+            # Filter by non-webwork assets whose id is in ID list:
+            # Note: if an id = "", that means that no ancestor of that asset had an id, which means that it would not be a child of the xml:id we are subsetting.
+            for asset in source_asset_table:
+                if asset != "webwork":
+                    source_asset_table[asset] = {
+                        id: source_asset_table[asset][id]
+                        for id in source_asset_table[asset]
+                        if id in id_list
+                    }
+            log.debug(f"Eligible assets are: {source_asset_table}")
+
+        # TODO: check which assets can be generated based on the user's system (and executables).
+
+        # Now further limit the assets to be built by those that have changed since the last build, if only_changed is true.  Either way create a dictionary of asset: [ids] to be built, where asset:[] means to generate all of them.
+        if only_changed:
+            log.debug(
+                "Checking whether any assets of changed and need to be regenerated."
+            )
+            for asset in source_asset_table:
+                # Keep only the changed assets:
+                source_asset_table[asset] = {
+                    id: source_asset_table[asset][id]
+                    for id in source_asset_table[asset]
+                    if saved_asset_table.get(asset, {}).get(id, None)
+                    != source_asset_table[asset][id]
+                }
+            log.debug(f"Assets to be regenerated: {source_asset_table}")
+            # TODO: check if there are too many individual assets to make generating individually is worthwhile.
+            assets_to_generate = {
+                asset: [id for id in source_asset_table[asset]]
+                for asset in source_asset_table
+                if len(source_asset_table[asset]) > 0
+            }
+        else:
+            assets_to_generate = {
+                asset: [""]
+                for asset in source_asset_table
+                if (asset == "webwork" or len(source_asset_table[asset]) > 0)
+            }
+
+        # Finally, if we removed all assets from an asset type, remove that asset type:
+        source_asset_table = {
+            asset: source_asset_table[asset]
+            for asset in source_asset_table
+            if len(source_asset_table[asset]) > 0
+        }
+
+        # Now we have the correct list of assets we want to build.
+        # We proceed to generate the assets that were requested.
+        for asset in source_asset_table:
+            self.ensure_asset_directories(asset)
+
+        # Check if all formats are requested and modify accordingly.
+        asset_formats = constants.ASSET_FORMATS[self.format]
+        if all_formats:
+            for asset in assets_to_generate:
+                asset_formats[asset] = ["all"]
+
+        log.debug(f"Assets will be generated in these formats: {asset_formats}.")
+        # We will keep track of the assets that were successful to update cache at the end.
+        successful_assets = []
+        # generate assets by calling appropriate core functions :
+        if "webwork" in assets_to_generate:
+            try:
+                core.webwork_to_xml(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                    xmlid_root=xmlid,
+                    abort_early=True,
+                    dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
+                    server_params=None,
+                )
+                successful_assets.append(("webwork", ""))
+            except Exception as e:
+                log.debug(f"Unable to generate webwork: {e}")
+        if "latex-image" in assets_to_generate:
+            for xmlid in assets_to_generate["latex-image"]:
+                try:
+                    for outformat in asset_formats["latex-image"]:
+                        core.latex_image_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=self.stringparams,
+                            xmlid_root=xmlid,
+                            dest_dir=self.generated_dir_abspath() / "latex-image",
+                            outformat=outformat,
+                            method=self.latex_engine,
+                        )
+                    successful_assets.append(("latex-image", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some latex-image assets: {e}")
+        if "asymptote" in assets_to_generate:
+            for xmlid in assets_to_generate["asymptote"]:
+                try:
+                    for outformat in asset_formats["asymptote"]:
+                        core.asymptote_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=self.stringparams,
+                            xmlid_root=xmlid,
+                            dest_dir=self.generated_dir_abspath() / "asymptote",
+                            outformat=outformat,
+                            method=(
+                                "server" if self.server else "local"
+                            ),  # TODO: change
+                        )
+                    successful_assets.append(("asymptote", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some asymptote elements: {e}")
+
+        if "sageplot" in assets_to_generate:
+            for xmlid in assets_to_generate["sageplot"]:
+                try:
+                    for outformat in asset_formats["sageplot"]:
+                        core.sage_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=self.stringparams,
+                            xmlid_root=xmlid,
+                            dest_dir=self.generated_dir_abspath() / "sageplot",
+                            outformat=outformat,
+                        )
+                    successful_assets.append(("sageplot", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some sageplot images: {e}")
+
+        if "interactive" in assets_to_generate:
+            for xmlid in assets_to_generate["interactive"]:
+                try:
+                    core.preview_images(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "preview",
+                    )
+                    successful_assets.append(("interactive", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some interactive previews: {e}")
+        if "youtube" in assets_to_generate:
+            for xmlid in assets_to_generate["youtube"]:
+                try:
+                    core.youtube_thumbnail(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "youtube",
+                    )
+                    successful_assets.append(("youtube", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some youtube thumbnails: {e}")
+            # youtube also requires the play button.
+            self.ensure_play_button()
+        if "codelens" in assets_to_generate:
+            for xmlid in assets_to_generate["codelens"]:
+                try:
+                    core.tracer(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "trace",
+                    )
+                    successful_assets.append(("codelens", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some codelens traces: {e}")
+        if "datafile" in assets_to_generate:
+            for xmlid in assets_to_generate["datafile"]:
+                try:
+                    core.datafiles_to_xml(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "datafile",
+                    )
+                    successful_assets.append(("datafile", xmlid))
+                except Exception as e:
+                    log.debug(f"Unable to generate some datafiles: {e}")
+        # Finally, also generate the qrcodes for interactive and youtube assets:
+        # NOTE: we do not currently check for success of this for saving assets to the asset cache.
+        if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
+            for xmlid in set(
+                assets_to_generate.get("interactive", [])
+                + assets_to_generate.get("youtube", [])
+            ):
+                try:
+                    core.qrcode(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=self.stringparams,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "qrcode",
+                    )
+                except Exception as e:
+                    log.debug(f"Unable to generate some qrcodes: {e}")
+
+        # Delete temporary directories left behind by core:
+        core.release_temporary_directories()
+        # After all assets are generated, update the asset cache:
+        log.debug(f"Updated these assets successfully: {successful_assets}")
+        for asset_type, xmlid in successful_assets:
+            assert isinstance(xmlid, str)
+            if asset_type not in saved_asset_table:
+                saved_asset_table[asset_type] = {}
+            if xmlid == "":
+                # We have updated all assets of this type, so update all of them in the saved asset table:
+                for id in source_asset_table[asset_type]:
+                    saved_asset_table[asset_type][id] = source_asset_table[asset_type][
+                        id
+                    ]
+            else:
+                if xmlid in source_asset_table[asset_type]:
+                    saved_asset_table[asset_type][xmlid] = source_asset_table[
+                        asset_type
+                    ][xmlid]
+        # Save the asset table to disk:
+        self.save_asset_table(saved_asset_table)
+        log.debug(f"Saved asset table to disk: {saved_asset_table}")
+
+
+class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
+    """
+    Representation of a PreTeXt project: a Path for the project
+    on the disk, and Paths for where to build output and maintain a site.
+
+    To create a Project object from a project.ptx file, use the `Project.parse()` method.
+    """
+
+    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
+    _executables: Executables = PrivateAttr(default=Executables())
+    # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
+    source: Path = pxml.attr(default=Path("source"))
+    # The absolute path of the project file (typically, `project.ptx`).
+    _path: Path = PrivateAttr(default=Path("."))
+
+    # Allow a relative path; if it's a directory, assume a `project.ptx` suffix. Make the path absolute.
+    @classmethod
+    def validate_path(cls, path: t.Union[Path, str]) -> Path:
+        path = Path(path).resolve()
+        # Note: we don't require the `project.ptx` file to exist, since this can be created from API calls instead of being read in from a project file.
+        return path / "project.ptx" if path.is_dir() else path
+
+    # A path, relative to the project directory, prepended to any target's `publication`.
+    publication: Path = pxml.attr(default=Path("publication"))
+    # A path, relative to the project directory, prepended to any target's `output_dir`.
+    output_dir: Path = pxml.attr(name="output-dir", default=Path("output"))
+    # A path, relative to the project directory, prepended to any target's `site`.
+    site: Path = pxml.attr(default=Path("site"))
+    # A path, relative to the project directory, prepended to any target's `xsl`.
+    xsl: Path = pxml.attr(default=Path("xsl"))
+    targets: t.List[Target] = pxml.wrapped(
+        "targets", pxml.element(tag="target", default=[])
+    )
+
+    # See the docs on `Target.server`; they apply here as well.
+    server: t.List[Server] = pxml.element(default=[])
+
+    @validator("server")
+    def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
+        # Ensure the names are unique.
+        if len(set([server.name for server in v])) != len(v):
+            raise ValueError("Server names must not be repeated.")
+        return v
+
+    # Allow specifying `_path` or `_executables` in the constructor. (Since they're private, pydantic ignores them by default).
+    def __init__(self, **kwargs: t.Any):
+        super().__init__(**kwargs)
+        for k in ("_path", "_executables"):
+            if k in kwargs:
+                setattr(self, k, kwargs[k])
+        self._path = self.validate_path(self._path)
+        # Always initialize core when a project is created:
+        self.init_core()
+
+    @classmethod
+    def parse(
+        cls,
+        path: t.Union[Path, str] = Path("."),
+    ) -> "Project":
+        _path = cls.validate_path(path)
+        # TODO: nicer errors if these files aren't found.
+        xml_bytes = _path.read_bytes()
+
+        # Determine the version of this project file.
+        class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
+            ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
+
+        p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
+        if p_version_only.ptx_version is not None:
+            p = Project.from_xml(xml_bytes)
+
+            # Now that the project is loaded, load / set up what isn't in the project XML.
+            p._path = _path
+            try:
+                e_bytes = (p._path.parent / "executables.ptx").read_bytes()
+            except FileNotFoundError:
+                # If this isn't found, use the already-set default value.
+                pass
+            else:
+                p._executables = Executables.from_xml(e_bytes)
+
+        else:
+            legacy_project = LegacyProject.from_xml(_path.read_bytes())
+            # Legacy projects didn't specify a base output directory, so we need to move up one level.
+            # Translate from old target format to new target format.
+            new_targets: t.List[Target] = []
+            for tgt in legacy_project.targets:
+                compression: t.Optional[Compression] = None
+                braille_mode: t.Optional[BrailleMode] = None
+                if tgt.format == "html-zip":
+                    format = Format.HTML
+                    compression = Compression.ZIP
+                elif tgt.format == "webwork-sets":
+                    format = Format.WEBWORK
+                elif tgt.format == "webwork-sets-zipped":
+                    format = Format.WEBWORK
+                    compression = Compression.ZIP
+                elif tgt.format == "braille-electronic":
+                    format = Format.BRAILLE
+                    braille_mode = BrailleMode.ELECTRONIC
+                elif tgt.format == "braille-emboss":
+                    format = Format.BRAILLE
+                    braille_mode = BrailleMode.EMBOSS
+                else:
+                    format = Format(tgt.format.value)
+                d = tgt.dict()
+                del d["format"]
+                # Remove the `None` from optional values, so the new format can replace these.
+                for key in ("site", "xsl", "latex_engine"):
+                    if d[key] is None:
+                        del d[key]
+                # Include the braille mode only if it was specified.
+                if braille_mode is not None:
+                    d["braille_mode"] = braille_mode
+                new_target = Target(
+                    format=format,
+                    compression=compression,
+                    **d,
+                )
+                new_targets.append(new_target)
+
+            # Incorrect from a type perspective, but used to translate from old to new classes.
+            legacy_project.targets = new_targets  # type: ignore
+            p = Project(
+                ptx_version="2",
+                _path=_path,
+                # Rename from `executables` to `_executables` when moving from the old to new project format.
+                _executables=legacy_project.executables,
+                # Since there was no `publication` path in the old format, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
+                publication=Path(""),
+                # The same is true for these paths.
+                source=Path(""),
+                output_dir=Path(""),
+                site=Path(""),
+                xsl=Path(""),
+                **legacy_project.dict(),
+            )
+
+        # Set the `_project` for each target, which isn't handled in the XML.
+        for _tgt in p.targets:
+            _tgt._project = p
+            _tgt.post_validate()
+        return p
+
+    def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
+        self.targets.append(
+            Target(name=name, format=Format(format), _project=self, **kwargs)
         )
 
-
-class Project:
-    def __init__(self, project_path: Optional[Path] = None):
-        project_path = project_path or utils.project_path()
-        assert project_path is not None, "Unable to find project path."
-        xml_element = ET.parse(project_path / "project.ptx").getroot()
-        self.__xml_element = xml_element
-        self.__project_path = project_path
-        # prepre core PreTeXt python scripts
-        self.init_ptxcore()
-
-    def apply_overlay(self, overlay: ShadowXmlDocument) -> List[str]:
-        """
-        Modify the internal data structure of the `project.ptx` XML tree by applying the supplied overlay.
-        This modification happens in-memory only.
-        """
-        return overlay.overlay_tree(self.__xml_element)
-
-    def xml_element(self) -> _Element:
-        return self.__xml_element
-
-    def targets(self) -> List[Target]:
-        t = self.xml_element().xpath("targets/target")
-        assert isinstance(
-            t, List
-        ), "Project file error: expected list of targets in targets/target tags."
-        ret: List[Target] = []
-        for target_element in t:
-            assert isinstance(
-                target_element, _Element
-            ), "Project file error: target must be a tag."
-            ret.append(
-                Target(xml_element=target_element, project_path=self.__project_path)
-            )
-        return ret
-
-    def target_names(self, *args: str) -> List[str]:
-        # Optional arguments are formats: returns list of targets that have that format.
-        names = []
-        for target in self.targets():
-            if not args or target.format() in args:
-                names.append(target.name())
-        return names
-
-    def print_target_names(self) -> None:
-        for target in self.targets():
-            print(target.name())
-
-    def target(self, name: Optional[str] = None) -> Optional[Target]:
+    def _get_target(
+        self,
+        # If `name` is `None`, return the default (first) target; otherwise, return the target given by `name`.
+        name: t.Optional[str] = None
+        # Returns the target if found, or `None`` if it's not found.
+    ) -> t.Optional["Target"]:
+        if len(self.targets) == 0:
+            # no target to return
+            return None
         if name is None:
-            target_element = self.xml_element().find("targets/target")
-        else:
-            target_element = self.xml_element().find(f'targets/target[@name="{name}"]')
-        if target_element is not None:
-            return Target(xml_element=target_element, project_path=self.__project_path)
-        else:
-            log.error("Unable to find target.")
+            # return default target
+            log.info(
+                f'Since no target was supplied, we will use "{self.targets[0].name}" (the first target in the project.ptx manifest).\n'
+            )
+            return self.targets[0]
+        try:
+            # return first target matching the provided name
+            return next(t for t in self.targets if t.name == name)
+        except StopIteration:
+            # but no such target was found
             return None
 
-    def view(
+    # Return `True` if the target exists.
+    def has_target(
         self,
-        target_name: str,
-        access: Literal["public", "private"],
-        port: int,
-        watch: bool = False,
-        no_launch: bool = False,
-    ) -> None:
-        target = self.target(target_name)
-        if target is None:
-            log.error("Unable to find target.")
-            return
-        directory = target.output_dir()
+        # See `name` from `_get_target`.
+        name: t.Optional[str] = None,
+    ) -> bool:
+        return self._get_target(name) is not None
 
-        if watch:
-            watch_directory = target.source_dir()
-        else:
-            watch_directory = None
-        if not target.output_dir().exists():
-            log.error(f"The directory `{target.output_dir()}` does not exist.")
-            log.error(
-                f"Run `pretext view {target.name()} -b` to build your project before viewing."
-            )
-            return
-
-        def watch_callback() -> None:
-            self.build(target_name)
-
-        utils.run_server(
-            directory, access, port, watch_directory, watch_callback, no_launch
-        )
-
-    def build(self, target_name: str, clean: bool = False) -> None:
-        target = self.target(target_name)
-        if target is None:
-            log.error(f"Target `{target_name}` not found.")
-            return
-        # Check for xml syntax errors and quit if xml invalid:
-        if not self.xml_source_is_valid(target_name):
-            return
-        if not self.xml_publication_is_valid(target_name):
-            return
-        # Validate xml against schema; continue with warning if invalid:
-        self.xml_schema_validate(target_name)
-        if clean:
-            # refuse to clean if output is not a subdirectory of the working directory or contains source/publication
-            if Path(self.__project_path) not in target.output_dir().parents:
-                log.warning(
-                    "Refusing to clean output directory that isn't a proper subdirectory of the project."
-                )
-            elif (
-                target.output_dir() in (target.source_dir() / "foo").parents
-                or target.output_dir() in (target.publication_dir() / "foo").parents
-            ):
-                log.warning(
-                    "Refusing to clean output directory that contains source or publication files."
-                )
-            # handle request to clean directory that does not exist
-            elif not target.output_dir().exists():
-                log.warning(
-                    f"Directory {target.output_dir()} already does not exist, nothing to clean."
-                )
-            else:
-                log.warning(
-                    f"Destroying directory {target.output_dir()} to clean previously built files."
-                )
-                shutil.rmtree(target.output_dir())
-        # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
-        custom_xsl = None
-        if (txp := target.xsl_path()) is not None:
-            temp_xsl_path = Path(tempfile.mkdtemp())
-            log.info(f"Building with custom xsl {txp} specified in project.ptx")
-            utils.copy_custom_xsl(txp, temp_xsl_path)
-            custom_xsl = temp_xsl_path / txp.name
-        # warn if "publisher" is one of the string-param keys:
-        if "publisher" in target.stringparams():
-            log.warning(
-                "You specified a publication file via a stringparam.  This is ignored in favor of the publication file given by the <publication> element in the project manifest."
-            )
-        log.info(f"Preparing to build into {target.output_dir()}.")
-        try:
-            if target.format().startswith("html"):
-                # html-zip is a special case of html that passes True to the zip parameter
-                builder.html(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    custom_xsl,
-                    target.xmlid_root(),
-                    target.format().startswith("html-zip"),
-                )
-            elif target.format() == "latex":
-                builder.latex(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    custom_xsl,
-                )
-                # core script doesn't put a copy of images in output for latex builds, so we do it instead here
-                shutil.copytree(
-                    target.external_dir_found(),
-                    target.output_dir() / "external",
-                    dirs_exist_ok=True,
-                )
-                shutil.copytree(
-                    target.generated_dir_found(),
-                    target.output_dir() / "generated",
-                    dirs_exist_ok=True,
-                )
-            elif target.format() == "pdf":
-                builder.pdf(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    custom_xsl,
-                    target.pdf_method(),
-                )
-            elif target.format() == "custom":
-                if custom_xsl is None:
-                    raise Exception("Must specify custom XSL for custom build.")
-                builder.custom(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    custom_xsl,
-                    target.output_filename(),
-                )
-            elif target.format() == "epub":
-                builder.epub(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                )
-            elif target.format() == "kindle":
-                builder.kindle(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                )
-            elif target.format() == "braille" or target.format() == "braille-emboss":
-                builder.braille(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    page_format="emboss",
-                )
-            elif target.format() == "braille-electronic":
-                builder.braille(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    page_format="electronic",
-                )
-            elif target.format().startswith("webwork-sets"):
-                # webwork-sets-zipped is a special case which will pass True to the zipped parameter.
-                builder.webwork_sets(
-                    target.source(),
-                    target.publication(),
-                    target.output_dir(),
-                    target.stringparams(),
-                    target.format().startswith("webwork-sets-zip"),
-                )
-            else:
-                log.critical(f"The build format {target.format()} is not supported.")
-        except Exception as e:
-            log.critical(
-                f"A fatal error has occurred:\n {e} \nFor more info, run pretext with `-v debug`"
-            )
-            log.debug("Exception info:\n##################\n", exc_info=True)
-            log.info("##################")
-            sys.exit(f"Failed to build pretext target {target.format()}.  Exiting...")
-        finally:
-            # remove temp directories left by core.
-            core.release_temporary_directories()
-        # build was successful
-        log.info(f"\nSuccess! Run `pretext view {target.name()}` to see the results.\n")
-        if custom_xsl is not None:
-            # errors may occur in Windows so we do the best we can
-            shutil.rmtree(custom_xsl.parent, ignore_errors=True)
-
-    # Webwork is special since its generation is required for all builds and generates when webwork is in source, so we use a dedicated method for it.
-    def generate_webwork(self, target_name: str, xmlid: Optional[str] = None) -> None:
-        target = self.target(target_name)
-        if target is None:
-            log.error(f"Target `{target_name}` not found.")
-            return
-        xmlid = xmlid or target.xmlid_root()
-        webwork_output = target.generated_dir_found() / "webwork"
-        generate.webwork(
-            target.source(),
-            target.publication(),
-            webwork_output,
-            target.stringparams(),
-            xmlid,
-        )
-        # Delete temporary directories left behind by core:
-        core.release_temporary_directories()
-
-    # Generate all non-webwork targets
-    def generate(
+    def get_target(
         self,
-        target_name: str,
-        asset_list: Optional[List[str]] = None,
-        all_formats: bool = False,
-        xmlid: Optional[str] = None,
-    ) -> None:
-        if asset_list is None:
-            asset_list = []
-            gen_all = True
-        else:
-            gen_all = False
-        target = self.target(target_name)
-        if target is None:
-            log.error(f"Target `{target_name}` not found.")
-            return
-        xmlid = xmlid or target.xmlid_root()
-        # build targets:
-        if gen_all or "latex-image" in asset_list:
-            generate.latex_image(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                target.format(),
-                xmlid,
-                target.pdf_method(),
-                all_formats,
-            )
-        if gen_all or "asymptote" in asset_list:
-            generate.asymptote(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                target.format(),
-                xmlid,
-                all_formats,
-            )
-        if gen_all or "sageplot" in asset_list:
-            generate.sageplot(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                target.format(),
-                xmlid,
-                all_formats,
-            )
-        if gen_all or "interactive" in asset_list:
-            generate.interactive(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                xmlid,
-            )
-        if gen_all or "youtube" in asset_list:
-            generate.youtube(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                xmlid,
-            )
-            generate.play_button(
-                target.generated_dir_found(),
-            )
-        if gen_all or "codelens" in asset_list:
-            generate.codelens(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                xmlid,
-            )
-        if gen_all or "datafile" in asset_list:
-            generate.datafiles(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                xmlid,
-            )
-        if gen_all or "interactive" in asset_list or "youtube" in asset_list:
-            generate.qrcodes(
-                target.source(),
-                target.publication(),
-                target.generated_dir_found(),
-                target.stringparams(),
-                xmlid,
-            )
-        # Delete temporary directories left behind by core:
-        core.release_temporary_directories()
+        # See `name` from `_get_target`.
+        name: t.Optional[str] = None,
+    ) -> "Target":
+        t = self._get_target(name)
+        assert t is not None
+        return t
 
-    def deploy_targets(self) -> List[Target]:
-        return [target for target in self.targets() if target.deploy_dir() is not None]
+    def target_names(self, *args: str) -> t.List[str]:
+        # Optional arguments are formats: returns list of targets that have that format.
+        names = []
+        for target in self.targets:
+            if not args or target.format in args:
+                names.append(target.name)
+        return names
 
-    def deploy(self, target_name: str, site: str, update_source: bool) -> None:
-        # Before doing any work, we check that git is installed.
-        try:
-            subprocess.run(["git", "--version"], capture_output=True)
-            log.debug("Git is installed.")
-        except Exception as e:
-            log.error(
-                "Git must be installed to use this feature, but couldn't be found."
-            )
-            log.debug(f"Error: {e}")
-            return
-        # Determine what set of targets to deploy.  If a target name is specified, deploy on that target.  If there are `deploy-dir` specified in the project manifest, also deploy the contents of the `site` folder, if present.
-        if len(self.deploy_targets()) == 0:
-            target = self.target(target_name)
-            if target is None:
-                log.error(f"Target `{target_name}` not found.")
-                return
-            if target.format() != "html":  # redundant for CLI
-                log.error("Only HTML format targets are supported.")
-                return
-            if not target.output_dir().exists():
-                log.error(
-                    f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`."
-                )
-                log.error(
-                    f"Try running `pretext view {target.name()} -b` to build and preview your project first."
-                )
-                return
-            log.info(f"Using latest build located in `{target.output_dir()}`.")
-            log.info("")
-            utils.publish_to_ghpages(target.output_dir(), update_source)
-            return
-        else:  # we now deploy multiple targets and the site directory
-            site_dir = (self.__project_path / site).resolve()
-            if not site_dir.exists():
-                log.error(f"Site directory `{site_dir}` not found.")
-                log.info(
-                    f"You have `deploy-dir` elements in your project.ptx file, which requires you to maintain at least a simple landing page in the folder `{site_dir}`. Either create this folder or remove the `deploy-dir` elements from your project.ptx file.\n"
-                )
-                return
-            with tempfile.TemporaryDirectory() as temp_dir:
-                shutil.copytree(
-                    (self.__project_path / site).resolve(),
-                    Path(temp_dir),
-                    dirs_exist_ok=True,
-                )
-                for target in self.deploy_targets():
-                    if not target.output_dir().exists():
-                        log.warning(
-                            f"No build for `{target.name()}` was found in the directory `{target.output_dir()}`. Try running `pretext build {target.name()}` to build this component first."
-                        )
-                        log.info("Skipping this target for now.")
-                    else:
-                        deploy_dir = target.deploy_dir()
-                        assert isinstance(deploy_dir, str)
-                        shutil.copytree(
-                            target.output_dir(),
-                            (Path(temp_dir) / deploy_dir).resolve(),
-                            dirs_exist_ok=True,
-                        )
-                        log.info(
-                            f"Deploying `{target.name()}` to `{target.deploy_dir()}`."
-                        )
-                utils.publish_to_ghpages(Path(temp_dir), update_source)
-        return
+    def abspath(self) -> Path:
+        # Since `_path` stores the path to the project file, the parent of this gives the directory it resides in.
+        return self._path.parent
 
-    def xml_source_is_valid(self, target_name: str) -> bool:
-        target = self.target(target_name)
-        if target is None:
-            return False
-        return utils.xml_syntax_is_valid(target.source())
+    def source_abspath(self) -> Path:
+        return self.abspath() / self.source
 
-    def xml_schema_validate(self, target_name: str) -> bool:
-        target = self.target(target_name)
-        if target is None:
-            return False
-        return utils.xml_source_validates_against_schema(target.source())
+    def publication_abspath(self) -> Path:
+        return self.abspath() / self.publication
 
-    def xml_publication_is_valid(self, target_name: str) -> bool:
-        target = self.target(target_name)
-        if target is None:
-            log.error(f"Target `{target_name}` not found.")
-            return False
-        try:
-            publication_xml = ET.parse(target.publication())
-            # Would we ever have a publication with xi:include?  Just in case...
-            publication_xml.xinclude()
-        except Exception as e:
-            log.critical(f"Unable to read publication file.  Quitting. {e}")
-            log.debug("", exc_info=True)
-            return False
-        if publication_xml.getroot().tag != "publication":
-            log.error(
-                f'The publication file {target.publication()} must have "<publication>" as its root element.'
-            )
-            return False
-        return True
+    def output_dir_abspath(self) -> Path:
+        return self.abspath() / self.output_dir
 
-    def executables(self) -> Dict[str, str]:
-        ret = {}
-        exec = self.xml_element().xpath("executables/*")
-        assert isinstance(
-            exec, List
-        ), "Invalid project file: executables tag contents must be tags."
-        for ele in exec:
-            assert isinstance(
-                ele, _Element
-            ), "Invalid project file: children of <executables> must be tags."
-            key = ele.tag
-            value = ele.text
-            assert (
-                value is not None
-            ), "Invalid project file: missing value in <executables> tag."
-            ret[key] = value
+    def xsl_abspath(self) -> Path:
+        return self.abspath() / self.xsl
 
-        return ret
+    def server_process(
+        self,
+        mode: t.Literal["output", "site"] = "output",
+        access: t.Literal["public", "private"] = "private",
+        port: int = 8000,
+        launch: bool = True,
+    ) -> multiprocessing.Process:
+        """
+        Returns a process for running a simple local web server
+        providing either the contents of `output` or `site`
+        """
+        if mode == "output":
+            directory = self.output_dir
+        else:  # "site"
+            directory = self.site
 
-    def init_ptxcore(self) -> None:
-        core.set_executables(self.executables())
+        return utils.server_process(directory, access, port, launch=launch)
+
+    def get_executables(self) -> Executables:
+        return self._executables
+
+    def init_core(self) -> None:
+        core.set_executables(self._executables.dict())

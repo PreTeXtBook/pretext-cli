@@ -14,15 +14,18 @@ import subprocess
 import logging
 import logging.handlers
 import multiprocessing
+import tempfile
 import threading
 import watchdog.events
 import watchdog.observers
 import time
 import webbrowser
 import typing as t
+from . import types as pt  # PreTeXt types
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
 from typing import Any, cast, Callable, List, Optional
+
 
 from . import core, templates, constants
 
@@ -420,6 +423,26 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             log.info(install_hints[required_exec][platform.system()])
 
 
+def clean_asset_table(
+    dirty_table: pt.AssetTable, clean_table: pt.AssetTable
+) -> pt.AssetTable:
+    """
+    Removes any assets from the dirty_table that are not in the clean_table.
+    """
+    # First purge any asset types that are no longer in the clean table:
+    dirty_table = {
+        asset: dirty_table[asset] for asset in dirty_table if asset in clean_table
+    }
+    # Then purge ids of assets that no longer exist in the clean table:
+    for asset in dirty_table:
+        dirty_table[asset] = {
+            id: dirty_table[asset][id]
+            for id in dirty_table[asset]
+            if id in clean_table[asset]
+        }
+    return dirty_table
+
+
 def no_project(task: str) -> bool:
     """
     Standard messages to be displayed when no project.ptx is found, customized by the "task" to be preformed.
@@ -445,7 +468,7 @@ def show_target_hints(
     This will give the user hints about why they have provided a bad target and make helpful suggestions for them to fix the problem.  We will only run this function when the target_name is not the name in any target in project.ptx.
     """
     # just in case this was called in the wrong place:
-    if project.target(name=target_format) is not None:
+    if project.has_target(name=target_format):
         return
     # Otherwise continue with hints:
     log.critical(
@@ -676,3 +699,21 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     log.info("")
     log.info("Your built project will soon be available to the public at:")
     log.info(f"    {pages_url}")
+
+
+def toss(folder: Path) -> Path:
+    """
+    Move the contents of a folder to a temporary directory, and return the name of the temporary directory.
+    """
+    temp = Path(tempfile.mkdtemp())
+    shutil.move(folder, temp)
+    return temp
+
+
+def retrieve(temp: Path, folder: Path) -> None:
+    """
+    Move the contents of a temporary directory back to a folder.
+    """
+    for f in temp.iterdir():
+        shutil.move(f, folder)
+    shutil.rmtree(temp)

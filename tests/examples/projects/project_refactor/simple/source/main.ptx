@@ -1,5 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <pretext>
+  <docinfo>
+    <document-id>runestone-document-id</document-id>
+    <blurb shelf="AP Computer Science">A Runestone book</blurb>
+  </docinfo>
   <article>
     <title>Hello World!</title>
     <p>This is a PreTeXt document.</p>
