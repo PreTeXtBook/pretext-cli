@@ -512,9 +512,9 @@ def playwright_install() -> None:
     Run `playwright install` to ensure that its required browsers and tools are available to it.
     """
     try:
-        log.info("Attempting to install/update required playwright packages.")
-        subprocess.run("playwright install-deps", shell=True)
-        subprocess.run("playwright install", shell=True)
+        log.info("Checking for update for required playwright chromium browser.")
+        # subprocess.run("playwright install-deps", shell=True)
+        subprocess.run("playwright install chromium", shell=True)
         log.debug("Installed dependencies to capture interactive previews")
     except Exception as e:
         log.critical(
