@@ -633,7 +633,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                             xmlid_root=xmlid,
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
-                            method="local",  # TODO: change
+                            method=(
+                                "server" if self.server else "local"
+                            ),  # TODO: change
                         )
                     successful_assets.append(("asymptote", xmlid))
                 except Exception as e:
@@ -663,7 +665,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         pub_file=self.publication_abspath().as_posix(),
                         stringparams=self.stringparams,
                         xmlid_root=xmlid,
-                        dest_dir=self.generated_dir_abspath() / "interactive",
+                        dest_dir=self.generated_dir_abspath() / "preview",
                     )
                     successful_assets.append(("interactive", xmlid))
                 except Exception as e:
