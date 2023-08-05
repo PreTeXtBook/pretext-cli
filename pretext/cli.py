@@ -25,7 +25,7 @@ from . import (
     VERSION,
     CORE_COMMIT,
 )
-from .project import Project
+from .project import Project, Format
 
 log = logging.getLogger("ptxlogger")
 click_log.basic_config(log)
@@ -403,7 +403,6 @@ def build(
             target.generate_assets(only_changed=False)
         except Exception as e:
             log.debug(f"Failed to generate assets: {e}", exc_info=True)
-            pass
     # Call build
     try:
         target.build(clean=clean, no_generate=no_generate)
@@ -488,15 +487,16 @@ def generate(
         messages = project.apply_overlay(overlay)
         for message in messages:
             log.info("project.ptx overlay " + message)
-
         # Now create the target if the target_name is not missing.
     try:
         target = project.get_target(name=target_name)
     except AssertionError as e:
+
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
+      
     try:
         f'Generating assets in for the target "{target.name}".'
         target.generate_assets(
@@ -617,7 +617,7 @@ def view(
     if utils.no_project(task="view the output for"):
         return
     project = Project.parse()
-    target = project.target(name=target_name)
+    target = project.get_target(name=target_name)
     if target is None:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
@@ -625,7 +625,7 @@ def view(
     # Easter egg to spin up a local server at a specified directory:
     if utils.cocalc_project_id() is not None:
         try:
-            subdir = target.output_dir().relative_to(Path.home())
+            subdir = target.output_dir_abspath().relative_to(Path.home())
         except ValueError:
             subdir = Path()
         log.info("Built project can be previewed at the following link at any time:")
@@ -669,8 +669,8 @@ def deploy(target_name: str, site: str, update_source: bool) -> None:
     if utils.no_project(task="deploy"):
         return
     project = Project.parse()
-    target = project.target(name=target_name)
-    if target is None or target.format() != "html":
+    target = project.get_target(name=target_name)
+    if target.format != Format.HTML:
         log.critical("Target could not be found in project.ptx manifest.")
         # only list targets with html format.
         log.critical(
