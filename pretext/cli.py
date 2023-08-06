@@ -514,12 +514,11 @@ def generate(
     try:
         target = project.get_target(name=target_name)
     except AssertionError as e:
-
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
-      
+
     try:
         f'Generating assets in for the target "{target.name}".'
         target.generate_assets(
@@ -673,32 +672,25 @@ def view(
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument("target_name", metavar="target", required=False)
-@click.option(
-    "-s",
-    "--site",
-    required=False,
-    default="site",
-    help="Relative path to a directory containing html for a landing page.",
-)
 @click.option("-u", "--update_source", is_flag=True, required=False)
-def deploy(target_name: str, site: str, update_source: bool) -> None:
+def deploy(target_name: str, update_source: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
     Requires that your project is under Git version control
     properly configured with GitHub and GitHub Pages. Deployed
-    files will live in `docs` subdirectory of project.
+    files will live in the gh-pages branch of your repository.
     """
     if utils.no_project(task="deploy"):
         return
     project = Project.parse()
     target = project.get_target(name=target_name)
-    if target.format != Format.HTML:
+    if target.format not in [Format.HTML, Format.RUNESTONE]:
         log.critical("Target could not be found in project.ptx manifest.")
         # only list targets with html format.
         log.critical(
-            f"Possible html targets to deploy are: {project.target_names('html')}"
+            f"Possible html/Runestone targets to deploy are: {project.target_names(Format.HTML)}"
         )
         log.critical("Exiting without completing task.")
         return
-    project.deploy(target_name, site, update_source)
+    project.deploy(target_name, update_source)
