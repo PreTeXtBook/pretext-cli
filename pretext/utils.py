@@ -394,12 +394,12 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             "Linux": "You should be able to install pdf2svg with your package manager (e.g., `sudo apt install pdf2svg`.  See https://github.com/dawbarton/pdf2svg#pdf2svg.",
         },
         "pdfpng": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
         "pdfeps": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
@@ -409,7 +409,7 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             "Linux": "See https://doc.sagemath.org/html/en/installation/index.html#linux",
         },
         "pageres": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },

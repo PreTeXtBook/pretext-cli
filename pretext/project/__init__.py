@@ -671,7 +671,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                             outformat=outformat,
                             method=(
                                 "server" if self.server else "local"
-                            ),  # TODO: change
+                            ),  # TODO: check this
                         )
                     successful_assets.append(("asymptote", xmlid))
                 except Exception as e:
