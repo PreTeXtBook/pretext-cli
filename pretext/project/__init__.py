@@ -1087,7 +1087,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
                         )
                         log.info("Skipping this target for now.")
                     else:
-                        deploy_dir = target.site
+                        deploy_dir = str(target.site)
                         assert isinstance(deploy_dir, str)
                         shutil.copytree(
                             target.output_dir_abspath(),
