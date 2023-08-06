@@ -77,27 +77,6 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
-        try:
-            ProjectRefactor.parse(pp)
-            log.info(
-                "------------------------------------\n Good news: \n Your project.ptx file is ready for\n the 2.0.0 release of PreTeXt-CLI.\n------------------------------------\n"
-            )
-        except Exception as e:
-            log.warning(
-                "Your project.ptx or publication file may not be compatible with the "
-                + "upcoming 2.0.0 release of PreTeXt-CLI."
-            )
-            log.warning(
-                "For more information or to help us fix a possible bug, please visit"
-            )
-            log.warning("    https://groups.google.com/g/pretext-support/c/bwf51qOoT9c")
-            log.warning(
-                "and share the result of running `pretext support` on your machine with us."
-            )
-            log.info("")
-            log.warning(f"Exception info: {e}")
-            log.info("")
-            log.warning("Continuing with current version...")
         if targets:
             for target in Project.parse(pp).target_names():
                 print(target)
@@ -514,12 +493,11 @@ def generate(
     try:
         target = project.get_target(name=target_name)
     except AssertionError as e:
-
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
-      
+
     try:
         f'Generating assets in for the target "{target.name}".'
         target.generate_assets(
@@ -537,8 +515,6 @@ def generate(
 
 
 # pretext view
-
-
 @main.command(
     short_help="Preview specified target based on its format.",
     context_settings=CONTEXT_SETTINGS,
@@ -600,11 +576,8 @@ def generate(
 @click.option(
     "-g",
     "--generate",
-    is_flag=False,
-    flag_value="ALL",
-    default=None,
-    type=click.Choice(constants.ASSETS, case_sensitive=False),
-    help="Generate all or specific assets before viewing",
+    is_flag=True,
+    help="Generate all assets before viewing",
 )
 @click.option(
     "--no-launch",
@@ -654,17 +627,23 @@ def view(
         log.info("Built project can be previewed at the following link at any time:")
         log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
         return
-    port = port or target.port()
-    if generate == "ALL":
-        log.info("Generating all assets in default formats.")
-        project.generate(target_name)
-    elif generate is not None:
-        log.warning(f"Generating only {generate} assets.")
-        project.generate(target_name, asset_list=[generate])
+    port = port or 8000
+
+    # Call generate if flag is set
+    if generate:
+        try:
+            target.generate_assets(only_changed=False)
+        except Exception as e:
+            log.info(f"Failed to generate assets: {e}")
+            log.debug("", exc_info=True)
     if build or watch:
-        log.info("Building target.")
-        project.build(target_name)
-    project.view(target_name, access, port, watch, no_launch)
+        try:
+            target.build()
+        except Exception as e:
+            log.info(f"Failed to build: {e}")
+            log.debug("Exception info:\n##################\n", exc_info=True)
+    # Need to call view now:
+    # project.view(target_name, access, port, watch, no_launch)
 
 
 # pretext deploy
