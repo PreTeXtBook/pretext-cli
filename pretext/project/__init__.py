@@ -788,6 +788,33 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         self.save_asset_table(saved_asset_table)
         log.debug(f"Saved asset table to disk: {saved_asset_table}")
 
+    def view(
+        self,
+        access: t.Literal["public", "private"],
+        port: int = 8000,
+        watch: bool = False,
+        no_launch: bool = False,
+    ) -> None:
+        directory = self.output_dir_abspath()
+
+        if watch:
+            watch_directory = self.source_abspath()
+        else:
+            watch_directory = None
+        if not self.output_dir_abspath().exists():
+            log.error(f"The directory `{self.output_dir_abspath()}` does not exist.")
+            log.error(
+                f"Run `pretext view {self.name} -b` to build your project before viewing."
+            )
+            return
+
+        def watch_callback() -> None:
+            self.build()
+
+        utils.run_server(
+            directory, access, port, watch_directory, watch_callback, no_launch
+        )
+
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     """

@@ -643,7 +643,7 @@ def view(
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n##################\n", exc_info=True)
     # Need to call view now:
-    # project.view(target_name, access, port, watch, no_launch)
+    target.view(access=access, port=port, watch=watch, no_launch=no_launch)
 
 
 # pretext deploy
