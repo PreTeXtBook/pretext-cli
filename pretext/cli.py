@@ -8,6 +8,9 @@ import datetime
 import os
 import zipfile
 import requests
+import time
+from threading import Thread
+import webbrowser
 import io
 import tempfile
 import platform
@@ -514,12 +517,11 @@ def generate(
     try:
         target = project.get_target(name=target_name)
     except AssertionError as e:
-
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
-      
+
     try:
         f'Generating assets in for the target "{target.name}".'
         target.generate_assets(
@@ -702,3 +704,30 @@ def deploy(target_name: str, site: str, update_source: bool) -> None:
         log.critical("Exiting without completing task.")
         return
     project.deploy(target_name, site, update_source)
+
+
+@main.command(
+    short_help="Start a web-based UI",
+    context_settings=CONTEXT_SETTINGS,
+)
+def web_ui() -> None:
+    # Delay this import until here, since it brings in modules not needed by the rest of the CLI.
+    from click_web import create_click_web_app
+
+    # See the [docs](https://github.com/fredrik-corneliusson/click-web#usage).
+    app = create_click_web_app(
+        # This is a way to provide the current module as a parameter.
+        sys.modules[__name__],
+        # This the CLI's entry point, which `click_web` introspects to build the UI.
+        main,
+    )
+
+    # Open a web browser shortly after the web server starts.
+    def open_web_gui() -> None:
+        time.sleep(1)
+        webbrowser.open("http://127.0.0.1:5000")
+
+    Thread(target=open_web_gui).run()
+
+    # Start the web server which displays the CLI in a web-based GUI.
+    app.run()

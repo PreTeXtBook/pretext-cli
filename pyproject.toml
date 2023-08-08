@@ -37,6 +37,7 @@ click = "^8"
 pdfCropMargins = "~1.0.9"
 PyPDF2 = "~2.5"
 click-log = "^0.4"
+click-web = ">=0.8.3"
 ghp-import = "^2"
 single-version = "^1"
 playwright = "^1"
@@ -91,6 +92,7 @@ disallow_untyped_defs = true
 [[tool.mypy.overrides]]
 module = [
     "click_log",
+    "click_web",
     "single_version",
     "ghp_import",
     # We're installing ``lxml-stubs``, but it doesn't have stubs for this yet.
