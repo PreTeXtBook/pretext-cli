@@ -31,7 +31,6 @@ log = logging.getLogger("ptxlogger")
 
 class Format(str, Enum):
     HTML = "html"
-    RUNESTONE = "runestone"
     LATEX = "latex"
     PDF = "pdf"
     EPUB = "epub"
@@ -56,12 +55,20 @@ class Compression(str, Enum):
     ZIP = "zip"
 
 
+# This class defines the possibilities of the `Target.platform`` attribute.
+class Platform(str, Enum):
+    # A typical HTML build, meant for self-hosting with no server configuration, features, or assumptions.
+    WEB = "web"
+    # Build output meant for hosting on a Runestone server.
+    RUNESTONE = "runestone"
+
+
 # See `Target.server`.
 class ServerName(str, Enum):
     SAGE = "sage"
     # Short for Asymptote.
     ASY = "asy"
-    # Possible servers to add: Jing, WebWork.
+    # Possible servers to add: Jing, WeBWorK.
 
 
 # Allow the author to specify a server instead of a local executable for asset generation. See `Target.server`.
@@ -78,23 +85,48 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
 
     # Provide access to the containing project.
     _project: "Project" = PrivateAttr()
+    # These two attribute are required; everything else is optional.
     name: str = pxml.attr()
     format: Format = pxml.attr()
+    # These attributes have simple validators.
+    #
     # A path to the root source for this target, relative to the project's `source` path.
     source: Path = pxml.attr(default=Path("main.ptx"))
-    # A path to the publication file for this target, relative to the project's `publication` path.
+    # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
     publication: Path = pxml.attr(default=None)
+    latex_engine: LatexEngine = pxml.attr(
+        name="latex-engine", default=LatexEngine.XELATEX
+    )
+    braille_mode: BrailleMode = pxml.attr(
+        name="braille-mode", default=BrailleMode.EMBOSS
+    )
+    stringparams: t.Dict[str, str] = pxml.element(default={})
+    # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
+    site: Path = pxml.attr(default=Path("site"))
 
-    # A path to the output directory for this target, relative to the project's `output` path.
-    output_dir: Path = pxml.attr(name="output-dir", default=None)
+    # These attributes have complex validators.
+    #
+    # The platform; only valid for an HTML target. See `Platform`. Define this before the other complex validators, since several depend on this value being set.
+    platform: t.Optional[Platform] = pxml.attr()
 
-    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
-    @validator("output_dir", always=True)
-    def output_dir_validator(cls, v: t.Optional[Path], values: t.Any) -> Path:
-        # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
-        if values["format"] == Format.RUNESTONE and v is not None:
-            raise ValueError("The Runestone format's output-dir must not be specified.")
-        return Path(v) if v is not None else Path(values["name"])
+    @validator(
+        "platform",
+        # Always run this, so we can provide a non-optional value for an HTML target.
+        always=True,
+    )
+    def platform_validator(
+        cls, v: t.Optional[Platform], values: t.Any
+    ) -> t.Optional[Platform]:
+        if values["format"] == Format.HTML:
+            # For the HTML format, default to the web platform.
+            if v is None:
+                return Platform.WEB
+        else:
+            if v is not None:
+                raise ValueError(
+                    "Only the HTML format supports the platform attribute."
+                )
+        return v
 
     # We validate compression before output_filename to use its value to check if we can have an output_filename.
     compression: t.Optional[Compression] = pxml.attr()
@@ -106,7 +138,26 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     ) -> t.Optional[Compression]:
         if values["format"] not in (Format.HTML, Format.WEBWORK) and v is not None:
             raise ValueError("Only the HTML and WeBWorK formats support compression.")
+        if values["format"] == Format.HTML and values["platform"] == Platform.RUNESTONE:
+            raise ValueError(
+                "The HTML format for the Runestone platform does not allow compression."
+            )
         return v
+
+    # A path to the output directory for this target, relative to the project's `output` path.
+    output_dir: Path = pxml.attr(name="output-dir", default=None)
+
+    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
+    @validator("output_dir", always=True)
+    def output_dir_validator(cls, v: t.Optional[Path], values: t.Any) -> Path:
+        # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
+        if (
+            values["format"] == Format.HTML
+            and values["platform"] == Platform.RUNESTONE
+            and v is not None
+        ):
+            raise ValueError("The Runestone format's output-dir must not be specified.")
+        return Path(v) if v is not None else Path(values["name"])
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
@@ -117,13 +168,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     ) -> t.Optional[str]:
         # See if `output-filename` is allowed.
         if (
-            # These formats always produce multiple files, so `output-filename` makes no sense.
-            values["format"] in (Format.RUNESTONE, Format.WEBWORK)
-            and v is not None
-        ) or (
-            # The same is true for non-zipped HTML.
-            values["format"] == Format.HTML
-            and not values["compression"]
+            # WeBWorK always produces multiple files, so `output-filename` makes no sense.
+            values["format"] == Format.WEBWORK
+            or (
+                # For the HTML format, non-zipped or Runestone output produces multiple files.
+                values["format"] == Format.HTML
+                and (
+                    values["platform"] == Platform.RUNESTONE
+                    or values["compression"] is None
+                )
+            )
             and v is not None
         ):
             raise ValueError(
@@ -133,26 +187,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         assert v is None or Path(v).name == v
         return v
 
-    # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
-    site: Path = pxml.attr(default=Path("site"))
-    # A path to custom XSL for this target, relative to the project's `xsl` path.
-    xsl: t.Optional[Path] = pxml.attr(default=None)
-
-    # If the `format == Format.CUSTOM`, then `xsl` must be defined.
-    @validator("xsl")
-    def xsl_validator(cls, v: t.Optional[Path], values: t.Any) -> t.Optional[Path]:
-        if v is None and values["format"] == Format.CUSTOM:
-            raise ValueError("A custom format requires a value for xsl.")
-        return v
-
-    latex_engine: LatexEngine = pxml.attr(
-        name="latex-engine", default=LatexEngine.XELATEX
-    )
-    braille_mode: BrailleMode = pxml.attr(
-        name="braille-mode", default=BrailleMode.EMBOSS
-    )
-    stringparams: t.Dict[str, str] = pxml.element(default={})
-
     # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
     server: t.List[Server] = pxml.element(default=[])
 
@@ -161,6 +195,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         # Ensure the names are unique.
         if len(set([server.name for server in v])) != len(v):
             raise ValueError("Server names must not be repeated.")
+        return v
+
+    # A path to custom XSL for this target, relative to the project's `xsl` path.
+    xsl: t.Optional[Path] = pxml.attr(default=None)
+
+    # If the `format == Format.CUSTOM`, then `xsl` must be defined.
+    @validator("xsl")
+    def xsl_validator(cls, v: t.Optional[Path], values: t.Any) -> t.Optional[Path]:
+        if v is None and values["format"] == Format.CUSTOM:
+            raise ValueError("A custom format requires a value for xsl.")
         return v
 
     # Allow specifying `_project` in the constructor. (Since it's private, pydantic ignores it by default).
@@ -199,7 +243,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 self.server.append(server)
 
         # For the Runestone format, determine the `<document-id>`, which specifies the `output_dir`.
-        if self.format == Format.RUNESTONE:
+        if self.format == Format.HTML and self.platform == Platform.RUNESTONE:
             # We expect `d_list ==  ["document-id contents here"]`.
             d_list = self.source_element().xpath("/pretext/docinfo/document-id/text()")
             if isinstance(d_list, list):
@@ -431,10 +475,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
-            if self.format in (Format.HTML, Format.RUNESTONE):
+            if self.format == Format.HTML:
                 # The copy allows us to modify these for the Runestone format below without affecting the original.
                 sp = self.stringparams.copy()
-                if self.format == Format.RUNESTONE:
+                if self.platform == Platform.RUNESTONE:
                     # The validator guarantees this.
                     assert self.compression is None
                     assert self.output_filename is None
@@ -815,7 +859,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     publication: Path = pxml.attr(default=Path("publication"))
     # A path, relative to the project directory, prepended to any target's `output_dir`.
     output_dir: Path = pxml.attr(name="output-dir", default=Path("output"))
-    # A path, relative to the project directory, prepended to any target's `site`.
+    # A path prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))

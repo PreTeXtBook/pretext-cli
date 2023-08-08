@@ -103,14 +103,20 @@ def test_manifest_simple(tmp_path: Path) -> None:
         project = pr.Project.parse()
         assert len(project.targets) == 3
 
-        assert project.get_target("web").format == "html"
-        assert project.get_target("web").site == Path("site")
+        t_web = project.get_target("web")
+        assert t_web.format == "html"
+        assert t_web.platform == "web"
+        assert t_web.site == Path("site")
 
-        assert project.get_target("print").format == "pdf"
-        assert project.get_target("print").site == Path("site")
+        t_print = project.get_target("print")
+        assert t_print.format == "pdf"
+        assert t_print.platform is None
+        assert t_print.site == Path("site")
 
-        assert project.get_target("rs").format == "runestone"
-        assert project.get_target("rs").output_dir_abspath().resolve().relative_to(
+        t_rune = project.get_target("rs")
+        assert t_rune.format == "html"
+        assert t_rune.platform == "runestone"
+        assert t_rune.output_dir_abspath().resolve().relative_to(
             project.abspath()
         ) == Path("published/runestone-document-id")
 
@@ -346,9 +352,16 @@ def test_validation() -> None:
         project.new_target(name="test", format="html", output_filename="not-allowed")
     with pytest.raises(pydantic.ValidationError):
         project.new_target(
-            name="test", format="runestone", output_filename="not-allowed"
+            name="test",
+            format="html",
+            platform="runestone",
+            output_filename="not-allowed",
         )
     with pytest.raises(pydantic.ValidationError):
-        project.new_target(name="test", format="runestone", output_dir="not-allowed")
+        project.new_target(
+            name="test", format="html", platform="runestone", output_dir="not-allowed"
+        )
     with pytest.raises(pydantic.ValidationError):
         project.new_target(name="test", format="pdf", compression="zip")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(name="test", format="pdf", platform="runestone")

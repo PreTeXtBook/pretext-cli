@@ -26,7 +26,6 @@ def latex_image(
         "pdf": [],
         "latex": [],
         "html": ["svg"],
-        "runestone": ["svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
@@ -79,7 +78,6 @@ def sageplot(
         "pdf": ["pdf", "png"],
         "latex": ["pdf", "png"],
         "html": ["html", "svg"],
-        "runestone": ["html", "svg"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
@@ -132,7 +130,6 @@ def asymptote(
         "pdf": ["pdf"],
         "latex": ["pdf"],
         "html": ["html"],
-        "runestone": ["html"],
         "epub": ["svg"],
         "kindle": ["png"],
     }
@@ -213,7 +210,7 @@ def interactive(
                 )
             except Exception as e:
                 log.error(
-                    "Failed to generate interactive element previews.  You might need to run `playwright install-deps` to get this to work. Check debug log for info."
+                    "Failed to generate interactive element previews. Check debug log for info."
                 )
                 log.debug(e)
                 log.debug("Exception info:\n##################\n", exc_info=True)
