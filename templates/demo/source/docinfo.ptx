@@ -4,6 +4,29 @@
 <!-- This is where you can define macros and other book-wide -->
 <!--  settings.                                              -->
 <docinfo xmlns:xi="http://www.w3.org/2001/XInclude">
+  <!--
+      This is only used by when publishing to Runestone. Note Runestone's
+      preferred practice for this is to have a simple lowercase string with
+      no dashes or other special characters. This value is visible to readers
+      who want to register for your course on Runestone outside of any formal
+      setting. See
+      https://pretextbook.org/doc/guide/html/sec-publishing-to-runestone-academy.html
+      for more information.
+  -->
+  <document-id>change-this-for-runestone</document-id>
+
+  <!--
+      This is also used only when publishing to Runestone. The @shelf tells the
+      Runestone software where your book belongs in the categories on the
+      Runestone library page. See https://runestone.academy/ns/books/index
+      for a list of valid values of @shelf; one example (below) is "AP
+      Computer Science". Shelf names are case-sensitive, so copy these names
+      exactly, including capitalization.
+  -->
+  <blurb shelf="AP Computer Science">
+      A simple string (no markup is allowed) to describe your book. Think
+      of something like what you would read on a book jacket.
+  </blurb>
 
   <!-- The next three lines are likely for mature projects only: -->
 
@@ -39,4 +62,3 @@
 
 
 </docinfo>
-
