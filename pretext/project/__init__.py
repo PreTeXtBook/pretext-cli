@@ -1030,21 +1030,21 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
 
     def server_process(
         self,
-        mode: t.Literal["output", "site"] = "output",
         access: t.Literal["public", "private"] = "private",
-        port: int = 8000,
+        port: int = 8128,
         launch: bool = True,
     ) -> multiprocessing.Process:
         """
         Returns a process for running a simple local web server
         providing either the contents of `output` or `site`
         """
-        if mode == "output":
-            directory = self.output_dir
-        else:  # "site"
-            directory = self.site
-
-        return utils.server_process(directory, access, port, launch=launch)
+        return multiprocessing.Process(
+            target=utils.serve_forever,
+            args=[self.output_dir_abspath(), access, port, not launch],
+        )
+        # return utils.server_process(
+        #     self.output_dir_abspath(), access, port, launch=launch
+        # )
 
     def get_executables(self) -> Executables:
         return self._executables

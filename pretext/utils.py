@@ -238,7 +238,7 @@ def url_for_access(
 def serve_forever(
     directory: Path,
     access: t.Literal["public", "private"] = "private",
-    port: int = 8000,
+    port: int = 8128,
     no_launch: bool = False,
 ) -> None:
     log.info(f"Now preparing local server to preview directory `{directory}`.")
@@ -317,17 +317,6 @@ def run_server(
             observer.stop()
     if watch_directory is not None:
         observer.join()
-
-
-def server_process(
-    directory: Path,
-    access: t.Literal["public", "private"],
-    port: int,
-    launch: bool = True,
-) -> multiprocessing.Process:
-    return multiprocessing.Process(
-        target=serve_forever, args=[directory, access, port, not launch]
-    )
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces

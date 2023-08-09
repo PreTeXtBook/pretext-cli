@@ -529,8 +529,7 @@ def generate(
     help="""
     If running a local server,
     choose whether or not to allow other computers on your local network
-    to access your documents using your IP address. (Ignored when used
-    in CoCalc, which works automatically.)
+    to access your documents using your IP address.
     """,
 )
 @click.option(
@@ -542,27 +541,6 @@ def generate(
     choose which port to use.
     (Ignored when used
     in CoCalc, which works automatically.)
-    """,
-)
-@click.option(
-    "-d",
-    "--directory",
-    type=click.Path(),
-    help="""
-    Run local server for provided directory (does not require a PreTeXt project)
-    """,
-)
-@click.option(
-    "-w",
-    "--watch",
-    is_flag=True,
-    help="""
-    Run a build before starting server, and then
-    watch the status of source files,
-    automatically rebuilding target when changes
-    are made. Only supports HTML-format targets, and
-    only recommended for smaller projects or small
-    subsets of projects.
     """,
 )
 @click.option(
@@ -584,51 +562,39 @@ def generate(
     is_flag=True,
     help="By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.",
 )
+@click.option(
+    "-s",
+    "--stop-server",
+    is_flag=True,
+    default=False,
+    help="Stop the local http server if running.",
+)
 def view(
     target_name: str,
     access: Literal["public", "private"],
     port: Optional[int],
-    directory: Optional[str],
-    watch: bool,
     build: bool,
     generate: Optional[str],
     no_launch: bool,
+    stop_server: bool,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
     TARGET is the name of the <target/> defined in `project.ptx`.
+    If a server is already running, no new server will be started.
     """
-    if directory is not None:
-        if utils.cocalc_project_id() is not None:
-            try:
-                subdir = Path(directory).relative_to(Path.home())
-            except ValueError:
-                subdir = Path()
-            log.info("Directory can be previewed at the following link at any time:")
-            log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
-            return
-        port = port or 8000
-        utils.run_server(Path(directory), access, port, no_launch=no_launch)
-        return
     if utils.no_project(task="view the output for"):
         return
     project = Project.parse()
-    target = project.get_target(name=target_name)
-    if target is None:
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
+        log.debug(e, exc_info=True)
         return
-    # Easter egg to spin up a local server at a specified directory:
-    if utils.cocalc_project_id() is not None:
-        try:
-            subdir = target.output_dir_abspath().relative_to(Path.home())
-        except ValueError:
-            subdir = Path()
-        log.info("Built project can be previewed at the following link at any time:")
-        log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
-        return
-    port = port or 8000
 
+    port = port or 8128
     # Call generate if flag is set
     if generate:
         try:
@@ -636,14 +602,38 @@ def view(
         except Exception as e:
             log.info(f"Failed to generate assets: {e}")
             log.debug("", exc_info=True)
-    if build or watch:
+    if build:
         try:
             target.build()
         except Exception as e:
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n##################\n", exc_info=True)
-    # Need to call view now:
-    target.view(access=access, port=port, watch=watch, no_launch=no_launch)
+    # Start server if there isn't one running already:
+    # Define file to keep PID in output_dir
+    process_store = project.output_dir_abspath() / ".view-server.pid"
+    # Check if file exists, and if so, read PID
+    if process_store.exists():
+        with open(process_store, "r") as f:
+            pid = f.read()
+        # Check if PID is running
+        if utils.check_pid(pid):
+            log.info("Server already running.")
+            log.info("To stop the server, use `pretext view --stop-server`.")
+        else:
+            log.debug("Server not running.")
+            log.info("Starting server.")
+            # Start server
+            server = project.server_process(
+                access=access, port=port, launch=not no_launch
+            )
+            server.start()
+    # Write PID to file
+
+    # Open browser to view target, or display target URL
+
+    # If stop_server is set, then stop the server
+
+    target.view(access=access, port=port, no_launch=no_launch)
 
 
 # pretext deploy
