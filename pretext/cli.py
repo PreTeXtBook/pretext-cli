@@ -3,7 +3,6 @@ import logging.handlers
 import sys
 import click
 import click_log
-import time
 import shutil
 import datetime
 import os
@@ -620,8 +619,6 @@ def view(
                 launch=not no_launch,
             )
             server.start()
-            while True:
-                time.sleep(1)
         except KeyboardInterrupt:
             log.info("Stopping server.")
             return
