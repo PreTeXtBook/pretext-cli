@@ -3,7 +3,7 @@ import random
 import json
 from collections.abc import Generator
 from contextlib import contextmanager
-from http.server import SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler, HTTPServer
 import shutil
 from pathlib import Path
 import platform
@@ -13,9 +13,9 @@ import socket
 import subprocess
 import logging
 import logging.handlers
-import multiprocessing
 import tempfile
 import threading
+import psutil
 import watchdog.events
 import watchdog.observers
 import time
@@ -236,12 +236,13 @@ def url_for_access(
 
 
 def serve_forever(
-    directory: Path,
+    base_dir: Path,
+    output_dir: Path,
     access: t.Literal["public", "private"] = "private",
     port: int = 8128,
     no_launch: bool = False,
 ) -> None:
-    log.info(f"Now preparing local server to preview directory `{directory}`.")
+    log.info(f"Now preparing local server to preview directory `{base_dir}`.")
     log.info(
         "  (Reminder: use `pretext deploy` to deploy your built project to a public"
     )
@@ -254,7 +255,7 @@ def serve_forever(
 
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args: Any, **kwargs: Any):
-            super().__init__(*args, directory=directory.as_posix(), **kwargs)
+            super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
 
         """HTTP request handler with no caching"""
 
@@ -276,6 +277,7 @@ def serve_forever(
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
                 url = url_for_access(access, port)
+                url += "/" + output_dir.as_posix().replace(base_dir.as_posix(), "")
                 log.info(
                     "Success! The most recent build of your project can be viewed in a web browser at the following url:"
                 )
@@ -287,7 +289,7 @@ def serve_forever(
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")
-            port = random.randint(49152, 65535)
+            port += 1
             log.warning(f"Trying port {port} instead.\n")
 
 
@@ -706,3 +708,27 @@ def retrieve(temp: Path, folder: Path) -> None:
     for f in temp.iterdir():
         shutil.move(f, folder)
     shutil.rmtree(temp)
+
+
+def server_running() -> bool:
+    """
+    Check if a pretext-view server is running already
+    """
+    # We look at all currently running processes and check if any are a pretext process that is a child of a pretext process.  This would only happen if we have run a `pretext view` command to start the server, so we can assume that this is the server we are looking for.
+    for proc in psutil.process_iter():
+        if proc.name() == "pretext" and proc.parent().name() == "pretext":
+            log.debug(f"Found pretext server running with pid {proc.pid}")
+            return True
+    log.debug("No pretext server found running.")
+    return False
+
+
+def stop_server() -> None:
+    """
+    Terminate a server running in the background.
+    """
+    # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
+    for proc in psutil.process_iter():
+        if proc.name() == "pretext" and proc.parent().name() == "pretext":
+            log.debug(f"Terminating process with PID {proc.pid}")
+            proc.terminate()

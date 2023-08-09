@@ -1030,6 +1030,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
 
     def server_process(
         self,
+        output_dir: Path,
         access: t.Literal["public", "private"] = "private",
         port: int = 8128,
         launch: bool = True,
@@ -1040,7 +1041,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
         """
         return multiprocessing.Process(
             target=utils.serve_forever,
-            args=[self.output_dir_abspath(), access, port, not launch],
+            args=[self.output_dir_abspath(), output_dir, access, port, not launch],
         )
         # return utils.server_process(
         #     self.output_dir_abspath(), access, port, launch=launch

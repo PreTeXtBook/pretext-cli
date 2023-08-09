@@ -3,6 +3,7 @@ import logging.handlers
 import sys
 import click
 import click_log
+import time
 import shutil
 import datetime
 import os
@@ -609,31 +610,29 @@ def view(
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n##################\n", exc_info=True)
     # Start server if there isn't one running already:
-    # Define file to keep PID in output_dir
-    process_store = project.output_dir_abspath() / ".view-server.pid"
-    # Check if file exists, and if so, read PID
-    if process_store.exists():
-        with open(process_store, "r") as f:
-            pid = f.read()
-        # Check if PID is running
-        if utils.check_pid(pid):
-            log.info("Server already running.")
-            log.info("To stop the server, use `pretext view --stop-server`.")
-        else:
-            log.debug("Server not running.")
-            log.info("Starting server.")
-            # Start server
+    if not utils.server_running():
+        log.info("Starting server.")
+        try:
             server = project.server_process(
-                access=access, port=port, launch=not no_launch
+                output_dir=target.output_dir,
+                access=access,
+                port=port,
+                launch=not no_launch,
             )
             server.start()
-    # Write PID to file
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log.info("Stopping server.")
+            return
+    elif stop_server:
+        log.info("Stopping server.")
+        utils.stop_server()
+        return
 
-    # Open browser to view target, or display target URL
-
-    # If stop_server is set, then stop the server
-
-    target.view(access=access, port=port, no_launch=no_launch)
+    log.info(
+        f"Viewing output for {target.name} at http://localhost:{port}/{target.output_dir}"
+    )
 
 
 # pretext deploy
