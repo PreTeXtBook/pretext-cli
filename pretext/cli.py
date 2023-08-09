@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import sys
+import time
 import click
 import click_log
 import shutil
@@ -611,16 +612,19 @@ def view(
     # Start server if there isn't one running already:
     if not utils.server_running():
         log.info("Starting server.")
+        server = project.server_process(
+            output_dir=target.output_dir,
+            access=access,
+            port=port,
+            launch=not no_launch,
+        )
+        server.start()
         try:
-            server = project.server_process(
-                output_dir=target.output_dir,
-                access=access,
-                port=port,
-                launch=not no_launch,
-            )
-            server.start()
+            while server.is_alive():
+                time.sleep(1)
         except KeyboardInterrupt:
             log.info("Stopping server.")
+            server.terminate()
             return
     elif stop_server:
         log.info("Stopping server.")
