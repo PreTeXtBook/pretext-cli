@@ -1,9 +1,8 @@
 import os
-import random
 import json
 from collections.abc import Generator
 from contextlib import contextmanager
-from http.server import SimpleHTTPRequestHandler, HTTPServer
+from http.server import SimpleHTTPRequestHandler
 import shutil
 from pathlib import Path
 import platform
