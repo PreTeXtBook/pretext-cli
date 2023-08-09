@@ -1,10 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
   <docinfo>
-    <document-id>change-this-for-runestone</document-id>
-    <blurb shelf="AP Computer Science">
-        A simple string (no markup is allowed) to describe your book.
-    </blurb>
     <macros>\newcommand{\foo}{b^{ar}}</macros>
     <latex-image-preamble>\usepackage{tikz}</latex-image-preamble>
   </docinfo>
