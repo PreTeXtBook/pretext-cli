@@ -189,7 +189,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         return v
 
     # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
-    server: t.List[Server] = pxml.element(default=[])
+    server: t.List[Server] = pxml.element(
+        default=[{"name": "asy", "url": "http://asymptote.ualberta.ca:10007"}]
+    )
 
     @validator("server")
     def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
