@@ -667,24 +667,6 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     log.info(f"    {pages_url}")
 
 
-def toss(folder: Path) -> Path:
-    """
-    Move the contents of a folder to a temporary directory, and return the name of the temporary directory.
-    """
-    temp = Path(tempfile.mkdtemp())
-    shutil.move(folder, temp)
-    return temp
-
-
-def retrieve(temp: Path, folder: Path) -> None:
-    """
-    Move the contents of a temporary directory back to a folder.
-    """
-    for f in temp.iterdir():
-        shutil.move(f, folder)
-    shutil.rmtree(temp)
-
-
 def server_is_running() -> t.Optional[int]:
     """
     Check if a pretext-view server is running already, and if so, return its port number.
