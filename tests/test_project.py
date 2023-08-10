@@ -75,25 +75,21 @@ def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
         project = pr.Project(ptx_version="2")
-        for mode in ["output", "site"]:
-            if mode == "output":
-                dir = project.output_dir
-            else:
-                dir = project.site
-            # mypy seems `mode` as a str, so the type check fails.
-            p = project.server_process(mode=mode, port=port, launch=False)  # type: ignore
-            p.start()
-            time.sleep(1)
-            assert not (dir / "index.html").exists()
-            r = requests.get(f"http://localhost:{port}/index.html")
-            assert r.status_code == 404
-            dir.mkdir()
-            with open(dir / "index.html", "w") as index_file:
-                print("<html></html>", file=index_file)
-            assert (dir / "index.html").exists()
-            r = requests.get(f"http://localhost:{port}/index.html")
-            assert r.status_code == 200
-            p.terminate()
+        dir = project.output_dir
+
+        p = project.server_process(port=port, launch=False)
+        p.start()
+        time.sleep(1)
+        assert not (dir / "index.html").exists()
+        r = requests.get(f"http://localhost:{port}/index.html")
+        assert r.status_code == 404
+        dir.mkdir()
+        with open(dir / "index.html", "w") as index_file:
+            print("<html></html>", file=index_file)
+        assert (dir / "index.html").exists()
+        r = requests.get(f"http://localhost:{port}/index.html")
+        assert r.status_code == 200
+        p.terminate()
 
 
 def test_manifest_simple(tmp_path: Path) -> None:

@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import sys
+import time
 import click
 import click_log
 import shutil
@@ -77,27 +78,6 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
-        try:
-            ProjectRefactor.parse(pp)
-            log.info(
-                "------------------------------------\n Good news: \n Your project.ptx file is ready for\n the 2.0.0 release of PreTeXt-CLI.\n------------------------------------\n"
-            )
-        except Exception as e:
-            log.warning(
-                "Your project.ptx or publication file may not be compatible with the "
-                + "upcoming 2.0.0 release of PreTeXt-CLI."
-            )
-            log.warning(
-                "For more information or to help us fix a possible bug, please visit"
-            )
-            log.warning("    https://groups.google.com/g/pretext-support/c/bwf51qOoT9c")
-            log.warning(
-                "and share the result of running `pretext support` on your machine with us."
-            )
-            log.info("")
-            log.warning(f"Exception info: {e}")
-            log.info("")
-            log.warning("Continuing with current version...")
         if targets:
             for target in Project.parse(pp).target_names():
                 print(target)
@@ -514,12 +494,11 @@ def generate(
     try:
         target = project.get_target(name=target_name)
     except AssertionError as e:
-
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
-      
+
     try:
         f'Generating assets in for the target "{target.name}".'
         target.generate_assets(
@@ -537,8 +516,6 @@ def generate(
 
 
 # pretext view
-
-
 @main.command(
     short_help="Preview specified target based on its format.",
     context_settings=CONTEXT_SETTINGS,
@@ -553,8 +530,7 @@ def generate(
     help="""
     If running a local server,
     choose whether or not to allow other computers on your local network
-    to access your documents using your IP address. (Ignored when used
-    in CoCalc, which works automatically.)
+    to access your documents using your IP address.
     """,
 )
 @click.option(
@@ -569,27 +545,6 @@ def generate(
     """,
 )
 @click.option(
-    "-d",
-    "--directory",
-    type=click.Path(),
-    help="""
-    Run local server for provided directory (does not require a PreTeXt project)
-    """,
-)
-@click.option(
-    "-w",
-    "--watch",
-    is_flag=True,
-    help="""
-    Run a build before starting server, and then
-    watch the status of source files,
-    automatically rebuilding target when changes
-    are made. Only supports HTML-format targets, and
-    only recommended for smaller projects or small
-    subsets of projects.
-    """,
-)
-@click.option(
     "-b",
     "--build",
     is_flag=True,
@@ -600,71 +555,103 @@ def generate(
 @click.option(
     "-g",
     "--generate",
-    is_flag=False,
-    flag_value="ALL",
-    default=None,
-    type=click.Choice(constants.ASSETS, case_sensitive=False),
-    help="Generate all or specific assets before viewing",
+    is_flag=True,
+    help="Generate all assets before viewing",
 )
 @click.option(
     "--no-launch",
     is_flag=True,
     help="By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.",
 )
+@click.option(
+    "-r",
+    "--restart-server",
+    is_flag=True,
+    default=False,
+    help="Force restart the local http server in case it is already running.",
+)
+@click.option(
+    "-s",
+    "--stop-server",
+    is_flag=True,
+    default=False,
+    help="Stop the local http server if running.",
+)
 def view(
     target_name: str,
     access: Literal["public", "private"],
     port: Optional[int],
-    directory: Optional[str],
-    watch: bool,
     build: bool,
     generate: Optional[str],
     no_launch: bool,
+    restart_server: bool,
+    stop_server: bool,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
-    TARGET is the name of the <target/> defined in `project.ptx`.
+    TARGET is the name of a <target/> defined in `project.ptx` (defaults to the first target).
+
+    After running this command, you can switch to a new terminal to rebuild your project and see the changes automatically reflected in your browser.
+
+    If a server is already running, no new server will be started (nor will it need to be), unless you pass the `--restart-server` flag. You can stop a running server with CTRL+C or by passing the `--stop-server` flag.
     """
-    if directory is not None:
-        if utils.cocalc_project_id() is not None:
-            try:
-                subdir = Path(directory).relative_to(Path.home())
-            except ValueError:
-                subdir = Path()
-            log.info("Directory can be previewed at the following link at any time:")
-            log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
-            return
-        port = port or 8000
-        utils.run_server(Path(directory), access, port, no_launch=no_launch)
-        return
     if utils.no_project(task="view the output for"):
         return
     project = Project.parse()
-    target = project.get_target(name=target_name)
-    if target is None:
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
+        log.debug(e, exc_info=True)
         return
-    # Easter egg to spin up a local server at a specified directory:
-    if utils.cocalc_project_id() is not None:
+
+    port = port or 8128
+    # Call generate if flag is set
+    if generate:
         try:
-            subdir = target.output_dir_abspath().relative_to(Path.home())
-        except ValueError:
-            subdir = Path()
-        log.info("Built project can be previewed at the following link at any time:")
-        log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
+            target.generate_assets(only_changed=False)
+        except Exception as e:
+            log.info(f"Failed to generate assets: {e}")
+            log.debug("", exc_info=True)
+    if build:
+        try:
+            target.build()
+        except Exception as e:
+            log.info(f"Failed to build: {e}")
+            log.debug("Exception info:\n##################\n", exc_info=True)
+    # Start server if there isn't one running already:
+    if not utils.server_running(port=port) or restart_server:
+        # First terminate any server that might be running
+        utils.stop_server()
+        # Start the server
+        log.info("Starting server.")
+        server = project.server_process(
+            output_dir=target.output_dir_abspath(),
+            access=access,
+            port=port,
+            launch=not no_launch,
+        )
+        server.start()
+        try:
+            while server.is_alive():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log.info("Stopping server.")
+            server.terminate()
+            return
+    elif stop_server:
+        log.info("\nStopping server.")
+        utils.stop_server()
         return
-    port = port or target.port()
-    if generate == "ALL":
-        log.info("Generating all assets in default formats.")
-        project.generate(target_name)
-    elif generate is not None:
-        log.warning(f"Generating only {generate} assets.")
-        project.generate(target_name, asset_list=[generate])
-    if build or watch:
-        log.info("Building target.")
-        project.build(target_name)
-    project.view(target_name, access, port, watch, no_launch)
+    url = (
+        "http://localhost:"
+        + str(port)
+        + target.output_dir_abspath()
+        .as_posix()
+        .replace(project.abspath().as_posix(), "")
+    )
+    log.info(f"Viewing output for {target.name} at {url}")
 
 
 # pretext deploy

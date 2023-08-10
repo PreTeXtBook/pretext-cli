@@ -1,5 +1,4 @@
 import os
-import random
 import json
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -13,9 +12,10 @@ import socket
 import subprocess
 import logging
 import logging.handlers
-import multiprocessing
 import tempfile
 import threading
+import psutil
+import urllib.request
 import watchdog.events
 import watchdog.observers
 import time
@@ -236,12 +236,15 @@ def url_for_access(
 
 
 def serve_forever(
-    directory: Path,
+    base_dir: Path,
+    output_dir: Path,
     access: t.Literal["public", "private"] = "private",
-    port: int = 8000,
+    port: int = 8128,
     no_launch: bool = False,
 ) -> None:
-    log.info(f"Now preparing local server to preview directory `{directory}`.")
+    log.info(
+        f"Now preparing local server to preview your project directory `{base_dir}`."
+    )
     log.info(
         "  (Reminder: use `pretext deploy` to deploy your built project to a public"
     )
@@ -254,7 +257,7 @@ def serve_forever(
 
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args: Any, **kwargs: Any):
-            super().__init__(*args, directory=directory.as_posix(), **kwargs)
+            super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
 
         """HTTP request handler with no caching"""
 
@@ -276,6 +279,7 @@ def serve_forever(
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
                 url = url_for_access(access, port)
+                url += output_dir.as_posix().replace(base_dir.as_posix(), "")
                 log.info(
                     "Success! The most recent build of your project can be viewed in a web browser at the following url:"
                 )
@@ -283,11 +287,13 @@ def serve_forever(
                 if not no_launch:
                     log.info("This page should open in a new tab automatically.")
                     webbrowser.open(url)
-                log.info("Use [Ctrl]+[C] to halt the server.\n")
+                log.info(
+                    "Use [Ctrl]+[C] to halt the server.\nYou can run pretext commands in another terminal while the server is running.\n`pretext view -s` will also halt the server\n"
+                )
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")
-            port = random.randint(49152, 65535)
+            port += 1
             log.warning(f"Trying port {port} instead.\n")
 
 
@@ -317,17 +323,6 @@ def run_server(
             observer.stop()
     if watch_directory is not None:
         observer.join()
-
-
-def server_process(
-    directory: Path,
-    access: t.Literal["public", "private"],
-    port: int,
-    launch: bool = True,
-) -> multiprocessing.Process:
-    return multiprocessing.Process(
-        target=serve_forever, args=[directory, access, port, not launch]
-    )
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
@@ -394,12 +389,12 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             "Linux": "You should be able to install pdf2svg with your package manager (e.g., `sudo apt install pdf2svg`.  See https://github.com/dawbarton/pdf2svg#pdf2svg.",
         },
         "pdfpng": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
         "pdfeps": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
@@ -409,7 +404,7 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             "Linux": "See https://doc.sagemath.org/html/en/installation/index.html#linux",
         },
         "pageres": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
@@ -717,3 +712,38 @@ def retrieve(temp: Path, folder: Path) -> None:
     for f in temp.iterdir():
         shutil.move(f, folder)
     shutil.rmtree(temp)
+
+
+def server_running(port: int) -> bool:
+    """
+    Check if a pretext-view server is running already
+    """
+    # We look at all currently running processes and check if any are a pretext process that is a child of a pretext process.  This would only happen if we have run a `pretext view` command to start the server, so we can assume that this is the server we are looking for.
+    for proc in psutil.process_iter():
+        if proc.name() == "pretext" and proc.parent().name() == "pretext":
+            log.debug(f"Found pretext server running with pid {proc.pid}")
+            log.debug(f"Checking if port {port} is an html host:")
+            try:
+                with urllib.request.urlopen(f"http://localhost:{port}") as response:
+                    log.debug(f"Found html host running on port {port}")
+                    # We have found the right server if one of the files shown is project.ptx
+                    if "project.ptx" in response.read().decode("utf-8"):
+                        log.debug("Found project.ptx in html host.")
+                        return True
+            except Exception as e:
+                log.debug(f"Error: {e}")
+                log.debug(f"No html host running on port {port}")
+                return False
+    log.debug("No pretext server found running.")
+    return False
+
+
+def stop_server() -> None:
+    """
+    Terminate a server running in the background.
+    """
+    # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
+    for proc in psutil.process_iter():
+        if proc.name() == "pretext" and proc.parent().name() == "pretext":
+            log.debug(f"Terminating process with PID {proc.pid}")
+            proc.terminate()

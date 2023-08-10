@@ -671,7 +671,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                             outformat=outformat,
                             method=(
                                 "server" if self.server else "local"
-                            ),  # TODO: change
+                            ),  # TODO: check this
                         )
                     successful_assets.append(("asymptote", xmlid))
                 except Exception as e:
@@ -787,6 +787,33 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         # Save the asset table to disk:
         self.save_asset_table(saved_asset_table)
         log.debug(f"Saved asset table to disk: {saved_asset_table}")
+
+    def view(
+        self,
+        access: t.Literal["public", "private"],
+        port: int = 8000,
+        watch: bool = False,
+        no_launch: bool = False,
+    ) -> None:
+        directory = self.output_dir_abspath()
+
+        if watch:
+            watch_directory = self.source_abspath()
+        else:
+            watch_directory = None
+        if not self.output_dir_abspath().exists():
+            log.error(f"The directory `{self.output_dir_abspath()}` does not exist.")
+            log.error(
+                f"Run `pretext view {self.name} -b` to build your project before viewing."
+            )
+            return
+
+        def watch_callback() -> None:
+            self.build()
+
+        utils.run_server(
+            directory, access, port, watch_directory, watch_callback, no_launch
+        )
 
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
@@ -1003,21 +1030,19 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
 
     def server_process(
         self,
-        mode: t.Literal["output", "site"] = "output",
+        output_dir: Path,
         access: t.Literal["public", "private"] = "private",
-        port: int = 8000,
+        port: int = 8128,
         launch: bool = True,
     ) -> multiprocessing.Process:
         """
         Returns a process for running a simple local web server
-        providing either the contents of `output` or `site`
+        providing the contents of the output directory.
         """
-        if mode == "output":
-            directory = self.output_dir
-        else:  # "site"
-            directory = self.site
-
-        return utils.server_process(directory, access, port, launch=launch)
+        return multiprocessing.Process(
+            target=utils.serve_forever,
+            args=[self.abspath(), output_dir, access, port, not launch],
+        )
 
     def get_executables(self) -> Executables:
         return self._executables
