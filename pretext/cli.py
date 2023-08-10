@@ -595,6 +595,12 @@ def view(
 
     If a server is already running, no new server will be started (nor will it need to be), unless you pass the `--restart-server` flag. You can stop a running server with CTRL+C or by passing the `--stop-server` flag.
     """
+
+    # pretext view -s should immediately stop the server and do nothing else.
+    if stop_server:
+        log.info("\nStopping server.")
+        utils.stop_server()
+        return
     if utils.no_project(task="view the output for"):
         return
     project = Project.parse()
@@ -640,10 +646,7 @@ def view(
             log.info("Stopping server.")
             server.terminate()
             return
-    elif stop_server:
-        log.info("\nStopping server.")
-        utils.stop_server()
-        return
+
     url = (
         "http://localhost:"
         + str(port)

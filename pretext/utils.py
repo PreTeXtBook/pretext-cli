@@ -722,6 +722,9 @@ def server_running(port: int) -> bool:
     for proc in psutil.process_iter():
         if proc.name() == "pretext" and proc.parent().name() == "pretext":
             log.debug(f"Found pretext server running with pid {proc.pid}")
+            if proc.status() == psutil.STATUS_STOPPED:
+                log.debug("Server is stopped.")
+                return False
             log.debug(f"Checking if port {port} is an html host:")
             try:
                 with urllib.request.urlopen(f"http://localhost:{port}") as response:
@@ -731,7 +734,7 @@ def server_running(port: int) -> bool:
                         log.debug("Found project.ptx in html host.")
                         return True
             except Exception as e:
-                log.debug(f"Error: {e}")
+                log.debug(f"Did not find html: {e}")
                 log.debug(f"No html host running on port {port}")
                 return False
     log.debug("No pretext server found running.")
