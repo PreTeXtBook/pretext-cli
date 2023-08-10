@@ -1037,15 +1037,12 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     ) -> multiprocessing.Process:
         """
         Returns a process for running a simple local web server
-        providing either the contents of `output` or `site`
+        providing the contents of the output directory.
         """
         return multiprocessing.Process(
             target=utils.serve_forever,
-            args=[self.output_dir_abspath(), output_dir, access, port, not launch],
+            args=[self.abspath(), output_dir, access, port, not launch],
         )
-        # return utils.server_process(
-        #     self.output_dir_abspath(), access, port, launch=launch
-        # )
 
     def get_executables(self) -> Executables:
         return self._executables

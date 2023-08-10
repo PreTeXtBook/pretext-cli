@@ -564,6 +564,13 @@ def generate(
     help="By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.",
 )
 @click.option(
+    "-r",
+    "--restart-server",
+    is_flag=True,
+    default=False,
+    help="Force restart the local http server in case it is already running.",
+)
+@click.option(
     "-s",
     "--stop-server",
     is_flag=True,
@@ -577,12 +584,16 @@ def view(
     build: bool,
     generate: Optional[str],
     no_launch: bool,
+    restart_server: bool,
     stop_server: bool,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
-    TARGET is the name of the <target/> defined in `project.ptx`.
-    If a server is already running, no new server will be started.
+    TARGET is the name of a <target/> defined in `project.ptx` (defaults to the first target).
+
+    After running this command, you can switch to a new terminal to rebuild your project and see the changes automatically reflected in your browser.
+
+    If a server is already running, no new server will be started (nor will it need to be), unless you pass the `--restart-server` flag. You can stop a running server with CTRL+C or by passing the `--stop-server` flag.
     """
     if utils.no_project(task="view the output for"):
         return
@@ -610,10 +621,13 @@ def view(
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n##################\n", exc_info=True)
     # Start server if there isn't one running already:
-    if not utils.server_running():
+    if not utils.server_running(port=port) or restart_server:
+        # First terminate any server that might be running
+        utils.stop_server()
+        # Start the server
         log.info("Starting server.")
         server = project.server_process(
-            output_dir=target.output_dir,
+            output_dir=target.output_dir_abspath(),
             access=access,
             port=port,
             launch=not no_launch,
@@ -627,13 +641,17 @@ def view(
             server.terminate()
             return
     elif stop_server:
-        log.info("Stopping server.")
+        log.info("\nStopping server.")
         utils.stop_server()
         return
-
-    log.info(
-        f"Viewing output for {target.name} at http://localhost:{port}/{target.output_dir}"
+    url = (
+        "http://localhost:"
+        + str(port)
+        + target.output_dir_abspath()
+        .as_posix()
+        .replace(project.abspath().as_posix(), "")
     )
+    log.info(f"Viewing output for {target.name} at {url}")
 
 
 # pretext deploy

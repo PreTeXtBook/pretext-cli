@@ -15,6 +15,7 @@ import logging.handlers
 import tempfile
 import threading
 import psutil
+import urllib.request
 import watchdog.events
 import watchdog.observers
 import time
@@ -241,7 +242,9 @@ def serve_forever(
     port: int = 8128,
     no_launch: bool = False,
 ) -> None:
-    log.info(f"Now preparing local server to preview directory `{base_dir}`.")
+    log.info(
+        f"Now preparing local server to preview your project directory `{base_dir}`."
+    )
     log.info(
         "  (Reminder: use `pretext deploy` to deploy your built project to a public"
     )
@@ -276,7 +279,7 @@ def serve_forever(
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
                 url = url_for_access(access, port)
-                url += "/" + output_dir.as_posix().replace(base_dir.as_posix(), "")
+                url += output_dir.as_posix().replace(base_dir.as_posix(), "")
                 log.info(
                     "Success! The most recent build of your project can be viewed in a web browser at the following url:"
                 )
@@ -284,7 +287,9 @@ def serve_forever(
                 if not no_launch:
                     log.info("This page should open in a new tab automatically.")
                     webbrowser.open(url)
-                log.info("Use [Ctrl]+[C] to halt the server.\n")
+                log.info(
+                    "Use [Ctrl]+[C] to halt the server.\nYou can run pretext commands in another terminal while the server is running.\n`pretext view -s` will also halt the server\n"
+                )
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")
@@ -709,7 +714,7 @@ def retrieve(temp: Path, folder: Path) -> None:
     shutil.rmtree(temp)
 
 
-def server_running() -> bool:
+def server_running(port: int) -> bool:
     """
     Check if a pretext-view server is running already
     """
@@ -717,7 +722,18 @@ def server_running() -> bool:
     for proc in psutil.process_iter():
         if proc.name() == "pretext" and proc.parent().name() == "pretext":
             log.debug(f"Found pretext server running with pid {proc.pid}")
-            return True
+            log.debug(f"Checking if port {port} is an html host:")
+            try:
+                with urllib.request.urlopen(f"http://localhost:{port}") as response:
+                    log.debug(f"Found html host running on port {port}")
+                    # We have found the right server if one of the files shown is project.ptx
+                    if "project.ptx" in response.read().decode("utf-8"):
+                        log.debug("Found project.ptx in html host.")
+                        return True
+            except Exception as e:
+                log.debug(f"Error: {e}")
+                log.debug(f"No html host running on port {port}")
+                return False
     log.debug("No pretext server found running.")
     return False
 
