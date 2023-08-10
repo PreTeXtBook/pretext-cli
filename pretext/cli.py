@@ -15,8 +15,7 @@ import platform
 from pathlib import Path
 import atexit
 import subprocess
-from typing import List, Literal, Optional, Tuple
-from .config import xml_overlay
+from typing import List, Literal, Optional
 
 from . import (
     utils,
@@ -345,20 +344,12 @@ def init(refresh: bool) -> None:
     type=click.STRING,
     help="xml:id of the root of the subtree to be built.",
 )
-@click.option(
-    "-p",
-    "--project-ptx-override",
-    type=(str, str),
-    multiple=True,
-    help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
-)
 def build(
     target_name: str,
     clean: bool,
     generate: str,
     no_generate: bool,
     xmlid: Optional[str],
-    project_ptx_override: Tuple[Tuple[str, str], ...],
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -373,24 +364,11 @@ def build(
 
     # Set up project and target based on command line arguments and project.ptx
 
-    # Add xmlid value to project_ptx_override (a tuple of tuples)
-    # TODO: This might no longer work, if xmlid isn't a valid target attribute.
-    if xmlid:
-        project_ptx_override += (("targets.target.xmlid-root", xmlid),)
-    overlay = xml_overlay.ShadowXmlDocument()
-    for path, value in project_ptx_override:
-        overlay.upsert_node_or_attribute(path, value)
     # Supply help if not in project subfolder
     if utils.no_project(task="build"):
         return
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
     project = Project.parse()
-    if len(project_ptx_override) > 0:
-        # TODO: this need to be implemented still
-        messages = project.apply_overlay(overlay)
-        for message in messages:
-            log.info("project.ptx overlay " + message)
-
     # Now create the target if the target_name is not missing.
     try:
         target = project.get_target(name=target_name)
@@ -403,12 +381,13 @@ def build(
     # Call generate if flag is set
     if generate:
         try:
-            target.generate_assets(only_changed=False)
+            target.generate_assets(only_changed=False, xmlid=xmlid)
         except Exception as e:
             log.debug(f"Failed to generate assets: {e}", exc_info=True)
     # Call build
     try:
-        target.build(clean=clean, no_generate=no_generate)
+        log.debug(f"Building target {target.name} with root of tree below {xmlid}")
+        target.build(clean=clean, no_generate=no_generate, xmlid=xmlid)
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except Exception as e:
         log.critical(e)
@@ -448,20 +427,12 @@ def build(
     default=False,
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
-@click.option(
-    "-p",
-    "--project-ptx-override",
-    type=(str, str),
-    multiple=True,
-    help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
-)
 def generate(
     assets: List[str],
     target_name: Optional[str],
     all_formats: bool,
     only_changed: bool,
     xmlid: Optional[str],
-    project_ptx_override: Tuple[Tuple[str, str], ...],
 ) -> None:
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
@@ -481,16 +452,8 @@ def generate(
     if utils.no_project(task="generate assets for"):
         return
 
-    overlay = xml_overlay.ShadowXmlDocument()
-    for path, value in project_ptx_override:
-        overlay.upsert_node_or_attribute(path, value)
-
     project = Project.parse()
-    if len(project_ptx_override) > 0:
-        messages = project.apply_overlay(overlay)
-        for message in messages:
-            log.info("project.ptx overlay " + message)
-        # Now create the target if the target_name is not missing.
+    # Now create the target if the target_name is not missing.
     try:
         target = project.get_target(name=target_name)
     except AssertionError as e:
