@@ -680,7 +680,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.webwork_to_xml(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=self.stringparams.copy(),
                     xmlid_root=xmlid,
                     abort_early=True,
                     dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
@@ -696,7 +696,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         core.latex_image_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
-                            stringparams=self.stringparams,
+                            stringparams=self.stringparams.copy(),
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
@@ -712,7 +712,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         core.asymptote_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
-                            stringparams=self.stringparams,
+                            stringparams=self.stringparams.copy(),
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
@@ -731,7 +731,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         core.sage_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
-                            stringparams=self.stringparams,
+                            stringparams=self.stringparams.copy(),
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
@@ -746,7 +746,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     core.preview_images(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams,
+                        stringparams=self.stringparams.copy(),
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "preview",
                     )
@@ -759,7 +759,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     core.youtube_thumbnail(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams,
+                        stringparams=self.stringparams.copy(),
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "youtube",
                     )
@@ -774,7 +774,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     core.tracer(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams,
+                        stringparams=self.stringparams.copy(),
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "trace",
                     )
@@ -787,7 +787,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     core.datafiles_to_xml(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams,
+                        stringparams=self.stringparams.copy(),
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "datafile",
                     )
@@ -805,7 +805,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     core.qrcode(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams,
+                        stringparams=self.stringparams.copy(),
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
