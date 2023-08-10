@@ -1,3 +1,4 @@
+import subprocess
 import typing as t
 from enum import Enum
 import hashlib
@@ -1025,6 +1026,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     def output_dir_abspath(self) -> Path:
         return self.abspath() / self.output_dir
 
+    def site_abspath(self) -> Path:
+        return self.abspath() / self.site
+
     def xsl_abspath(self) -> Path:
         return self.abspath() / self.xsl
 
@@ -1049,3 +1053,78 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
 
     def init_core(self) -> None:
         core.set_executables(self._executables.dict())
+
+    def deploy_targets(self) -> t.List[Target]:
+        return [target for target in self.targets if target.site is not None]
+
+    def deploy(self, target_name: str, update_source: bool) -> None:
+        # Before doing any work, we check that git is installed.
+        try:
+            subprocess.run(["git", "--version"], capture_output=True)
+            log.debug("Git is installed.")
+        except Exception as e:
+            log.error(
+                "Git must be installed to use this feature, but couldn't be found."
+            )
+            log.debug(f"Error: {e}", exc_info=True)
+            return
+        # Determine what set of targets to deploy.  If a target name is specified, deploy on that target.  If there are `deploy-dir` specified in the project manifest, also deploy the contents of the `site` folder, if present.
+        if len(self.deploy_targets()) == 0:
+            target = self.get_target(target_name)
+            if target is None:
+                log.error(f"Target `{target_name}` not found.")
+                return
+            if target.format not in [
+                Format.HTML,
+                Format.RUNESTONE,
+            ]:  # redundant for CLI
+                log.error("Only HTML and Runestone format targets are supported.")
+                return
+            if not target.output_dir_abspath().exists():
+                log.error(
+                    f"No build for `{target.name}` was found in the directory `{target.output_dir_abspath()}`."
+                )
+                log.error(
+                    f"Try running `pretext view {target.name} -b` to build and preview your project first."
+                )
+                return
+            log.info(f"Using latest build located in `{target.output_dir_abspath()}`.")
+            log.info("")
+            utils.publish_to_ghpages(target.output_dir_abspath(), update_source)
+            return
+        else:  # we now deploy multiple targets and the site directory
+            if not self.site_abspath().exists:
+                log.error(f"Site directory `{self.site}` not found.")
+                log.info(
+                    f"You have `deploy-dir` or `site` (v2) elements in your project.ptx file, which requires you to maintain at least a simple landing page in the folder `{self.site}`. Either create this folder or remove the `deploy-dir` elements from your project.ptx file.\n"
+                )
+                return
+            with tempfile.TemporaryDirectory() as temp_dir:
+                shutil.copytree(
+                    self.site.resolve(),
+                    Path(temp_dir),
+                    dirs_exist_ok=True,
+                )
+                for target in self.deploy_targets():
+                    if not target.output_dir_abspath().exists():
+                        log.warning(
+                            f"No build for `{target.name}` was found in the directory `{target.output_dir_abspath()}`. Try running `pretext build {target.name}` to build this component first."
+                        )
+                        log.info("Skipping this target for now.")
+                    else:
+                        deploy_dir = str(target.site)
+                        assert isinstance(deploy_dir, str)
+                        shutil.copytree(
+                            target.output_dir_abspath(),
+                            (Path(temp_dir) / deploy_dir).resolve(),
+                            dirs_exist_ok=True,
+                        )
+                        log.info(f"Deploying `{target.name}` to `{target.site}`.")
+                # Recopy the site's index.html (if it exists) to the root of the temp directory.  This is a bit of a hack, but it's the simplest way to ensure that the site's landing page is deployed.
+                if (self.site_abspath() / "index.html").exists():
+                    shutil.copy(
+                        self.site_abspath() / "index.html",
+                        Path(temp_dir),
+                    )
+                utils.publish_to_ghpages(Path(temp_dir), update_source)
+        return
