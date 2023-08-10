@@ -4,16 +4,19 @@
 
   <docinfo>
     <!--
-        Used when publishing to Runestone; a simple lowercase string with no
-        dashes or other special characters. See
+        A unique name for the book in a catalog; for example, see
+        https://pretextbook.org/catalog.html and
+        https://runestone.academy/ns/books/index. It contains simple lowercase
+        string with no dashes or other special characters. See
         https://pretextbook.org/doc/guide/html/sec-publishing-to-runestone-academy.html
         for more information.
     -->
-    <document-id>change-this-for-runestone</document-id>
+    <document-id>a-unique-catalog-name</document-id>
     <!--
-        Used only when publishing to Runestone. See
+        A brief description for the book in a catalog; see the links above.
+        The @shelf is used only when publishing to Runestone; see
         https://runestone.academy/ns/books/index for a list of valid values.
-        You must copy these names exactly, including capitalization.
+        You must copy these @shelf names exactly, including capitalization.
     -->
     <blurb shelf="AP Computer Science">
         A simple string (no markup is allowed) to describe your book.
