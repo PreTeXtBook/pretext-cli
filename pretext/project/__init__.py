@@ -453,7 +453,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
 
         # Generate needed assets unless requested not to.
         if not no_generate:
-            self.generate_assets()
+            self.generate_assets(xmlid=xmlid)
 
         # Ensure the output directories exist.
         self.ensure_output_directory()
@@ -690,114 +690,114 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             except Exception as e:
                 log.debug(f"Unable to generate webwork: {e}")
         if "latex-image" in assets_to_generate:
-            for xmlid in assets_to_generate["latex-image"]:
+            for id in assets_to_generate["latex-image"]:
                 try:
                     for outformat in asset_formats["latex-image"]:
                         core.latex_image_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
                             stringparams=self.stringparams,
-                            xmlid_root=xmlid,
+                            xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
                         )
-                    successful_assets.append(("latex-image", xmlid))
+                    successful_assets.append(("latex-image", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some latex-image assets: {e}")
         if "asymptote" in assets_to_generate:
-            for xmlid in assets_to_generate["asymptote"]:
+            for id in assets_to_generate["asymptote"]:
                 try:
                     for outformat in asset_formats["asymptote"]:
                         core.asymptote_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
                             stringparams=self.stringparams,
-                            xmlid_root=xmlid,
+                            xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
                             method=(
                                 "server" if self.server else "local"
                             ),  # TODO: check this
                         )
-                    successful_assets.append(("asymptote", xmlid))
+                    successful_assets.append(("asymptote", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some asymptote elements: {e}")
 
         if "sageplot" in assets_to_generate:
-            for xmlid in assets_to_generate["sageplot"]:
+            for id in assets_to_generate["sageplot"]:
                 try:
                     for outformat in asset_formats["sageplot"]:
                         core.sage_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
                             stringparams=self.stringparams,
-                            xmlid_root=xmlid,
+                            xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
                         )
-                    successful_assets.append(("sageplot", xmlid))
+                    successful_assets.append(("sageplot", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some sageplot images: {e}")
 
         if "interactive" in assets_to_generate:
-            for xmlid in assets_to_generate["interactive"]:
+            for id in assets_to_generate["interactive"]:
                 try:
                     core.preview_images(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
                         stringparams=self.stringparams,
-                        xmlid_root=xmlid,
+                        xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "preview",
                     )
-                    successful_assets.append(("interactive", xmlid))
+                    successful_assets.append(("interactive", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some interactive previews: {e}")
         if "youtube" in assets_to_generate:
-            for xmlid in assets_to_generate["youtube"]:
+            for id in assets_to_generate["youtube"]:
                 try:
                     core.youtube_thumbnail(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
                         stringparams=self.stringparams,
-                        xmlid_root=xmlid,
+                        xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "youtube",
                     )
-                    successful_assets.append(("youtube", xmlid))
+                    successful_assets.append(("youtube", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some youtube thumbnails: {e}")
             # youtube also requires the play button.
             self.ensure_play_button()
         if "codelens" in assets_to_generate:
-            for xmlid in assets_to_generate["codelens"]:
+            for id in assets_to_generate["codelens"]:
                 try:
                     core.tracer(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
                         stringparams=self.stringparams,
-                        xmlid_root=xmlid,
+                        xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "trace",
                     )
-                    successful_assets.append(("codelens", xmlid))
+                    successful_assets.append(("codelens", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some codelens traces: {e}")
         if "datafile" in assets_to_generate:
-            for xmlid in assets_to_generate["datafile"]:
+            for id in assets_to_generate["datafile"]:
                 try:
                     core.datafiles_to_xml(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
                         stringparams=self.stringparams,
-                        xmlid_root=xmlid,
+                        xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "datafile",
                     )
-                    successful_assets.append(("datafile", xmlid))
+                    successful_assets.append(("datafile", id))
                 except Exception as e:
                     log.debug(f"Unable to generate some datafiles: {e}")
         # Finally, also generate the qrcodes for interactive and youtube assets:
         # NOTE: we do not currently check for success of this for saving assets to the asset cache.
         if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
-            for xmlid in set(
+            for id in set(
                 assets_to_generate.get("interactive", [])
                 + assets_to_generate.get("youtube", [])
             ):
@@ -806,7 +806,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
                         stringparams=self.stringparams,
-                        xmlid_root=xmlid,
+                        xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
                 except Exception as e:
@@ -816,21 +816,21 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         core.release_temporary_directories()
         # After all assets are generated, update the asset cache:
         log.debug(f"Updated these assets successfully: {successful_assets}")
-        for asset_type, xmlid in successful_assets:
-            assert isinstance(xmlid, str)
+        for asset_type, id in successful_assets:
+            assert isinstance(id, str)
             if asset_type not in saved_asset_table:
                 saved_asset_table[asset_type] = {}
-            if xmlid == "":
+            if id == "":
                 # We have updated all assets of this type, so update all of them in the saved asset table:
                 for id in source_asset_table[asset_type]:
                     saved_asset_table[asset_type][id] = source_asset_table[asset_type][
                         id
                     ]
             else:
-                if xmlid in source_asset_table[asset_type]:
-                    saved_asset_table[asset_type][xmlid] = source_asset_table[
-                        asset_type
-                    ][xmlid]
+                if id in source_asset_table[asset_type]:
+                    saved_asset_table[asset_type][id] = source_asset_table[asset_type][
+                        id
+                    ]
         # Save the asset table to disk:
         self.save_asset_table(saved_asset_table)
         log.debug(f"Saved asset table to disk: {saved_asset_table}")
