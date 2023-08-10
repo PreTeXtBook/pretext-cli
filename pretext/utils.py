@@ -714,39 +714,49 @@ def retrieve(temp: Path, folder: Path) -> None:
     shutil.rmtree(temp)
 
 
-def server_running(port: int) -> bool:
+def server_is_running() -> t.Optional[int]:
     """
-    Check if a pretext-view server is running already
+    Check if a pretext-view server is running already, and if so, return its port number.
     """
     # We look at all currently running processes and check if any are a pretext process that is a child of a pretext process.  This would only happen if we have run a `pretext view` command to start the server, so we can assume that this is the server we are looking for.
     for proc in psutil.process_iter():
         if proc.name() == "pretext" and proc.parent().name() == "pretext":
             log.debug(f"Found pretext server running with pid {proc.pid}")
-            if proc.status() == psutil.STATUS_STOPPED:
+            # Sometimes the process stops but doesn't get removed from the process list.  We check if the process is still running by checking its status.
+            if proc.status() not in [psutil.STATUS_RUNNING, psutil.STATUS_SLEEPING]:
                 log.debug("Server is stopped.")
-                return False
-            log.debug(f"Checking if port {port} is an html host:")
+                return None
+            # To get the port number, we look at the connections the process has open.  We assume that the server is running on the first port that is open.
             try:
-                with urllib.request.urlopen(f"http://localhost:{port}") as response:
-                    log.debug(f"Found html host running on port {port}")
-                    # We have found the right server if one of the files shown is project.ptx
-                    if "project.ptx" in response.read().decode("utf-8"):
-                        log.debug("Found project.ptx in html host.")
-                        return True
+                port = proc.connections()[0].laddr.port
+                log.debug(f"Server is running on port {port}")
+                return port
             except Exception as e:
-                log.debug(f"Did not find html: {e}")
-                log.debug(f"No html host running on port {port}")
-                return False
+                log.debug(f"Could not get port number. Exception: {e}", exc_info=True)
     log.debug("No pretext server found running.")
-    return False
+    return None
 
 
-def stop_server() -> None:
+def stop_server(port: t.Optional[int] = None) -> None:
     """
     Terminate a server running in the background.
     """
-    # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
-    for proc in psutil.process_iter():
-        if proc.name() == "pretext" and proc.parent().name() == "pretext":
-            log.debug(f"Terminating process with PID {proc.pid}")
-            proc.terminate()
+    # If a port was passed, we look for a "pretext" process that has a connection on that port, and kill it if we find it.
+    if port is not None:
+        log.debug(f"Terminating server running on port {port}")
+        for proc in psutil.process_iter():
+            if len(proc.connections()) > 0:
+                if (
+                    proc.name() == "pretext"
+                    and proc.connections()[0].laddr.port == port
+                ):
+                    log.debug(
+                        f"Terminating process with PID {proc.pid} hosting on port {port}"
+                    )
+                    proc.terminate()
+    else:
+        # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
+        for proc in psutil.process_iter():
+            if proc.name() == "pretext" and proc.parent().name() == "pretext":
+                log.debug(f"Terminating process with PID {proc.pid}")
+                proc.terminate()

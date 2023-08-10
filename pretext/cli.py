@@ -612,7 +612,6 @@ def view(
         log.debug(e, exc_info=True)
         return
 
-    port = port or 8128
     # Call generate if flag is set
     if generate:
         try:
@@ -620,6 +619,7 @@ def view(
         except Exception as e:
             log.info(f"Failed to generate assets: {e}")
             log.debug("", exc_info=True)
+    # Call build if flag is set
     if build:
         try:
             target.build()
@@ -627,15 +627,16 @@ def view(
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n##################\n", exc_info=True)
     # Start server if there isn't one running already:
-    if not utils.server_running(port=port) or restart_server:
+    used_port = utils.server_is_running()
+    if port or restart_server or not used_port:
         # First terminate any server that might be running
-        utils.stop_server()
+        utils.stop_server(port)
         # Start the server
         log.info("Starting server.")
         server = project.server_process(
             output_dir=target.output_dir_abspath(),
             access=access,
-            port=port,
+            port=port or 8128,
             launch=not no_launch,
         )
         server.start()
@@ -646,15 +647,15 @@ def view(
             log.info("Stopping server.")
             server.terminate()
             return
-
-    url = (
-        "http://localhost:"
-        + str(port)
-        + target.output_dir_abspath()
-        .as_posix()
-        .replace(project.abspath().as_posix(), "")
-    )
-    log.info(f"Viewing output for {target.name} at {url}")
+    else:
+        url = (
+            "http://localhost:"
+            + str(used_port)
+            + target.output_dir_abspath()
+            .as_posix()
+            .replace(project.abspath().as_posix(), "")
+        )
+        log.info(f"Viewing output for {target.name} at {url}")
 
 
 # pretext deploy
