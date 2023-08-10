@@ -15,7 +15,6 @@ import logging.handlers
 import tempfile
 import threading
 import psutil
-import urllib.request
 import watchdog.events
 import watchdog.observers
 import time
@@ -295,34 +294,6 @@ def serve_forever(
             log.warning(f"Port {port} could not be used.")
             port += 1
             log.warning(f"Trying port {port} instead.\n")
-
-
-def run_server(
-    directory: Path,
-    access: t.Literal["public", "private"],
-    port: int,
-    watch_directory: t.Optional[Path] = None,
-    watch_callback: Callable[[], None] = lambda: None,
-    no_launch: bool = False,
-) -> None:
-    threading.Thread(
-        target=lambda: serve_forever(directory, access, port, no_launch), daemon=True
-    ).start()
-    if watch_directory is not None:
-        log.info(f"\nWatching for changes in `{watch_directory}` ...\n")
-        event_handler = HTMLRebuildHandler(watch_callback)
-        observer = watchdog.observers.Observer()
-        observer.schedule(event_handler, watch_directory, recursive=True)
-        observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        log.info("\nClosing server...")
-        if watch_directory is not None:
-            observer.stop()
-    if watch_directory is not None:
-        observer.join()
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
