@@ -68,6 +68,17 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces], cwd=tmp_path
     ).success
+
+    # Do a subset build before the main build, to check that not everything is built on the subset.
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "ch-first-without-spaces"],
+        cwd=project_path,
+    ).success
+    assert (project_path / "output" / "web").exists()
+    assert not (project_path / "output" / "web" / "ch-empty.html").exists()
+    assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
+
+    # Do a full build.
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "web"], cwd=project_path
     ).success
@@ -100,15 +111,8 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         ],
         "source/backmatter.ptx": ["backmatter"],
     }
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "subset", "-x", "ch-first-without-spaces"],
-        cwd=project_path,
-    ).success
-    assert (project_path / "output" / "subset").exists()
-    assert not (project_path / "output" / "subset" / "ch-empty.html").exists()
-    assert (
-        project_path / "output" / "subset" / "ch-first-without-spaces.html"
-    ).exists()
+
+    # Build other targets.
     assert script_runner.run(
         [PTX_CMD, "build", "print-latex"], cwd=project_path
     ).success
