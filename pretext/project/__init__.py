@@ -476,6 +476,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
+            # The core expects `out_file` to be the full path, not just a file name, if it's not None.
+            out_file = (
+                (self.output_dir_abspath() / self.output_filename).as_posix()
+                if self.output_filename is not None
+                else None
+            )
             if self.format == Format.HTML:
                 # The copy allows us to modify these for the Runestone format below without affecting the original.
                 sp = self.stringparams.copy()
@@ -492,7 +498,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     xmlid_root=xmlid,
                     file_format=self.compression or "html",
                     extra_xsl=custom_xsl,
-                    out_file=self.output_filename,
+                    out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
                 codechat.map_path_to_xml_id(
@@ -506,7 +512,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=self.stringparams,
                     extra_xsl=custom_xsl,
-                    out_file=self.output_filename,
+                    out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.latex_engine,
                 )
@@ -516,7 +522,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=self.stringparams,
                     extra_xsl=custom_xsl,
-                    out_file=self.output_filename,
+                    out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
             elif self.format == Format.EPUB:
@@ -524,7 +530,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.epub(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    out_file=self.output_filename,
+                    out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="svg",
                     stringparams=self.stringparams,
@@ -534,7 +540,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.epub(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    out_file=self.output_filename,
+                    out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="kindle",
                     stringparams=self.stringparams,
@@ -547,7 +553,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.braille(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    out_file=self.output_filename,
+                    out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     page_format=self.braille_mode,
                     stringparams=self.stringparams,
@@ -566,7 +572,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.xsltproc(
                     xsl=custom_xsl,
                     xml=self.source_abspath(),
-                    result=self.output_filename,
+                    result=out_file,
                     output_dir=self.output_dir_abspath().as_posix(),
                     stringparams=self.stringparams,
                 )
