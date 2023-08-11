@@ -1,3 +1,5 @@
+import typing as t
+
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
 BUILD_FORMATS = [
@@ -35,7 +37,7 @@ ASSET_TO_DIR = {
     "datafile": ["datafile"],
 }
 
-ASSET_FORMATS = {
+ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
     "pdf": {
         "asymptote": ["pdf"],
         "latex-image": [],

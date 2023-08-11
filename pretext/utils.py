@@ -12,7 +12,6 @@ import socket
 import subprocess
 import logging
 import logging.handlers
-import tempfile
 import threading
 import psutil
 import watchdog.events

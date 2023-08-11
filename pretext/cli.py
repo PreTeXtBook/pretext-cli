@@ -640,11 +640,11 @@ def deploy(target_name: str, update_source: bool) -> None:
         return
     project = Project.parse()
     target = project.get_target(name=target_name)
-    if target.format not in [Format.HTML, Format.RUNESTONE]:
+    if target.format != Format.HTML:
         log.critical("Target could not be found in project.ptx manifest.")
         # only list targets with html format.
         log.critical(
-            f"Possible html/Runestone targets to deploy are: {project.target_names(Format.HTML)}"
+            f"Possible HTML targets to deploy are: {project.target_names(Format.HTML)}"
         )
         log.critical("Exiting without completing task.")
         return
