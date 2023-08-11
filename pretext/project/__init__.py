@@ -811,7 +811,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
                 except Exception as e:
-                    log.debug(f"Unable to generate some qrcodes: {e}")
+                    log.debug(f"Unable to generate some qrcodes: {e}", exc_info=True)
 
         # Delete temporary directories left behind by core:
         core.release_temporary_directories()
