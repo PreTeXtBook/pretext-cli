@@ -300,10 +300,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         return (self.source_abspath().parent / self.generated_dir()).resolve()
 
     def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
-        if asset is None:
-            self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
-            self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
-        else:
+        self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
+        self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
+        if asset is not None:
             # make directories for each asset type that would be generated from "asset":
             for asset_dir in constants.ASSET_TO_DIR[asset]:
                 (self.generated_dir_abspath() / asset_dir).mkdir(
@@ -589,8 +588,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         saved_asset_table = utils.clean_asset_table(
             self.load_asset_table(), source_asset_table
         )
-        log.debug(f"source_asset_table: {source_asset_table}")
-        log.debug(f"saved_asset_table: {saved_asset_table}")
 
         # Now we repeatedly pass through the source asset table, and purge any assets that we shouldn't build for any reason.
         # Throw away any asset types that were not requested:
@@ -599,7 +596,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             for asset in source_asset_table
             if asset in specified_asset_types
         }
-
         # If we limit by xml:id, only look for assets below that id in the source tree
         if xmlid is not None:
             log.debug(f"Limiting asset generation to assets below xml:id={xmlid}.")
@@ -621,7 +617,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                         for id in source_asset_table[asset]
                         if id in id_list
                     }
-            log.debug(f"Eligible assets are: {source_asset_table}")
+            log.debug(f"Eligible assets are: {source_asset_table.keys()}")
 
         # TODO: check which assets can be generated based on the user's system (and executables).
 
@@ -638,7 +634,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     if saved_asset_table.get(asset, {}).get(id, None)
                     != source_asset_table[asset][id]
                 }
-            log.debug(f"Assets to be regenerated: {source_asset_table}")
+            log.debug(f"Assets to be regenerated: {source_asset_table.keys()}")
             # TODO: check if there are too many individual assets to make generating individually is worthwhile.
             assets_to_generate = {
                 asset: [id for id in source_asset_table[asset]]
@@ -670,7 +666,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
             for asset in assets_to_generate:
                 asset_formats[asset] = ["all"]
 
-        log.debug(f"Assets will be generated in these formats: {asset_formats}.")
         # We will keep track of the assets that were successful to update cache at the end.
         successful_assets = []
         # generate assets by calling appropriate core functions :

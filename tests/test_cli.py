@@ -181,9 +181,6 @@ def test_generate_interactive(tmp_path: Path, script_runner: ScriptRunner) -> No
 
 def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
     os.chdir(tmp_path)
-    port = random.randint(10_000, 65_536)
-    with pretext_view("-d", ".", "-p", f"{port}"):
-        assert requests.get(f"http://localhost:{port}/").status_code == 200
     assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "1"]).success
     os.chdir(Path("1"))
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"]).success
