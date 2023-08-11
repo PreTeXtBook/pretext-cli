@@ -189,9 +189,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         return v
 
     # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
-    server: t.List[Server] = pxml.element(
-        default=[{"name": "asy", "url": "http://asymptote.ualberta.ca:10007"}]
-    )
+    server: t.List[Server] = pxml.element(default=[])
 
     @validator("server")
     def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
@@ -486,7 +484,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     assert self.compression is None
                     assert self.output_filename is None
                     # This is equivalent to setting `<platform host="runestone">` in the publication file.
-                    sp |= {"host-platform": "runestone"}
+                    sp.update({"host-platform": "runestone"})
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -871,7 +869,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
     )
 
     # See the docs on `Target.server`; they apply here as well.
-    server: t.List[Server] = pxml.element(default=[])
+    server: t.List[Server] = pxml.element(
+        default=[Server(name="asy", url="http://asymptote.ualberta.ca:10007")]
+    )
 
     @validator("server")
     def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
@@ -1093,11 +1093,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
             if target is None:
                 log.error(f"Target `{target_name}` not found.")
                 return
-            if target.format not in [
-                Format.HTML,
-                Format.RUNESTONE,
-            ]:  # redundant for CLI
-                log.error("Only HTML and Runestone format targets are supported.")
+            if target.format != Format.HTML:  # redundant for CLI
+                log.error("Only HTML targets are supported.")
                 return
             if not target.output_dir_abspath().exists():
                 log.error(
@@ -1112,7 +1109,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
             utils.publish_to_ghpages(target.output_dir_abspath(), update_source)
             return
         else:  # we now deploy multiple targets and the site directory
-            if not self.site_abspath().exists:
+            if not self.site_abspath().exists():
                 log.error(f"Site directory `{self.site}` not found.")
                 log.info(
                     f"You have `deploy-dir` or `site` (v2) elements in your project.ptx file, which requires you to maintain at least a simple landing page in the folder `{self.site}`. Either create this folder or remove the `deploy-dir` elements from your project.ptx file.\n"

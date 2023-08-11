@@ -83,7 +83,7 @@ script_launch_mode = "subprocess"
 [tool.mypy]
 # See `files <https://mypy.readthedocs.io/en/stable/config_file.html#confval-files>`_.
 files = "pretext,scripts,tests"
-exclude = "^pretext/core/pretext\\.py$"
+exclude = "(^pretext/core/pretext\\.py$)|(^pretext/project/oldinit\\.py$)"
 check_untyped_defs = true
 disallow_untyped_defs = true
 
