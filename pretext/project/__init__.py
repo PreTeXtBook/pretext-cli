@@ -484,7 +484,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     assert self.compression is None
                     assert self.output_filename is None
                     # This is equivalent to setting `<platform host="runestone">` in the publication file.
-                    sp |= {"host-platform": "runestone"}
+                    sp.update({"host-platform": "runestone"})
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
