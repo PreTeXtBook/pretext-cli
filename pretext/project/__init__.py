@@ -332,7 +332,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     def generate_asset_table(self) -> pt.AssetTable:
         asset_hash_dict: pt.AssetTable = {}
         for asset in constants.ASSET_TO_XPATH.keys():
-            asset_hash_dict[asset] = {}
             if asset == "webwork":
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
                 ww = self.source_element().xpath(".//webwork[@*|*]")
@@ -340,7 +339,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 if len(ww) == 0:
                     # Only generate a hash if there are actually ww exercises in the source
                     continue
+                asset_hash_dict[asset] = {}
                 h = hashlib.sha256()
+                print("still in for loop")
+                input()
                 for node in ww:
                     assert isinstance(node, ET._Element)
                     h.update(ET.tostring(node).strip())
@@ -357,6 +359,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     continue
 
                 # We will have a dictionary of id's that we will get their own hash:
+                asset_hash_dict[asset] = {}
                 hash_ids = {}
                 for node in source_assets:
                     assert isinstance(node, ET._Element)
