@@ -1,5 +1,4 @@
 import os
-import json
 from collections.abc import Generator
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
@@ -12,11 +11,7 @@ import socket
 import subprocess
 import logging
 import logging.handlers
-import threading
 import psutil
-import watchdog.events
-import watchdog.observers
-import time
 import webbrowser
 import typing as t
 from . import types as pt  # PreTeXt types
@@ -185,34 +180,6 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
             error_log_file.write(str(err.error_log))
         return False
     return True
-
-
-def cocalc_project_id() -> t.Optional[str]:
-    try:
-        with open("/home/user/.smc/info.json") as f:
-            return json.load(f)["project_id"]
-    except Exception:
-        return None
-
-
-# watchdog handler for watching changes to source
-class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
-    def __init__(self, callback: Callable[[], None]):
-        self.last_trigger_at = time.time() - 5
-        self.callback = callback
-
-    def on_any_event(self, event: watchdog.events.FileSystemEvent) -> None:
-        self.last_trigger_at = time.time()
-
-        # only run callback once triggers halt for a second
-        def timeout_callback(handler: "HTMLRebuildHandler") -> None:
-            time.sleep(1.5)
-            if time.time() > handler.last_trigger_at + 1:
-                handler.last_trigger_at = time.time()
-                log.info("\nChanges to source detected.\n")
-                handler.callback()
-
-        threading.Thread(target=timeout_callback, args=(self,)).start()
 
 
 # boilerplate to prevent overzealous caching by preview server, and
