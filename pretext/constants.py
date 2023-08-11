@@ -31,8 +31,8 @@ ASSET_TO_DIR = {
     "latex-image": ["latex-image"],
     "sageplot": ["sageplot"],
     "asymptote": ["asymptote"],
-    "youtube": ["youtube", "play-button", "qr-code"],
-    "interactive": ["preview", "qr-code"],
+    "youtube": ["youtube", "play-button", "qrcode"],
+    "interactive": ["preview", "qrcode"],
     "codelens": ["trace"],
     "datafile": ["datafile"],
 }
