@@ -341,8 +341,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     continue
                 asset_hash_dict[asset] = {}
                 h = hashlib.sha256()
-                print("still in for loop")
-                input()
                 for node in ww:
                     assert isinstance(node, ET._Element)
                     h.update(ET.tostring(node).strip())
