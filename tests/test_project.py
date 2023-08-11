@@ -87,7 +87,7 @@ def test_serve(tmp_path: Path) -> None:
         with open(dir / "index.html", "w") as index_file:
             print("<html></html>", file=index_file)
         assert (dir / "index.html").exists()
-        r = requests.get(f"http://localhost:{port}/index.html")
+        r = requests.get(f"http://localhost:{port}/{dir}/index.html")
         assert r.status_code == 200
         p.terminate()
 
