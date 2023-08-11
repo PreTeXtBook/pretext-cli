@@ -17,7 +17,7 @@ import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
-from typing import Any, cast, Callable, List, Optional
+from typing import Any, cast, List, Optional
 
 
 from . import core, templates, constants
