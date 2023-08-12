@@ -160,6 +160,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.xsl == Path("customizations")
         assert project._executables.xelatex == "xelatex"
         assert project._executables.liblouis == "foobar"
+        assert project.asy_method == "local"
 
         t_web = project.get_target("web")
         assert t_web.format == "html"
@@ -172,6 +173,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_web.site == Path("")
         assert t_web.xsl == Path("silly.xsl")
         assert t_web.stringparams == {}
+        assert t_web.asy_method == "server"
         assert sorted(t_web.server, key=lambda k: k.name) == [
             pr.Server(name="asy", url="http://example1.com"),
             pr.Server(name="sage", url="http://example2.com"),
@@ -192,6 +194,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
             "foo": "bar",
             "baz": "goo",
         }
+        assert t_print.asy_method == "local"
         assert sorted(t_print.server, key=lambda k: k.name) == [
             pr.Server(name="asy", url="http://example3.com"),
             pr.Server(name="sage", url="http://example2.com"),

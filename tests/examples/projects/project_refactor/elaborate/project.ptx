@@ -5,7 +5,8 @@
   publication="dont-touch"
   output-dir="build/here"
   site="build/staging"
-  xsl="customizations">
+  xsl="customizations"
+  asy-method="local">
   <server name="asy" url="http://example1.com"/>
   <server name="sage" url="http://example2.com"/>
   <targets>
@@ -15,7 +16,8 @@
       source="book.ptx"
       output-dir="web"
       site=""
-      xsl="silly.xsl" />
+      xsl="silly.xsl" 
+      asy-method="server"/>
     <target
       name="print"
       format="pdf"
