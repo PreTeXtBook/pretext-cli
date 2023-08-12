@@ -1012,9 +1012,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
             return None
         if name is None:
             # return default target
-            log.info(
-                f'Since no target was supplied, we will use "{self.targets[0].name}" (the first target in the project.ptx manifest).\n'
-            )
             return self.targets[0]
         try:
             # return first target matching the provided name
@@ -1037,6 +1034,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
         name: t.Optional[str] = None,
     ) -> "Target":
         t = self._get_target(name)
+        if name is None:
+            log.info(
+                f'Since no target was supplied, we will use "{t.name}".\n'
+            )
         assert t is not None
         return t
 
