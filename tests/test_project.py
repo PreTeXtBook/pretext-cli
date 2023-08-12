@@ -81,7 +81,7 @@ def test_serve(tmp_path: Path) -> None:
         p.start()
         time.sleep(1)
         assert not (dir / "index.html").exists()
-        r = requests.get(f"http://localhost:{port}/index.html")
+        r = requests.get(f"http://localhost:{port}/{dir}/index.html")
         assert r.status_code == 404
         dir.mkdir()
         with open(dir / "index.html", "w") as index_file:

@@ -5,6 +5,7 @@ import shutil
 import time
 import random
 import sys
+import pytest
 from pathlib import Path
 from contextlib import contextmanager
 import requests
@@ -186,13 +187,12 @@ def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"]).success
     port = random.randint(10_000, 65_536)
     with pretext_view("-p", f"{port}"):
-        assert requests.get(f"http://localhost:{port}/output/web").status_code == 200
-    # os.chdir(tmp_path)
-    # assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "2"]).success
-    # os.chdir(Path("2"))
-    # port = random.randint(10_000, 65_536)
-    # with pretext_view("-p", f"{port}", "-b", "-g", "-r"):
-    #     assert requests.get(f"http://localhost:{port}/").status_code == 200
+        r = requests.get(f"http://localhost:{port}")
+        assert r.status_code == 200
+        assert script_runner.run([PTX_CMD, "-v", "debug", "view", "-s"]).success
+        time.sleep(2)
+        with pytest.raises(requests.exceptions.ConnectionError):
+            r = requests.get(f"http://localhost:{port}")
 
 
 def test_custom_xsl(tmp_path: Path, script_runner: ScriptRunner) -> None:
