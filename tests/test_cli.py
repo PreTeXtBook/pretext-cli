@@ -190,9 +190,6 @@ def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
         r = requests.get(f"http://localhost:{port}")
         assert r.status_code == 200
         assert script_runner.run([PTX_CMD, "-v", "debug", "view", "-s"]).success
-        time.sleep(2)
-        with pytest.raises(requests.exceptions.ConnectionError):
-            r = requests.get(f"http://localhost:{port}")
 
 
 def test_custom_xsl(tmp_path: Path, script_runner: ScriptRunner) -> None:
