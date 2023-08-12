@@ -64,6 +64,12 @@ class Platform(str, Enum):
     RUNESTONE = "runestone"
 
 
+# Author can specify a method for asymptote generation.
+class AsyMethod(str, Enum):
+    LOCAL = "local"
+    SERVER = "server"
+
+
 # See `Target.server`.
 class ServerName(str, Enum):
     SAGE = "sage"
@@ -188,7 +194,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         assert v is None or Path(v).name == v
         return v
 
-    # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable. Settings for a given server name here override settings at the project level.
+    # The method for generating asymptote files. Overrides the project's `asy_method` if specified.
+    asy_method: t.Optional[AsyMethod] = pxml.attr(name="asy-method")
+
+    # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable, unless @asy-method is set to "local". Settings for a given server name here override settings at the project level.
     server: t.List[Server] = pxml.element(default=[])
 
     @validator("server")
@@ -236,6 +245,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 raise FileNotFoundError(
                     f"Provided publication file {p_full} does not exist."
                 )
+        # Pass `Project.asy_method` to `Target.asy_method` if it's not specified.
+        self.asy_method = self.asy_method or self._project.asy_method
 
         # Merge `Project.server` with `self.server`; entries in `self.server` take precedence.
         self_server_names = [server.name for server in self.server]
@@ -716,9 +727,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
-                            method=(
-                                "server" if self.server else "local"
-                            ),  # TODO: check this
+                            method=self.asy_method,
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
@@ -872,10 +881,13 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
         "targets", pxml.element(tag="target", default=[])
     )
 
-    # See the docs on `Target.server`; they apply here as well.
-    server: t.List[Server] = pxml.element(
-        default=[Server(name="asy", url="http://asymptote.ualberta.ca:10007")]
+    # The method for generating asymptote images can be specified at the project level, and overridden at the target level.
+    asy_method: t.Optional[AsyMethod] = pxml.attr(
+        name="asy-method", default=AsyMethod.SERVER
     )
+
+    # See the docs on `Target.server`; they apply here as well.
+    server: t.List[Server] = pxml.element(default=[])
 
     @validator("server")
     def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
