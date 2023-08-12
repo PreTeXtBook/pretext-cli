@@ -185,12 +185,14 @@ def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
     os.chdir(Path("1"))
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"]).success
     port = random.randint(10_000, 65_536)
+    port = 8128
     with pretext_view("-p", f"{port}"):
         assert requests.get(f"http://localhost:{port}/").status_code == 200
     os.chdir(tmp_path)
     assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "2"]).success
     os.chdir(Path("2"))
     port = random.randint(10_000, 65_536)
+    port = 8129
     with pretext_view("-p", f"{port}", "-b", "-g", "-r"):
         assert requests.get(f"http://localhost:{port}/").status_code == 200
 
