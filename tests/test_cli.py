@@ -5,7 +5,6 @@ import shutil
 import time
 import random
 import sys
-import pytest
 from pathlib import Path
 from contextlib import contextmanager
 import requests
