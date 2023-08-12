@@ -1,27 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project>
+<!--
+    This file, the project manifest, provides the overall configuration for
+    your PreTeXt project. To edit the content of your document, open
+    `source/main.ptx`. See
+    https://pretextbook.org/doc/guide/html/processing-CLI.html#cli-project-manifest.
+-->
+<project ptx-version="2">
   <targets>
-    <target name="web">
-      <format>custom</format>
-      <source>source/main.ptx</source>
-      <publication>publication/publication.ptx</publication>
-      <xsl>xsl/slides.xsl</xsl>
-      <output-dir>output/web</output-dir>
-      <output-filename>slides.html</output-filename>
-    </target>
+    <target
+      name="web"
+      format="custom"
+      xsl="slides.xsl"
+      output-filename="slides.html"
+    />
   </targets>
-  <executables>
-      <latex>latex</latex>
-      <pdflatex>pdflatex</pdflatex>
-      <xelatex>xelatex</xelatex>
-      <pdfsvg>pdf2svg</pdfsvg>
-      <asy>asy</asy>
-      <sage>sage</sage>
-      <pdfpng>convert</pdfpng>
-      <pdfeps>pdftops</pdfeps>
-      <pdfcrop>pdf-crop-margins</pdfcrop>
-      <pageres>pageres</pageres>
-      <node>node</node>
-      <liblouis>file2brl</liblouis>
-    </executables>
 </project>

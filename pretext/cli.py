@@ -1,6 +1,7 @@
 import logging
 import logging.handlers
 import sys
+import time
 import click
 import click_log
 import shutil
@@ -14,8 +15,7 @@ import platform
 from pathlib import Path
 import atexit
 import subprocess
-from typing import List, Literal, Optional, Tuple
-from .config import xml_overlay
+from typing import List, Literal, Optional
 
 from . import (
     utils,
@@ -25,9 +25,9 @@ from . import (
     VERSION,
     CORE_COMMIT,
 )
-from .project import Project
-from .project.refactor import Project as ProjectRefactor
 
+
+from .project import Project, Format
 
 log = logging.getLogger("ptxlogger")
 click_log.basic_config(log)
@@ -78,29 +78,9 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
-        try:
-            ProjectRefactor.parse(pp)
-            log.info(
-                "------------------------------------\n Good news: \n Your project.ptx file is ready for\n the 2.0.0 release of PreTeXt-CLI.\n------------------------------------\n"
-            )
-        except Exception as e:
-            log.warning(
-                "Your project.ptx or publication file may not be compatible with the "
-                + "upcoming 2.0.0 release of PreTeXt-CLI."
-            )
-            log.warning(
-                "For more information or to help us fix a possible bug, please visit"
-            )
-            log.warning("    https://groups.google.com/g/pretext-support/c/bwf51qOoT9c")
-            log.warning(
-                "and share the result of running `pretext support` on your machine with us."
-            )
-            log.info("")
-            log.warning(f"Exception info: {e}")
-            log.info("")
-            log.warning("Continuing with current version...")
         if targets:
-            Project().print_target_names()
+            for target in Project.parse(pp).target_names():
+                print(target)
             return
         # create file handler which logs even debug messages
         fh = logging.FileHandler(pp / "cli.log", mode="w")
@@ -164,23 +144,12 @@ def support() -> None:
         log.info("------------------------")
         log.info(utils.project_xml_string())
         log.info("------------------------")
-        try:
-            ProjectRefactor.parse()
-            log.info(
-                "Your project.ptx file will be compatible with the upcoming 2.0.0 release of PreTeXt-CLI."
-            )
-        except Exception as e:
-            log.warning(
-                "Your project.ptx or publication file may not be compatible with the "
-                + "upcoming 2.0.0 release of PreTeXt-CLI."
-            )
-            log.info("")
-            log.warning(f"Exception info: {e}")
-            log.info("")
-        project = Project()
-        project.init_ptxcore()
-        log.info("------------------------")
-        for exec_name in project.executables():
+
+        # Create a project from the project.ptx file
+        project = Project.parse()
+        project.init_core()
+
+        for exec_name in project.get_executables().dict():
             if utils.check_executable(exec_name) is None:
                 log.warning(
                     f"Unable to locate the command for <{exec_name}> on your system."
@@ -361,7 +330,7 @@ def init(refresh: bool) -> None:
     flag_value="ALL",
     default=None,
     type=click.Choice(constants.ASSETS, case_sensitive=False),
-    help="Generates assets for target.  -g [asset] will generate the specific assets given.",
+    help="Force (re)generates assets for target.  -g [asset] will generate the specific assets given.",
 )
 @click.option(
     "-q",
@@ -371,14 +340,10 @@ def init(refresh: bool) -> None:
     help="Do not generate assets for target, even if their source has changed since last build.",
 )
 @click.option(
-    "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
-)
-@click.option(
-    "-p",
-    "--project-ptx-override",
-    type=(str, str),
-    multiple=True,
-    help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
+    "-x",
+    "--xmlid",
+    type=click.STRING,
+    help="xml:id of the root of the subtree to be built.",
 )
 def build(
     target_name: str,
@@ -386,7 +351,6 @@ def build(
     generate: str,
     no_generate: bool,
     xmlid: Optional[str],
-    project_ptx_override: Tuple[Tuple[str, str], ...],
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -399,98 +363,47 @@ def build(
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
 
-    # Add xmlid value to project_ptx_override (a tuple of tuples)
-    if xmlid:
-        project_ptx_override += (("targets.target.xmlid-root", xmlid),)
-    overlay = xml_overlay.ShadowXmlDocument()
-    for path, value in project_ptx_override:
-        overlay.upsert_node_or_attribute(path, value)
+    # Set up project and target based on command line arguments and project.ptx
 
+    # Supply help if not in project subfolder
     if utils.no_project(task="build"):
         return
-    project = Project()
-    if len(project_ptx_override) > 0:
-        messages = project.apply_overlay(overlay)
-        for message in messages:
-            log.info("project.ptx overlay " + message)
-    target = project.target(name=target_name)
-    if target_name is None:
-        log.info(
-            f"Since no build target was supplied, the first target of the project.ptx manifest ({target.name()}) will be built.\n"
-        )
-        target_name = target.name()
-    if target is None:
+    # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
+    project = Project.parse()
+    # Now create the target if the target_name is not missing.
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
+        log.debug(e, exc_info=True)
         return
-    # First, make sure a webwork-representations file exists if needed:
-    if target.needs_ww_reps() and not target.has_ww_reps():
-        log.info(
-            "This target needs a webwork-representations.xml file, but it wasn't found (possibly manually deleted?).  Generating it now."
-        )
-        project.generate_webwork(target.name(), xmlid=xmlid)
-    # Automatically generate any assets that have changed.
-    if not no_generate:
-        asset_table = target.load_asset_table()
-        asset_hash_dict = target.asset_hash()
-        if asset_table == asset_hash_dict:
-            log.info(
-                "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
-            )
-        else:
-            if ("webwork", "") not in asset_table or asset_hash_dict[
-                ("webwork", "")
-            ] != asset_table[("webwork", "")]:
-                project.generate_webwork(target.name(), xmlid=xmlid)
-            assets = set(asset[0] for asset in asset_hash_dict.keys())
-            assets.discard("webwork")
-            for asset in assets:
-                if (asset, "") not in asset_table or asset_hash_dict[
-                    (asset, "")
-                ] != asset_table[(asset, "")]:
-                    project.generate(target.name(), asset_list=[asset])
-                else:
-                    for id in set(
-                        key[1] for key in asset_hash_dict.keys() if key[0] == asset
-                    ):
-                        if (asset, id) not in asset_table or asset_hash_dict[
-                            (asset, id)
-                        ] != asset_table[(asset, id)]:
-                            log.info(
-                                f"\nIt appears the source has changed of an asset that needs to be generated.  Now generating asset: {asset} with xmlid: {id}."
-                            )
-                            project.generate(
-                                target.name(), asset_list=[asset], xmlid=id
-                            )
-            target.save_asset_table(target.asset_hash())
-    else:
-        log.info("Skipping asset generation as requested.")
-    if generate == "ALL":
-        log.info("Generating all assets in default formats as requested.")
-        log.info(
-            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
-        )
-        project.generate_webwork(target.name(), xmlid=xmlid)
-        project.generate(target.name(), xmlid=xmlid)
-    elif generate is not None:
-        log.info(f"Generating {generate} assets as requested.")
-        log.info(
-            "Note: PreTeXt will automatically generate assets that have been changed since your last build, so this option is no longer necessary unless something isn't happening as expected."
-        )
-        if "webwork" in generate:
-            project.generate_webwork(target.name(), xmlid=xmlid)
-        project.generate(target.name(), asset_list=[generate], xmlid=xmlid)
-    # Now finally build the target
-    project.build(target.name(), clean)
+
+    # Call generate if flag is set
+    if generate:
+        try:
+            target.generate_assets(only_changed=False, xmlid=xmlid)
+        except Exception as e:
+            log.debug(f"Failed to generate assets: {e}", exc_info=True)
+    # Call build
+    try:
+        log.debug(f"Building target {target.name} with root of tree below {xmlid}")
+        target.build(clean=clean, no_generate=no_generate, xmlid=xmlid)
+        log.info("\nSuccess! Run `pretext view` to see the results.\n")
+    except Exception as e:
+        log.critical(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        sys.exit("Failed to build.  Exiting...")
 
 
 # pretext generate
 @main.command(
-    short_help="Generate specified assets for specified target",
+    short_help="Generate specified assets for default target or targets specified by `-t`",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument(
-    "assets", default="ALL", type=click.Choice(constants.ASSETS, case_sensitive=False)
+    "assets", type=click.Choice(constants.ASSETS, case_sensitive=False), nargs=-1
 )
 @click.option(
     "-t",
@@ -503,24 +416,24 @@ def build(
     "-x", "--xmlid", type=click.STRING, help="xml:id of element to be generated."
 )
 @click.option(
+    "-q",
+    "--only-changed",
+    is_flag=True,
+    default=False,
+    help="Limit generation of assets to only those that have changed since last call to pretext.",
+)
+@click.option(
     "--all-formats",
     is_flag=True,
     default=False,
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
-@click.option(
-    "-p",
-    "--project-ptx-override",
-    type=(str, str),
-    multiple=True,
-    help=xml_overlay.USAGE_DESCRIPTION.format("-p"),
-)
 def generate(
-    assets: str,
+    assets: List[str],
     target_name: Optional[str],
     all_formats: bool,
+    only_changed: bool,
     xmlid: Optional[str],
-    project_ptx_override: Tuple[Tuple[str, str], ...],
 ) -> None:
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
@@ -532,56 +445,41 @@ def generate(
     to non-Python executables may be set in project.ptx. For more details,
     consult the PreTeXt Guide: https://pretextbook.org/documentation.html
     """
+
+    # If no assets are given as arguments, then assume 'ALL'
+    if assets == ():
+        assets = ["ALL"]
+
     if utils.no_project(task="generate assets for"):
         return
 
-    overlay = xml_overlay.ShadowXmlDocument()
-    for path, value in project_ptx_override:
-        overlay.upsert_node_or_attribute(path, value)
-
-    project = Project()
-    if len(project_ptx_override) > 0:
-        messages = project.apply_overlay(overlay)
-        for message in messages:
-            log.info("project.ptx overlay " + message)
-    target = project.target(name=target_name)
-    if target is None:
+    project = Project.parse()
+    # Now create the target if the target_name is not missing.
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="generating assets for")
-        log.critical("Exiting without generating any assets.")
+        log.critical("Exiting without completing build.")
+        log.debug(e, exc_info=True)
         return
-    if target_name is None:
-        log.info(
-            f"Since no target was specified with the -t flag, we will generate assets for the first target in the manifest ({target.name()})."
+
+    try:
+        f'Generating assets in for the target "{target.name}".'
+        target.generate_assets(
+            specified_asset_types=assets,
+            all_formats=all_formats,
+            only_changed=only_changed,  # Unless requested, generate all assets, so don't check the cache.
+            xmlid=xmlid,
         )
-    if "webwork" in assets or assets == "ALL":
-        project.generate_webwork(target.name(), xmlid=xmlid)
-    if all_formats and assets == "ALL":
-        log.info(
-            f'Generating all assets in all asset formats for the target "{target.name()}".'
-        )
-        project.generate(target.name(), all_formats=True, xmlid=xmlid)
-    elif all_formats:
-        log.info(
-            f'Generating only {assets} assets in all asset formats for the target "{target.name()}".'
-        )
-        project.generate(
-            target.name(), asset_list=[assets], all_formats=True, xmlid=xmlid
-        )
-    elif assets == "ALL":
-        log.info(
-            f'Generating all assets in default formats for the target "{target.name()}".'
-        )
-        project.generate(target.name(), xmlid=xmlid)
-    else:
-        log.info(
-            f'Generating only {assets} assets in default formats for the target "{target.name()}".'
-        )
-        project.generate(target.name(), asset_list=[assets], xmlid=xmlid)
+        log.info("Finished generating assets.\n")
+    except Exception as e:
+        log.critical(e)
+        log.debug("Exception info:\n##################\n", exc_info=True)
+        log.info("##################")
+        sys.exit("Generating assets as failed.  Exiting...")
 
 
 # pretext view
-
-
 @main.command(
     short_help="Preview specified target based on its format.",
     context_settings=CONTEXT_SETTINGS,
@@ -596,8 +494,7 @@ def generate(
     help="""
     If running a local server,
     choose whether or not to allow other computers on your local network
-    to access your documents using your IP address. (Ignored when used
-    in CoCalc, which works automatically.)
+    to access your documents using your IP address.
     """,
 )
 @click.option(
@@ -612,27 +509,6 @@ def generate(
     """,
 )
 @click.option(
-    "-d",
-    "--directory",
-    type=click.Path(),
-    help="""
-    Run local server for provided directory (does not require a PreTeXt project)
-    """,
-)
-@click.option(
-    "-w",
-    "--watch",
-    is_flag=True,
-    help="""
-    Run a build before starting server, and then
-    watch the status of source files,
-    automatically rebuilding target when changes
-    are made. Only supports HTML-format targets, and
-    only recommended for smaller projects or small
-    subsets of projects.
-    """,
-)
-@click.option(
     "-b",
     "--build",
     is_flag=True,
@@ -643,71 +519,108 @@ def generate(
 @click.option(
     "-g",
     "--generate",
-    is_flag=False,
-    flag_value="ALL",
-    default=None,
-    type=click.Choice(constants.ASSETS, case_sensitive=False),
-    help="Generate all or specific assets before viewing",
+    is_flag=True,
+    help="Generate all assets before viewing",
 )
 @click.option(
     "--no-launch",
     is_flag=True,
     help="By default, pretext view tries to launch the default application to view the specified target.  Setting this suppresses this behavior.",
 )
+@click.option(
+    "-r",
+    "--restart-server",
+    is_flag=True,
+    default=False,
+    help="Force restart the local http server in case it is already running.",
+)
+@click.option(
+    "-s",
+    "--stop-server",
+    is_flag=True,
+    default=False,
+    help="Stop the local http server if running.",
+)
 def view(
     target_name: str,
     access: Literal["public", "private"],
     port: Optional[int],
-    directory: Optional[str],
-    watch: bool,
     build: bool,
     generate: Optional[str],
     no_launch: bool,
+    restart_server: bool,
+    stop_server: bool,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
-    TARGET is the name of the <target/> defined in `project.ptx`.
+    TARGET is the name of a <target/> defined in `project.ptx` (defaults to the first target).
+
+    After running this command, you can switch to a new terminal to rebuild your project and see the changes automatically reflected in your browser.
+
+    If a server is already running, no new server will be started (nor will it need to be), unless you pass the `--restart-server` flag. You can stop a running server with CTRL+C or by passing the `--stop-server` flag.
     """
-    if directory is not None:
-        if utils.cocalc_project_id() is not None:
-            try:
-                subdir = Path(directory).relative_to(Path.home())
-            except ValueError:
-                subdir = Path()
-            log.info("Directory can be previewed at the following link at any time:")
-            log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
-            return
-        port = port or 8000
-        utils.run_server(Path(directory), access, port, no_launch=no_launch)
+
+    # pretext view -s should immediately stop the server and do nothing else.
+    if stop_server:
+        log.info("\nStopping server.")
+        utils.stop_server()
         return
     if utils.no_project(task="view the output for"):
         return
-    project = Project()
-    target = project.target(name=target_name)
-    if target is None:
+    project = Project.parse()
+    try:
+        target = project.get_target(name=target_name)
+    except AssertionError as e:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
+        log.debug(e, exc_info=True)
         return
-    # Easter egg to spin up a local server at a specified directory:
-    if utils.cocalc_project_id() is not None:
+
+    # Call generate if flag is set
+    if generate:
         try:
-            subdir = target.output_dir().relative_to(Path.home())
-        except ValueError:
-            subdir = Path()
-        log.info("Built project can be previewed at the following link at any time:")
-        log.info(f"    https://cocalc.com/{utils.cocalc_project_id()}/raw/{subdir}")
-        return
-    port = port or target.port()
-    if generate == "ALL":
-        log.info("Generating all assets in default formats.")
-        project.generate(target_name)
-    elif generate is not None:
-        log.warning(f"Generating only {generate} assets.")
-        project.generate(target_name, asset_list=[generate])
-    if build or watch:
-        log.info("Building target.")
-        project.build(target_name)
-    project.view(target_name, access, port, watch, no_launch)
+            target.generate_assets(only_changed=False)
+        except Exception as e:
+            log.info(f"Failed to generate assets: {e}")
+            log.debug("", exc_info=True)
+    # Call build if flag is set
+    if build:
+        try:
+            target.build()
+        except Exception as e:
+            log.info(f"Failed to build: {e}")
+            log.debug("Exception info:\n##################\n", exc_info=True)
+    # Start server if there isn't one running already:
+    used_port = utils.server_is_running()
+    if port or restart_server or not used_port:
+        # First terminate the running server
+        if used_port:
+            utils.stop_server(used_port)
+        # Start the server
+        log.info("Starting server.")
+        server = project.server_process(
+            output_dir=target.output_dir_abspath(),
+            access=access,
+            port=port or 8128,
+            launch=not no_launch,
+        )
+        server.start()
+        try:
+            while server.is_alive():
+                time.sleep(1)
+        except KeyboardInterrupt:
+            log.info("Stopping server.")
+            server.terminate()
+            return
+    else:
+        url = (
+            "http://localhost:"
+            + str(used_port)
+            + target.output_dir_abspath()
+            .as_posix()
+            .replace(project.abspath().as_posix(), "")
+        )
+        log.info(f"Viewing output for {target.name} at {url}")
 
 
 # pretext deploy
@@ -716,32 +629,25 @@ def view(
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument("target_name", metavar="target", required=False)
-@click.option(
-    "-s",
-    "--site",
-    required=False,
-    default="site",
-    help="Relative path to a directory containing html for a landing page.",
-)
 @click.option("-u", "--update_source", is_flag=True, required=False)
-def deploy(target_name: str, site: str, update_source: bool) -> None:
+def deploy(target_name: str, update_source: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
     Requires that your project is under Git version control
     properly configured with GitHub and GitHub Pages. Deployed
-    files will live in `docs` subdirectory of project.
+    files will live in the gh-pages branch of your repository.
     """
     if utils.no_project(task="deploy"):
         return
-    project = Project()
-    target = project.target(name=target_name)
-    if target is None or target.format() != "html":
+    project = Project.parse()
+    target = project.get_target(name=target_name)
+    if target.format != Format.HTML:
         log.critical("Target could not be found in project.ptx manifest.")
         # only list targets with html format.
         log.critical(
-            f"Possible html targets to deploy are: {project.target_names('html')}"
+            f"Possible HTML targets to deploy are: {project.target_names(Format.HTML)}"
         )
         log.critical("Exiting without completing task.")
         return
-    project.deploy(target_name, site, update_source)
+    project.deploy(target_name, update_source)

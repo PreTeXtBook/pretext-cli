@@ -24,7 +24,7 @@ def pretext_view(*args: str) -> Generator:
     process = subprocess.Popen(
         [PTX_CMD, "-v", "debug", "view", "--no-launch"] + list(args)
     )
-    time.sleep(3)  # stall for possible build
+    time.sleep(5)  # stall for possible build
     try:
         yield process
     finally:
@@ -68,6 +68,17 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces], cwd=tmp_path
     ).success
+
+    # Do a subset build before the main build, to check that not everything is built on the subset.
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "ch-first-without-spaces"],
+        cwd=project_path,
+    ).success
+    assert (project_path / "output" / "web").exists()
+    assert not (project_path / "output" / "web" / "ch-empty.html").exists()
+    assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
+
+    # Do a full build.
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "web"], cwd=project_path
     ).success
@@ -100,15 +111,8 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         ],
         "source/backmatter.ptx": ["backmatter"],
     }
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "subset", "-x", "ch-first-without-spaces"],
-        cwd=project_path,
-    ).success
-    assert (project_path / "output" / "subset").exists()
-    assert not (project_path / "output" / "subset" / "ch-empty.html").exists()
-    assert (
-        project_path / "output" / "subset" / "ch-first-without-spaces.html"
-    ).exists()
+
+    # Build other targets.
     assert script_runner.run(
         [PTX_CMD, "build", "print-latex"], cwd=project_path
     ).success
@@ -177,21 +181,14 @@ def test_generate_interactive(tmp_path: Path, script_runner: ScriptRunner) -> No
 
 def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
     os.chdir(tmp_path)
-    port = random.randint(10_000, 65_536)
-    with pretext_view("-d", ".", "-p", f"{port}"):
-        assert requests.get(f"http://localhost:{port}/").status_code == 200
     assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "1"]).success
     os.chdir(Path("1"))
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"]).success
     port = random.randint(10_000, 65_536)
     with pretext_view("-p", f"{port}"):
-        assert requests.get(f"http://localhost:{port}/").status_code == 200
-    os.chdir(tmp_path)
-    assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "2"]).success
-    os.chdir(Path("2"))
-    port = random.randint(10_000, 65_536)
-    with pretext_view("-p", f"{port}", "-b", "-g"):
-        assert requests.get(f"http://localhost:{port}/").status_code == 200
+        r = requests.get(f"http://localhost:{port}")
+        assert r.status_code == 200
+        assert script_runner.run([PTX_CMD, "-v", "debug", "view", "-s"]).success
 
 
 def test_custom_xsl(tmp_path: Path, script_runner: ScriptRunner) -> None:

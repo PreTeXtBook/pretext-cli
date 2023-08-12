@@ -1,6 +1,4 @@
 import os
-import random
-import json
 from collections.abc import Generator
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
@@ -13,16 +11,14 @@ import socket
 import subprocess
 import logging
 import logging.handlers
-import multiprocessing
-import threading
-import watchdog.events
-import watchdog.observers
-import time
+import psutil
 import webbrowser
 import typing as t
+from . import types as pt  # PreTeXt types
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
-from typing import Any, cast, Callable, List, Optional
+from typing import Any, cast, List, Optional
+
 
 from . import core, templates, constants
 
@@ -186,34 +182,6 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
     return True
 
 
-def cocalc_project_id() -> t.Optional[str]:
-    try:
-        with open("/home/user/.smc/info.json") as f:
-            return json.load(f)["project_id"]
-    except Exception:
-        return None
-
-
-# watchdog handler for watching changes to source
-class HTMLRebuildHandler(watchdog.events.FileSystemEventHandler):
-    def __init__(self, callback: Callable[[], None]):
-        self.last_trigger_at = time.time() - 5
-        self.callback = callback
-
-    def on_any_event(self, event: watchdog.events.FileSystemEvent) -> None:
-        self.last_trigger_at = time.time()
-
-        # only run callback once triggers halt for a second
-        def timeout_callback(handler: "HTMLRebuildHandler") -> None:
-            time.sleep(1.5)
-            if time.time() > handler.last_trigger_at + 1:
-                handler.last_trigger_at = time.time()
-                log.info("\nChanges to source detected.\n")
-                handler.callback()
-
-        threading.Thread(target=timeout_callback, args=(self,)).start()
-
-
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
 def binding_for_access(access: t.Literal["public", "private"] = "private") -> str:
@@ -233,12 +201,15 @@ def url_for_access(
 
 
 def serve_forever(
-    directory: Path,
+    base_dir: Path,
+    output_dir: Path,
     access: t.Literal["public", "private"] = "private",
-    port: int = 8000,
+    port: int = 8128,
     no_launch: bool = False,
 ) -> None:
-    log.info(f"Now preparing local server to preview directory `{directory}`.")
+    log.info(
+        f"Now preparing local server to preview your project directory `{base_dir}`."
+    )
     log.info(
         "  (Reminder: use `pretext deploy` to deploy your built project to a public"
     )
@@ -251,7 +222,7 @@ def serve_forever(
 
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args: Any, **kwargs: Any):
-            super().__init__(*args, directory=directory.as_posix(), **kwargs)
+            super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
 
         """HTTP request handler with no caching"""
 
@@ -273,6 +244,7 @@ def serve_forever(
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
                 url = url_for_access(access, port)
+                url += output_dir.as_posix().replace(base_dir.as_posix(), "")
                 log.info(
                     "Success! The most recent build of your project can be viewed in a web browser at the following url:"
                 )
@@ -280,51 +252,14 @@ def serve_forever(
                 if not no_launch:
                     log.info("This page should open in a new tab automatically.")
                     webbrowser.open(url)
-                log.info("Use [Ctrl]+[C] to halt the server.\n")
+                log.info(
+                    "Use [Ctrl]+[C] to halt the server.\nYou can run pretext commands in another terminal while the server is running.\n`pretext view -s` will also halt the server\n"
+                )
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")
-            port = random.randint(49152, 65535)
+            port += 1
             log.warning(f"Trying port {port} instead.\n")
-
-
-def run_server(
-    directory: Path,
-    access: t.Literal["public", "private"],
-    port: int,
-    watch_directory: t.Optional[Path] = None,
-    watch_callback: Callable[[], None] = lambda: None,
-    no_launch: bool = False,
-) -> None:
-    threading.Thread(
-        target=lambda: serve_forever(directory, access, port, no_launch), daemon=True
-    ).start()
-    if watch_directory is not None:
-        log.info(f"\nWatching for changes in `{watch_directory}` ...\n")
-        event_handler = HTMLRebuildHandler(watch_callback)
-        observer = watchdog.observers.Observer()
-        observer.schedule(event_handler, watch_directory, recursive=True)
-        observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        log.info("\nClosing server...")
-        if watch_directory is not None:
-            observer.stop()
-    if watch_directory is not None:
-        observer.join()
-
-
-def server_process(
-    directory: Path,
-    access: t.Literal["public", "private"],
-    port: int,
-    launch: bool = True,
-) -> multiprocessing.Process:
-    return multiprocessing.Process(
-        target=serve_forever, args=[directory, access, port, not launch]
-    )
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
@@ -391,12 +326,12 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             "Linux": "You should be able to install pdf2svg with your package manager (e.g., `sudo apt install pdf2svg`.  See https://github.com/dawbarton/pdf2svg#pdf2svg.",
         },
         "pdfpng": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
         "pdfeps": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
@@ -406,7 +341,7 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             "Linux": "See https://doc.sagemath.org/html/en/installation/index.html#linux",
         },
         "pageres": {
-            "Windows": "See https:// pretextbook.org/doc/guide/html/windows-cli-software.html",
+            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",
         },
@@ -418,6 +353,26 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
             )
             # print installation hints based on operating system and missing program.
             log.info(install_hints[required_exec][platform.system()])
+
+
+def clean_asset_table(
+    dirty_table: pt.AssetTable, clean_table: pt.AssetTable
+) -> pt.AssetTable:
+    """
+    Removes any assets from the dirty_table that are not in the clean_table.
+    """
+    # First purge any asset types that are no longer in the clean table:
+    dirty_table = {
+        asset: dirty_table[asset] for asset in dirty_table if asset in clean_table
+    }
+    # Then purge ids of assets that no longer exist in the clean table:
+    for asset in dirty_table:
+        dirty_table[asset] = {
+            id: dirty_table[asset][id]
+            for id in dirty_table[asset]
+            if id in clean_table[asset]
+        }
+    return dirty_table
 
 
 def no_project(task: str) -> bool:
@@ -445,7 +400,7 @@ def show_target_hints(
     This will give the user hints about why they have provided a bad target and make helpful suggestions for them to fix the problem.  We will only run this function when the target_name is not the name in any target in project.ptx.
     """
     # just in case this was called in the wrong place:
-    if project.target(name=target_format) is not None:
+    if project.has_target(name=target_format):
         return
     # Otherwise continue with hints:
     log.critical(
@@ -676,3 +631,52 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     log.info("")
     log.info("Your built project will soon be available to the public at:")
     log.info(f"    {pages_url}")
+
+
+def server_is_running() -> t.Optional[int]:
+    """
+    Check if a pretext-view server is running already, and if so, return its port number.
+    """
+    # We look at all currently running processes and check if any are a pretext process that is a child of a pretext process.  This would only happen if we have run a `pretext view` command to start the server, so we can assume that this is the server we are looking for.
+    for proc in psutil.process_iter():
+        if proc.name() == "pretext" and proc.parent().name() == "pretext":
+            log.debug(f"Found pretext server running with pid {proc.pid}")
+            # Sometimes the process stops but doesn't get removed from the process list.  We check if the process is still running by checking its status.
+            if proc.status() not in [psutil.STATUS_RUNNING, psutil.STATUS_SLEEPING]:
+                log.debug("Server is stopped.")
+                return None
+            # To get the port number, we look at the connections the process has open.  We assume that the server is running on the first port that is open.
+            try:
+                port = proc.connections()[0].laddr.port
+                log.debug(f"Server is running on port {port}")
+                return port
+            except Exception as e:
+                log.debug(f"Could not get port number. Exception: {e}", exc_info=True)
+    log.debug("No pretext server found running.")
+    return None
+
+
+def stop_server(port: t.Optional[int] = None) -> None:
+    """
+    Terminate a server running in the background.
+    """
+    # If a port was passed, we look for a "pretext" process that has a connection on that port, and kill it if we find it.
+    if port is not None:
+        log.debug(f"Terminating server running on port {port}")
+        for proc in psutil.process_iter():
+            if len(proc.connections()) > 0:
+                if (
+                    proc.name() == "pretext"
+                    and proc.parent().name() == "pretext"
+                    and proc.connections()[0].laddr.port == port
+                ):
+                    log.debug(
+                        f"Terminating process with PID {proc.pid} hosting on port {port}"
+                    )
+                    proc.terminate()
+    else:
+        # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
+        for proc in psutil.process_iter():
+            if proc.name() == "pretext" and proc.parent().name() == "pretext":
+                log.debug(f"Terminating process with PID {proc.pid}")
+                proc.terminate()

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project ptx-version="2">
   <targets>
-    <target name="web" format="html" />
-    <target name="print" format="pdf" />
+    <target name="web" format="html"/>
+    <target name="rs" format="html" platform="runestone"/>
+    <target name="print" format="pdf"/>
   </targets>
 </project>
