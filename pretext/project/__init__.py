@@ -1034,11 +1034,11 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
         name: t.Optional[str] = None,
     ) -> "Target":
         t = self._get_target(name)
+        assert t is not None
         if name is None:
             log.info(
                 f'Since no target was supplied, we will use "{t.name}".\n'
             )
-        assert t is not None
         return t
 
     def target_names(self, *args: str) -> t.List[str]:
