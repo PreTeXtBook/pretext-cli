@@ -750,6 +750,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     log.debug(f"Unable to generate some sageplot images: {e}")
 
         if "interactive" in assets_to_generate:
+            # Ensure playwright is installed:
+            utils.playwright_install()
             for id in assets_to_generate["interactive"]:
                 try:
                     core.preview_images(

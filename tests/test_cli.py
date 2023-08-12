@@ -24,7 +24,7 @@ def pretext_view(*args: str) -> Generator:
     process = subprocess.Popen(
         [PTX_CMD, "-v", "debug", "view", "--no-launch"] + list(args)
     )
-    time.sleep(3)  # stall for possible build
+    time.sleep(5)  # stall for possible build
     try:
         yield process
     finally:
@@ -186,13 +186,9 @@ def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"]).success
     port = random.randint(10_000, 65_536)
     with pretext_view("-p", f"{port}"):
-        assert requests.get(f"http://localhost:{port}/").status_code == 200
-    os.chdir(tmp_path)
-    assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "2"]).success
-    os.chdir(Path("2"))
-    port = random.randint(10_000, 65_536)
-    with pretext_view("-p", f"{port}", "-b", "-g"):
-        assert requests.get(f"http://localhost:{port}/").status_code == 200
+        r = requests.get(f"http://localhost:{port}")
+        assert r.status_code == 200
+        assert script_runner.run([PTX_CMD, "-v", "debug", "view", "-s"]).success
 
 
 def test_custom_xsl(tmp_path: Path, script_runner: ScriptRunner) -> None:

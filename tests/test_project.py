@@ -81,7 +81,7 @@ def test_serve(tmp_path: Path) -> None:
         p.start()
         time.sleep(1)
         assert not (dir / "index.html").exists()
-        r = requests.get(f"http://localhost:{port}/index.html")
+        r = requests.get(f"http://localhost:{port}/{dir}/index.html")
         assert r.status_code == 404
         dir.mkdir()
         with open(dir / "index.html", "w") as index_file:
@@ -212,7 +212,7 @@ def test_manifest_elaborate_build(tmp_path: Path) -> None:
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
         if HAS_XELATEX:
             project.get_target("print").build()
-            assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()
+            assert (prj_path / "build" / "here" / "my-pdf" / "out.pdf").exists()
 
 
 def test_manifest_legacy() -> None:
