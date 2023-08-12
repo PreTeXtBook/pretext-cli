@@ -22,6 +22,7 @@ from .. import templates
 
 log = logging.getLogger("ptxlogger")
 
+
 class Format(str, Enum):
     HTML = "html"
     LATEX = "latex"
