@@ -667,6 +667,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
             if len(proc.connections()) > 0:
                 if (
                     proc.name() == "pretext"
+                    and proc.parent().name() == "pretext"
                     and proc.connections()[0].laddr.port == port
                 ):
                     log.debug(

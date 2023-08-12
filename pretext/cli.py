@@ -592,8 +592,9 @@ def view(
     # Start server if there isn't one running already:
     used_port = utils.server_is_running()
     if port or restart_server or not used_port:
-        # First terminate any server that might be running
-        utils.stop_server(port)
+        # First terminate the running server
+        if used_port:
+            utils.stop_server(used_port)
         # Start the server
         log.info("Starting server.")
         server = project.server_process(
