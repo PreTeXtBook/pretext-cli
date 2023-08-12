@@ -493,19 +493,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 if self.output_filename is not None
                 else None
             )
+            # The copy allows us to modify string params below without affecting the original.
+            string_params_copy = self.stringparams.copy()
             if self.format == Format.HTML:
-                # The copy allows us to modify these for the Runestone format below without affecting the original.
-                sp = self.stringparams.copy()
                 if self.platform == Platform.RUNESTONE:
                     # The validator guarantees this.
                     assert self.compression is None
                     assert self.output_filename is None
                     # This is equivalent to setting `<platform host="runestone">` in the publication file.
-                    sp.update({"host-platform": "runestone"})
+                    string_params_copy.update({"host-platform": "runestone"})
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=sp,
+                    stringparams=string_params_copy,
                     xmlid_root=xmlid,
                     file_format=self.compression or "html",
                     extra_xsl=custom_xsl,
@@ -521,7 +521,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
@@ -531,7 +531,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                 core.latex(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
@@ -544,7 +544,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="svg",
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                 )
             elif self.format == Format.KINDLE:
                 utils.npm_install()
@@ -554,7 +554,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="kindle",
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                 )
             elif self.format == Format.BRAILLE:
                 log.warning(
@@ -567,25 +567,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     page_format=self.braille_mode,
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                 )
             elif self.format == Format.WEBWORK:
                 core.webwork_sets(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     tgz=self.compression,
                 )
             elif self.format == Format.CUSTOM:
                 # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
-                self.stringparams["publisher"] = self.publication_abspath().as_posix()
+                string_params_copy["publisher"] = self.publication_abspath().as_posix()
                 core.xsltproc(
                     xsl=custom_xsl,
                     xml=self.source_abspath(),
                     result=out_file,
                     output_dir=self.output_dir_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=string_params_copy,
                 )
             else:
                 log.critical(f"Unknown format {self.format}")
