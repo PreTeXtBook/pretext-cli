@@ -218,3 +218,22 @@ def test_slideshow(tmp_path: Path, script_runner: ScriptRunner) -> None:
         [PTX_CMD, "-v", "debug", "build", "web"], cwd=tmp_path
     ).success
     assert (tmp_path / "output" / "web" / "slides.html").exists()
+
+
+def test_deploy(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    custom_path = tmp_path / "deploy"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", custom_path
+    )
+    result = script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=custom_path)
+    assert result.success
+    assert (custom_path / "build" / "here" / "web" / "index.html").exists()
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "deploy", "--stage-only"], cwd=custom_path
+    )
+    assert result.success
+    assert (custom_path / "build" / "here" / "staging" / "index.html").exists()
+    assert (
+        "hi mom"
+        in (custom_path / "build" / "here" / "staging" / "index.html").read_text()
+    )

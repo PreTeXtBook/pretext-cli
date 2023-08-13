@@ -27,7 +27,7 @@ from . import (
 )
 
 
-from .project import Project, Format
+from .project import Project
 
 log = logging.getLogger("ptxlogger")
 click_log.basic_config(log)
@@ -628,9 +628,9 @@ def view(
     short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS,
 )
-@click.option("-u", "--update_source", is_flag=True, required=False)
-@click.option("-s", "--stage_only", is_flag=True, required=False)
-def deploy(target_name: str, update_source: bool, stage_only: bool) -> None:
+@click.option("-u", "--update-source", is_flag=True, required=False)
+@click.option("-s", "--stage-only", is_flag=True, required=False)
+def deploy(update_source: bool, stage_only: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
