@@ -1,4 +1,3 @@
-import subprocess
 import typing as t
 from enum import Enum
 import hashlib
@@ -104,8 +103,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         name="braille-mode", default=BrailleMode.EMBOSS
     )
     stringparams: t.Dict[str, str] = pxml.element(default={})
-    # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
-    site: Path = pxml.attr(default=Path("site"))
+    # A path to the subdirectory of your deployment where this target will live.
+    deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir")
 
     # These attributes have complex validators.
     #
@@ -875,6 +874,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     output_dir: Path = pxml.attr(name="output-dir", default=Path("output"))
     # A path prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
+    # A path to stage files for deployment
+    stage: Path = pxml.attr(default=Path("output/stage"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))
     targets: t.List[Target] = pxml.wrapped(
@@ -1060,6 +1061,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def output_dir_abspath(self) -> Path:
         return self.abspath() / self.output_dir
 
+    def stage_abspath(self) -> Path:
+        return self.abspath() / self.stage
+
     def site_abspath(self) -> Path:
         return self.abspath() / self.site
 
@@ -1089,27 +1093,37 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         core.set_executables(self._executables.dict())
 
     def deploy_targets(self) -> t.List[Target]:
-        return [target for target in self.targets if target.site is not None]
+        return [target for target in self.targets if target.deploy_dir is not None]
 
-    def deploy(self, target_name: str, update_source: bool) -> None:
-        # Before doing any work, we check that git is installed.
-        try:
-            subprocess.run(["git", "--version"], capture_output=True)
-            log.debug("Git is installed.")
-        except Exception as e:
-            log.error(
-                "Git must be installed to use this feature, but couldn't be found."
-            )
-            log.debug(f"Error: {e}", exc_info=True)
-            return
-        # Determine what set of targets to deploy.  If a target name is specified, deploy on that target.  If there are `deploy-dir` specified in the project manifest, also deploy the contents of the `site` folder, if present.
+    def deploy(
+        self,
+        update_source: bool = True,
+        stage_only: bool = False,
+    ) -> None:
+        # Ensure stage directory exists
+        self.stage_abspath().mkdir(parents=True, exist_ok=True)
+        # Stage all configured targets for deployment
+        for target in self.deploy_targets():
+            deploy_dir = target.deploy_dir
+            assert deploy_dir is not None
+            if not target.output_dir_abspath().exists():
+                log.warning(
+                    f"No build for `{target.name}` was found in the directory `{target.output_dir_abspath()}`."
+                    + f"Try running `pretext build {target.name}` to build this component first."
+                )
+                log.info("Skipping this target for now.")
+            else:
+                shutil.copytree(
+                    target.output_dir_abspath(),
+                    (self.stage_abspath() / deploy_dir).resolve(),
+                    dirs_exist_ok=True,
+                )
+                log.info(f"Deploying `{target.name}` to `{deploy_dir}`.")
+        # If no target is configured to deploy, stage the default target
         if len(self.deploy_targets()) == 0:
-            target = self.get_target(target_name)
+            target = self.get_target()
             if target is None:
-                log.error(f"Target `{target_name}` not found.")
-                return
-            if target.format != Format.HTML:  # redundant for CLI
-                log.error("Only HTML targets are supported.")
+                log.error("Target not found.")
                 return
             if not target.output_dir_abspath().exists():
                 log.error(
@@ -1121,41 +1135,25 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 return
             log.info(f"Using latest build located in `{target.output_dir_abspath()}`.")
             log.info("")
-            utils.publish_to_ghpages(target.output_dir_abspath(), update_source)
-            return
-        else:  # we now deploy multiple targets and the site directory
+            shutil.copytree(
+                target.output_dir_abspath(),
+                self.stage_abspath(),
+                dirs_exist_ok=True,
+            )
+        # Otherwise, stage the site directory. (This is done last to overwrite any files generated by targets.)
+        else:
             if not self.site_abspath().exists():
-                log.error(f"Site directory `{self.site}` not found.")
-                log.info(
-                    f"You have `deploy-dir` or `site` (v2) elements in your project.ptx file, which requires you to maintain at least a simple landing page in the folder `{self.site}`. Either create this folder or remove the `deploy-dir` elements from your project.ptx file.\n"
+                log.warning(
+                    f"You have a target with a `site` attribute in your project.ptx file, but `{self.site}` does not exist."
                 )
-                return
-            with tempfile.TemporaryDirectory() as temp_dir:
+                log.warning("Proceeding without a custom site.\n")
+            else:
                 shutil.copytree(
                     self.site.resolve(),
-                    Path(temp_dir),
+                    self.stage_abspath(),
                     dirs_exist_ok=True,
                 )
-                for target in self.deploy_targets():
-                    if not target.output_dir_abspath().exists():
-                        log.warning(
-                            f"No build for `{target.name}` was found in the directory `{target.output_dir_abspath()}`. Try running `pretext build {target.name}` to build this component first."
-                        )
-                        log.info("Skipping this target for now.")
-                    else:
-                        deploy_dir = str(target.site)
-                        assert isinstance(deploy_dir, str)
-                        shutil.copytree(
-                            target.output_dir_abspath(),
-                            (Path(temp_dir) / deploy_dir).resolve(),
-                            dirs_exist_ok=True,
-                        )
-                        log.info(f"Deploying `{target.name}` to `{target.site}`.")
-                # Recopy the site's index.html (if it exists) to the root of the temp directory.  This is a bit of a hack, but it's the simplest way to ensure that the site's landing page is deployed.
-                if (self.site_abspath() / "index.html").exists():
-                    shutil.copy(
-                        self.site_abspath() / "index.html",
-                        Path(temp_dir),
-                    )
-                utils.publish_to_ghpages(Path(temp_dir), update_source)
-        return
+        log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
+        if stage_only:
+            return
+        utils.publish_to_ghpages(self.stage_abspath(), update_source)

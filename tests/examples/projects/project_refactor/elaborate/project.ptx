@@ -4,27 +4,28 @@
   source="my_ptx_source"
   publication="dont-touch"
   output-dir="build/here"
-  site="build/staging"
+  stage="build/here/staging"
+  site="my-great-site"
   xsl="customizations"
   asy-method="local">
-  <server name="asy" url="http://example1.com"/>
-  <server name="sage" url="http://example2.com"/>
+  <server name="asy" url="http://example1.com" />
+  <server name="sage" url="http://example2.com" />
   <targets>
     <target
       name="web"
       format="html"
       source="book.ptx"
       output-dir="web"
-      site=""
-      xsl="silly.xsl" 
-      asy-method="server"/>
+      deploy-dir=""
+      xsl="silly.xsl"
+      asy-method="server" />
     <target
       name="print"
       format="pdf"
       publication="extras/print.xml"
       output-dir="my-pdf"
       output-filename="out.pdf">
-      <server name="asy" url="http://example3.com"/>
+      <server name="asy" url="http://example3.com" />
       <stringparams foo="bar" baz="goo" />
     </target>
   </targets>

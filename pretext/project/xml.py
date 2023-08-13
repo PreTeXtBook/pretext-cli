@@ -3,6 +3,7 @@ import shutil
 import typing as t
 from enum import Enum
 import pydantic_xml as pxml
+from pydantic_xml.element.element import SearchMode
 
 
 # To prevent circular imports, put this here instead of in `__init__`; however, it's not used in the file.
@@ -46,7 +47,7 @@ class StringParam(pxml.BaseXmlModel, tag="stringparam"):
     value: str = pxml.attr()
 
 
-class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
+class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     name: str = pxml.attr()
     latex_engine: t.Optional[LatexEngine] = pxml.attr(name="pdf-method")
     format: LegacyFormat = pxml.element()
@@ -60,7 +61,9 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
     stringparams: t.List[StringParam] = pxml.element(tag="stringparam", default=[])
 
 
-class LegacyExecutables(pxml.BaseXmlModel, tag="executables", search_mode="unordered"):
+class LegacyExecutables(
+    pxml.BaseXmlModel, tag="executables", search_mode=SearchMode.UNORDERED
+):
     latex: str = pxml.element()
     pdflatex: str = pxml.element()
     xelatex: str = pxml.element()
@@ -73,6 +76,6 @@ class LegacyExecutables(pxml.BaseXmlModel, tag="executables", search_mode="unord
     liblouis: str = pxml.element()
 
 
-class LegacyProject(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
+class LegacyProject(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
     targets: t.List[LegacyTarget] = pxml.wrapped("targets", pxml.element(tag="target"))
     executables: LegacyExecutables = pxml.element()

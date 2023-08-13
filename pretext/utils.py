@@ -508,9 +508,12 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     """
     Publish the current project to GitHub pages.
     """
-    # Some git setup. Try to import git and ghp_import to make sure git is installed.  These need to be done here, because if git is not installed, then this will break, and not everyone will need deploy functionality.
+    # Try to import git.repo and ghp_import to make sure git is installed.
+    # These need to be done here, because if git is not installed, then this will break,
+    # and not everyone will need deploy functionality.
     try:
-        import git
+        import git.repo
+        import git.exc
         import ghp_import
     except ImportError:
         log.error("Git must be installed to use this feature, but couldn't be found.")
@@ -518,10 +521,10 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         return
 
     try:
-        repo = git.Repo(project_path())
-    except git.exc.InvalidGitRepositoryError:  # type: ignore
+        repo = git.repo.Repo(project_path())
+    except git.exc.InvalidGitRepositoryError:
         log.info("Initializing project with Git.")
-        repo = git.Repo.init(project_path())
+        repo = git.repo.Repo.init(project_path())
         try:
             repo.config_reader().get_value("user", "name")
             repo.config_reader().get_value("user", "email")
