@@ -188,7 +188,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
             "build/here/my-pdf"
         )
         assert t_print.output_filename == "out.pdf"
-        assert t_print.deploy_dir == None
+        assert t_print.deploy_dir is None
         assert t_print.xsl is None
         assert t_print.stringparams == {
             "foo": "bar",
