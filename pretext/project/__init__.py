@@ -22,13 +22,6 @@ from .. import templates
 
 log = logging.getLogger("ptxlogger")
 
-# TODO Not yet used...
-# def optstrpth_to_posix(path: t.Optional[t.Union[Path, str]]) -> t.Optional[str]:
-#     if path is None:
-#         return None
-#     else:
-#         return Path(path).as_posix()
-
 
 class Format(str, Enum):
     HTML = "html"
