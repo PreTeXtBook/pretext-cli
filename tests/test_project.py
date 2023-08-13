@@ -65,7 +65,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.source == Path("main.ptx")
             assert target.publication == pub_path
             assert target.output_dir == Path(name)
-            assert target.site == Path("site")
+            assert target.deploy_dir is None
             assert target.xsl is None
             assert target.latex_engine == pr.LatexEngine.XELATEX
             assert target.stringparams == {}
@@ -102,12 +102,12 @@ def test_manifest_simple(tmp_path: Path) -> None:
         t_web = project.get_target("web")
         assert t_web.format == "html"
         assert t_web.platform == "web"
-        assert t_web.site == Path("site")
+        assert t_web.deploy_dir is None
 
         t_print = project.get_target("print")
         assert t_print.format == "pdf"
         assert t_print.platform is None
-        assert t_print.site == Path("site")
+        assert t_print.deploy_dir is None
 
         t_rune = project.get_target("rs")
         assert t_rune.format == "html"
