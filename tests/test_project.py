@@ -156,7 +156,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.source == Path("my_ptx_source")
         assert project.publication == Path("dont-touch")
         assert project.output_dir == Path("build", "here")
-        assert project.site == Path("build", "staging")
+        assert project.site == Path("my-great-site")
         assert project.xsl == Path("customizations")
         assert project._executables.xelatex == "xelatex"
         assert project._executables.liblouis == "foobar"
