@@ -16,7 +16,7 @@
       format="html"
       source="book.ptx"
       output-dir="web"
-      site=""
+      deploy-dir=""
       xsl="silly.xsl"
       asy-method="server" />
     <target

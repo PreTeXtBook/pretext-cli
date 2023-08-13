@@ -103,8 +103,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         name="braille-mode", default=BrailleMode.EMBOSS
     )
     stringparams: t.Dict[str, str] = pxml.element(default={})
-    # A path to the subdirectory of your GitHub page where a book will be deployed for this target, relative to the project's `site` path.
-    site: Path = pxml.attr(default=Path("site"))
+    # A path to the subdirectory of your deployment where this target will live.
+    deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir")
 
     # These attributes have complex validators.
     #
@@ -1093,7 +1093,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         core.set_executables(self._executables.dict())
 
     def deploy_targets(self) -> t.List[Target]:
-        return [target for target in self.targets if target.site is not None]
+        return [target for target in self.targets if target.deploy_dir is not None]
 
     def deploy(
         self,
@@ -1104,6 +1104,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         self.stage_abspath().mkdir(parents=True, exist_ok=True)
         # Stage all configured targets for deployment
         for target in self.deploy_targets():
+            deploy_dir = target.deploy_dir
+            assert deploy_dir is not None
             if not target.output_dir_abspath().exists():
                 log.warning(
                     f"No build for `{target.name}` was found in the directory `{target.output_dir_abspath()}`."
@@ -1111,14 +1113,12 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 )
                 log.info("Skipping this target for now.")
             else:
-                site_string = str(target.site)
-                assert isinstance(site_string, str)
                 shutil.copytree(
                     target.output_dir_abspath(),
-                    (self.stage_abspath() / target.site).resolve(),
+                    (self.stage_abspath() / deploy_dir).resolve(),
                     dirs_exist_ok=True,
                 )
-                log.info(f"Deploying `{target.name}` to `{target.site}`.")
+                log.info(f"Deploying `{target.name}` to `{deploy_dir}`.")
         # If no target is configured to deploy, stage the default target
         if len(self.deploy_targets()) == 0:
             target = self.get_target()

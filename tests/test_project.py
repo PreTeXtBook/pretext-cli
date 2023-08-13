@@ -170,7 +170,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_web.output_dir_abspath().relative_to(project.abspath()) == Path(
             "build/here/web"
         )
-        assert t_web.site == Path("")
+        assert t_web.deploy_dir == Path("")
         assert t_web.xsl == Path("silly.xsl")
         assert t_web.stringparams == {}
         assert t_web.asy_method == "server"
@@ -188,7 +188,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
             "build/here/my-pdf"
         )
         assert t_print.output_filename == "out.pdf"
-        assert t_print.site == Path("site")
+        assert t_print.deploy_dir == None
         assert t_print.xsl is None
         assert t_print.stringparams == {
             "foo": "bar",
