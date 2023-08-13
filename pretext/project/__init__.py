@@ -1097,7 +1097,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     def deploy(
         self,
-        target_name: t.Optional[str] = None,
         update_source: bool = True,
         stage_only: bool = False,
     ) -> None:
@@ -1122,12 +1121,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 log.info(f"Deploying `{target.name}` to `{target.site}`.")
         # If no target is configured to deploy, stage the default target
         if len(self.deploy_targets()) == 0:
-            target = self.get_target(target_name)
+            target = self.get_target()
             if target is None:
-                log.error(f"Target `{target_name}` not found.")
-                return
-            if target.format != Format.HTML:  # redundant for CLI
-                log.error("Only HTML targets are supported.")
+                log.error("Target not found.")
                 return
             if not target.output_dir_abspath().exists():
                 log.error(

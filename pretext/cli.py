@@ -628,7 +628,6 @@ def view(
     short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS,
 )
-@click.argument("target_name", metavar="target", required=False)
 @click.option("-u", "--update_source", is_flag=True, required=False)
 @click.option("-s", "--stage_only", is_flag=True, required=False)
 def deploy(target_name: str, update_source: bool, stage_only: bool) -> None:
@@ -642,13 +641,4 @@ def deploy(target_name: str, update_source: bool, stage_only: bool) -> None:
     if utils.no_project(task="deploy"):
         return
     project = Project.parse()
-    target = project.get_target(name=target_name)
-    if target.format != Format.HTML:
-        log.critical("Target could not be found in project.ptx manifest.")
-        # only list targets with html format.
-        log.critical(
-            f"Possible HTML targets to deploy are: {project.target_names(Format.HTML)}"
-        )
-        log.critical("Exiting without completing task.")
-        return
-    project.deploy(target_name, update_source, stage_only=stage_only)
+    project.deploy(update_source=update_source, stage_only=stage_only)
