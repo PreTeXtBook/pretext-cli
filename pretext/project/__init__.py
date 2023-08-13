@@ -878,7 +878,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     # A path prepended to any target's `site`.
     site: Path = pxml.attr(default=Path("site"))
     # A path to stage files for deployment
-    stage: Path = pxml.attr(default=Path("stage"))
+    stage: Path = pxml.attr(default=Path("output/stage"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))
     targets: t.List[Target] = pxml.wrapped(
