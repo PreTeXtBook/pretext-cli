@@ -630,7 +630,8 @@ def view(
 )
 @click.argument("target_name", metavar="target", required=False)
 @click.option("-u", "--update_source", is_flag=True, required=False)
-def deploy(target_name: str, update_source: bool) -> None:
+@click.option("-s", "--stage_only", is_flag=True, required=False)
+def deploy(target_name: str, update_source: bool, stage_only: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
@@ -650,4 +651,4 @@ def deploy(target_name: str, update_source: bool) -> None:
         )
         log.critical("Exiting without completing task.")
         return
-    project.deploy(target_name, update_source)
+    project.deploy(target_name, update_source, stage_only=stage_only)
