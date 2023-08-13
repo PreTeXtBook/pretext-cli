@@ -22,13 +22,6 @@ from .. import templates
 
 log = logging.getLogger("ptxlogger")
 
-# TODO Not yet used...
-# def optstrpth_to_posix(path: t.Optional[t.Union[Path, str]]) -> t.Optional[str]:
-#     if path is None:
-#         return None
-#     else:
-#         return Path(path).as_posix()
-
 
 class Format(str, Enum):
     HTML = "html"
@@ -495,19 +488,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 if self.output_filename is not None
                 else None
             )
+            # The copy allows us to modify string params without affecting the original,
+            # and avoids issues with core modifying string params
+            stringparams_copy = self.stringparams.copy()
             if self.format == Format.HTML:
-                # The copy allows us to modify these for the Runestone format below without affecting the original.
-                sp = self.stringparams.copy()
                 if self.platform == Platform.RUNESTONE:
                     # The validator guarantees this.
                     assert self.compression is None
                     assert self.output_filename is None
                     # This is equivalent to setting `<platform host="runestone">` in the publication file.
-                    sp.update({"host-platform": "runestone"})
+                    stringparams_copy.update({"host-platform": "runestone"})
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=sp,
+                    stringparams=stringparams_copy,
                     xmlid_root=xmlid,
                     file_format=self.compression or "html",
                     extra_xsl=custom_xsl,
@@ -523,7 +517,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
@@ -533,7 +527,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 core.latex(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
@@ -546,7 +540,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="svg",
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                 )
             elif self.format == Format.KINDLE:
                 utils.npm_install()
@@ -556,7 +550,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="kindle",
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                 )
             elif self.format == Format.BRAILLE:
                 log.warning(
@@ -569,25 +563,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     page_format=self.braille_mode,
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                 )
             elif self.format == Format.WEBWORK:
                 core.webwork_sets(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     tgz=self.compression,
                 )
             elif self.format == Format.CUSTOM:
                 # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
-                self.stringparams["publisher"] = self.publication_abspath().as_posix()
+                stringparams_copy["publisher"] = self.publication_abspath().as_posix()
                 core.xsltproc(
                     xsl=custom_xsl,
                     xml=self.source_abspath(),
                     result=out_file,
                     output_dir=self.output_dir_abspath().as_posix(),
-                    stringparams=self.stringparams,
+                    stringparams=stringparams_copy,
                 )
             else:
                 log.critical(f"Unknown format {self.format}")
@@ -687,13 +681,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
         # We will keep track of the assets that were successful to update cache at the end.
         successful_assets = []
+        # The copy allows us to modify string params without affecting the original,
+        # and avoids issues with core modifying string params
+        stringparams_copy = self.stringparams.copy()
         # generate assets by calling appropriate core functions :
         if "webwork" in assets_to_generate:
             try:
                 core.webwork_to_xml(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams.copy(),
+                    stringparams=stringparams_copy,
                     xmlid_root=xmlid,
                     abort_early=True,
                     dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
@@ -709,7 +706,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         core.latex_image_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
-                            stringparams=self.stringparams.copy(),
+                            stringparams=stringparams_copy,
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
@@ -725,7 +722,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         core.asymptote_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
-                            stringparams=self.stringparams.copy(),
+                            stringparams=stringparams_copy,
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
@@ -742,7 +739,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         core.sage_conversion(
                             xml_source=self.source_abspath(),
                             pub_file=self.publication_abspath().as_posix(),
-                            stringparams=self.stringparams.copy(),
+                            stringparams=stringparams_copy,
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
@@ -759,7 +756,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     core.preview_images(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams.copy(),
+                        stringparams=stringparams_copy,
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "preview",
                     )
@@ -772,7 +769,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     core.youtube_thumbnail(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams.copy(),
+                        stringparams=stringparams_copy,
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "youtube",
                     )
@@ -787,7 +784,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     core.tracer(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams.copy(),
+                        stringparams=stringparams_copy,
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "trace",
                     )
@@ -800,7 +797,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     core.datafiles_to_xml(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams.copy(),
+                        stringparams=stringparams_copy,
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "datafile",
                     )
@@ -818,7 +815,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     core.qrcode(
                         xml_source=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
-                        stringparams=self.stringparams.copy(),
+                        stringparams=stringparams_copy,
                         xmlid_root=id,
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
