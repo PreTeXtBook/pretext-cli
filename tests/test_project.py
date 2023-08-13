@@ -333,6 +333,23 @@ def test_asset_table(tmp_path: Path) -> None:
         assert web.generate_asset_table() != different_than_web.generate_asset_table()
 
 
+def test_deploy(tmp_path: Path) -> None:
+    prj_path = tmp_path / "elaborate"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        project.get_target("web").build()
+        assert (prj_path / "build" / "here" / "web" / "index.html").exists()
+        project.deploy(stage_only=True)
+        assert (prj_path / "build" / "here" / "staging" / "index.html").exists()
+        assert (
+            "hi mom"
+            in (prj_path / "build" / "here" / "staging" / "index.html").read_text()
+        )
+
+
 def test_validation() -> None:
     project = pr.Project(ptx_version="2")
     # Verify that repeated server names cause a validation error.

@@ -1099,7 +1099,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         return [target for target in self.targets if target.site is not None]
 
     def deploy(
-        self, target_name: str, update_source: bool, stage_only: bool = False
+        self,
+        target_name: t.Optional[str] = None,
+        update_source: bool = True,
+        stage_only: bool = False,
     ) -> None:
         # Ensure stage directory exists
         self.stage_abspath().mkdir(parents=True, exist_ok=True)
