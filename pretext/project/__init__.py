@@ -11,6 +11,7 @@ from pathlib import Path
 from lxml import etree as ET
 from pydantic import validator, HttpUrl, PrivateAttr
 import pydantic_xml as pxml
+from pydantic_xml.element.element import SearchMode
 from .xml import Executables, LegacyProject, LatexEngine
 from .. import constants
 from .. import core
@@ -42,7 +43,7 @@ class Format(str, Enum):
 
 
 # The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
-class PublicationSubset(pxml.BaseXmlModel, tag="publication", search_mode="unordered"):
+class PublicationSubset(pxml.BaseXmlModel, tag="publication", search_mode=SearchMode.UNORDERED):
     external: Path = pxml.wrapped("source/directories", pxml.attr())
     generated: Path = pxml.wrapped("source/directories", pxml.attr())
 
@@ -84,7 +85,7 @@ class Server(pxml.BaseXmlModel, tag="server"):
     url: HttpUrl = pxml.attr()
 
 
-class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
+class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     """
     Representation of a target for a PreTeXt project: a specific
     build targeting a format such as HTML, LaTeX, etc.
@@ -847,7 +848,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode="unordered"):
         log.debug(f"Saved asset table to disk: {saved_asset_table}")
 
 
-class Project(pxml.BaseXmlModel, tag="project", search_mode="unordered"):
+class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
     """
     Representation of a PreTeXt project: a Path for the project
     on the disk, and Paths for where to build output and maintain a site.
