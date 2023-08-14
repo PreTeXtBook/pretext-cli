@@ -48,9 +48,9 @@ atexit.register(utils.exit_command, mh)
 
 
 # Add a decorator to provide nice exception handling for all commands.
-def nice_errors(f):
+def nice_errors(f) -> None:
     @click.pass_context
-    def try_except(ctx: click.Context, *args, **kwargs):
+    def try_except(ctx: click.Context, *args, **kwargs) -> None:
         try:
             return ctx.invoke(f, *args, **kwargs)
         except ValidationError as e:
