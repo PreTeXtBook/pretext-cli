@@ -65,7 +65,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.source == Path("main.ptx")
             assert target.publication == pub_path
             assert target.output_dir == Path(name)
-            assert target.site == Path("site")
+            assert target.deploy_dir is None
             assert target.xsl is None
             assert target.latex_engine == pr.LatexEngine.XELATEX
             assert target.stringparams == {}
@@ -102,12 +102,12 @@ def test_manifest_simple(tmp_path: Path) -> None:
         t_web = project.get_target("web")
         assert t_web.format == "html"
         assert t_web.platform == "web"
-        assert t_web.site == Path("site")
+        assert t_web.deploy_dir is None
 
         t_print = project.get_target("print")
         assert t_print.format == "pdf"
         assert t_print.platform is None
-        assert t_print.site == Path("site")
+        assert t_print.deploy_dir is None
 
         t_rune = project.get_target("rs")
         assert t_rune.format == "html"
@@ -156,7 +156,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.source == Path("my_ptx_source")
         assert project.publication == Path("dont-touch")
         assert project.output_dir == Path("build", "here")
-        assert project.site == Path("build", "staging")
+        assert project.site == Path("my-great-site")
         assert project.xsl == Path("customizations")
         assert project._executables.xelatex == "xelatex"
         assert project._executables.liblouis == "foobar"
@@ -170,7 +170,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_web.output_dir_abspath().relative_to(project.abspath()) == Path(
             "build/here/web"
         )
-        assert t_web.site == Path("")
+        assert t_web.deploy_dir == Path("")
         assert t_web.xsl == Path("silly.xsl")
         assert t_web.stringparams == {}
         assert t_web.asy_method == "server"
@@ -188,7 +188,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
             "build/here/my-pdf"
         )
         assert t_print.output_filename == "out.pdf"
-        assert t_print.site == Path("site")
+        assert t_print.deploy_dir is None
         assert t_print.xsl is None
         assert t_print.stringparams == {
             "foo": "bar",
@@ -331,6 +331,23 @@ def test_asset_table(tmp_path: Path) -> None:
         different_than_web = project.get_target("different-than-web")
         assert web.generate_asset_table() == same_as_web.generate_asset_table()
         assert web.generate_asset_table() != different_than_web.generate_asset_table()
+
+
+def test_deploy(tmp_path: Path) -> None:
+    prj_path = tmp_path / "elaborate"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        project.get_target("web").build()
+        assert (prj_path / "build" / "here" / "web" / "index.html").exists()
+        project.deploy(stage_only=True)
+        assert (prj_path / "build" / "here" / "staging" / "index.html").exists()
+        assert (
+            "hi mom"
+            in (prj_path / "build" / "here" / "staging" / "index.html").read_text()
+        )
 
 
 def test_validation() -> None:
