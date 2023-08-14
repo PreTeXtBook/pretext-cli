@@ -163,7 +163,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             and v is not None
         ):
             raise ValueError("The Runestone format's output-dir must not be specified.")
-        return Path(v) if v is not None else Path(values.get("name"))
+        return (
+            # If the `name` isn't set, then we can't build a valid `output_dir`. However, we want to avoid issuing two validation errors in this case, so supply a dummy name instead, since this name will never be used (this Target won't validate).
+            Path(v)
+            if v is not None
+            else Path(values.get("name", "no-name-provided"))
+        )
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
