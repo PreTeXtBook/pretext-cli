@@ -16,7 +16,7 @@ from pathlib import Path
 import atexit
 import subprocess
 from pydantic import ValidationError
-from typing import Any, List, Literal, Optional
+from typing import Any, Callable, List, Literal, Optional
 from functools import update_wrapper
 
 from . import (
@@ -47,10 +47,10 @@ log.addHandler(mh)
 atexit.register(utils.exit_command, mh)
 
 
-# Add a decorator to provide nice exception handling for all commands.
-def nice_errors(f: Any) -> Any:
+# Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
+def nice_errors(f: Callable[..., None]) -> Any:
     @click.pass_context
-    def try_except(ctx: Any, *args: Any, **kwargs: Any) -> Any:
+    def try_except(ctx: click.Context, *args: Any, **kwargs: Any) -> Any:
         try:
             return ctx.invoke(f, *args, **kwargs)
         except ValidationError as e:
