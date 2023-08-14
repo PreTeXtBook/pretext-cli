@@ -997,10 +997,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             _tgt.post_validate()
         return p
 
-    def new_target(self, name: str, format: str, **kwargs: t.Any) -> None:
-        self.targets.append(
-            Target(name=name, format=Format(format), _project=self, **kwargs)
-        )
+    def new_target(self, name: str, format: str, **kwargs: t.Any) -> Target:
+        t = Target(name=name, format=Format(format), _project=self, **kwargs)
+        self.targets.append(t)
+        return t
 
     def _get_target(
         self,
