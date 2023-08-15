@@ -46,9 +46,10 @@ def test_defaults(tmp_path: Path) -> None:
     # This test fails if there happens to be a publication.ptx in publication/. So, switch to a clean directory to avoid this.
     with utils.working_directory(tmp_path):
         ts = ("web", "html"), ("print", "pdf")
+        ts_dict = {}
         project = pr.Project(ptx_version="2")
         for t in ts:
-            project.new_target(*t)
+            ts_dict[t[0]] = project.new_target(*t)
         with templates.resource_path("publication.ptx") as pub_path:
             pass
         assert project._path == Path.cwd() / Path("project.ptx")
@@ -60,6 +61,7 @@ def test_defaults(tmp_path: Path) -> None:
         for t in ts:
             name, format = t
             target = project.get_target(name)
+            assert target == ts_dict[name]
             assert target.name == name
             assert target.format == format
             assert target.source == Path("main.ptx")
@@ -259,8 +261,7 @@ def test_demo_html_build(tmp_path: Path) -> None:
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
     with utils.working_directory(project_path):
         p = pr.Project(ptx_version="2")
-        p.new_target("web", "html")
-        t_web = p.get_target("web")
+        t_web = p.new_target("web", "html")
         shutil.rmtree(t_web.generated_dir_abspath(), ignore_errors=True)
         t_web.build()
         assert t_web.output_dir_abspath().exists()
