@@ -15,7 +15,9 @@ import platform
 from pathlib import Path
 import atexit
 import subprocess
-from typing import List, Literal, Optional
+from pydantic import ValidationError
+from typing import Any, Callable, List, Literal, Optional
+from functools import update_wrapper
 
 from . import (
     utils,
@@ -43,6 +45,39 @@ log.addHandler(mh)
 
 # Call exit_command() at close to handle errors encountered during run.
 atexit.register(utils.exit_command, mh)
+
+
+# Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
+def nice_errors(f: Callable[..., None]) -> Any:
+    @click.pass_context
+    def try_except(ctx: click.Context, *args: Any, **kwargs: Any) -> Any:
+        try:
+            return ctx.invoke(f, *args, **kwargs)
+        except ValidationError as e:
+            log.critical(
+                "Failed to parse project.ptx. Please fix the following errors:"
+            )
+            for error in e.errors():
+                if error["type"] == "value_error.missing":
+                    log.error(
+                        f"There is a missing required attribute: {error['loc'][0]}."
+                    )
+                elif error["type"] == "type_error.enum":
+                    log.error(
+                        f"Incorrect value for the attribute `{error['loc']}`.  Pick from {error['msg'].split(': ')[-1]}."
+                    )
+                else:
+                    log.error(f"{error['msg']} ({error['loc']}; {error['type']})")
+            log.debug(
+                "\n------------------------\nException info:\n------------------------\n",
+                exc_info=True,
+            )
+        except Exception as e:
+            log.warning(e)
+            log.debug("Exception info:\n------------------------\n", exc_info=True)
+
+    return update_wrapper(try_except, f)
+
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
@@ -120,12 +155,14 @@ def main(ctx: click.Context, targets: bool) -> None:
     short_help="Use when communicating with PreTeXt support.",
     context_settings=CONTEXT_SETTINGS,
 )
+@nice_errors
 def support() -> None:
     """
     Outputs useful information about your installation needed by
     PreTeXt volunteers when requesting help on the pretext-support
     Google Group.
     """
+    log.debug("Running pretext support.")
     log.info("")
     log.info("Please share the following information when posting to the")
     log.info("pretext-support Google Group.")
@@ -197,6 +234,7 @@ def devscript(args: List[str]) -> None:
     type=click.STRING,
     help="Download a zipped template from its URL.",
 )
+@nice_errors
 def new(template: str, directory: Path, url_template: str) -> None:
     """
     Generates the necessary files for a new PreTeXt project.
@@ -255,6 +293,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     is_flag=True,
     help="Refresh initialization of project even if project.ptx exists.",
 )
+@nice_errors
 def init(refresh: bool) -> None:
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
@@ -345,6 +384,7 @@ def init(refresh: bool) -> None:
     type=click.STRING,
     help="xml:id of the root of the subtree to be built.",
 )
+@nice_errors
 def build(
     target_name: str,
     clean: bool,
@@ -392,8 +432,8 @@ def build(
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except Exception as e:
         log.critical(e)
-        log.debug("Exception info:\n##################\n", exc_info=True)
-        log.info("##################")
+        log.debug("Exception info:\n------------------------\n", exc_info=True)
+        log.info("------------------------")
         sys.exit("Failed to build.  Exiting...")
 
 
@@ -428,6 +468,7 @@ def build(
     default=False,
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
+@nice_errors
 def generate(
     assets: List[str],
     target_name: Optional[str],
@@ -474,8 +515,8 @@ def generate(
         log.info("Finished generating assets.\n")
     except Exception as e:
         log.critical(e)
-        log.debug("Exception info:\n##################\n", exc_info=True)
-        log.info("##################")
+        log.debug("Exception info:\n------------------------\n", exc_info=True)
+        log.info("------------------------")
         sys.exit("Generating assets as failed.  Exiting...")
 
 
@@ -541,6 +582,7 @@ def generate(
     default=False,
     help="Stop the local http server if running.",
 )
+@nice_errors
 def view(
     target_name: str,
     access: Literal["public", "private"],
@@ -589,7 +631,7 @@ def view(
             target.build()
         except Exception as e:
             log.info(f"Failed to build: {e}")
-            log.debug("Exception info:\n##################\n", exc_info=True)
+            log.debug("Exception info:\n------------------------\n", exc_info=True)
     # Start server if there isn't one running already:
     used_port = utils.server_is_running()
     if port or restart_server or not used_port:
@@ -628,6 +670,7 @@ def view(
     short_help="Deploys Git-managed project to GitHub Pages.",
     context_settings=CONTEXT_SETTINGS,
 )
+@nice_errors
 @click.option("-u", "--update-source", is_flag=True, required=False)
 @click.option("-s", "--stage-only", is_flag=True, required=False)
 def deploy(update_source: bool, stage_only: bool) -> None:

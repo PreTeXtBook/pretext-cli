@@ -107,6 +107,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir")
 
     # These attributes have complex validators.
+    # Note that in each case, since we may not have validated the properties we refer to in values, we should use `values.get` instead of `values[]`.
     #
     # The platform; only valid for an HTML target. See `Platform`. Define this before the other complex validators, since several depend on this value being set.
     platform: t.Optional[Platform] = pxml.attr()
@@ -119,7 +120,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def platform_validator(
         cls, v: t.Optional[Platform], values: t.Any
     ) -> t.Optional[Platform]:
-        if values["format"] == Format.HTML:
+        if values.get("format") == Format.HTML:
             # For the HTML format, default to the web platform.
             if v is None:
                 return Platform.WEB
@@ -138,9 +139,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def compression_validator(
         cls, v: t.Optional[Compression], values: t.Any
     ) -> t.Optional[Compression]:
-        if values["format"] not in (Format.HTML, Format.WEBWORK) and v is not None:
+        if values.get("format") not in (Format.HTML, Format.WEBWORK) and v is not None:
             raise ValueError("Only the HTML and WeBWorK formats support compression.")
-        if values["format"] == Format.HTML and values["platform"] == Platform.RUNESTONE:
+        if (
+            values.get("format") == Format.HTML
+            and values.get("platform") == Platform.RUNESTONE
+        ):
             raise ValueError(
                 "The HTML format for the Runestone platform does not allow compression."
             )
@@ -154,12 +158,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def output_dir_validator(cls, v: t.Optional[Path], values: t.Any) -> Path:
         # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
         if (
-            values["format"] == Format.HTML
-            and values["platform"] == Platform.RUNESTONE
+            values.get("format") == Format.HTML
+            and values.get("platform") == Platform.RUNESTONE
             and v is not None
         ):
             raise ValueError("The Runestone format's output-dir must not be specified.")
-        return Path(v) if v is not None else Path(values["name"])
+        return (
+            # If the `name` isn't set, then we can't build a valid `output_dir`. However, we want to avoid issuing two validation errors in this case, so supply a dummy name instead, since this name will never be used (this Target won't validate).
+            Path(v)
+            if v is not None
+            else Path(values.get("name", "no-name-provided"))
+        )
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
     output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
@@ -171,13 +180,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # See if `output-filename` is allowed.
         if (
             # WeBWorK always produces multiple files, so `output-filename` makes no sense.
-            values["format"] == Format.WEBWORK
+            values.get("format") == Format.WEBWORK
             or (
                 # For the HTML format, non-zipped or Runestone output produces multiple files.
-                values["format"] == Format.HTML
+                values.get("format") == Format.HTML
                 and (
-                    values["platform"] == Platform.RUNESTONE
-                    or values["compression"] is None
+                    values.get("platform") == Platform.RUNESTONE
+                    or values.get("compression") is None
                 )
             )
             and v is not None
@@ -208,7 +217,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     # If the `format == Format.CUSTOM`, then `xsl` must be defined.
     @validator("xsl")
     def xsl_validator(cls, v: t.Optional[Path], values: t.Any) -> t.Optional[Path]:
-        if v is None and values["format"] == Format.CUSTOM:
+        if v is None and values.get("format") == Format.CUSTOM:
             raise ValueError("A custom format requires a value for xsl.")
         return v
 
