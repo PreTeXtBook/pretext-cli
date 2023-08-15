@@ -22,6 +22,7 @@ def main() -> None:
                     "project.ptx",
                     ".gitignore",
                     "codechat_config.yaml",
+                    ".devcontainer.json",
                 ]
                 for template_file in template_files:
                     copied_template_file = temporary_path / template_file
