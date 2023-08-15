@@ -1127,7 +1127,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     (self.stage_abspath() / deploy_dir).resolve(),
                     dirs_exist_ok=True,
                 )
-                log.info(f"Deploying `{target.name}` to `{deploy_dir}`.")
+                log.info(
+                    f"Staging `{target.name}` at `{self.stage_abspath() / deploy_dir}`."
+                )
         # If no target is configured to deploy, stage the default target
         if len(self.deploy_targets()) == 0:
             target = self.get_target()
@@ -1142,7 +1144,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     f"Try running `pretext view {target.name} -b` to build and preview your project first."
                 )
                 return
-            log.info(f"Using latest build located in `{target.output_dir_abspath()}`.")
+            log.info(
+                f"Staging latest build located in `{target.output_dir_abspath()}` at `{self.stage_abspath()}`."
+            )
             log.info("")
             shutil.copytree(
                 target.output_dir_abspath(),
@@ -1157,6 +1161,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 )
                 log.warning("Proceeding without a custom site.\n")
             else:
+                log.info(
+                    f"Staging custom site located in `{self.site.resolve()}` at `{self.stage_abspath()}`."
+                )
                 shutil.copytree(
                     self.site.resolve(),
                     self.stage_abspath(),
