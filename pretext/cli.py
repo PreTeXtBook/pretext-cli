@@ -118,7 +118,10 @@ def main(ctx: click.Context, targets: bool) -> None:
                 print(target)
             return
         # create file handler which logs even debug messages
-        fh = logging.FileHandler(pp / "cli.log", mode="w")
+        logdir = Path(pp) / "logs"
+        logdir.mkdir(exist_ok=True)
+        logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
+        fh = logging.FileHandler(logfile, mode="w")
         fh.setLevel(logging.DEBUG)
         file_log_format = logging.Formatter("{levelname:<8}: {message}", style="{")
         fh.setFormatter(file_log_format)
