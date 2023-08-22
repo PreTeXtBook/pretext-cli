@@ -8,7 +8,7 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from pydantic import validator, HttpUrl, PrivateAttr, ConfigDict
+from pydantic import validator, HttpUrl, PrivateAttr
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
 from .xml import Executables, LegacyProject, LatexEngine
@@ -84,6 +84,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     Representation of a target for a PreTeXt project: a specific
     build targeting a format such as HTML, LaTeX, etc.
     """
+
     # Provide access to the containing project.
     _project: "Project" = PrivateAttr()
     # These two attribute are required; everything else is optional.
