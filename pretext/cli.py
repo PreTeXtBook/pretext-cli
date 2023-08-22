@@ -428,7 +428,7 @@ def build(
     # Call build
     try:
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
-        target.build(clean=clean, no_generate=no_generate, xmlid=xmlid)
+        target.build(clean=clean, generate=not no_generate, xmlid=xmlid)
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except Exception as e:
         log.critical(e)

@@ -443,7 +443,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def build(
         self,
         clean: bool = False,
-        no_generate: bool = False,
+        generate: bool = True,
         xmlid: t.Optional[str] = None,
     ) -> None:
         # Check for xml syntax errors and quit if xml invalid:
@@ -465,7 +465,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         self.ensure_webwork_reps()
 
         # Generate needed assets unless requested not to.
-        if not no_generate:
+        if generate:
             self.generate_assets(xmlid=xmlid)
 
         # Ensure the output directories exist.
