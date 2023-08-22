@@ -8,7 +8,7 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from pydantic import validator, HttpUrl, PrivateAttr
+from pydantic import validator, HttpUrl, PrivateAttr, ConfigDict
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
 from .xml import Executables, LegacyProject, LatexEngine
@@ -84,7 +84,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     Representation of a target for a PreTeXt project: a specific
     build targeting a format such as HTML, LaTeX, etc.
     """
-
     # Provide access to the containing project.
     _project: "Project" = PrivateAttr()
     # These two attribute are required; everything else is optional.
@@ -443,7 +442,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def build(
         self,
         clean: bool = False,
-        no_generate: bool = False,
+        generate: bool = True,
         xmlid: t.Optional[str] = None,
     ) -> None:
         # Check for xml syntax errors and quit if xml invalid:
@@ -465,7 +464,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         self.ensure_webwork_reps()
 
         # Generate needed assets unless requested not to.
-        if not no_generate:
+        if generate:
             self.generate_assets(xmlid=xmlid)
 
         # Ensure the output directories exist.
