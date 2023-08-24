@@ -102,7 +102,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     braille_mode: BrailleMode = pxml.attr(
         name="braille-mode", default=BrailleMode.EMBOSS
     )
-    stringparams: t.Dict[str, str] = pxml.element(default={})
+    stringparams: t.Dict[str, str] = pxml.element(name="stringparam", default={})
     # A path to the subdirectory of your deployment where this target will live.
     deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir")
 
