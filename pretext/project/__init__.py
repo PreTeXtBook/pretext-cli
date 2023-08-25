@@ -970,7 +970,14 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     braille_mode = BrailleMode.EMBOSS
                 else:
                     format = Format(tgt.format.value)
+                # Convert the legacy target to a dictionary of values
                 d = tgt.dict()
+                # The old format stored the string params as a list of dictionaries, so we need to convert this to a dictionary.
+                stringparams = {}
+                for sp in tgt.stringparams:
+                    stringparams[sp.key] = sp.value
+                d["stringparams"] = stringparams
+                # Remove values we don't need any more.
                 del d["format"]
                 # Remove the `None` from optional values, so the new format can replace these.
                 for key in ("site", "xsl", "latex_engine"):
