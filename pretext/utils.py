@@ -193,7 +193,10 @@ def url_for_access(
     access: t.Literal["public", "private"] = "private", port: int = 8000
 ) -> str:
     if access == "private":
-        return f"http://localhost:{port}"
+        if os.environ.get("CODESPACES") == "true":
+            return f"http://{os.environ.get('CODESPACE_NAME')}-{port}.app.github.dev"
+        else:
+            return f"http://localhost:{port}"
     return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
 
 
