@@ -293,6 +293,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def output_dir_abspath(self) -> Path:
         return self._project.output_dir_abspath() / self.output_dir
 
+    def output_dir_relpath(self) -> Path:
+        return self._project.output_dir / self.output_dir
+
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
             return None

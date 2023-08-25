@@ -12,6 +12,7 @@ import requests
 import io
 import tempfile
 import platform
+import webbrowser
 from pathlib import Path
 import atexit
 import subprocess
@@ -636,9 +637,9 @@ def view(
 
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
-    if port or restart_server or (used_port is None):
+    if restart_server or (port != used_port) or (used_port is None):
         log.info(
-            f"Now preparing local server to preview your project directory `{project.abspath}`."
+            f"Now preparing local server to preview your project directory `{project.abspath()}`."
         )
         log.info(
             "  (Reminder: use `pretext deploy` to deploy your built project to a public"
@@ -648,8 +649,8 @@ def view(
         )
         log.info("  personal computer.)")
         log.info("")
-        # First terminate any existing server
-        if used_port is not None:
+        # First terminate any existing server using this port
+        if used_port == port:
             utils.stop_server(used_port)
         # Start the new server
         server = project.server_process(
@@ -660,6 +661,16 @@ def view(
         log.info(
             f"Server is now available at {utils.url_for_access(access=access,port=port)}"
         )
+        url = (
+            utils.url_for_access(access=access, port=port)
+            + "/"
+            + target.output_dir_relpath().as_posix()
+        )
+        if no_launch:
+            log.info(f"Target `{target.name}` is available at {url}")
+        else:
+            log.info(f"Now opening browser for target `{target.name}` at {url}")
+            webbrowser.open(url)
         try:
             while server.is_alive():
                 time.sleep(1)
@@ -668,14 +679,19 @@ def view(
             server.terminate()
             return
     else:
-        url = (
-            "http://localhost:"
-            + str(used_port)
-            + target.output_dir_abspath()
-            .as_posix()
-            .replace(project.abspath().as_posix(), "")
+        log.info(
+            f"Server is already available at {utils.url_for_access(access=access,port=used_port)}"
         )
-        log.info(f"Viewing output for {target.name} at {url}")
+        url = (
+            utils.url_for_access(access=access, port=used_port)
+            + "/"
+            + target.output_dir_relpath().as_posix()
+        )
+        if no_launch:
+            log.info(f"Target `{target.name}` is available at {url}")
+        else:
+            log.info(f"Now opening browser for target `{target.name}` at {url}")
+            webbrowser.open(url)
 
 
 # pretext deploy
