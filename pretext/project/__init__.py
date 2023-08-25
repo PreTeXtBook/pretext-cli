@@ -970,8 +970,12 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     braille_mode = BrailleMode.EMBOSS
                 else:
                     format = Format(tgt.format.value)
+                stringparams = {}
+                for sp in tgt.stringparams:
+                    stringparams[sp["key"]] = sp["value"]
                 d = tgt.dict()
                 del d["format"]
+                del d["stringparams"]
                 # Remove the `None` from optional values, so the new format can replace these.
                 for key in ("site", "xsl", "latex_engine"):
                     if d[key] is None:
