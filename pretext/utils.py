@@ -205,6 +205,17 @@ def serve_forever(
     access: t.Literal["public", "private"] = "private",
     port: int = 8128,
 ) -> None:
+    log.info(
+        f"Now preparing local server to preview your project directory `{base_dir}`."
+    )
+    log.info(
+        "  (Reminder: use `pretext deploy` to deploy your built project to a public"
+    )
+    log.info(
+        "  GitHub Pages site that can be shared with readers who cannot access your"
+    )
+    log.info("  personal computer.)")
+    log.info("")
     binding = binding_for_access(access)
 
     class RequestHandler(SimpleHTTPRequestHandler):

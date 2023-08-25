@@ -589,6 +589,7 @@ def view(
     port: Optional[int],
     build: bool,
     generate: Optional[str],
+    no_launch: bool,
     restart_server: bool,
     stop_server: bool,
 ) -> None:
@@ -634,15 +635,6 @@ def view(
     # Start server if there isn't one running already:
     used_port = utils.server_is_running()
     if port or restart_server or not used_port:
-        log.info(f"Now preparing local server to preview target {target.name}.")
-        log.info(
-            "  (Reminder: use `pretext deploy` to deploy your built project to a public"
-        )
-        log.info(
-            "  GitHub Pages site that can be shared with readers who cannot access your"
-        )
-        log.info("  personal computer.)")
-        log.info("")
         # First terminate the running server
         if used_port:
             utils.stop_server(used_port)
