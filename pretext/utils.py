@@ -610,7 +610,7 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     log.info(f"    {pages_url}")
 
 
-def server_is_running() -> t.Optional[int]:
+def active_server_port() -> t.Optional[int]:
     """
     Check if a pretext-view server is running already, and if so, return its port number.
     """

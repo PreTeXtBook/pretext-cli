@@ -632,8 +632,9 @@ def view(
         except Exception as e:
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n------------------------\n", exc_info=True)
+
     # Start server if there isn't one running already:
-    used_port = utils.server_is_running()
+    used_port = utils.active_server_port()
     if port or restart_server or not used_port:
         # First terminate the running server
         if used_port:
