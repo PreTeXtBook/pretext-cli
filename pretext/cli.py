@@ -118,7 +118,7 @@ def main(ctx: click.Context, targets: bool) -> None:
                 print(target)
             return
         # create file handler which logs even debug messages
-        logdir = Path(pp) / "logs"
+        logdir = pp / "logs"
         logdir.mkdir(exist_ok=True)
         logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
         fh = logging.FileHandler(logfile, mode="w")
