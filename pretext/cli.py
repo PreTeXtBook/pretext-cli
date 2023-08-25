@@ -637,6 +637,17 @@ def view(
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
     if port or restart_server or (used_port is None):
+        log.info(
+            f"Now preparing local server to preview your project directory `{project.abspath}`."
+        )
+        log.info(
+            "  (Reminder: use `pretext deploy` to deploy your built project to a public"
+        )
+        log.info(
+            "  GitHub Pages site that can be shared with readers who cannot access your"
+        )
+        log.info("  personal computer.)")
+        log.info("")
         # First terminate any existing server
         if used_port is not None:
             utils.stop_server(used_port)
