@@ -186,17 +186,15 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 def binding_for_access(access: t.Literal["public", "private"] = "private") -> str:
     if access == "private":
         return "localhost"
-    else:
-        return "0.0.0.0"
+    return "0.0.0.0"
 
 
 def url_for_access(
     access: t.Literal["public", "private"] = "private", port: int = 8000
 ) -> str:
-    if access == "public":
-        return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
-    else:
+    if access == "private":
         return f"http://localhost:{port}"
+    return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
 
 
 def serve_forever(

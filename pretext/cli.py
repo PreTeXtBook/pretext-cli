@@ -652,12 +652,14 @@ def view(
         if used_port is not None:
             utils.stop_server(used_port)
         # Start the new server
-        log.info("Starting server.")
         server = project.server_process(
             access=access,
             port=port,
         )
         server.start()
+        log.info(
+            f"Server is now available at {utils.url_for_access(access=access,port=port)}"
+        )
         try:
             while server.is_alive():
                 time.sleep(1)
