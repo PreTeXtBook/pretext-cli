@@ -542,6 +542,7 @@ def generate(
     "-p",
     "--port",
     type=click.INT,
+    default=8128,
     help="""
     If running a local server,
     choose which port to use.
@@ -586,7 +587,7 @@ def generate(
 def view(
     target_name: str,
     access: Literal["public", "private"],
-    port: Optional[int],
+    port: int,
     build: bool,
     generate: Optional[str],
     no_launch: bool,
@@ -635,15 +636,15 @@ def view(
 
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
-    if port or restart_server or not used_port:
-        # First terminate the running server
-        if used_port:
+    if port or restart_server or (used_port is None):
+        # First terminate any existing server
+        if used_port is not None:
             utils.stop_server(used_port)
-        # Start the server
+        # Start the new server
         log.info("Starting server.")
         server = project.server_process(
             access=access,
-            port=port or 8128,
+            port=port,
         )
         server.start()
         try:
