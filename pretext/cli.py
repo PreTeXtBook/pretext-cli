@@ -12,6 +12,7 @@ import requests
 import io
 import tempfile
 import platform
+import webbrowser
 from pathlib import Path
 import atexit
 import subprocess
@@ -406,7 +407,7 @@ def build(
     # Set up project and target based on command line arguments and project.ptx
 
     # Supply help if not in project subfolder
-    if utils.no_project(task="build"):
+    if utils.cannot_find_project(task="build"):
         return
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
     project = Project.parse()
@@ -491,7 +492,7 @@ def generate(
     if assets == ():
         assets = ["ALL"]
 
-    if utils.no_project(task="generate assets for"):
+    if utils.cannot_find_project(task="generate assets for"):
         return
 
     project = Project.parse()
@@ -542,6 +543,7 @@ def generate(
     "-p",
     "--port",
     type=click.INT,
+    default=8128,
     help="""
     If running a local server,
     choose which port to use.
@@ -586,7 +588,7 @@ def generate(
 def view(
     target_name: str,
     access: Literal["public", "private"],
-    port: Optional[int],
+    port: int,
     build: bool,
     generate: Optional[str],
     no_launch: bool,
@@ -607,7 +609,7 @@ def view(
         log.info("\nStopping server.")
         utils.stop_server()
         return
-    if utils.no_project(task="view the output for"):
+    if utils.cannot_find_project(task="view the output for"):
         return
     project = Project.parse()
     try:
@@ -632,21 +634,47 @@ def view(
         except Exception as e:
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n------------------------\n", exc_info=True)
+
     # Start server if there isn't one running already:
-    used_port = utils.server_is_running()
-    if port or restart_server or not used_port:
-        # First terminate the running server
-        if used_port:
+    used_port = utils.active_server_port()
+    if restart_server or (port != used_port) or (used_port is None):
+        log.info(
+            f"Now preparing local server to preview your project directory `{project.abspath()}`."
+        )
+        log.info(
+            "  (Reminder: use `pretext deploy` to deploy your built project to a public"
+        )
+        log.info(
+            "  GitHub Pages site that can be shared with readers who cannot access your"
+        )
+        log.info("  personal computer.)")
+        log.info("")
+        # First terminate any existing server using this port
+        if used_port == port:
             utils.stop_server(used_port)
-        # Start the server
-        log.info("Starting server.")
+        # Start the new server
         server = project.server_process(
-            output_dir=target.output_dir_abspath(),
             access=access,
-            port=port or 8128,
-            launch=not no_launch,
+            port=port,
         )
         server.start()
+        log.info(
+            f"Server will soon be available at {utils.url_for_access(access=access,port=port)}"
+        )
+        url = (
+            utils.url_for_access(access=access, port=port)
+            + "/"
+            + target.output_dir_relpath().as_posix()
+        )
+        if no_launch:
+            log.info(f"Target `{target.name}` will be available at {url}")
+        else:
+            SECONDS = 3
+            log.info(
+                f"Opening browser for target `{target.name}` at {url} in {SECONDS} seconds"
+            )
+            time.sleep(SECONDS)
+            webbrowser.open(url)
         try:
             while server.is_alive():
                 time.sleep(1)
@@ -655,14 +683,19 @@ def view(
             server.terminate()
             return
     else:
-        url = (
-            "http://localhost:"
-            + str(used_port)
-            + target.output_dir_abspath()
-            .as_posix()
-            .replace(project.abspath().as_posix(), "")
+        log.info(
+            f"Server is already available at {utils.url_for_access(access=access,port=used_port)}"
         )
-        log.info(f"Viewing output for {target.name} at {url}")
+        url = (
+            utils.url_for_access(access=access, port=used_port)
+            + "/"
+            + target.output_dir_relpath().as_posix()
+        )
+        if no_launch:
+            log.info(f"Target `{target.name}` is available at {url}")
+        else:
+            log.info(f"Now opening browser for target `{target.name}` at {url}")
+            webbrowser.open(url)
 
 
 # pretext deploy
@@ -681,7 +714,7 @@ def deploy(update_source: bool, stage_only: bool) -> None:
     properly configured with GitHub and GitHub Pages. Deployed
     files will live in the gh-pages branch of your repository.
     """
-    if utils.no_project(task="deploy"):
+    if utils.cannot_find_project(task="deploy"):
         return
     project = Project.parse()
     project.deploy(update_source=update_source, stage_only=stage_only)
