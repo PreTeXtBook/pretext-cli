@@ -194,7 +194,7 @@ def url_for_access(
 ) -> str:
     if access == "private":
         if os.environ.get("CODESPACES") == "true":
-            return f"http://{os.environ.get('CODESPACE_NAME')}-{port}.app.github.dev"
+            return f"https://{os.environ.get('CODESPACE_NAME')}-{port}.app.github.dev"
         else:
             return f"http://localhost:{port}"
     return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"

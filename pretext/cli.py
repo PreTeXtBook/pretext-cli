@@ -659,7 +659,7 @@ def view(
         )
         server.start()
         log.info(
-            f"Server is now available at {utils.url_for_access(access=access,port=port)}"
+            f"Server will soon be available at {utils.url_for_access(access=access,port=port)}"
         )
         url = (
             utils.url_for_access(access=access, port=port)
@@ -667,9 +667,13 @@ def view(
             + target.output_dir_relpath().as_posix()
         )
         if no_launch:
-            log.info(f"Target `{target.name}` is available at {url}")
+            log.info(f"Target `{target.name}` will be available at {url}")
         else:
-            log.info(f"Now opening browser for target `{target.name}` at {url}")
+            SECONDS = 3
+            log.info(
+                f"Opening browser for target `{target.name}` at {url} in {SECONDS} seconds"
+            )
+            time.sleep(SECONDS)
             webbrowser.open(url)
         try:
             while server.is_alive():
