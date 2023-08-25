@@ -1084,7 +1084,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         output_dir: Path,
         access: t.Literal["public", "private"] = "private",
         port: int = 8128,
-        launch: bool = True,
     ) -> multiprocessing.Process:
         """
         Returns a process for running a simple local web server
@@ -1092,7 +1091,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         """
         return multiprocessing.Process(
             target=utils.serve_forever,
-            args=[self.abspath(), output_dir, access, port, not launch],
+            args=[self.abspath(), output_dir, access, port],
         )
 
     def get_executables(self) -> Executables:

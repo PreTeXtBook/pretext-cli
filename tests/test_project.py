@@ -79,7 +79,7 @@ def test_serve(tmp_path: Path) -> None:
         project = pr.Project(ptx_version="2")
         dir = project.output_dir
 
-        p = project.server_process(output_dir=dir, port=port, launch=False)
+        p = project.server_process(output_dir=dir, port=port)
         p.start()
         time.sleep(1)
         assert not (dir / "index.html").exists()

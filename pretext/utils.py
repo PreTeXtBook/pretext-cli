@@ -12,7 +12,6 @@ import subprocess
 import logging
 import logging.handlers
 import psutil
-import webbrowser
 import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET
@@ -205,7 +204,6 @@ def serve_forever(
     output_dir: Path,
     access: t.Literal["public", "private"] = "private",
     port: int = 8128,
-    no_launch: bool = False,
 ) -> None:
     log.info(
         f"Now preparing local server to preview your project directory `{base_dir}`."
@@ -249,9 +247,6 @@ def serve_forever(
                     "Success! The most recent build of your project can be viewed in a web browser at the following url:"
                 )
                 log.info("    " + url)
-                if not no_launch:
-                    log.info("This page should open in a new tab automatically.")
-                    webbrowser.open(url)
                 log.info(
                     "Use [Ctrl]+[C] to halt the server.\nYou can run pretext commands in another terminal while the server is running.\n`pretext view -s` will also halt the server\n"
                 )

@@ -644,7 +644,6 @@ def view(
             output_dir=target.output_dir_abspath(),
             access=access,
             port=port or 8128,
-            launch=not no_launch,
         )
         server.start()
         try:
