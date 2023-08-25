@@ -201,21 +201,9 @@ def url_for_access(
 
 def serve_forever(
     base_dir: Path,
-    output_dir: Path,
     access: t.Literal["public", "private"] = "private",
     port: int = 8128,
 ) -> None:
-    log.info(
-        f"Now preparing local server to preview your project directory `{base_dir}`."
-    )
-    log.info(
-        "  (Reminder: use `pretext deploy` to deploy your built project to a public"
-    )
-    log.info(
-        "  GitHub Pages site that can be shared with readers who cannot access your"
-    )
-    log.info("  personal computer.)")
-    log.info("")
     binding = binding_for_access(access)
 
     class RequestHandler(SimpleHTTPRequestHandler):
@@ -241,15 +229,6 @@ def serve_forever(
         try:
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
-                url = url_for_access(access, port)
-                url += output_dir.as_posix().replace(base_dir.as_posix(), "")
-                log.info(
-                    "Success! The most recent build of your project can be viewed in a web browser at the following url:"
-                )
-                log.info("    " + url)
-                log.info(
-                    "Use [Ctrl]+[C] to halt the server.\nYou can run pretext commands in another terminal while the server is running.\n`pretext view -s` will also halt the server\n"
-                )
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")

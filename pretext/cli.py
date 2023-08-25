@@ -641,7 +641,6 @@ def view(
         # Start the server
         log.info("Starting server.")
         server = project.server_process(
-            output_dir=target.output_dir_abspath(),
             access=access,
             port=port or 8128,
         )

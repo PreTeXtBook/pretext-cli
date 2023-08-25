@@ -1081,7 +1081,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     def server_process(
         self,
-        output_dir: Path,
         access: t.Literal["public", "private"] = "private",
         port: int = 8128,
     ) -> multiprocessing.Process:
@@ -1091,7 +1090,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         """
         return multiprocessing.Process(
             target=utils.serve_forever,
-            args=[self.abspath(), output_dir, access, port],
+            args=[self.abspath(), access, port],
         )
 
     def get_executables(self) -> Executables:
