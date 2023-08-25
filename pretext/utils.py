@@ -349,7 +349,7 @@ def clean_asset_table(
     return dirty_table
 
 
-def no_project(task: str) -> bool:
+def cannot_find_project(task: str) -> bool:
     """
     Standard messages to be displayed when no project.ptx is found, customized by the "task" to be preformed.
     """

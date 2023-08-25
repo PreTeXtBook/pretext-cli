@@ -406,7 +406,7 @@ def build(
     # Set up project and target based on command line arguments and project.ptx
 
     # Supply help if not in project subfolder
-    if utils.no_project(task="build"):
+    if utils.cannot_find_project(task="build"):
         return
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
     project = Project.parse()
@@ -491,7 +491,7 @@ def generate(
     if assets == ():
         assets = ["ALL"]
 
-    if utils.no_project(task="generate assets for"):
+    if utils.cannot_find_project(task="generate assets for"):
         return
 
     project = Project.parse()
@@ -607,7 +607,7 @@ def view(
         log.info("\nStopping server.")
         utils.stop_server()
         return
-    if utils.no_project(task="view the output for"):
+    if utils.cannot_find_project(task="view the output for"):
         return
     project = Project.parse()
     try:
@@ -679,7 +679,7 @@ def deploy(update_source: bool, stage_only: bool) -> None:
     properly configured with GitHub and GitHub Pages. Deployed
     files will live in the gh-pages branch of your repository.
     """
-    if utils.no_project(task="deploy"):
+    if utils.cannot_find_project(task="deploy"):
         return
     project = Project.parse()
     project.deploy(update_source=update_source, stage_only=stage_only)
