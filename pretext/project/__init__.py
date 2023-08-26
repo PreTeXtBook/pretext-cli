@@ -987,7 +987,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     old_stringparam["key"]: old_stringparam["value"]
                     for old_stringparam in d["stringparams"]
                 }
-
                 # Build a Target from these transformations.
                 new_target = Target(
                     format=format,

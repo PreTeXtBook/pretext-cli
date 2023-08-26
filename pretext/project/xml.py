@@ -42,7 +42,7 @@ class LatexEngine(str, Enum):
     PDFLATEX = "pdflatex"
 
 
-class StringParam(pxml.BaseXmlModel):
+class LegacyStringParam(pxml.BaseXmlModel):
     key: str = pxml.attr()
     value: str = pxml.attr()
 
@@ -58,8 +58,8 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORD
     # The v1 file called this `deploy-dir`; the v2 file uses `site`.
     site: t.Optional[str] = pxml.element(name="deploy-dir")
     xsl: t.Optional[str] = pxml.element()
-    stringparams: t.List[StringParam] = pxml.wrapped(
-        "stringparams", pxml.element(tag="stringparam", default=[])
+    stringparams: t.List[LegacyStringParam] = pxml.element(
+        tag="stringparam", default=[]
     )
 
 
