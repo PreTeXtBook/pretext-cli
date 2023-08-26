@@ -12,7 +12,6 @@ import subprocess
 import logging
 import logging.handlers
 import psutil
-import webbrowser
 import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET
@@ -187,37 +186,25 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 def binding_for_access(access: t.Literal["public", "private"] = "private") -> str:
     if access == "private":
         return "localhost"
-    else:
-        return "0.0.0.0"
+    return "0.0.0.0"
 
 
 def url_for_access(
     access: t.Literal["public", "private"] = "private", port: int = 8000
 ) -> str:
-    if access == "public":
-        return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
-    else:
-        return f"http://localhost:{port}"
+    if access == "private":
+        if os.environ.get("CODESPACES") == "true":
+            return f"https://{os.environ.get('CODESPACE_NAME')}-{port}.app.github.dev"
+        else:
+            return f"http://localhost:{port}"
+    return f"http://{socket.gethostbyname(socket.gethostname())}:{port}"
 
 
 def serve_forever(
     base_dir: Path,
-    output_dir: Path,
     access: t.Literal["public", "private"] = "private",
     port: int = 8128,
-    no_launch: bool = False,
 ) -> None:
-    log.info(
-        f"Now preparing local server to preview your project directory `{base_dir}`."
-    )
-    log.info(
-        "  (Reminder: use `pretext deploy` to deploy your built project to a public"
-    )
-    log.info(
-        "  GitHub Pages site that can be shared with readers who cannot access your"
-    )
-    log.info("  personal computer.)")
-    log.info("")
     binding = binding_for_access(access)
 
     class RequestHandler(SimpleHTTPRequestHandler):
@@ -243,18 +230,6 @@ def serve_forever(
         try:
             with TCPServer((binding, port), RequestHandler) as httpd:
                 looking_for_port = False
-                url = url_for_access(access, port)
-                url += output_dir.as_posix().replace(base_dir.as_posix(), "")
-                log.info(
-                    "Success! The most recent build of your project can be viewed in a web browser at the following url:"
-                )
-                log.info("    " + url)
-                if not no_launch:
-                    log.info("This page should open in a new tab automatically.")
-                    webbrowser.open(url)
-                log.info(
-                    "Use [Ctrl]+[C] to halt the server.\nYou can run pretext commands in another terminal while the server is running.\n`pretext view -s` will also halt the server\n"
-                )
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")
@@ -375,7 +350,7 @@ def clean_asset_table(
     return dirty_table
 
 
-def no_project(task: str) -> bool:
+def cannot_find_project(task: str) -> bool:
     """
     Standard messages to be displayed when no project.ptx is found, customized by the "task" to be preformed.
     """
@@ -636,7 +611,7 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     log.info(f"    {pages_url}")
 
 
-def server_is_running() -> t.Optional[int]:
+def active_server_port() -> t.Optional[int]:
     """
     Check if a pretext-view server is running already, and if so, return its port number.
     """

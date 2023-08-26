@@ -293,6 +293,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def output_dir_abspath(self) -> Path:
         return self._project.output_dir_abspath() / self.output_dir
 
+    def output_dir_relpath(self) -> Path:
+        return self._project.output_dir / self.output_dir
+
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
             return None
@@ -1081,10 +1084,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     def server_process(
         self,
-        output_dir: Path,
         access: t.Literal["public", "private"] = "private",
         port: int = 8128,
-        launch: bool = True,
     ) -> multiprocessing.Process:
         """
         Returns a process for running a simple local web server
@@ -1092,7 +1093,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         """
         return multiprocessing.Process(
             target=utils.serve_forever,
-            args=[self.abspath(), output_dir, access, port, not launch],
+            args=[self.abspath(), access, port],
         )
 
     def get_executables(self) -> Executables:
