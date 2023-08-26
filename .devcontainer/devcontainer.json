@@ -6,6 +6,9 @@
 	"image": "oscarlevin/pretext:full",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/github-cli:1": {}
+	},
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
