@@ -24,6 +24,10 @@
             <source>source/main.ptx</source>
             <publication>publication/publication.ptx</publication>
             <output-dir>output/html</output-dir>
+            <stringparams>
+                <stringparam key="one" value="uno"/>
+                <stringparam key="two" value="dos"/>
+            </stringparams>
             <!-- Note that this entry is last, though it's listed first in the schema, to check that it's still found. -->
             <format>html</format>
         </target>
