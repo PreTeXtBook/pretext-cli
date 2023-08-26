@@ -972,13 +972,22 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     format = Format(tgt.format.value)
                 d = tgt.dict()
                 del d["format"]
+
                 # Remove the `None` from optional values, so the new format can replace these.
                 for key in ("site", "xsl", "latex_engine"):
                     if d[key] is None:
                         del d[key]
+
                 # Include the braille mode only if it was specified.
                 if braille_mode is not None:
                     d["braille_mode"] = braille_mode
+
+                # Convert from old stringparams format to new format.
+                d["stringparams"] = {
+                    old_stringparam["key"]: old_stringparam["value"]
+                    for old_stringparam in d["stringparams"]
+                }
+                # Build a Target from these transformations.
                 new_target = Target(
                     format=format,
                     compression=compression,
@@ -993,7 +1002,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 _path=_path,
                 # Rename from `executables` to `_executables` when moving from the old to new project format.
                 _executables=legacy_project.executables,
-                # Since there was no `publication` path in the old format, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
+                # Since there was no `publication` path in the old format's `<project>` element, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
                 publication=Path(""),
                 # The same is true for these paths.
                 source=Path(""),

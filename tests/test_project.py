@@ -235,6 +235,7 @@ def test_manifest_legacy() -> None:
         )
         assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
         assert t_html.latex_engine == "xelatex"
+        assert t_html.stringparams == {"one": "uno", "two": "dos"}
 
         t_latex = project.get_target("latex")
         assert t_latex.format == "latex"
