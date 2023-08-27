@@ -23,7 +23,7 @@ def build(
     zipped: bool = False,
     project_path: Optional[Path] = None,
     latex_engine: str = "xelatex",
-    executables: Dict[str, str] = Executables().dict(),
+    executables: Dict[str, str] = Executables().model_dump(),
     braille_mode: str = "emboss",
 ) -> None:
     core.set_executables(executables)

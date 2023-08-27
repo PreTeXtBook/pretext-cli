@@ -81,6 +81,7 @@ class ServerName(str, Enum):
 
 # Allow the author to specify a server instead of a local executable for asset generation. See `Target.server`.
 class Server(pxml.BaseXmlModel, tag="server"):
+    model_config = ConfigDict(extra="forbid")
     name: ServerName = pxml.attr()
     url: HttpUrl = pxml.attr()
 
@@ -91,6 +92,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     build targeting a format such as HTML, LaTeX, etc.
     """
 
+    model_config = ConfigDict(extra="forbid")
     # Provide access to the containing project.
     _project: "Project" = PrivateAttr()
     # These two attribute are required; everything else is optional.
@@ -895,6 +897,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     To create a Project object from a project.ptx file, use the `Project.parse()` method.
     """
 
+    model_config = ConfigDict(extra="forbid")
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
     _executables: Executables = PrivateAttr(default=Executables())
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
@@ -941,13 +944,22 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             raise ValueError("Server names must not be repeated.")
         return v
 
-    # Allow specifying `_path` or `_executables` in the constructor. (Since they're private, pydantic ignores them by default).
+    # Allow specifying `_path` or `_executables` in the constructor.
     def __init__(self, **kwargs: t.Any):
+        # Don't set them now, since Pydantic will reject this (extra attributes are forbidden in this model).
+        deferred = {}
+        for key in ("_path", "_executables"):
+            if key in kwargs:
+                deferred[key] = kwargs.pop(key)
+
+        # Build the model without these "extra" attributes.
         super().__init__(**kwargs)
-        for k in ("_path", "_executables"):
-            if k in kwargs:
-                setattr(self, k, kwargs[k])
+
+        # Instead, set them after the model was constructed.
+        for key, value in deferred.items():
+            setattr(self, key, value)
         self._path = self.validate_path(self._path)
+
         # Always initialize core when a project is created:
         self.init_core()
 
@@ -1030,11 +1042,12 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             # Replace the old targets with the new targets.
             d = legacy_project.model_dump()
             d["targets"] = new_targets
+            # Rename from `executables` to `_executables` when moving from the old to new project format.
+            d["_executables"] = legacy_project.executables
+            d.pop("executables")
             p = Project(
                 ptx_version="2",
                 _path=_path,
-                # Rename from `executables` to `_executables` when moving from the old to new project format.
-                _executables=legacy_project.executables,
                 # Since there was no `publication` path in the old format's `<project>` element, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
                 publication=Path(""),
                 # The same is true for these paths.
@@ -1051,8 +1064,13 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             _tgt.post_validate()
         return p
 
-    def new_target(self, name: str, format: str, **kwargs: t.Any) -> Target:
-        t = Target(name=name, format=Format(format), _project=self, **kwargs)
+    def new_target(
+        self, name: str, format: t.Union[str, Format], **kwargs: t.Any
+    ) -> Target:
+        t = Target(name=name, format=Format(format), **kwargs)
+        # Set this after constructing the Target, since extra attributes are not allowed in this model.
+        t._project = self
+        t.post_validate()
         self.targets.append(t)
         return t
 

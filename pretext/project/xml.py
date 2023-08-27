@@ -2,12 +2,14 @@ from pathlib import Path
 import shutil
 import typing as t
 from enum import Enum
+from pydantic import ConfigDict
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
 
 
-# To prevent circular imports, put this here instead of in `__init__`; however, it's not used in the file.
+# To prevent circular imports, put this here instead of in `__init__`; however, it's not used in this file.
 class Executables(pxml.BaseXmlModel, tag="executables"):
+    model_config = ConfigDict(extra="forbid")
     latex: str = pxml.attr(default="latex")
     pdflatex: str = pxml.attr(default="pdflatex")
     xelatex: str = pxml.attr(default="xelatex")
@@ -43,11 +45,13 @@ class LatexEngine(str, Enum):
 
 
 class LegacyStringParam(pxml.BaseXmlModel):
+    model_config = ConfigDict(extra="forbid")
     key: str = pxml.attr()
     value: str = pxml.attr()
 
 
 class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
+    model_config = ConfigDict(extra="forbid")
     name: str = pxml.attr()
     latex_engine: t.Optional[LatexEngine] = pxml.attr(name="pdf-method", default=None)
     format: LegacyFormat = pxml.element()
@@ -66,6 +70,7 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORD
 class LegacyExecutables(
     pxml.BaseXmlModel, tag="executables", search_mode=SearchMode.UNORDERED
 ):
+    model_config = ConfigDict(extra="forbid")
     latex: str = pxml.element()
     pdflatex: str = pxml.element()
     xelatex: str = pxml.element()
@@ -79,5 +84,6 @@ class LegacyExecutables(
 
 
 class LegacyProject(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
+    model_config = ConfigDict(extra="forbid")
     targets: t.List[LegacyTarget] = pxml.wrapped("targets", pxml.element(tag="target"))
     executables: LegacyExecutables = pxml.element()
