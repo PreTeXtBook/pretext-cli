@@ -38,7 +38,7 @@ click-log = "^0.4"
 ghp-import = "^2"
 single-version = "^1"
 playwright = "^1"
-pydantic-xml = "^1"
+pydantic-xml = ">=2"
 qrcode = "^7"
 psutil = "^5"
 

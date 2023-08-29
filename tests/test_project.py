@@ -383,3 +383,5 @@ def test_validation() -> None:
         project.new_target(name="test", format="pdf", compression="zip")
     with pytest.raises(pydantic.ValidationError):
         project.new_target(name="test", format="pdf", platform="runestone")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(name="test", format="html", stringparamz="oops")

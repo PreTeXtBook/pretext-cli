@@ -8,7 +8,13 @@ import tempfile
 import pickle
 from pathlib import Path
 from lxml import etree as ET
-from pydantic import validator, HttpUrl, PrivateAttr
+from pydantic import (
+    field_validator,
+    ConfigDict,
+    FieldValidationInfo,
+    HttpUrl,
+    PrivateAttr,
+)
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
 from .xml import Executables, LegacyProject, LatexEngine
@@ -75,6 +81,7 @@ class ServerName(str, Enum):
 
 # Allow the author to specify a server instead of a local executable for asset generation. See `Target.server`.
 class Server(pxml.BaseXmlModel, tag="server"):
+    model_config = ConfigDict(extra="forbid")
     name: ServerName = pxml.attr()
     url: HttpUrl = pxml.attr()
 
@@ -85,6 +92,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     build targeting a format such as HTML, LaTeX, etc.
     """
 
+    model_config = ConfigDict(extra="forbid")
     # Provide access to the containing project.
     _project: "Project" = PrivateAttr()
     # These two attribute are required; everything else is optional.
@@ -104,23 +112,24 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     )
     stringparams: t.Dict[str, str] = pxml.element(default={})
     # A path to the subdirectory of your deployment where this target will live.
-    deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir")
+    deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir", default=None)
 
     # These attributes have complex validators.
     # Note that in each case, since we may not have validated the properties we refer to in values, we should use `values.get` instead of `values[]`.
     #
     # The platform; only valid for an HTML target. See `Platform`. Define this before the other complex validators, since several depend on this value being set.
-    platform: t.Optional[Platform] = pxml.attr()
-
-    @validator(
-        "platform",
+    platform: t.Optional[Platform] = pxml.attr(
+        default=None,
         # Always run this, so we can provide a non-optional value for an HTML target.
-        always=True,
+        validate_default=True,
     )
+
+    @field_validator("platform")
+    @classmethod
     def platform_validator(
-        cls, v: t.Optional[Platform], values: t.Any
+        cls, v: t.Optional[Platform], info: FieldValidationInfo
     ) -> t.Optional[Platform]:
-        if values.get("format") == Format.HTML:
+        if info.data.get("format") == Format.HTML:
             # For the HTML format, default to the web platform.
             if v is None:
                 return Platform.WEB
@@ -132,18 +141,22 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return v
 
     # We validate compression before output_filename to use its value to check if we can have an output_filename.
-    compression: t.Optional[Compression] = pxml.attr()
+    compression: t.Optional[Compression] = pxml.attr(default=None)
 
     # Compression is only supported for HTML and WeBWorK formats.
-    @validator("compression")
+    @field_validator("compression")
+    @classmethod
     def compression_validator(
-        cls, v: t.Optional[Compression], values: t.Any
+        cls, v: t.Optional[Compression], info: FieldValidationInfo
     ) -> t.Optional[Compression]:
-        if values.get("format") not in (Format.HTML, Format.WEBWORK) and v is not None:
+        if (
+            info.data.get("format") not in (Format.HTML, Format.WEBWORK)
+            and v is not None
+        ):
             raise ValueError("Only the HTML and WeBWorK formats support compression.")
         if (
-            values.get("format") == Format.HTML
-            and values.get("platform") == Platform.RUNESTONE
+            info.data.get("format") == Format.HTML
+            and info.data.get("platform") == Platform.RUNESTONE
         ):
             raise ValueError(
                 "The HTML format for the Runestone platform does not allow compression."
@@ -151,15 +164,26 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return v
 
     # A path to the output directory for this target, relative to the project's `output` path.
-    output_dir: Path = pxml.attr(name="output-dir", default=None)
+    output_dir: Path = pxml.attr(
+        name="output-dir",
+        default=None,
+        # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
+        validate_default=True,
+    )
 
-    # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
-    @validator("output_dir", always=True)
-    def output_dir_validator(cls, v: t.Optional[Path], values: t.Any) -> Path:
+    @field_validator(
+        "output_dir",
+        # Run this before Pydantic's validation, since the default value isn't allowed.
+        mode="before",
+    )
+    @classmethod
+    def output_dir_validator(
+        cls, v: t.Optional[Path], info: FieldValidationInfo
+    ) -> Path:
         # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
         if (
-            values.get("format") == Format.HTML
-            and values.get("platform") == Platform.RUNESTONE
+            info.data.get("format") == Format.HTML
+            and info.data.get("platform") == Platform.RUNESTONE
             and v is not None
         ):
             raise ValueError("The Runestone format's output-dir must not be specified.")
@@ -167,26 +191,29 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # If the `name` isn't set, then we can't build a valid `output_dir`. However, we want to avoid issuing two validation errors in this case, so supply a dummy name instead, since this name will never be used (this Target won't validate).
             Path(v)
             if v is not None
-            else Path(values.get("name", "no-name-provided"))
+            else Path(info.data.get("name", "no-name-provided"))
         )
 
     # A path to the output filename for this target, relative to the `output_dir`. The HTML target cannot specify this (since the HTML output is a directory of files, not a single file.)
-    output_filename: t.Optional[str] = pxml.attr(name="output-filename", default=None)
+    output_filename: t.Optional[str] = pxml.attr(
+        name="output-filename", default=None, validate_default=True
+    )
 
-    @validator("output_filename", always=True)
+    @field_validator("output_filename")
+    @classmethod
     def output_filename_validator(
-        cls, v: t.Optional[str], values: t.Any
+        cls, v: t.Optional[str], info: FieldValidationInfo
     ) -> t.Optional[str]:
         # See if `output-filename` is allowed.
         if (
             # WeBWorK always produces multiple files, so `output-filename` makes no sense.
-            values.get("format") == Format.WEBWORK
+            info.data.get("format") == Format.WEBWORK
             or (
                 # For the HTML format, non-zipped or Runestone output produces multiple files.
-                values.get("format") == Format.HTML
+                info.data.get("format") == Format.HTML
                 and (
-                    values.get("platform") == Platform.RUNESTONE
-                    or values.get("compression") is None
+                    info.data.get("platform") == Platform.RUNESTONE
+                    or info.data.get("compression") is None
                 )
             )
             and v is not None
@@ -199,12 +226,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return v
 
     # The method for generating asymptote files. Overrides the project's `asy_method` if specified.
-    asy_method: t.Optional[AsyMethod] = pxml.attr(name="asy-method")
+    asy_method: t.Optional[AsyMethod] = pxml.attr(name="asy-method", default=None)
 
     # See `Server`. Each server name (`sage`, `asy`) may be specified only once. If specified, the CLI will use the server for asset generation instead of a local executable, unless @asy-method is set to "local". Settings for a given server name here override settings at the project level.
     server: t.List[Server] = pxml.element(default=[])
 
-    @validator("server")
+    @field_validator("server")
+    @classmethod
     def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
         # Ensure the names are unique.
         if len(set([server.name for server in v])) != len(v):
@@ -215,9 +243,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     xsl: t.Optional[Path] = pxml.attr(default=None)
 
     # If the `format == Format.CUSTOM`, then `xsl` must be defined.
-    @validator("xsl")
-    def xsl_validator(cls, v: t.Optional[Path], values: t.Any) -> t.Optional[Path]:
-        if v is None and values.get("format") == Format.CUSTOM:
+    @field_validator("xsl")
+    @classmethod
+    def xsl_validator(
+        cls, v: t.Optional[Path], info: FieldValidationInfo
+    ) -> t.Optional[Path]:
+        if v is None and info.data.get("format") == Format.CUSTOM:
             raise ValueError("A custom format requires a value for xsl.")
         return v
 
@@ -866,6 +897,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     To create a Project object from a project.ptx file, use the `Project.parse()` method.
     """
 
+    model_config = ConfigDict(extra="forbid")
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
     _executables: Executables = PrivateAttr(default=Executables())
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
@@ -895,6 +927,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     )
 
     # The method for generating asymptote images can be specified at the project level, and overridden at the target level.
+    #
+    # TODO: why is this optional, if there's a non-optional default? How would it ever be optional if loaded from an XML file?
     asy_method: t.Optional[AsyMethod] = pxml.attr(
         name="asy-method", default=AsyMethod.SERVER
     )
@@ -902,20 +936,30 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     # See the docs on `Target.server`; they apply here as well.
     server: t.List[Server] = pxml.element(default=[])
 
-    @validator("server")
+    @field_validator("server")
+    @classmethod
     def server_validator(cls, v: t.List[Server]) -> t.List[Server]:
         # Ensure the names are unique.
         if len(set([server.name for server in v])) != len(v):
             raise ValueError("Server names must not be repeated.")
         return v
 
-    # Allow specifying `_path` or `_executables` in the constructor. (Since they're private, pydantic ignores them by default).
+    # Allow specifying `_path` or `_executables` in the constructor.
     def __init__(self, **kwargs: t.Any):
+        # Don't set them now, since Pydantic will reject this (extra attributes are forbidden in this model).
+        deferred = {}
+        for key in ("_path", "_executables"):
+            if key in kwargs:
+                deferred[key] = kwargs.pop(key)
+
+        # Build the model without these "extra" attributes.
         super().__init__(**kwargs)
-        for k in ("_path", "_executables"):
-            if k in kwargs:
-                setattr(self, k, kwargs[k])
+
+        # Instead, set them after the model was constructed.
+        for key, value in deferred.items():
+            setattr(self, key, value)
         self._path = self.validate_path(self._path)
+
         # Always initialize core when a project is created:
         self.init_core()
 
@@ -930,7 +974,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
         # Determine the version of this project file.
         class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
-            ptx_version: t.Optional[str] = pxml.attr(name="ptx-version")
+            ptx_version: t.Optional[str] = pxml.attr(name="ptx-version", default=None)
 
         p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
         if p_version_only.ptx_version is not None:
@@ -970,7 +1014,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     braille_mode = BrailleMode.EMBOSS
                 else:
                     format = Format(tgt.format.value)
-                d = tgt.dict()
+                d = tgt.model_dump()
                 del d["format"]
 
                 # Remove the `None` from optional values, so the new format can replace these.
@@ -995,13 +1039,15 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 )
                 new_targets.append(new_target)
 
-            # Incorrect from a type perspective, but used to translate from old to new classes.
-            legacy_project.targets = new_targets  # type: ignore
+            # Replace the old targets with the new targets.
+            d = legacy_project.model_dump()
+            d["targets"] = new_targets
+            # Rename from `executables` to `_executables` when moving from the old to new project format.
+            d["_executables"] = legacy_project.executables
+            d.pop("executables")
             p = Project(
                 ptx_version="2",
                 _path=_path,
-                # Rename from `executables` to `_executables` when moving from the old to new project format.
-                _executables=legacy_project.executables,
                 # Since there was no `publication` path in the old format's `<project>` element, use an empty path. (A nice feature: if all target publication files begin with `publication`, avoid this.)
                 publication=Path(""),
                 # The same is true for these paths.
@@ -1009,7 +1055,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 output_dir=Path(""),
                 site=Path(""),
                 xsl=Path(""),
-                **legacy_project.dict(),
+                **d,
             )
 
         # Set the `_project` for each target, which isn't handled in the XML.
@@ -1018,8 +1064,13 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             _tgt.post_validate()
         return p
 
-    def new_target(self, name: str, format: str, **kwargs: t.Any) -> Target:
-        t = Target(name=name, format=Format(format), _project=self, **kwargs)
+    def new_target(
+        self, name: str, format: t.Union[str, Format], **kwargs: t.Any
+    ) -> Target:
+        t = Target(name=name, format=Format(format), **kwargs)
+        # Set this after constructing the Target, since extra attributes are not allowed in this model.
+        t._project = self
+        t.post_validate()
         self.targets.append(t)
         return t
 
@@ -1109,7 +1160,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         return self._executables
 
     def init_core(self) -> None:
-        core.set_executables(self._executables.dict())
+        core.set_executables(self._executables.model_dump())
 
     def deploy_targets(self) -> t.List[Target]:
         return [target for target in self.targets if target.deploy_dir is not None]
