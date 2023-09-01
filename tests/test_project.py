@@ -41,6 +41,7 @@ def test_note_if_no_xelatex() -> None:
     pass
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_defaults(tmp_path: Path) -> None:
     # This test fails if there happens to be a publication.ptx in publication/. So, switch to a clean directory to avoid this.
     with utils.working_directory(tmp_path):
@@ -70,6 +71,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.stringparams == {}
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_serve(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         port = 12_345
@@ -95,6 +97,7 @@ def test_serve(tmp_path: Path) -> None:
             p.terminate()
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_manifest_simple(tmp_path: Path) -> None:
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
@@ -118,6 +121,7 @@ def test_manifest_simple(tmp_path: Path) -> None:
         assert default_project._path == project._path
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_manifest_simple_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
@@ -130,6 +134,7 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
             assert (prj_path / "output" / "print" / "main.pdf").exists()
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_manifest_elaborate(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
@@ -170,6 +175,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         }
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_manifest_elaborate_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
@@ -184,6 +190,7 @@ def test_manifest_elaborate_build(tmp_path: Path) -> None:
             assert (prj_path / "build" / "here" / "my-pdf" / "main.pdf").exists()
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_manifest_legacy() -> None:
     prj_path = EXAMPLES_DIR / "projects" / "project_refactor" / "legacy"
     with utils.working_directory(prj_path):
@@ -222,6 +229,7 @@ def test_manifest_legacy() -> None:
         assert project._executables.latex == "latex1"
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_demo_html_build(tmp_path: Path) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
@@ -263,6 +271,7 @@ def test_demo_html_build(tmp_path: Path) -> None:
         }
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_subset_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
@@ -276,6 +285,7 @@ def test_subset_build(tmp_path: Path) -> None:
         assert not (target.output_dir_abspath() / "index.html").exists()
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_zip_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
@@ -290,6 +300,7 @@ def test_zip_build(tmp_path: Path) -> None:
         assert not (target.output_dir_abspath() / "index.html").exists()
 
 
+@pytest.mark.skip(reason="Not needed for 1.x")
 def test_asset_table(tmp_path: Path) -> None:
     prj_path = tmp_path / "assets"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "assets", prj_path)
