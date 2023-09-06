@@ -438,9 +438,9 @@ def build(
                 "No change in assets requiring generating detected.  To force regeneration of assets, use `-g` flag.\n"
             )
         else:
-            if ("webwork", "") not in asset_table or asset_hash_dict[
+            if ("webwork", "") not in asset_table or asset_hash_dict.get(
                 ("webwork", "")
-            ] != asset_table[("webwork", "")]:
+            ) != asset_table[("webwork", "")]:
                 project.generate_webwork(target.name(), xmlid=xmlid)
             assets = set(asset[0] for asset in asset_hash_dict.keys())
             assets.discard("webwork")
