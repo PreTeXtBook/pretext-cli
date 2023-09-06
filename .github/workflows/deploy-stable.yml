@@ -37,7 +37,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:  
+        with:
           ref: ${{ inputs.branch }}
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -69,7 +69,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-        with:  
+        with:
           ref: ${{ inputs.branch }}
 
       # Sets up python3
@@ -119,7 +119,6 @@ jobs:
           git push origin ${{ inputs.branch }}
 
       - name: Repository Dispatch
-        if ${{ inputs.branch == 'main' }}
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
