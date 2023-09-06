@@ -5,14 +5,14 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
-      legacy:
-        description: "Update core for 1.8 legacy version"
+      branch:
+        description: "Use main branch for regular releases, legacy-support for 1.8x fixes."
         required: false
         type: choice
-        default: "no"
+        default: "main"
         options:
-          - "no"
-          - "yes"
+          - "main"
+          - "legacy-support"
 
 jobs:
   tasks:
@@ -21,9 +21,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-        if: ${{ inputs.legacy == 'yes' }}
         with:
-          ref: legacy-support
+          ref: ${{ inputs.branch }}
 
       # Sets up python3
       - uses: actions/setup-python@v4
@@ -43,17 +42,8 @@ jobs:
           git config user.email "<>"
 
       - name: commit-legacy
-        if: ${{ inputs.legacy == 'yes' }}
         run: |
           # Stage the file, commit and push
           git add pretext/__init__.py
           git commit -m "update to latest core commit"
-          git push origin legacy-support
-
-      - name: commit-main
-        if: ${{ inputs.legacy != 'yes' }}
-        run: |
-          # Stage the file, commit and push
-          git add pretext/__init__.py
-          git commit -m "update to latest core commit"
-          git push origin main
+          git push origin ${{ inputs.branch }}

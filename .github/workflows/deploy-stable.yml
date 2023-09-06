@@ -14,14 +14,14 @@ on:
           - "patch"
           - "minor"
           - "major"
-      legacy:
-        description: "Release a patch to 1.8 legacy version"
+      branch:
+        description: "Use main branch for regular releases, legacy-support for 1.8x fixes."
         required: false
         type: choice
-        default: "no"
+        default: "main"
         options:
-          - "no"
-          - "yes"
+          - "main"
+          - "legacy-support"
 
 jobs:
   test:
@@ -37,9 +37,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        if: ${{ inputs.legacy == 'yes' }}
         with:  
-          ref: legacy-support
+          ref: ${{ inputs.branch }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -70,9 +69,8 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
-        if: ${{ inputs.legacy == 'yes' }}
-          with:  
-            ref: legacy-support
+        with:  
+          ref: ${{ inputs.branch }}
 
       # Sets up python3
       - uses: actions/setup-python@v4
@@ -114,20 +112,14 @@ jobs:
           git config user.email "<>"
 
       - name: commit
-        if: ${{ inputs.legacy == 'no' }}
         run: |
           # Stage the file, commit and push
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
-          git push origin main
-        if: ${{ inputs.legacy == 'yes' }}
-        run: |
-          # Stage the file, commit and push
-          git add pyproject.toml
-          git commit -m "bump version to next patch level for nightly releases"
-          git push origin legacy-support
+          git push origin ${{ inputs.branch }}
 
       - name: Repository Dispatch
+        if ${{ inputs.branch == 'main' }}
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
