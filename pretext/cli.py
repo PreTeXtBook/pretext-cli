@@ -42,6 +42,7 @@ mh = logging.handlers.MemoryHandler(
     capacity=1024 * 100, flushLevel=100, target=sh, flushOnClose=False
 )
 mh.setLevel(logging.ERROR)
+mh.setFormatter(click_log_format)
 log.addHandler(mh)
 
 # Call exit_command() at close to handle errors encountered during run.
