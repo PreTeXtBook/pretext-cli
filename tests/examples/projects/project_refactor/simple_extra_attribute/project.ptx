@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project ptx-version="2">
+  <targets>
+    <target name="web" format="html" />
+    <target name="rs" format="html" platform="runestone" />
+    <!-- The element below has an extra attribute, which causes a validation error. -->
+    <target name="print" format="pdf" stringparamz="oops"/>
+  </targets>
+</project>
