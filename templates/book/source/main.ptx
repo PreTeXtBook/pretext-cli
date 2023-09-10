@@ -1,84 +1,22 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
-
-  <docinfo>
-    <!--
-      A unique name for the book in a catalog; for example, see
-      https://pretextbook.org/catalog.html and
-      https://runestone.academy/ns/books/index. It contains a simple lowercase
-      string with no dashes or other special characters. See
-      https://pretextbook.org/doc/guide/html/sec-publishing-to-runestone-academy.html
-      for more information.
-    -->
-    <document-id>changeme</document-id>
-    <!--
-      A brief description for the book in a catalog; see the links above.
-      The @shelf is used only when publishing to Runestone; see
-      https://runestone.academy/ns/books/index for a list of valid values.
-      You must copy these @shelf names exactly, including capitalization.
-    -->
-    <blurb shelf="AP Computer Science">
-        A simple string (no markup is allowed) to describe your book.
-    </blurb>
-    <macros>
-      \newcommand{\R}{\mathbb R}
-    </macros>
-    <latex-image-preamble>
-      \usepackage{tikz}
-    </latex-image-preamble>
-  </docinfo>
+  <!-- we first include a file which contains the docinfo element: -->
+  <xi:include href="./docinfo.ptx" />
 
   <book xml:id="my-great-book">
     <title>My Great Book</title>
     <subtitle>An example to get you started</subtitle>
 
-    <frontmatter xml:id="frontmatter">
-      <titlepage>
-        <author>
-          <personname>You</personname>
-          <department>Your department</department>
-          <institution>Your institution</institution>
-        </author>
-        <date>
-          <today />
-        </date>
-      </titlepage>
+    <!-- Include frontmatter -->
+    <xi:include href="./frontmatter.ptx" />
 
-      <colophon>
+    <!-- Include chapters -->
+    <xi:include href="./ch-chapter-title.ptx" />
 
-        <website>
-          <url href="https://pretextbook.org">Your Homepage</url>
-        </website>
 
-        <copyright>
-          <year>2020<ndash />2023</year>
-          <holder>You</holder>
-          <shortlicense>
-            This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit <url href="http://creativecommons.org/licenses/by-sa/4.0/" visual="creativecommons.org/licenses/by-sa/4.0"> CreativeCommons.org</url>
-          </shortlicense>
-        </copyright>
-      </colophon>
-    </frontmatter>
-
-    <chapter xml:id="chapter-title">
-      <title>Chapter title</title>
-
-      <section xml:id="section-title">
-        <title>Section title</title>
-        <p>Hello</p>
-      </section>
-
-    </chapter>
-
-    <backmatter xml:id="backmatter">
-      <title>Backmatter</title>
-
-      <colophon>
-        <p> This book was authored in <pretext />. </p>
-      </colophon>
-
-    </backmatter>
+    <!-- Include backmatter -->
+    <xi:include href="./backmatter.ptx" />
 
   </book>
 </pretext>
