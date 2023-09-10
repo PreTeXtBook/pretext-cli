@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The docinfo block is the analogue to the latex preamble -->
+<!-- This is where you can define macros and other book-wide -->
+<!-- settings. -->
+<docinfo xmlns:xi="http://www.w3.org/2001/XInclude">
+  <!-- A unique name for the book in a catalog; for example, see https://pretextbook.org/catalog.html and https://runestone.academy/ns/books/index. It contains a simple lowercase string with no dashes or other special characters. See https://pretextbook.org/doc/guide/html/sec-publishing-to-runestone-academy.html for more information. -->
+  <document-id>changeme</document-id>
+  <!-- A brief description for the book in a catalog; see the links above. The @shelf is used only when publishing to Runestone; see https://runestone.academy/ns/books/index for a list of valid values. You must copy these @shelf names exactly, including capitalization. -->
+  <blurb shelf="AP Computer Science"> A simple string (no markup is allowed) to describe your book. </blurb>
+
+
+  <!-- The next three lines are likely for mature projects only: -->
+
+  <!-- <brandlogo url="" source="images/cover.png"/> -->
+  <!-- <covers front="images/front.pdf" back="images/back.pdf"/> -->
+  <!-- <document-id>unique-book-id</document-id> -->
+
+  <!-- macros for defining latex math shortcuts. It is good practice -->
+  <!-- to define these semantically, so that the macro relates to what-->
+  <!-- it defines. -->
+  <macros> \newcommand{\N}{\mathbb N} \newcommand{\Z}{\mathbb Z} \newcommand{\Q}{\mathbb Q} \newcommand{\R}{\mathbb R} </macros>
+
+  <!-- If you put any latex-image elements you can include preambles -->
+  <!-- for those in the next element. -->
+  <latex-image-preamble> \usepackage{tikz, pgfplots} \usetikzlibrary{positioning,matrix,arrows} \usetikzlibrary{shapes,decorations,shadows,fadings,patterns} \usetikzlibrary{decorations.markings} </latex-image-preamble>
+
+  <!-- It is possible to rename elements: -->
+  <!-- <rename element="assemblage" xml:lang="en-US">Summary</rename> -->
+
+  <!-- Specify the default type of cross reference: -->
+  <!-- <cross-references text="type-global" /> -->
+
+
+</docinfo>
