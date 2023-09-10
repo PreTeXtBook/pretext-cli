@@ -352,7 +352,7 @@ def test_deploy(tmp_path: Path) -> None:
         )
 
 
-def test_validation() -> None:
+def test_validation(tmp_path: Path) -> None:
     project = pr.Project(ptx_version="2")
     # Verify that repeated server names cause a validation error.
     with pytest.raises(pydantic.ValidationError):
@@ -385,3 +385,26 @@ def test_validation() -> None:
         project.new_target(name="test", format="pdf", platform="runestone")
     with pytest.raises(pydantic.ValidationError):
         project.new_target(name="test", format="html", stringparamz="oops")
+
+    # Validation should catch extra elements or attributes in this project file.
+    prj_path = tmp_path / "simple_extra_attribute"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "simple_extra_attribute",
+        prj_path,
+    )
+    with utils.working_directory(prj_path):
+        with pytest.raises(pydantic.ValidationError):
+            pr.Project.parse()
+
+
+# Extra elements inside a wrapped element don't cause a failure in pydantic-xml 2.2.0. See https://github.com/dapper91/pydantic-xml/issues/105#issuecomment-1711589903.
+@pytest.mark.xfail
+def test_validation1(tmp_path: Path) -> None:
+    prj_path = tmp_path / "simple_extra_element"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "simple_extra_element",
+        prj_path,
+    )
+    with utils.working_directory(prj_path):
+        with pytest.raises(pydantic.ValidationError):
+            pr.Project.parse()

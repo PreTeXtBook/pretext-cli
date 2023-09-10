@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project ptx-version="2">
+  <targets>
+    <target name="web" format="html" />
+    <target name="rs" format="html" platform="runestone" />
+    <!-- The element below is not part of the schema, which causes a validation error. -->
+    <targetz name="print" format="pdf"/>
+  </targets>
+</project>
