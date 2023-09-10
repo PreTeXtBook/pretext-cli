@@ -639,8 +639,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if specified_asset_types is None or "ALL" in specified_asset_types:
             specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
         log.debug(f"Assets generation requested for: {specified_asset_types}.")
-        specified_asset_types = [asset for asset in specified_asset_types if asset in constants.ASSETS_BY_FORMAT[self.format]]
-        log.debug(f"Based on format {self.format}, assets to be generated are: {specified_asset_types}.")
+        specified_asset_types = [
+            asset
+            for asset in specified_asset_types
+            if asset in constants.ASSETS_BY_FORMAT[self.format]
+        ]
+        log.debug(
+            f"Based on format {self.format}, assets to be generated are: {specified_asset_types}."
+        )
         # We always build the asset hash table, even if only_changed=False: this tells us which assets need to be built, and how to update the saved asset hash table.
         source_asset_table = self.generate_asset_table()
         saved_asset_table = utils.clean_asset_table(

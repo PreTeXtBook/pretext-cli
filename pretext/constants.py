@@ -19,7 +19,7 @@ ASSETS_BY_FORMAT = {
         "youtube",
         "codelense",
         "datafile",
-        "interactive"
+        "interactive",
     ],
     "latex": [
         "webwork",
@@ -28,7 +28,7 @@ ASSETS_BY_FORMAT = {
         "youtube",
         "codelense",
         "datafile",
-        "interactive"
+        "interactive",
     ],
     "epub": [
         "webwork",
@@ -38,7 +38,7 @@ ASSETS_BY_FORMAT = {
         "youtube",
         "codelense",
         "datafile",
-        "interactive"
+        "interactive",
     ],
     "kindle": [
         "webwork",
@@ -48,7 +48,7 @@ ASSETS_BY_FORMAT = {
         "youtube",
         "codelense",
         "datafile",
-        "interactive"
+        "interactive",
     ],
     "braille": [
         "webwork",
@@ -58,7 +58,7 @@ ASSETS_BY_FORMAT = {
         "youtube",
         "codelense",
         "datafile",
-        "interactive"
+        "interactive",
     ],
     "webwork": [
         "webwork",
@@ -71,7 +71,7 @@ ASSETS_BY_FORMAT = {
         "youtube",
         "codelense",
         "datafile",
-        "interactive"
+        "interactive",
     ],
 }
 
