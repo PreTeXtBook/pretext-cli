@@ -2,6 +2,8 @@ import typing as t
 
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
+FORMATS = ["html", "pdf", "latex", "epub", "kindle", "braille", "webwork", "custom"]
+
 # Give list of assets that each build format requires.
 ASSETS_BY_FORMAT = {
     "html": [
