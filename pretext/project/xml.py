@@ -45,13 +45,13 @@ class LatexEngine(str, Enum):
 
 
 class LegacyStringParam(pxml.BaseXmlModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict()
     key: str = pxml.attr()
     value: str = pxml.attr()
 
 
 class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict()
     name: str = pxml.attr()
     latex_engine: t.Optional[LatexEngine] = pxml.attr(name="pdf-method", default=None)
     format: LegacyFormat = pxml.element()
@@ -70,7 +70,7 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORD
 class LegacyExecutables(
     pxml.BaseXmlModel, tag="executables", search_mode=SearchMode.UNORDERED
 ):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict()
     latex: str = pxml.element()
     pdflatex: str = pxml.element()
     xelatex: str = pxml.element()
@@ -84,6 +84,6 @@ class LegacyExecutables(
 
 
 class LegacyProject(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict()
     targets: t.List[LegacyTarget] = pxml.wrapped("targets", pxml.element(tag="target"))
     executables: LegacyExecutables = pxml.element()
