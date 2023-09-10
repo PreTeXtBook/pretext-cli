@@ -256,6 +256,46 @@ def test_manifest_legacy() -> None:
         assert project._executables.latex == "latex1"
 
 
+# Repeat the above test with a manifest that has extra, unknown elements. This should still work, but the extra elements should be ignored.
+def test_manifest_legacy_wrong() -> None:
+    prj_path = EXAMPLES_DIR / "projects" / "project_refactor" / "legacy_extra"
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        assert len(project.targets) == 3
+
+        assert project._executables.xelatex == "xelatex"
+        assert project._executables.liblouis == "foobar"
+
+        t_html = project.get_target("html")
+        assert t_html is not None
+        assert t_html.format == "html"
+        assert t_html.source_abspath() == project.abspath() / Path("source", "main.ptx")
+        assert t_html.publication_abspath() == project.abspath() / Path(
+            "publication", "publication.ptx"
+        )
+        assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
+        assert t_html.latex_engine == "xelatex"
+        assert t_html.stringparams == {"one": "uno", "two": "dos"}
+
+        t_latex = project.get_target("latex")
+        assert t_latex.format == "latex"
+        assert t_latex.source == Path("source", "main.ptx")
+        assert t_latex.publication == Path("publication", "publication.ptx")
+        assert t_latex.output_dir == Path("output", "latex")
+        assert t_latex.latex_engine == "xelatex"
+
+        t_pdf = project.get_target("pdf")
+        assert t_pdf.format == "pdf"
+        assert t_pdf.source == Path("source", "main.ptx")
+        assert t_pdf.publication == Path("publication", "publication.ptx")
+        assert t_pdf.output_dir == Path("output", "pdf")
+        assert t_pdf.latex_engine == "pdflatex"
+
+        assert not project.has_target("foo")
+
+        assert project._executables.latex == "latex1"
+
+
 def test_demo_html_build(tmp_path: Path) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces

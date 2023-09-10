@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This file provides the overall configuration for your PreTeXt project. To edit the content of your document, open `source/main.ptx` (default location). -->
+<project>
+    <!-- Note that this entry is last, though it's listed first in the schema, to check that it's still found. -->
+    <executables>
+        <pdflatex>pdflatex</pdflatex>
+        <xelatex>xelatex</xelatex>
+        <pdfsvg>pdf2svg</pdfsvg>
+        <asy>asy</asy>
+        <sage>sage</sage>
+        <pdfpng>convert</pdfpng>
+        <pdfeps>pdftops</pdfeps>
+        <node>node</node>
+        <liblouis>foobar</liblouis>
+        <!-- Add an "executable" that is not expected to test that this doesn't throw error -->
+        <foobar>foobar.exe</foobar>
+        <!-- Note that this entry is last, though it's listed first in the schema, to check that it's still found. -->
+        <latex>latex1</latex>
+    </executables>
+    <targets>
+        <target name="html">
+            <source>source/main.ptx</source>
+            <publication>publication/publication.ptx</publication>
+            <output-dir>output/html</output-dir>
+            <stringparam
+                key="one"
+                value="uno"
+            />
+            <stringparam
+                key="two"
+                value="dos"
+            />
+            <!-- Note that this entry is last, though it's listed first in the schema, to check that it's still found. -->
+            <format>html</format>
+        </target>
+        <target name="latex">
+            <format>latex</format>
+            <source>source/main.ptx</source>
+            <publication>publication/publication.ptx</publication>
+            <output-dir>output/latex</output-dir>
+            <!-- Unexpected element should not result in error for legacy projects -->
+            <extra-element>foo</extra-element>
+        </target>
+        <target
+            name="pdf"
+            pdf-method="pdflatex"
+        >
+            <format>pdf</format>
+            <source>source/main.ptx</source>
+            <publication>publication/publication.ptx</publication>
+            <output-dir>output/pdf</output-dir>
+        </target>
+    </targets>
+    <!-- This isn't part of the schema, but shouldn't throw error right now. -->
+    <sites>
+        <target name="html">
+            <dir>fake</dir>
+        </target>
+    </sites>
+</project>
