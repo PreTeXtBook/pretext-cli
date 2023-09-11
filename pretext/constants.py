@@ -2,17 +2,80 @@ import typing as t
 
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
-BUILD_FORMATS = [
-    "html",
-    "pdf",
-    "latex",
-    "epub",
-    "kindle",  # TODO: mode of epub rather than separate format?
-    "braille",
-    "html-zip",  # TODO: deprecate
-    "webwork-sets",  # TODO: just "webwork"
-    "webwork-sets-zipped",  # TODO: deprecate
-]
+FORMATS = ["html", "pdf", "latex", "epub", "kindle", "braille", "webwork", "custom"]
+
+# Give list of assets that each build format requires.
+ASSETS_BY_FORMAT = {
+    "html": [
+        "webwork",
+        "latex-image",
+        "sageplot",
+        "asymptote",
+        "codelense",
+        "datafile",
+    ],
+    "pdf": [
+        "webwork",
+        "sageplot",
+        "asymptote",
+        "youtube",
+        "codelense",
+        "datafile",
+        "interactive",
+    ],
+    "latex": [
+        "webwork",
+        "sageplot",
+        "asymptote",
+        "youtube",
+        "codelense",
+        "datafile",
+        "interactive",
+    ],
+    "epub": [
+        "webwork",
+        "latex-image",
+        "sageplot",
+        "asymptote",
+        "youtube",
+        "codelense",
+        "datafile",
+        "interactive",
+    ],
+    "kindle": [
+        "webwork",
+        "latex-image",
+        "sageplot",
+        "asymptote",
+        "youtube",
+        "codelense",
+        "datafile",
+        "interactive",
+    ],
+    "braille": [
+        "webwork",
+        "latex-image",
+        "sageplot",
+        "asymptote",
+        "youtube",
+        "codelense",
+        "datafile",
+        "interactive",
+    ],
+    "webwork": [
+        "webwork",
+    ],
+    "custom": [
+        "webwork",
+        "latex-image",
+        "sageplot",
+        "asymptote",
+        "youtube",
+        "codelense",
+        "datafile",
+        "interactive",
+    ],
+}
 
 ASSET_TO_XPATH = {
     "webwork": ".//webwork[*|@*]",

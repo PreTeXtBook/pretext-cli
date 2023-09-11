@@ -306,9 +306,6 @@ def test_demo_html_build(tmp_path: Path) -> None:
         shutil.rmtree(t_web.generated_dir_abspath(), ignore_errors=True)
         t_web.build()
         assert t_web.output_dir_abspath().exists()
-        assert (
-            t_web.generated_dir_abspath() / "play-button" / "play-button.png"
-        ).exists()
         with open(t_web.output_dir_abspath() / ".mapping.json") as mpf:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
