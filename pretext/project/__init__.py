@@ -924,7 +924,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     publication: Path = pxml.attr(default=Path("publication"))
     # A path, relative to the project directory, prepended to any target's `output_dir`.
     output_dir: Path = pxml.attr(name="output-dir", default=Path("output"))
-    # A path prepended to any target's `site`.
+    # A path to the directory holding a project's landing page(s).
     site: Path = pxml.attr(default=Path("site"))
     # A path to stage files for deployment
     stage: Path = pxml.attr(default=Path("output/stage"))
