@@ -433,10 +433,6 @@ def test_validation(tmp_path: Path) -> None:
         with pytest.raises(pydantic.ValidationError):
             pr.Project.parse()
 
-
-# Extra elements inside a wrapped element don't cause a failure in pydantic-xml 2.2.0. See https://github.com/dapper91/pydantic-xml/issues/105#issuecomment-1711589903.
-@pytest.mark.xfail
-def test_validation1(tmp_path: Path) -> None:
     prj_path = tmp_path / "simple_extra_element"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "simple_extra_element",
