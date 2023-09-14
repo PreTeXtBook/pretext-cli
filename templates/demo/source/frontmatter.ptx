@@ -16,8 +16,7 @@
   <colophon>
 
     <website>
-      <name><c>my-website.org</c></name>
-      <address>http://pretextbook.org</address>
+      <url href="https://pretextbook.org">My Website</url>
     </website>
 
     <copyright>
