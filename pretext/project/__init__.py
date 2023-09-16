@@ -1245,7 +1245,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             return
         utils.publish_to_ghpages(self.stage_abspath(), update_source)
 
-    def generate_boilerplate(self, skip_unmanaged=True, logger=log.debug):
+    def generate_boilerplate(self, skip_unmanaged=True, logger=log.debug) -> None:
         """
         Generates boilerplate files needed/suggested for
         a PreTeXt project. Existing files will be overwritten
@@ -1264,10 +1264,13 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         for resource in resources:
             with templates.resource_path(resource) as resource_path:
-                project_resource_path = (self.abspath()/resource).resolve()
+                project_resource_path = (self.abspath() / resource).resolve()
                 if project_resource_path.exists():
                     # check if file is unmanaged by PreTeXt
-                    if "<!-- Managed automatically by PreTeXt authoring tools -->" not in project_resource_path.read_text():
+                    if (
+                        "<!-- Managed automatically by PreTeXt authoring tools -->"
+                        not in project_resource_path.read_text()
+                    ):
                         if skip_unmanaged:
                             continue
                         new_resource_name = (
