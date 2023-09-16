@@ -1,4 +1,5 @@
 import typing as t
+import datetime
 from enum import Enum
 import hashlib
 import logging
@@ -24,6 +25,7 @@ from .. import codechat
 from .. import utils
 from .. import types as pt  # PreTeXt types
 from .. import templates
+from .. import VERSION
 
 
 log = logging.getLogger("ptxlogger")
@@ -1242,3 +1244,48 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         if stage_only:
             return
         utils.publish_to_ghpages(self.stage_abspath(), update_source)
+
+    def generate_boilerplate(self, skip_unmanaged=True, logger=log.debug):
+        """
+        Generates boilerplate files needed/suggested for
+        a PreTeXt project. Existing files will be overwritten
+        as long as they have a comment confirmed they are managed
+        by this library and not the user. If `skip_unmanaged` is
+        `False`, then files without this comment will be generated
+        with a timestamp in the filename.
+        """
+        resources = [
+            "project.ptx",
+            "codechat_config.yaml",
+            ".gitignore",
+            ".devcontainer.json",
+            "requirements.txt",
+        ]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        for resource in resources:
+            with templates.resource_path(resource) as resource_path:
+                project_resource_path = Path(resource).resolve()
+                if project_resource_path.exists():
+                    # check if file is unmanaged by PreTeXt
+                    if "Managed by PreTeXt" not in project_resource_path.read_text():
+                        if skip_unmanaged:
+                            continue
+                        new_resource_name = (
+                            project_resource_path.stem
+                            + "."
+                            + timestamp
+                            + project_resource_path.suffix
+                        )
+                        project_resource_path = (
+                            project_resource_path.parent / new_resource_name
+                        )
+                        log.warning(
+                            f"You are managing an existing {resource} file manually; an updated default file has been created for comparison as {project_resource_path}."
+                        )
+                if resource != "requirements.txt":
+                    shutil.copyfile(resource_path, project_resource_path)
+                else:
+                    project_resource_path.write_text(
+                        f"# Managed by PreTeXt\npretext == {VERSION}\n"
+                    )
+                logger(f"Generated `{project_resource_path}`\n")

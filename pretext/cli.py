@@ -115,8 +115,10 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
+        project = Project.parse(pp)
+        project.generate_boilerplate()
         if targets:
-            for target in Project.parse(pp).target_names():
+            for target in project.target_names():
                 print(target)
             return
         # create file handler which logs even debug messages
@@ -275,15 +277,16 @@ def new(template: str, directory: Path, url_template: str) -> None:
         ]:
             archive.extract(filepath, path=tmpdirname)
         tmpsubdirname = Path(tmpdirname) / project_dir_path
-        shutil.copytree(tmpsubdirname, directory, dirs_exist_ok=True)
-    # generate requirements.txt
-    with open(directory_fullpath / "requirements.txt", "w") as f:
-        f.write(f"pretext == {VERSION}")
+        shutil.copytree(tmpsubdirname, directory_fullpath, dirs_exist_ok=True)
+    # generate remaining boilerplate like requirements.txt
+    project = Project.parse(directory_fullpath)
+    project.generate_boilerplate()
+    target = Project.targets[0]
     log.info(
-        f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document"
+        f"Success! Open `{target.source_abspath()}` to edit your document"
     )
     log.info(
-        f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`."
+        f"Then try to `pretext build` and `pretext view` from within `{project.abspath()}`."
     )
 
 
@@ -308,50 +311,20 @@ def init(refresh: bool) -> None:
     Existing files won't be overwritten; a copy of the fresh initialized file will be created
     with a timestamp in its filename for comparison.
     """
-    if utils.project_path() is not None and not refresh:
-        log.warning(f"A project already exists in `{utils.project_path()}`.")
-        log.warning(
-            "Use `pretext init --refresh` to refresh initialization of an existing project."
-        )
-        return
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    resource_to_dest = {
-        "project.ptx": "project.ptx",
-        "publication.ptx": "publication/publication.ptx",
-        ".gitignore": ".gitignore",
-        ".devcontainer.json": ".devcontainer.json",
-    }
-    for resource in resource_to_dest:
-        with templates.resource_path(resource) as resource_path:
-            project_resource_path = Path(resource_to_dest[resource]).resolve()
-            if project_resource_path.exists():
-                new_resource_name = (
-                    project_resource_path.stem
-                    + "-"
-                    + timestamp
-                    + project_resource_path.suffix
-                )
-                project_resource_path = project_resource_path.parent / new_resource_name
-                log.warning(
-                    f"You already have a {resource} file; a new default one for comparison has been created as {project_resource_path}."
-                )
-            log.info(f"Generated `{project_resource_path}`\n")
-            if not project_resource_path.parent.exists():
-                project_resource_path.parent.mkdir()
-            shutil.copyfile(resource_path, project_resource_path)
-    # Create requirements.txt
-    requirements_path = Path("requirements.txt").resolve()
-    if requirements_path.exists():
-        requirements_path = Path(f"requirements-{timestamp}.txt").resolve()
-        log.warning(
-            f"You already have a requirements.txt file at {Path('requirements.txt').resolve()}`."
-        )
-        log.warning(
-            f"The one suggested by PreTeXt will be created as {requirements_path} for comparison."
-        )
-    with open(requirements_path, "w") as f:
-        f.write(f"pretext == {VERSION}")
-    log.info(f"Generated requirements file at {requirements_path}.\n")
+    project_path = utils.project_path()
+    if project_path is None:
+        project = Project()
+    else:
+        if refresh:
+            project = Project.parse(project_path)
+        else:
+            log.warning(f"A project already exists in `{project_path}`.")
+            log.warning(
+                "Use `pretext init --refresh` to refresh initialization of an existing project."
+            )
+            return
+
+    project.generate_boilerplate(skip_unmanaged=False, logger=log.info)
 
     log.info("Success! Open project.ptx to edit your project manifest.")
     log.info(
