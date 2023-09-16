@@ -282,9 +282,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     project = Project.parse(directory_fullpath)
     project.generate_boilerplate()
     target = Project.targets[0]
-    log.info(
-        f"Success! Open `{target.source_abspath()}` to edit your document"
-    )
+    log.info(f"Success! Open `{target.source_abspath()}` to edit your document")
     log.info(
         f"Then try to `pretext build` and `pretext view` from within `{project.abspath()}`."
     )
