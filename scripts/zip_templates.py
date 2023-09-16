@@ -38,7 +38,7 @@ def main() -> None:
                     temporary_path,
                 )
     for f in [
-        "project.ptx",
+        "codechat_config.yaml" "project.ptx",
         "publication.ptx",
         ".gitignore",
         ".devcontainer.json",

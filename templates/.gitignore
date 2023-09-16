@@ -1,3 +1,6 @@
+# <!-- Managed automatically by PreTeXt authoring tools -->
+# (delete the above line to manage this file manually)
+
 # Boilerplate list of files in a PreTeXt project for git to ignore
 # ensure this file is tracked
 !.gitignore
@@ -92,3 +95,5 @@ GitHub.sublime-settings
 .dropbox.attr
 .dropbox.cache
 
+# Don't track codechat config (will be generated automatically)
+codechat_config.yaml
