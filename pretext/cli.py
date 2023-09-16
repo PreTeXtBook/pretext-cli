@@ -121,7 +121,6 @@ def main(ctx: click.Context, targets: bool) -> None:
         project.generate_boilerplate()
         if targets:
             for target in project.target_names():
-            for target in project.target_names():
                 print(target)
             return
         # create file handler which logs even debug messages
