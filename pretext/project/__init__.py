@@ -1245,7 +1245,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             return
         utils.publish_to_ghpages(self.stage_abspath(), update_source)
 
-    def generate_boilerplate(self, skip_unmanaged=True, logger=log.debug) -> None:
+    def generate_boilerplate(
+        self, skip_unmanaged: bool = True, logger: t.Callable[[str], None] = log.debug
+    ) -> None:
         """
         Generates boilerplate files needed/suggested for
         a PreTeXt project. Existing files will be overwritten
