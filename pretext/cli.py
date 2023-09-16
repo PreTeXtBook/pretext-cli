@@ -117,7 +117,10 @@ def main(ctx: click.Context, targets: bool) -> None:
     if (pp := utils.project_path()) is not None:
         project = Project.parse(pp)
         project.generate_boilerplate()
+        project = Project.parse(pp)
+        project.generate_boilerplate()
         if targets:
+            for target in project.target_names():
             for target in project.target_names():
                 print(target)
             return
@@ -284,7 +287,10 @@ def new(template: str, directory: Path, url_template: str) -> None:
     target = Project.targets[0]
     log.info(f"Success! Open `{target.source_abspath()}` to edit your document")
     log.info(
-        f"Then try to `pretext build` and `pretext view` from within `{project.abspath()}`."
+        f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document"
+    )
+    log.info(
+        f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`."
     )
 
 
