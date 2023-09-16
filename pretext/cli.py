@@ -281,7 +281,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     # generate remaining boilerplate like requirements.txt
     project = Project.parse(directory_fullpath)
     project.generate_boilerplate()
-    if (project.targets)==0:
+    if len(project.targets) == 0:
         log.warning("The generated project has no targets!")
     else:
         target = project.targets[0]
