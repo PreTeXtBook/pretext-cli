@@ -908,7 +908,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     """
 
     model_config = ConfigDict(extra="forbid")
-    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
+    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version", default="2")
     _executables: Executables = PrivateAttr(default=Executables())
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
@@ -1291,6 +1291,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     shutil.copyfile(resource_path, project_resource_path)
                 else:
                     project_resource_path.write_text(
-                        f"# Managed by PreTeXt\npretext == {VERSION}\n"
+                        f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
                     )
                 logger(f"Generated `{project_resource_path}`\n")
