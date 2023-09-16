@@ -41,6 +41,7 @@ def main() -> None:
         "project.ptx",
         "publication.ptx",
         ".gitignore",
+        "codechat_config.yaml",
         ".devcontainer.json",
     ]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
