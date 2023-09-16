@@ -284,7 +284,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     # generate remaining boilerplate like requirements.txt
     project = Project.parse(directory_fullpath)
     project.generate_boilerplate()
-    target = Project.targets[0]
+    target = project.targets[0]
     log.info(f"Success! Open `{target.source_abspath()}` to edit your document")
     log.info(
         f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document"

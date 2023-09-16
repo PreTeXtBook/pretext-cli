@@ -908,7 +908,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     """
 
     model_config = ConfigDict(extra="forbid")
-    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
+    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version", default="2")
     _executables: Executables = PrivateAttr(default=Executables())
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
@@ -1264,7 +1264,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         for resource in resources:
             with templates.resource_path(resource) as resource_path:
-                project_resource_path = Path(resource).resolve()
+                project_resource_path = (self.abspath()/resource).resolve()
                 if project_resource_path.exists():
                     # check if file is unmanaged by PreTeXt
                     if "Managed by PreTeXt" not in project_resource_path.read_text():
