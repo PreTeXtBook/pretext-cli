@@ -12,7 +12,7 @@ def test_resource_path() -> None:
         "hello.zip",
         "project.ptx",
         "publication.ptx",
-        "slideshow.zip"
+        "slideshow.zip",
     ]
     for filename in resources:
         with resource_path(filename) as path:
