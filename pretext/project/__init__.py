@@ -1265,32 +1265,32 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         ]
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         for resource in resources:
-            with templates.resource_path(resource) as resource_path:
-                project_resource_path = (self.abspath() / resource).resolve()
-                if project_resource_path.exists():
-                    # check if file is unmanaged by PreTeXt
-                    if (
-                        "<!-- Managed automatically by PreTeXt authoring tools -->"
-                        not in project_resource_path.read_text()
-                    ):
-                        if skip_unmanaged:
-                            continue
-                        new_resource_name = (
-                            project_resource_path.stem
-                            + "."
-                            + timestamp
-                            + project_resource_path.suffix
-                        )
-                        project_resource_path = (
-                            project_resource_path.parent / new_resource_name
-                        )
-                        log.warning(
-                            f"You are managing an existing {resource} file manually; an updated default file has been created for comparison as {project_resource_path}."
-                        )
-                if resource != "requirements.txt":
-                    shutil.copyfile(resource_path, project_resource_path)
-                else:
-                    project_resource_path.write_text(
-                        f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
+            project_resource_path = (self.abspath() / resource).resolve()
+            if project_resource_path.exists():
+                # check if file is unmanaged by PreTeXt
+                if (
+                    "<!-- Managed automatically by PreTeXt authoring tools -->"
+                    not in project_resource_path.read_text()
+                ):
+                    if skip_unmanaged:
+                        continue
+                    new_resource_name = (
+                        project_resource_path.stem
+                        + "."
+                        + timestamp
+                        + project_resource_path.suffix
                     )
-                logger(f"Generated `{project_resource_path}`\n")
+                    project_resource_path = (
+                        project_resource_path.parent / new_resource_name
+                    )
+                    log.warning(
+                        f"You are managing an existing {resource} file manually; an updated default file has been created for comparison as {project_resource_path}."
+                    )
+            if resource != "requirements.txt":
+                with templates.resource_path(resource) as resource_path:
+                    shutil.copyfile(resource_path, project_resource_path)
+            else:
+                project_resource_path.write_text(
+                    f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
+                )
+            logger(f"Generated `{project_resource_path}`\n")
