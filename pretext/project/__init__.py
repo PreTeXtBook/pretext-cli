@@ -1248,7 +1248,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         self,
         skip_unmanaged: bool = True,
         logger: t.Callable[[str], None] = log.debug,
-        update_requirements=False,
+        update_requirements: bool = False,
     ) -> None:
         """
         Generates boilerplate files needed/suggested for
