@@ -1262,7 +1262,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         if resources is None or len(resources) == 0:
             resources = constants.PROJECT_RESOURCES
         if not set(resources) <= set(constants.PROJECT_RESOURCES):
-            raise TypeError(f"{resources} includes a resource not in {constants.PROJECT_RESOURCES}")
+            raise TypeError(
+                f"{resources} includes a resource not in {constants.PROJECT_RESOURCES}"
+            )
         for resource in resources:
             project_resource_path = (self.abspath() / resource).resolve()
             if project_resource_path.exists():
