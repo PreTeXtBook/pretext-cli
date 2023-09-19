@@ -145,8 +145,9 @@ def main(ctx: click.Context, targets: bool) -> None:
                 f"is configured to use {utils.requirements_version()}. Consider either installing"
             )
             log.warning(
-                f"CLI version {utils.requirements_version()} or changing `requirements.txt` to match {VERSION}."
+                f"CLI version {utils.requirements_version()} or running `pretext init --refresh`"
             )
+            log.warning(f"to update `requirements.txt` to match {VERSION}.")
         else:
             log.debug(
                 f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}."
@@ -325,12 +326,22 @@ def init(refresh: bool) -> None:
             )
             return
 
-    project.generate_boilerplate(skip_unmanaged=False, logger=log.info)
-
-    log.info("Success! Open project.ptx to edit your project manifest.")
-    log.info(
-        "Edit your <target/>s to point to the location of your PreTeXt source files."
+    project.generate_boilerplate(
+        skip_unmanaged=False, update_requirements=True, logger=log.info
     )
+
+    if project_path is None:
+        log.info("Success! Open project.ptx to edit your project manifest.")
+        log.info(
+            "Edit your <target/>s to point to the location of your PreTeXt source files."
+        )
+    else:
+        log.info(
+            "Success! Your project files have been refreshed. If you manage any of these"
+        )
+        log.info(
+            "manually, be sure to compare these new versions with your old .bak files."
+        )
 
 
 # pretext build

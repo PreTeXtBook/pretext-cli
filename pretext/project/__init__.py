@@ -1245,7 +1245,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         utils.publish_to_ghpages(self.stage_abspath(), update_source)
 
     def generate_boilerplate(
-        self, skip_unmanaged: bool = True, logger: t.Callable[[str], None] = log.debug
+        self,
+        skip_unmanaged: bool = True,
+        logger: t.Callable[[str], None] = log.debug,
+        update_requirements=False,
     ) -> None:
         """
         Generates boilerplate files needed/suggested for
@@ -1272,8 +1275,11 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 ):
                     if skip_unmanaged:
                         continue  # continue on to next resource in resources, not copying anything
+                    if resource == "requirements.txt" and not update_requirements:
+                        continue  # continue on to next resource in resources, not copying anything
                     backup_resource_path = (
-                        project_resource_path.parent / f"{project_resource_path.name}.bak"
+                        project_resource_path.parent
+                        / f"{project_resource_path.name}.bak"
                     )
                     shutil.copyfile(project_resource_path, backup_resource_path)
                     log.warning(
@@ -1285,7 +1291,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             if resource != "requirements.txt":
                 with templates.resource_path(resource) as resource_path:
                     shutil.copyfile(resource_path, project_resource_path)
-            else:
+            elif update_requirements:
                 project_resource_path.write_text(
                     f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
                 )
