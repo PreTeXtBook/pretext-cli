@@ -1249,6 +1249,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         skip_unmanaged: bool = True,
         logger: t.Callable[[str], None] = log.debug,
         update_requirements: bool = False,
+        resources: t.Optional[t.List[str]] = None,
     ) -> None:
         """
         Generates boilerplate files needed/suggested for
@@ -1258,13 +1259,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         `False`, then files without this comment will be generated
         with a timestamp in the filename.
         """
-        resources = [
-            "project.ptx",
-            "codechat_config.yaml",
-            ".gitignore",
-            ".devcontainer.json",
-            "requirements.txt",
-        ]
+        if resources is None or len(resources) == 0:
+            resources = constants.PROJECT_RESOURCES
+        if not set(resources) <= set(constants.PROJECT_RESOURCES):
+            raise TypeError(f"{resources} includes a resource not in {constants.PROJECT_RESOURCES}")
         for resource in resources:
             project_resource_path = (self.abspath() / resource).resolve()
             if project_resource_path.exists():

@@ -303,8 +303,16 @@ def new(template: str, directory: Path, url_template: str) -> None:
     is_flag=True,
     help="Refresh initialization of project even if project.ptx exists.",
 )
+@click.option(
+    "-f",
+    "--file",
+    "files",
+    help="Specify file to refresh.",
+    multiple=True,
+    type=click.Choice(constants.PROJECT_RESOURCES, case_sensitive=False),
+)
 @nice_errors
-def init(refresh: bool) -> None:
+def init(refresh: bool, files: List[str]) -> None:
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
     is mainly intended for updating existing projects to use this CLI.
@@ -317,17 +325,18 @@ def init(refresh: bool) -> None:
     if project_path is None:
         project = Project()
     else:
-        if refresh:
+        if refresh or len(files) > 0:
             project = Project.parse(project_path)
         else:
             log.warning(f"A project already exists in `{project_path}`.")
             log.warning(
-                "Use `pretext init --refresh` to refresh initialization of an existing project."
+                "Use `pretext init --refresh` to refresh initialization of an existing project"
             )
+            log.warning("or `pretext init --file FILENAME` to refresh a specific file.")
             return
 
     project.generate_boilerplate(
-        skip_unmanaged=False, update_requirements=True, logger=log.info
+        skip_unmanaged=False, update_requirements=True, logger=log.info, resources=files
     )
 
     if project_path is None:

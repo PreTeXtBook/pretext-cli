@@ -142,3 +142,11 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "sageplot": ["all"],
     },
 }
+
+PROJECT_RESOURCES = [
+    "project.ptx",
+    "codechat_config.yaml",
+    ".gitignore",
+    ".devcontainer.json",
+    "requirements.txt",
+]
