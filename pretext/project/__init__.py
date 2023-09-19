@@ -1,5 +1,4 @@
 import typing as t
-import datetime
 from enum import Enum
 import hashlib
 import logging
@@ -1263,7 +1262,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             ".devcontainer.json",
             "requirements.txt",
         ]
-        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         for resource in resources:
             project_resource_path = (self.abspath() / resource).resolve()
             if project_resource_path.exists():
@@ -1273,18 +1271,16 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     not in project_resource_path.read_text()
                 ):
                     if skip_unmanaged:
-                        continue
-                    new_resource_name = (
-                        project_resource_path.stem
-                        + "."
-                        + timestamp
-                        + project_resource_path.suffix
+                        continue  # continue on to next resource in resources, not copying anything
+                    backup_resource_path = (
+                        project_resource_path.parent / f"{project_resource_path.name}.bak"
                     )
-                    project_resource_path = (
-                        project_resource_path.parent / new_resource_name
+                    shutil.copyfile(project_resource_path, backup_resource_path)
+                    log.warning(
+                        f"A new {resource} file has been generated at {project_resource_path}."
                     )
                     log.warning(
-                        f"You are managing an existing {resource} file manually; an updated default file has been created for comparison as {project_resource_path}."
+                        f"Your existing {resource} file has been backed up at {backup_resource_path}."
                     )
             if resource != "requirements.txt":
                 with templates.resource_path(resource) as resource_path:
