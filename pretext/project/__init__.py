@@ -910,7 +910,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     model_config = ConfigDict(extra="forbid")
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version", default="2")
-    _executables: Executables = PrivateAttr(default=Executables())
+    _executables: Executables
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
     # The absolute path of the project file (typically, `project.ptx`).
