@@ -26,6 +26,7 @@ from .. import codechat
 from .. import utils
 from .. import types as pt  # PreTeXt types
 from .. import templates
+from .. import VERSION
 
 
 log = logging.getLogger("ptxlogger")
@@ -908,7 +909,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     """
 
     model_config = ConfigDict(extra="forbid")
-    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version")
+    ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version", default="2")
     _executables: Executables
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
     source: Path = pxml.attr(default=Path("source"))
@@ -1252,3 +1253,56 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         if stage_only:
             return
         utils.publish_to_ghpages(self.stage_abspath(), update_source)
+
+    def generate_boilerplate(
+        self,
+        skip_unmanaged: bool = True,
+        logger: t.Callable[[str], None] = log.debug,
+        update_requirements: bool = False,
+        resources: t.Optional[t.List[str]] = None,
+    ) -> None:
+        """
+        Generates boilerplate files needed/suggested for
+        a PreTeXt project. Existing files will be overwritten
+        as long as they have a comment confirmed they are managed
+        by this library and not the user. If `skip_unmanaged` is
+        `False`, unmanaged files will be backed up to a `.bak` file
+        and then overwritten.
+        """
+        if resources is None or len(resources) == 0:
+            resources = constants.PROJECT_RESOURCES
+        if not set(resources) <= set(constants.PROJECT_RESOURCES):
+            raise TypeError(
+                f"{resources} includes a resource not in {constants.PROJECT_RESOURCES}"
+            )
+        for resource in resources:
+            project_resource_path = (self.abspath() / resource).resolve()
+            if project_resource_path.exists():
+                # check if file is unmanaged by PreTeXt
+                if (
+                    "<!-- Managed automatically by PreTeXt authoring tools -->"
+                    not in project_resource_path.read_text()
+                ):
+                    if skip_unmanaged:
+                        continue  # continue on to next resource in resources, not copying anything
+                    if resource == "requirements.txt" and not update_requirements:
+                        continue  # continue on to next resource in resources, not copying anything
+                    backup_resource_path = (
+                        project_resource_path.parent
+                        / f"{project_resource_path.name}.bak"
+                    )
+                    shutil.copyfile(project_resource_path, backup_resource_path)
+                    log.warning(
+                        f"A new {resource} file has been generated at {project_resource_path}."
+                    )
+                    log.warning(
+                        f"Your existing {resource} file has been backed up at {backup_resource_path}."
+                    )
+            if resource != "requirements.txt":
+                with templates.resource_path(resource) as resource_path:
+                    shutil.copyfile(resource_path, project_resource_path)
+            elif update_requirements:
+                project_resource_path.write_text(
+                    f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
+                )
+            logger(f"Generated `{project_resource_path}`\n")

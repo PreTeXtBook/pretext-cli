@@ -115,8 +115,10 @@ def main(ctx: click.Context, targets: bool) -> None:
     `pretext build --help`.
     """
     if (pp := utils.project_path()) is not None:
+        project = Project.parse(pp)
+        project.generate_boilerplate()
         if targets:
-            for target in Project.parse(pp).target_names():
+            for target in project.target_names():
                 print(target)
             return
         # create file handler which logs even debug messages
@@ -143,8 +145,9 @@ def main(ctx: click.Context, targets: bool) -> None:
                 f"is configured to use {utils.requirements_version()}. Consider either installing"
             )
             log.warning(
-                f"CLI version {utils.requirements_version()} or changing `requirements.txt` to match {VERSION}."
+                f"CLI version {utils.requirements_version()} or running `pretext init --refresh`"
             )
+            log.warning(f"to update `requirements.txt` to match {VERSION}.")
         else:
             log.debug(
                 f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}."
@@ -275,13 +278,15 @@ def new(template: str, directory: Path, url_template: str) -> None:
         ]:
             archive.extract(filepath, path=tmpdirname)
         tmpsubdirname = Path(tmpdirname) / project_dir_path
-        shutil.copytree(tmpsubdirname, directory, dirs_exist_ok=True)
-    # generate requirements.txt
-    with open(directory_fullpath / "requirements.txt", "w") as f:
-        f.write(f"pretext == {VERSION}")
-    log.info(
-        f"Success! Open `{directory_fullpath}/source/main.ptx` to edit your document"
-    )
+        shutil.copytree(tmpsubdirname, directory_fullpath, dirs_exist_ok=True)
+    # generate remaining boilerplate like requirements.txt
+    project = Project.parse(directory_fullpath)
+    project.generate_boilerplate()
+    if len(project.targets) == 0:
+        log.warning("The generated project has no targets!")
+    else:
+        target = project.targets[0]
+        log.info(f"Success! Open `{target.source_abspath()}` to edit your document")
     log.info(
         f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`."
     )
@@ -298,8 +303,16 @@ def new(template: str, directory: Path, url_template: str) -> None:
     is_flag=True,
     help="Refresh initialization of project even if project.ptx exists.",
 )
+@click.option(
+    "-f",
+    "--file",
+    "files",
+    help="Specify file to refresh.",
+    multiple=True,
+    type=click.Choice(constants.PROJECT_RESOURCES, case_sensitive=False),
+)
 @nice_errors
-def init(refresh: bool) -> None:
+def init(refresh: bool, files: List[str]) -> None:
     """
     Generates the project manifest for a PreTeXt project in the current directory. This feature
     is mainly intended for updating existing projects to use this CLI.
@@ -308,55 +321,36 @@ def init(refresh: bool) -> None:
     Existing files won't be overwritten; a copy of the fresh initialized file will be created
     with a timestamp in its filename for comparison.
     """
-    if utils.project_path() is not None and not refresh:
-        log.warning(f"A project already exists in `{utils.project_path()}`.")
-        log.warning(
-            "Use `pretext init --refresh` to refresh initialization of an existing project."
-        )
-        return
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    resource_to_dest = {
-        "project.ptx": "project.ptx",
-        "publication.ptx": "publication/publication.ptx",
-        ".gitignore": ".gitignore",
-        ".devcontainer.json": ".devcontainer.json",
-    }
-    for resource in resource_to_dest:
-        with templates.resource_path(resource) as resource_path:
-            project_resource_path = Path(resource_to_dest[resource]).resolve()
-            if project_resource_path.exists():
-                new_resource_name = (
-                    project_resource_path.stem
-                    + "-"
-                    + timestamp
-                    + project_resource_path.suffix
-                )
-                project_resource_path = project_resource_path.parent / new_resource_name
-                log.warning(
-                    f"You already have a {resource} file; a new default one for comparison has been created as {project_resource_path}."
-                )
-            log.info(f"Generated `{project_resource_path}`\n")
-            if not project_resource_path.parent.exists():
-                project_resource_path.parent.mkdir()
-            shutil.copyfile(resource_path, project_resource_path)
-    # Create requirements.txt
-    requirements_path = Path("requirements.txt").resolve()
-    if requirements_path.exists():
-        requirements_path = Path(f"requirements-{timestamp}.txt").resolve()
-        log.warning(
-            f"You already have a requirements.txt file at {Path('requirements.txt').resolve()}`."
-        )
-        log.warning(
-            f"The one suggested by PreTeXt will be created as {requirements_path} for comparison."
-        )
-    with open(requirements_path, "w") as f:
-        f.write(f"pretext == {VERSION}")
-    log.info(f"Generated requirements file at {requirements_path}.\n")
+    project_path = utils.project_path()
+    if project_path is None:
+        project = Project()
+    else:
+        if refresh or len(files) > 0:
+            project = Project.parse(project_path)
+        else:
+            log.warning(f"A project already exists in `{project_path}`.")
+            log.warning(
+                "Use `pretext init --refresh` to refresh initialization of an existing project"
+            )
+            log.warning("or `pretext init --file FILENAME` to refresh a specific file.")
+            return
 
-    log.info("Success! Open project.ptx to edit your project manifest.")
-    log.info(
-        "Edit your <target/>s to point to the location of your PreTeXt source files."
+    project.generate_boilerplate(
+        skip_unmanaged=False, update_requirements=True, logger=log.info, resources=files
     )
+
+    if project_path is None:
+        log.info("Success! Open project.ptx to edit your project manifest.")
+        log.info(
+            "Edit your <target/>s to point to the location of your PreTeXt source files."
+        )
+    else:
+        log.info(
+            "Success! Your project files have been refreshed. If you manage any of these"
+        )
+        log.info(
+            "manually, be sure to compare these new versions with your old .bak files."
+        )
 
 
 # pretext build

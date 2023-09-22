@@ -88,7 +88,7 @@ def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
     try:
         with open(pp / "requirements.txt", "r") as f:
             for line in f.readlines():
-                if "pretext" or "pretextbook" in line:
+                if ("pretext ==" in line) or ("pretextbook ==" in line):
                     return line.split("==")[1].strip()
     except Exception as e:
         log.debug("Could not read `requirements.txt`:")

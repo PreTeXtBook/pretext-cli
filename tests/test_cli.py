@@ -133,15 +133,6 @@ def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (tmp_path / "project.ptx").exists()
     assert (tmp_path / "requirements.txt").exists()
     assert (tmp_path / ".gitignore").exists()
-    assert (tmp_path / "publication" / "publication.ptx").exists()
-    assert len([*tmp_path.glob("project-*.ptx")]) == 0  # need to refresh
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "init", "-r"], cwd=tmp_path
-    ).success
-    assert len([*tmp_path.glob("project-*.ptx")]) > 0
-    assert len([*tmp_path.glob("requirements-*.txt")]) > 0
-    assert len([*tmp_path.glob(".gitignore-*")]) > 0
-    assert len([*tmp_path.glob("publication/publication-*.ptx")]) > 0
 
 
 def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None:

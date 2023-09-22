@@ -11,6 +11,12 @@ def resource_path(filename: str) -> AbstractContextManager:
     """
     from . import resources
 
+    # Raise FileNotFoundError if path DNE (which happens automatically in some environments anyway, so let's make sure it's consistent for testing.)
+    with ir.path(resources, filename) as path:
+        if not path.exists():
+            raise FileNotFoundError(
+                f"Resource `{filename}` does not exist; no such file or directory: {path}"
+            )
     # Try except here is to use newer importlib function,
     # supported starting with 3.9, and required with 3.11
     try:
