@@ -1256,8 +1256,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         a PreTeXt project. Existing files will be overwritten
         as long as they have a comment confirmed they are managed
         by this library and not the user. If `skip_unmanaged` is
-        `False`, then files without this comment will be generated
-        with a timestamp in the filename.
+        `False`, unmanaged files will be backed up to a `.bak` file
+        and then overwritten.
         """
         if resources is None or len(resources) == 0:
             resources = constants.PROJECT_RESOURCES
