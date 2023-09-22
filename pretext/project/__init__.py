@@ -10,10 +10,12 @@ from pathlib import Path
 from lxml import etree as ET
 from pydantic import (
     field_validator,
+    model_validator,
     ConfigDict,
     FieldValidationInfo,
     HttpUrl,
     PrivateAttr,
+    ValidationInfo,
 )
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
@@ -953,7 +955,26 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             raise ValueError("Server names must not be repeated.")
         return v
 
-    # Allow specifying `_path` or `_executables` in the constructor.
+    # This validator sets the `_path`, which is provided in the validation context. It can't be loaded from the XML, since this is metadata about the XML (the location of the file it was loaded from).
+    @model_validator(mode="after")
+    def set_metadata(self, info: ValidationInfo) -> "Project":
+        c = info.context
+        p = c and c.get("_path")
+        # Only assign the path if a valid path was provided in the context.
+        if p:
+            self._path = p
+
+        # Load the executables, if possible.
+        try:
+            e_bytes = (self._path.parent / "executables.ptx").read_bytes()
+        except FileNotFoundError:
+            # If this isn't found, use the already-set default value.
+            self._executables = Executables()
+        else:
+            self._executables = Executables.from_xml(e_bytes)
+
+        return self
+
     def __init__(self, **kwargs: t.Any):
         # Don't set them now, since Pydantic will reject this (extra attributes are forbidden in this model).
         deferred = {}
@@ -987,18 +1008,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
         p_version_only = ProjectVersionOnly.from_xml(xml_bytes)
         if p_version_only.ptx_version is not None:
-            p = Project.from_xml(xml_bytes)
-
-            # Now that the project is loaded, load / set up what isn't in the project XML.
-            p._path = _path
-            try:
-                e_bytes = (p._path.parent / "executables.ptx").read_bytes()
-            except FileNotFoundError:
-                # If this isn't found, use the already-set default value.
-                pass
-            else:
-                p._executables = Executables.from_xml(e_bytes)
-
+            p = Project.from_xml(xml_bytes, context={"_path": _path})
         else:
             legacy_project = LegacyProject.from_xml(_path.read_bytes())
             # Legacy projects didn't specify a base output directory, so we need to move up one level.
