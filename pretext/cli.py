@@ -99,6 +99,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     is_flag=True,
     help='Display list of build/view "targets" available in the project manifest.',
 )
+@nice_errors
 def main(ctx: click.Context, targets: bool) -> None:
     """
     Command line tools for quickly creating, authoring, and building PreTeXt projects.

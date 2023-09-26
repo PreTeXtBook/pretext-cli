@@ -208,22 +208,24 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         cls, v: t.Optional[str], info: FieldValidationInfo
     ) -> t.Optional[str]:
         # See if `output-filename` is allowed.
-        if (
-            # WeBWorK always produces multiple files, so `output-filename` makes no sense.
-            info.data.get("format") == Format.WEBWORK
-            or (
-                # For the HTML format, non-zipped or Runestone output produces multiple files.
-                info.data.get("format") == Format.HTML
-                and (
-                    info.data.get("platform") == Platform.RUNESTONE
-                    or info.data.get("compression") is None
+        if v is not None:
+            # uncompressed WeBWorK always produces multiple files, so `output-filename` makes no sense.
+            if (
+                info.data.get("format") == Format.WEBWORK
+                and info.data.get("compression") is None
+            ):
+                raise ValueError(
+                    "The output-filename must not be present when the format is  Webwork."
                 )
-            )
-            and v is not None
-        ):
-            raise ValueError(
-                "The output_filename must not be present when the format is uncompressed HTML, Runestone, or Webwork."
-            )
+            # For the HTML format, non-zipped or Runestone output produces multiple files.
+            if info.data.get("format") == Format.HTML and (
+                info.data.get("platform") == Platform.RUNESTONE
+                or info.data.get("compression") is None
+            ):
+                raise ValueError(
+                    "The output-filename must not be present when the format is HTML."
+                )
+
         # Verify that this is just a file name, without any prefixed path.
         assert v is None or Path(v).name == v
         return v
