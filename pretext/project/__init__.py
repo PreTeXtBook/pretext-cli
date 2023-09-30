@@ -640,6 +640,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         all_formats: bool = False,
         only_changed: bool = True,
         xmlid: t.Optional[str] = None,
+        pymupdf: bool = False,
     ) -> None:
         if specified_asset_types is None or "ALL" in specified_asset_types:
             specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
@@ -767,6 +768,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
+                            pyMuPDF=pymupdf,
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
