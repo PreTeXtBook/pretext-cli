@@ -12,7 +12,6 @@ from pydantic import (
     field_validator,
     model_validator,
     ConfigDict,
-    FieldValidationInfo,
     HttpUrl,
     PrivateAttr,
     ValidationInfo,
@@ -130,7 +129,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     @field_validator("platform")
     @classmethod
     def platform_validator(
-        cls, v: t.Optional[Platform], info: FieldValidationInfo
+        cls, v: t.Optional[Platform], info: ValidationInfo
     ) -> t.Optional[Platform]:
         if info.data.get("format") == Format.HTML:
             # For the HTML format, default to the web platform.
@@ -150,7 +149,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     @field_validator("compression")
     @classmethod
     def compression_validator(
-        cls, v: t.Optional[Compression], info: FieldValidationInfo
+        cls, v: t.Optional[Compression], info: ValidationInfo
     ) -> t.Optional[Compression]:
         if (
             info.data.get("format") not in (Format.HTML, Format.WEBWORK)
@@ -180,9 +179,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         mode="before",
     )
     @classmethod
-    def output_dir_validator(
-        cls, v: t.Optional[Path], info: FieldValidationInfo
-    ) -> Path:
+    def output_dir_validator(cls, v: t.Optional[Path], info: ValidationInfo) -> Path:
         # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
         if (
             info.data.get("format") == Format.HTML
@@ -205,7 +202,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     @field_validator("output_filename")
     @classmethod
     def output_filename_validator(
-        cls, v: t.Optional[str], info: FieldValidationInfo
+        cls, v: t.Optional[str], info: ValidationInfo
     ) -> t.Optional[str]:
         # See if `output-filename` is allowed.
         if v is not None:
@@ -251,7 +248,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     @field_validator("xsl")
     @classmethod
     def xsl_validator(
-        cls, v: t.Optional[Path], info: FieldValidationInfo
+        cls, v: t.Optional[Path], info: ValidationInfo
     ) -> t.Optional[Path]:
         if v is None and info.data.get("format") == Format.CUSTOM:
             raise ValueError("A custom format requires a value for xsl.")
