@@ -363,15 +363,6 @@ def init(refresh: bool, files: List[str]) -> None:
     help="Destroy output's target directory before build to clean up previously built files",
 )
 @click.option(
-    "-g",
-    "--generate",
-    is_flag=False,
-    flag_value="ALL",
-    default=None,
-    type=click.Choice(constants.ASSETS, case_sensitive=False),
-    help="Force (re)generates assets for target.  -g [asset] will generate the specific assets given.",
-)
-@click.option(
     "-q",
     "--no-generate",
     is_flag=True,
@@ -388,7 +379,6 @@ def init(refresh: bool, files: List[str]) -> None:
 def build(
     target_name: str,
     clean: bool,
-    generate: str,
     no_generate: bool,
     xmlid: Optional[str],
 ) -> None:
@@ -419,12 +409,6 @@ def build(
         log.debug(e, exc_info=True)
         return
 
-    # Call generate if flag is set
-    if generate:
-        try:
-            target.generate_assets(only_changed=False, xmlid=xmlid)
-        except Exception as e:
-            log.debug(f"Failed to generate assets: {e}", exc_info=True)
     # Call build
     try:
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")

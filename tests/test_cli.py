@@ -70,15 +70,24 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     ).success
 
     # Do a subset build before the main build, to check that not everything is built on the subset.
-    # Also without generating assets
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web", "-x", "ch-first-without-spaces", "-q"],
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "ch-first-without-spaces"],
         cwd=project_path,
     ).success
     assert (project_path / "output" / "web").exists()
     assert not (project_path / "output" / "web" / "ch-empty.html").exists()
-    assert not (project_path / "generated-assets" / "webwork").exists()
     assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
+    # Also do a subset without assets
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image", "-q"],
+        cwd=project_path,
+    ).success
+    assert not (project_path / "generated-assets" / "latex-image").exists()
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image"],
+        cwd=project_path,
+    ).success
+    assert (project_path / "generated-assets" / "latex-image").exists()
 
     # Do a full build.
     assert script_runner.run(
@@ -106,10 +115,14 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         "source/sec-features.ptx": ["sec-features-blocks"],
         "source/ch-generate.ptx": [
             "ch-generate",
-            "webwork",
-            "youtube",
+            "sec-latex-image",
+            "sec-sageplot",
+            "sec-asymptote",
+            "sec-webwork",
+            "sec-youtube",
+            "sec-interactive",
             "interactive-infinity",
-            "codelens",
+            "sec-codelens",
         ],
         "source/backmatter.ptx": ["backmatter"],
     }
@@ -119,15 +132,6 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         [PTX_CMD, "build", "print-latex"], cwd=project_path
     ).success
     assert (project_path / "output" / "print-latex").exists()
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=project_path
-    ).success
-    assert (project_path / "generated-assets").exists()
-    shutil.rmtree(project_path / "generated-assets")
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "-g", "webwork"], cwd=project_path
-    ).success
-    assert (project_path / "generated-assets").exists()
 
 
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:

@@ -6,24 +6,30 @@
       Here we demonstrate various kinds of assets.
     </p>
   </introduction>
-  <section>
-    <title>Image Examples</title>
+  <section xml:id="sec-latex-image">
+    <title>LaTeX-Image Example</title>
     <xi:include href="./fig-tikz.ptx" />
+  </section>
+  <section xml:id="sec-sageplot">
+    <title>SagePlot Examples</title>
     <xi:include href="./fig-sage2d.ptx" />
     <xi:include href="./fig-sage3d.ptx" />
+  </section>
+  <section xml:id="sec-asymptote">
+    <title>Asymptote Example</title>
     <xi:include href="./fig-asymptote.ptx" />
   </section>
-  <section xml:id="webwork">
+  <section xml:id="sec-webwork">
     <title><webwork /> Example</title>
     <exercise>
       <xi:include href="./ww.ptx" />
     </exercise>
   </section>
-  <section xml:id="youtube">
+  <section xml:id="sec-youtube">
     <title>YouTube Example</title>
     <video youtube="dQw4w9WgXcQ" />
   </section>
-  <section>
+  <section xml:id="sec-interactive">
     <title>Interactive Example</title>
     <!-- From the sample article -->
     <figure>
@@ -39,7 +45,7 @@
       </interactive>
     </figure>
   </section>
-  <section xml:id="codelens">
+  <section xml:id="sec-codelens">
     <title>Codelens
       Example</title>
     <listing xml:id="sieve-python">
