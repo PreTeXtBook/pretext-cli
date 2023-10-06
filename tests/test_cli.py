@@ -11,6 +11,7 @@ import requests
 import pretext
 from typing import cast, Generator
 from pytest_console_scripts import ScriptRunner
+from .common import DEMO_MAPPING
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 
@@ -77,6 +78,17 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (project_path / "output" / "web").exists()
     assert not (project_path / "output" / "web" / "ch-empty.html").exists()
     assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
+    # Also do a subset without assets
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image", "-q"],
+        cwd=project_path,
+    ).success
+    assert not (project_path / "generated-assets" / "latex-image").exists()
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image"],
+        cwd=project_path,
+    ).success
+    assert (project_path / "generated-assets" / "latex-image").exists()
 
     # Do a full build.
     assert script_runner.run(
@@ -89,43 +101,13 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
     #
     # The path separator varies by platform.
-    assert mapping == {
-        "source/main.ptx": ["my-demo-book"],
-        "source/frontmatter.ptx": [
-            "frontmatter",
-            "frontmatter-preface",
-        ],
-        "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
-        "source/sec-first-intro.ptx": ["sec-first-intro"],
-        "source/sec-first-examples.ptx": ["sec-first-examples"],
-        "source/ex-first.ptx": ["ex-first"],
-        "source/ch-empty.ptx": ["ch-empty"],
-        "source/ch-features.ptx": ["ch-features"],
-        "source/sec-features.ptx": ["sec-features-blocks"],
-        "source/ch-generate.ptx": [
-            "ch-generate",
-            "webwork",
-            "youtube",
-            "interactive-infinity",
-            "codelens",
-        ],
-        "source/backmatter.ptx": ["backmatter"],
-    }
+    assert mapping == DEMO_MAPPING
 
     # Build other targets.
     assert script_runner.run(
         [PTX_CMD, "build", "print-latex"], cwd=project_path
     ).success
     assert (project_path / "output" / "print-latex").exists()
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=project_path
-    ).success
-    assert (project_path / "generated-assets").exists()
-    shutil.rmtree(project_path / "generated-assets")
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "-g", "webwork"], cwd=project_path
-    ).success
-    assert (project_path / "generated-assets").exists()
 
 
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
