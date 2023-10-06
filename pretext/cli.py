@@ -425,7 +425,7 @@ def build(
 
     if generate and no_generate:
         log.warning(
-            "Using the `-g/--generate` flag together with `-q\--no-generate` doesn't make sense.  Proceeding as if neither flag was set."
+            "Using the `-g/--generate` flag together with `-q/--no-generate` doesn't make sense.  Proceeding as if neither flag was set."
         )
         no_generate = False
 
