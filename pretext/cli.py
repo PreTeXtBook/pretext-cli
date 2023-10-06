@@ -366,14 +366,14 @@ def init(refresh: bool, files: List[str]) -> None:
     "-g",
     "--generate",
     is_flag=True,
-    help="DEPRECATED and will be removed soon. Please use `pretext generate` for manual asset generation instead.",
+    help="Force (re)generates assets for targets, even if they haven't chnaged since they were last generated.  (Use `pretext generate` for more fine-grained control of manual asset generation.)",
 )
 @click.option(
     "-q",
     "--no-generate",
     is_flag=True,
     default=False,
-    help="Do not generate assets for target, even if their source has changed since last build.",
+    help="Do not generate assets for target, even if their source has changed since the last time they were generated.",
 )
 @click.option(
     "-x",
@@ -418,14 +418,15 @@ def build(
 
     # Call generate if flag is set
     if generate and not no_generate:
-        log.warning(
-            "The -g/--generate flag is DEPRECATED and will be removed in a future version of PreTeXt-CLI."
-        )
-        log.warning("Use `pretext generate` for asset generation instead.")
         try:
             target.generate_assets(only_changed=False, xmlid=xmlid)
         except Exception as e:
             log.debug(f"Failed to generate assets: {e}", exc_info=True)
+
+    if generate and no_generate:
+        log.warning("Using the `-g/--generate` flag together with `-q\--no-generate` doesn't make sense.  Proceeding as if neither flag was set.")
+        no_generate = False
+        
     # Call build
     try:
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
