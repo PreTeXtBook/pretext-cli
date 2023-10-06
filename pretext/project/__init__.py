@@ -878,7 +878,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     log.debug(f"Unable to generate some qrcodes: {e}", exc_info=True)
 
         # Delete temporary directories left behind by core:
-        core.release_temporary_directories()
+        try:
+            core.release_temporary_directories()
+        except Exception as e:
+            log.error(
+                "Unable to release temporary directories.  Please report this error to pretext-support"
+            )
+            log.error(e, exc_info=True)
         # After all assets are generated, update the asset cache:
         log.debug(f"Updated these assets successfully: {successful_assets}")
         for asset_type, id in successful_assets:
