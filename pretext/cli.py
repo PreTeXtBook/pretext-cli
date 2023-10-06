@@ -424,9 +424,11 @@ def build(
             log.debug(f"Failed to generate assets: {e}", exc_info=True)
 
     if generate and no_generate:
-        log.warning("Using the `-g/--generate` flag together with `-q\--no-generate` doesn't make sense.  Proceeding as if neither flag was set.")
+        log.warning(
+            "Using the `-g/--generate` flag together with `-q\--no-generate` doesn't make sense.  Proceeding as if neither flag was set."
+        )
         no_generate = False
-        
+
     # Call build
     try:
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
