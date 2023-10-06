@@ -13,6 +13,8 @@ from pretext import project as pr
 from pretext import templates
 from pretext import utils
 
+from .common import DEMO_MAPPING
+
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -309,28 +311,7 @@ def test_demo_html_build(tmp_path: Path) -> None:
         with open(t_web.output_dir_abspath() / ".mapping.json") as mpf:
             mapping = json.load(mpf)
         # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
-        assert mapping == {
-            "source/main.ptx": ["my-demo-book"],
-            "source/frontmatter.ptx": [
-                "frontmatter",
-                "frontmatter-preface",
-            ],
-            "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
-            "source/sec-first-intro.ptx": ["sec-first-intro"],
-            "source/sec-first-examples.ptx": ["sec-first-examples"],
-            "source/ex-first.ptx": ["ex-first"],
-            "source/ch-empty.ptx": ["ch-empty"],
-            "source/ch-features.ptx": ["ch-features"],
-            "source/sec-features.ptx": ["sec-features-blocks"],
-            "source/backmatter.ptx": ["backmatter"],
-            "source/ch-generate.ptx": [
-                "ch-generate",
-                "webwork",
-                "youtube",
-                "interactive-infinity",
-                "codelens",
-            ],
-        }
+        assert mapping == DEMO_MAPPING
 
 
 def test_subset_build(tmp_path: Path) -> None:

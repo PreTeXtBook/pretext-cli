@@ -11,6 +11,7 @@ import requests
 import pretext
 from typing import cast, Generator
 from pytest_console_scripts import ScriptRunner
+from .common import DEMO_MAPPING
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 
@@ -100,32 +101,7 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
     #
     # The path separator varies by platform.
-    assert mapping == {
-        "source/main.ptx": ["my-demo-book"],
-        "source/frontmatter.ptx": [
-            "frontmatter",
-            "frontmatter-preface",
-        ],
-        "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
-        "source/sec-first-intro.ptx": ["sec-first-intro"],
-        "source/sec-first-examples.ptx": ["sec-first-examples"],
-        "source/ex-first.ptx": ["ex-first"],
-        "source/ch-empty.ptx": ["ch-empty"],
-        "source/ch-features.ptx": ["ch-features"],
-        "source/sec-features.ptx": ["sec-features-blocks"],
-        "source/ch-generate.ptx": [
-            "ch-generate",
-            "sec-latex-image",
-            "sec-sageplot",
-            "sec-asymptote",
-            "sec-webwork",
-            "sec-youtube",
-            "sec-interactive",
-            "interactive-infinity",
-            "sec-codelens",
-        ],
-        "source/backmatter.ptx": ["backmatter"],
-    }
+    assert mapping == DEMO_MAPPING
 
     # Build other targets.
     assert script_runner.run(
