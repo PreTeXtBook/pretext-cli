@@ -70,12 +70,14 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     ).success
 
     # Do a subset build before the main build, to check that not everything is built on the subset.
+    # Also without generating assets
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web", "-x", "ch-first-without-spaces"],
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "ch-first-without-spaces", "-q"],
         cwd=project_path,
     ).success
     assert (project_path / "output" / "web").exists()
     assert not (project_path / "output" / "web" / "ch-empty.html").exists()
+    assert not (project_path / "generated-assets" / "webwork").exists()
     assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
 
     # Do a full build.
