@@ -49,5 +49,5 @@ jobs:
         run: |
           # Stage the file, commit and push
           git add .
-          git commit -m "update to latest `pretext new book`"
-          git push origin main
+          git commit -m "update to latest `pretext new book`" || echo "No new commit needed"
+          git push origin main || echo "All done"
