@@ -1191,11 +1191,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def deploy_targets(self) -> t.List[Target]:
         return [target for target in self.targets if target.deploy_dir is not None]
 
-    def deploy(
-        self,
-        update_source: bool = True,
-        stage_only: bool = False,
-    ) -> None:
+    def stage_deployment(self) -> None:
         # Ensure stage directory exists
         self.stage_abspath().mkdir(parents=True, exist_ok=True)
         # Stage all configured targets for deployment
@@ -1257,9 +1253,17 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     dirs_exist_ok=True,
                 )
         log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
-        if stage_only:
-            return
-        utils.publish_to_ghpages(self.stage_abspath(), update_source)
+
+    def deploy(
+        self,
+        update_source: bool = True,
+        stage_only: bool = False,
+        skip_staging: bool = False,
+    ) -> None:
+        if not skip_staging:
+            self.stage_deployment()
+        if not stage_only:
+            utils.publish_to_ghpages(self.stage_abspath(), update_source)
 
     def generate_boilerplate(
         self,

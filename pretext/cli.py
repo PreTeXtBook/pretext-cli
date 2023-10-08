@@ -717,6 +717,7 @@ def view(
 @nice_errors
 @click.option("-u", "--update-source", is_flag=True, required=False)
 @click.option("-s", "--stage-only", is_flag=True, required=False)
+@click.option("-p", "--preview", is_flag=True, required=False)
 def deploy(update_source: bool, stage_only: bool) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
