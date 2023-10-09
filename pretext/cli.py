@@ -282,7 +282,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
         shutil.copytree(tmpsubdirname, directory_fullpath, dirs_exist_ok=True)
     # generate remaining boilerplate like requirements.txt
     project = Project.parse(directory_fullpath)
-    project.generate_boilerplate()
+    project.generate_boilerplate(update_requirements=True)
     if len(project.targets) == 0:
         log.warning("The generated project has no targets!")
     else:
