@@ -1307,9 +1307,17 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     )
             if resource != "requirements.txt":
                 with templates.resource_path(resource) as resource_path:
-                    shutil.copyfile(resource_path, project_resource_path)
+                    if (
+                        not project_resource_path.exists()
+                        or resource_path.read_text()
+                        != project_resource_path.read_text()
+                    ):
+                        shutil.copyfile(resource_path, project_resource_path)
             elif update_requirements:
-                project_resource_path.write_text(
-                    f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
-                )
+                requirements_txt = f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
+                if (
+                    not project_resource_path.exists()
+                    or project_resource_path.read_text() != requirements_txt
+                ):
+                    project_resource_path.write_text(requirements_txt)
             logger(f"Generated `{project_resource_path}`\n")
