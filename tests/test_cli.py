@@ -51,7 +51,13 @@ def test_version(script_runner: ScriptRunner) -> None:
 
 def test_new(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "new"], cwd=tmp_path).success
+    # minimal file for a project
     assert (tmp_path / "new-pretext-project" / "project.ptx").exists()
+    # boilerplate files generated for new projects
+    assert (tmp_path / "new-pretext-project" / "requirements.txt").exists()
+    assert (tmp_path / "new-pretext-project" / ".devcontainer.json").exists()
+    assert (tmp_path / "new-pretext-project" / ".gitignore").exists()
+    assert (tmp_path / "new-pretext-project" / "codechat_config.yaml").exists()
 
 
 def test_devscript(script_runner: ScriptRunner) -> None:
