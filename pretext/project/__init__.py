@@ -587,6 +587,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
+                utils.manage_directories(
+                    self.output_dir_abspath(),
+                    external_abs=self.external_dir_abspath(),
+                    generated_abs=self.generated_dir_abspath(),
+                )
             elif self.format == Format.EPUB:
                 utils.npm_install()
                 core.epub(
@@ -637,6 +642,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     result=out_file,
                     output_dir=self.output_dir_abspath().as_posix(),
                     stringparams=stringparams_copy,
+                )
+                utils.manage_directories(
+                    self.output_dir_abspath(),
+                    external_abs=self.external_dir_abspath(),
+                    generated_abs=self.generated_dir_abspath(),
                 )
             else:
                 log.critical(f"Unknown format {self.format}")

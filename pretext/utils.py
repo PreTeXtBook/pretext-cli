@@ -45,6 +45,28 @@ def working_directory(path: Path) -> Generator:
         log.debug(f"Successfully changed directory back to {current_directory}")
 
 
+def manage_directories(
+    output_dir: Path,
+    external_abs: Optional[Path] = None,
+    generated_abs: Optional[Path] = None,
+) -> None:
+    """
+    Copies external and generated directories from absolute paths set in external_abs and generated_abs (unless set to None) into the specified output_dir.
+    """
+    if external_abs is not None:
+        external_dir = os.path.join(output_dir, "external")
+        shutil.copytree(external_abs, external_dir, dirs_exist_ok=True)
+
+    if generated_abs is not None:
+        generated_dir = os.path.join(output_dir, "generated")
+        shutil.copytree(
+            generated_abs,
+            generated_dir,
+            dirs_exist_ok=True,
+            ignore=shutil.ignore_patterns("*.pkl"),
+        )
+
+
 # Grabs project directory based on presence of `project.ptx`
 def project_path(dirpath: Optional[Path] = None) -> Optional[Path]:
     if dirpath is None:
