@@ -595,6 +595,13 @@ def generate(
     default=False,
     help="Stop the local http server if running.",
 )
+@click.option(
+    "-d",
+    "--stage",
+    is_flag=True,
+    default=False,
+    help="View the staged deployment.",
+)
 @nice_errors
 def view(
     target_name: str,
@@ -605,6 +612,7 @@ def view(
     no_launch: bool,
     restart_server: bool,
     stop_server: bool,
+    stage: bool,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
@@ -624,7 +632,7 @@ def view(
         return
     project = Project.parse()
     try:
-        target = project.get_target(name=target_name)
+        target = project.get_target(name=target_name, log_info_for_none=not stage)
     except AssertionError as e:
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
@@ -645,6 +653,21 @@ def view(
         except Exception as e:
             log.info(f"Failed to build: {e}")
             log.debug("Exception info:\n------------------------\n", exc_info=True)
+
+    if stage:
+        url = (
+            utils.url_for_access(access=access, port=port)
+            + "/"
+            + project.stage.as_posix()
+        )
+        target_name = "staged deployment"
+    else:
+        url = (
+            utils.url_for_access(access=access, port=port)
+            + "/"
+            + target.output_dir_relpath().as_posix()
+        )
+        target_name = f"target `{target.name}`"
 
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
@@ -672,18 +695,11 @@ def view(
         log.info(
             f"Server will soon be available at {utils.url_for_access(access=access,port=port)}"
         )
-        url = (
-            utils.url_for_access(access=access, port=port)
-            + "/"
-            + target.output_dir_relpath().as_posix()
-        )
         if no_launch:
-            log.info(f"Target `{target.name}` will be available at {url}")
+            log.info(f"The {target_name} will be available at {url}")
         else:
             SECONDS = 3
-            log.info(
-                f"Opening browser for target `{target.name}` at {url} in {SECONDS} seconds"
-            )
+            log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
             time.sleep(SECONDS)
             webbrowser.open(url)
         try:
@@ -697,15 +713,10 @@ def view(
         log.info(
             f"Server is already available at {utils.url_for_access(access=access,port=used_port)}"
         )
-        url = (
-            utils.url_for_access(access=access, port=used_port)
-            + "/"
-            + target.output_dir_relpath().as_posix()
-        )
         if no_launch:
-            log.info(f"Target `{target.name}` is available at {url}")
+            log.info(f"The {target_name} is available at {url}")
         else:
-            log.info(f"Now opening browser for target `{target.name}` at {url}")
+            log.info(f"Now opening browser for {target_name} at {url}")
             webbrowser.open(url)
 
 
@@ -715,9 +726,13 @@ def view(
     context_settings=CONTEXT_SETTINGS,
 )
 @nice_errors
+@click.pass_context
 @click.option("-u", "--update-source", is_flag=True, required=False)
 @click.option("-s", "--stage-only", is_flag=True, required=False)
-def deploy(update_source: bool, stage_only: bool) -> None:
+@click.option("-p", "--preview", is_flag=True, required=False)
+def deploy(
+    ctx: click.Context, update_source: bool, stage_only: bool, preview: bool
+) -> None:
     """
     Automatically deploys most recent build of [TARGET] to GitHub Pages,
     making it available to the general public.
@@ -728,4 +743,10 @@ def deploy(update_source: bool, stage_only: bool) -> None:
     if utils.cannot_find_project(task="deploy"):
         return
     project = Project.parse()
-    project.deploy(update_source=update_source, stage_only=stage_only)
+    project.stage_deployment()
+    if stage_only:
+        return
+    if preview:
+        ctx.invoke(view, stage=True)
+    else:
+        project.deploy(update_source=update_source, skip_staging=True)
