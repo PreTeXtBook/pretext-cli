@@ -366,13 +366,12 @@ def init(refresh: bool, files: List[str]) -> None:
     "-g",
     "--generate",
     is_flag=True,
-    help="Force (re)generates assets for targets, even if they haven't chnaged since they were last generated.  (Use `pretext generate` for more fine-grained control of manual asset generation.)",
+    help="Force (re)generates assets for targets, even if they haven't changed since they were last generated.  (Use `pretext generate` for more fine-grained control of manual asset generation.)",
 )
 @click.option(
     "-q",
     "--no-generate",
     is_flag=True,
-    default=False,
     help="Do not generate assets for target, even if their source has changed since the last time they were generated.",
 )
 @click.option(
@@ -420,13 +419,15 @@ def build(
     if generate and not no_generate:
         try:
             target.generate_assets(only_changed=False, xmlid=xmlid)
+            no_generate = True
         except Exception as e:
-            log.debug(f"Failed to generate assets: {e}", exc_info=True)
-
-    if generate and no_generate:
+            log.error(f"Failed to generate assets: {e} \n")
+            log.debug("Debug Info:\n", exc_info=True)
+    elif generate and no_generate:
         log.warning(
             "Using the `-g/--generate` flag together with `-q/--no-generate` doesn't make sense.  Proceeding as if neither flag was set."
         )
+        generate = False
         no_generate = False
 
     # Call build
@@ -518,7 +519,7 @@ def generate(
     try:
         f'Generating assets in for the target "{target.name}".'
         target.generate_assets(
-            specified_asset_types=assets,
+            requested_asset_types=assets,
             all_formats=all_formats,
             only_changed=only_changed,  # Unless requested, generate all assets, so don't check the cache.
             xmlid=xmlid,

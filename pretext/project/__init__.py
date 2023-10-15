@@ -390,6 +390,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             return {}
 
     def generate_asset_table(self) -> pt.AssetTable:
+        """
+        Returns a hash table (dictionary) with keys the assets present in the current target's source, each having a value that is a dictionary of xml:ids mapped to the hash of the assets below that xmlid of that type.
+        ex: {latex-image: {img1: <hash>, img_another: <hash>}, asymptote: {asy_img_1: <hash>}}.
+        """
         asset_hash_dict: pt.AssetTable = {}
         for asset in constants.ASSET_TO_XPATH.keys():
             if asset == "webwork":
@@ -454,7 +458,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             ).exists():
                 log.debug("Webwork representations file does not exist, generating")
                 self.generate_assets(
-                    specified_asset_types=["webwork"], only_changed=False
+                    requested_asset_types=["webwork"], only_changed=False
                 )
             else:
                 log.debug("Webwork representations file exists, not generating")
@@ -651,38 +655,78 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             else:
                 log.critical(f"Unknown format {self.format}")
 
+    def generate_with_core(self, asset: str, xmlid: t.Optional[str] = None) -> None:
+        """
+        Utility function to call the correct core generate function for a given asset, with optional xmlid of the root of the subtree given.
+        """
+        pass
+
     def generate_assets(
         self,
-        specified_asset_types: t.Optional[t.List[str]] = None,
+        requested_asset_types: t.Optional[t.List[str]] = None,
         all_formats: bool = False,
         only_changed: bool = True,
         xmlid: t.Optional[str] = None,
         pymupdf: bool = False,
     ) -> None:
-        if specified_asset_types is None or "ALL" in specified_asset_types:
-            specified_asset_types = list(constants.ASSET_TO_XPATH.keys())
-        log.debug(f"Assets generation requested for: {specified_asset_types}.")
-        specified_asset_types = [
+        """
+        Generates assets for the current target.  Options:
+           - requested_asset_types: optional list of which assets to generate (latex-image, sagemath, asymptote, etc).  Default will generate all asset types found in target.
+           - all_formats: boolean to decide whether the output format of the assets will be just those that the target format uses (default/False) or all possible output formats for that asset (True).
+           - only_changed: boolean.  When True (default), function will only generate assets that have changed since last generation.  When False, all assets will be built (hash table will be ignored).
+           - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
+           - pymupdf: temporary boolean to test alternative image generation with pymupdf instead of external programs.
+        """
+        # Start by getting the assets that need to be generated for the particular target.  This will either be all of them, or just the asset type that was specifically requested.
+        if requested_asset_types is None or "ALL" in requested_asset_types:
+            requested_asset_types = list(constants.ASSET_TO_XPATH.keys())
+        log.debug(f"Assets generation requested for: {requested_asset_types}.")
+        requested_asset_types = [
             asset
-            for asset in specified_asset_types
+            for asset in requested_asset_types
             if asset in constants.ASSETS_BY_FORMAT[self.format]
         ]
         log.debug(
-            f"Based on format {self.format}, assets to be generated are: {specified_asset_types}."
+            f"Based on format {self.format}, assets to be generated are: {requested_asset_types}."
         )
-        # We always build the asset hash table, even if only_changed=False: this tells us which assets need to be built, and how to update the saved asset hash table.
+        # We always build the asset hash table, even if only_changed=True: this tells us which assets need to be built, and how to update the saved asset hash table at the end of the method.
+        # utils.clean_asset_table purges any saved assets that are no longer in the target.
         source_asset_table = self.generate_asset_table()
         saved_asset_table = utils.clean_asset_table(
             self.load_asset_table(), source_asset_table
         )
-
-        # Now we repeatedly pass through the source asset table, and purge any assets that we shouldn't build for any reason.
+        log.debug(f"Starting asset table: {source_asset_table}")
         # Throw away any asset types that were not requested:
         source_asset_table = {
             asset: source_asset_table[asset]
             for asset in source_asset_table
-            if asset in specified_asset_types
+            if asset in requested_asset_types
         }
+        # Throw away requested assets if they are not in source:
+        requested_asset_types = [asset for asset in source_asset_table]
+        log.debug(
+            f"Based on what is in your source, the assets that will be considered are {requested_asset_types}."
+        )
+        # For each asset type, we need to keep track of whether to build all of the assets (possibly only below the xml:id given) or generate some one-at-a-time.
+        # Cases when we would build all:
+        #  1. only_change=False,
+        #  2. this is the first time building that asset type (in which case, there will be no instances of that asset in saved_asset_table), or
+        #  3. There are lots of assets that have changed (so it would be more efficient to call core once).
+        # We first we create a list of asset types that we will generate all instances of
+        full_generate = []
+        partial_generate = []
+        if not only_changed:
+            full_generate = requested_asset_types.copy()
+        else:
+            for asset in requested_asset_types:
+                if asset not in saved_asset_table:
+                    full_generate.append(asset)
+                else:
+                    partial_generate.append(asset)
+                    # (at least for now, later we might move some of these to full_generate
+
+        # Now we repeatedly pass through the source asset table, and purge any assets that we shouldn't build for any reason.
+
         # If we limit by xml:id, only look for assets below that id in the source tree
         if xmlid is not None:
             log.debug(f"Limiting asset generation to assets below xml:id={xmlid}.")
@@ -697,54 +741,64 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             assert isinstance(id_list, t.List)
             # Filter by non-webwork assets whose id is in ID list:
             # Note: if an id = "", that means that no ancestor of that asset had an id, which means that it would not be a child of the xml:id we are subsetting.
-            for asset in source_asset_table:
+            log.debug(f"id list: {id_list}")
+            for asset in source_asset_table.copy():
                 if asset != "webwork":
                     source_asset_table[asset] = {
                         id: source_asset_table[asset][id]
                         for id in source_asset_table[asset]
                         if id in id_list
                     }
-            log.debug(f"Eligible assets are: {source_asset_table.keys()}")
+                    if len(source_asset_table[asset]) == 0:
+                        source_asset_table.pop(asset, None)
+            log.debug(f"Eligible assets are: {source_asset_table}")
+            # Prune the list of assets based on what is left
+            full_generate = [
+                asset for asset in full_generate if asset in source_asset_table
+            ]
+            partial_generate = [
+                asset for asset in partial_generate if asset in source_asset_table
+            ]
+            log.debug(
+                f"Partial generate assets are: {partial_generate}, full generate assets are {full_generate}"
+            )
 
         # TODO: check which assets can be generated based on the user's system (and executables).
 
-        # Now further limit the assets to be built by those that have changed since the last build, if only_changed is true.  Either way create a dictionary of asset: [ids] to be built, where asset:[] means to generate all of them.
-        if only_changed:
-            log.debug(
-                "Checking whether any assets of changed and need to be regenerated."
-            )
-            for asset in source_asset_table:
-                # Keep only the changed assets:
-                source_asset_table[asset] = {
-                    id: source_asset_table[asset][id]
-                    for id in source_asset_table[asset]
-                    if saved_asset_table.get(asset, {}).get(id, None)
-                    != source_asset_table[asset][id]
-                }
-            log.debug(f"Assets to be regenerated: {source_asset_table.keys()}")
-            # TODO: check if there are too many individual assets to make generating individually is worthwhile.
-            assets_to_generate = {
-                asset: [id for id in source_asset_table[asset]]
-                for asset in source_asset_table
-                if len(source_asset_table[asset]) > 0
-            }
-        else:
-            assets_to_generate = {
-                asset: [""]
-                for asset in source_asset_table
-                if (asset == "webwork" or len(source_asset_table[asset]) > 0)
-            }
+        # Now for any asset type in `partial_generate`, we looks for the assets that need to be regenerated because they don't match the previous hash.
 
-        # Finally, if we removed all assets from an asset type, remove that asset type:
-        source_asset_table = {
-            asset: source_asset_table[asset]
-            for asset in source_asset_table
-            if len(source_asset_table[asset]) > 0
-        }
+        for asset in partial_generate.copy():
+            log.debug(
+                f"Checking whether any {asset} assets have changed and need to be regenerated."
+            )
+            source_asset_table[asset] = {
+                id: source_asset_table[asset][id]
+                for id in source_asset_table[asset]
+                if saved_asset_table.get(asset, {}).get(id, None)
+                != source_asset_table[asset][id]
+            }
+            # If there are no assets of that type left, remove it from our list:
+            log.debug(f"no {asset} assets have changed.")
+            if len(source_asset_table[asset]) == 0:
+                partial_generate.remove(asset)
+        log.debug(
+            f"Assets to be regenerated: all: {full_generate}, partial: {partial_generate}"
+        )
+        # Create a dictionary with `asset: [ids]` that will be built. For assets that will be built fully, `[ids] = [xmlid]` (where `xmlid` could be `None`)
+        assets_to_generate = {}
+        for asset in full_generate:
+            assets_to_generate[asset] = [xmlid]
+        for asset in partial_generate:
+            assets_to_generate[asset] = [id for id in source_asset_table[asset]]
+        log.debug(f"Assets to be generated: {assets_to_generate}")
+
+        # Now further limit the assets to be built by those that have changed since the last build, if only_changed is true.  Either way create a dictionary of asset: [ids] to be built, where asset:[] means to generate all of them.
+
+        # TODO: check if there are too many individual assets to make generating individually is worthwhile.
 
         # Now we have the correct list of assets we want to build.
         # We proceed to generate the assets that were requested.
-        for asset in source_asset_table:
+        for asset in assets_to_generate:
             self.ensure_asset_directories(asset)
 
         # Check if all formats are requested and modify accordingly.
@@ -754,7 +808,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 asset_formats[asset] = ["all"]
 
         # We will keep track of the assets that were successful to update cache at the end.
-        successful_assets = []
+        successful_assets: t.List[t.Tuple[str, t.Optional[str]]] = []
         # The copy allows us to modify string params without affecting the original,
         # and avoids issues with core modifying string params
         stringparams_copy = self.stringparams.copy()
@@ -770,11 +824,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
                     server_params=None,
                 )
-                successful_assets.append(("webwork", ""))
+                successful_assets.append(("webwork", None))
             except Exception as e:
                 log.debug(f"Unable to generate webwork: {e}")
         if "latex-image" in assets_to_generate:
             for id in assets_to_generate["latex-image"]:
+                log.debug(f"Generating latex-image assets for {id}")
                 try:
                     for outformat in asset_formats["latex-image"]:
                         core.latex_image_conversion(
@@ -868,6 +923,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     log.debug(f"Unable to generate some codelens traces: {e}")
         if "datafile" in assets_to_generate:
             for id in assets_to_generate["datafile"]:
+                log.debug(f"Generating datafile assets for {id}")
                 try:
                     core.datafiles_to_xml(
                         xml_source=self.source_abspath(),
@@ -907,24 +963,23 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             log.error(e, exc_info=True)
         # After all assets are generated, update the asset cache:
         log.debug(f"Updated these assets successfully: {successful_assets}")
+
         for asset_type, id in successful_assets:
-            assert isinstance(id, str)
             if asset_type not in saved_asset_table:
                 saved_asset_table[asset_type] = {}
-            if id == "":
+            if id is None:
                 # We have updated all assets of this type, so update all of them in the saved asset table:
                 for id in source_asset_table[asset_type]:
                     saved_asset_table[asset_type][id] = source_asset_table[asset_type][
                         id
                     ]
             else:
-                if id in source_asset_table[asset_type]:
+                if id in source_asset_table.get(asset_type, {}):
                     saved_asset_table[asset_type][id] = source_asset_table[asset_type][
                         id
                     ]
         # Save the asset table to disk:
         self.save_asset_table(saved_asset_table)
-        log.debug(f"Saved asset table to disk: {saved_asset_table}")
 
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
