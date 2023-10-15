@@ -953,11 +953,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             log.error(e, exc_info=True)
         # After all assets are generated, update the asset cache:
         log.debug(f"Updated these assets successfully: {successful_assets}")
-        # log.debug(
-        #     f"Now updating the asset cache. Saved assets: {saved_asset_table} will be updated with {source_asset_table}"
-        # )
+
         for asset_type, id in successful_assets:
-            assert isinstance(id, t.Optional[str])
             if asset_type not in saved_asset_table:
                 saved_asset_table[asset_type] = {}
             if id is None:
@@ -973,7 +970,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     ]
         # Save the asset table to disk:
         self.save_asset_table(saved_asset_table)
-        # log.debug(f"Saved asset table to disk: {saved_asset_table}")
 
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
