@@ -1,4 +1,4 @@
-# Copyright (C) 2022 Steven Clontz and Oscar Levin
+# Copyright (C) 2021-2023 Steven Clontz and Oscar Levin
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ log = logging.getLogger("ptxlogger")
 
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
-CORE_COMMIT = "85dba19ec2609d4fe71632743355b26788f77eed"
+CORE_COMMIT = "d0ba9bcd1ab1f43d7071d75c9ff681da45dcd2df"
 
 
 def activate() -> None:
