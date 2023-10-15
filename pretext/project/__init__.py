@@ -957,7 +957,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         #     f"Now updating the asset cache. Saved assets: {saved_asset_table} will be updated with {source_asset_table}"
         # )
         for asset_type, id in successful_assets:
-            assert isinstance(id, str | None)
+            assert isinstance(id, t.Optional[str])
             if asset_type not in saved_asset_table:
                 saved_asset_table[asset_type] = {}
             if id is None:
