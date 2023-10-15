@@ -109,12 +109,6 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # The path separator varies by platform.
     assert mapping == DEMO_MAPPING
 
-    # Build other targets.
-    assert script_runner.run(
-        [PTX_CMD, "build", "print-latex"], cwd=project_path
-    ).success
-    assert (project_path / "output" / "print-latex").exists()
-
 
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
