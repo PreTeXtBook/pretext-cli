@@ -180,7 +180,7 @@ def test_custom_webwork_server(tmp_path: Path, script_runner: ScriptRunner) -> N
         [PTX_CMD, "-v", "debug", "generate", "webwork"], cwd=custom_path
     )
     assert result.success
-    assert "webwork-dev" in result.stderr
+    assert "webwork.runestone.academy" in result.stderr
     result = script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=custom_path)
     assert result.success
 
