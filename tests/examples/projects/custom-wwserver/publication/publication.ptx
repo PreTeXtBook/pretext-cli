@@ -4,5 +4,5 @@
     <source>
         <directories external="../assets" generated="../generated-assets"/>
     </source>
-    <webwork server="https://webwork-dev.aimath.org"/>
+    <webwork server="https://webwork.runestone.academy"/>
 </publication>
