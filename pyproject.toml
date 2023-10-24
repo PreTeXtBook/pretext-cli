@@ -82,7 +82,7 @@ script_launch_mode = "subprocess"
 [tool.mypy]
 # See `files <https://mypy.readthedocs.io/en/stable/config_file.html#confval-files>`_.
 files = "pretext,scripts,tests"
-exclude = "(^pretext/core/pretext\\.py$)|(^pretext/project/oldinit\\.py$)"
+exclude = ["^pretext/core/pretext\\.py$", "^pretext/core/__init__\\.py$"]
 check_untyped_defs = true
 disallow_untyped_defs = true
 
@@ -101,6 +101,13 @@ module = [
     "tomli",
 ]
 ignore_missing_imports = true
+
+# Tell mypy to skip imports of the core. Per [SO](https://stackoverflow.com/a/70367929/16038919),
+# the `exclude` above will be overridden when code mypy scans includes the core.
+# The setting below prevents this.
+[[tool.mypy.overrides]]
+module = ["pretext.core"]
+follow_imports = "skip"
 
 
 # Coverage configuration
