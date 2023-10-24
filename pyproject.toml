@@ -95,10 +95,8 @@ module = [
     "ghp_import",
     # We're installing ``lxml-stubs``, but it doesn't have stubs for this yet.
     "lxml.ElementInclude",
-    # TODO: Currently, the ``tomli`` package doesn't support Python 3.11, so
-    # it's not installed there. For now, ignore this module. Remove the ignore
-    # when ``tomli`` provide support for Python 3.11.
-    "tomli",
+    "pytest",
+    "pytest_console_scripts",
 ]
 ignore_missing_imports = true
 
