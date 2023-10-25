@@ -655,12 +655,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             else:
                 log.critical(f"Unknown format {self.format}")
 
-    def generate_with_core(self, asset: str, xmlid: t.Optional[str] = None) -> None:
-        """
-        Utility function to call the correct core generate function for a given asset, with optional xmlid of the root of the subtree given.
-        """
-        pass
-
     def generate_assets(
         self,
         requested_asset_types: t.Optional[t.List[str]] = None,
@@ -681,6 +675,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if requested_asset_types is None or "ALL" in requested_asset_types:
             requested_asset_types = list(constants.ASSET_TO_XPATH.keys())
         log.debug(f"Assets generation requested for: {requested_asset_types}.")
+        input()
         requested_asset_types = [
             asset
             for asset in requested_asset_types
@@ -689,6 +684,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         log.debug(
             f"Based on format {self.format}, assets to be generated are: {requested_asset_types}."
         )
+        input()
         # We always build the asset hash table, even if only_changed=True: this tells us which assets need to be built, and how to update the saved asset hash table at the end of the method.
         # utils.clean_asset_table purges any saved assets that are no longer in the target.
         source_asset_table = self.generate_asset_table()
