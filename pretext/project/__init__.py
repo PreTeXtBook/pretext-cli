@@ -655,12 +655,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             else:
                 log.critical(f"Unknown format {self.format}")
 
-    def generate_with_core(self, asset: str, xmlid: t.Optional[str] = None) -> None:
-        """
-        Utility function to call the correct core generate function for a given asset, with optional xmlid of the root of the subtree given.
-        """
-        pass
-
     def generate_assets(
         self,
         requested_asset_types: t.Optional[t.List[str]] = None,
