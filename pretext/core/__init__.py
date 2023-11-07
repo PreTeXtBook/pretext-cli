@@ -1,5 +1,6 @@
 try:
     from .pretext import *
+    from . import pretext
 except ImportError as e:
     raise ImportError(
         "Failed to import the core pretext.py file. Perhaps the file is unavailable? "
@@ -7,5 +8,16 @@ except ImportError as e:
         "The original error message is: " + e.msg
     )
 from . import resources
+from .. import CORE_COMMIT, VERSION
 
 set_ptx_path(resources.path())
+
+
+def cli_build_message() -> str:
+    """
+    Override the build_info_message function of core to report that the CLI was used to build.
+    """
+    return f"built with the PreTeXt-CLI, version {VERSION} using core commit {CORE_COMMIT}"
+
+
+pretext.build_info_message = cli_build_message
