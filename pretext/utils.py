@@ -470,7 +470,6 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
         log.info("While running pretext, the following errors occurred:\n")
         mh.flush()
         print("----------------------------------------------------")
-        # sys.exit("Exit due to errors.")
     else:
         print("")
 
@@ -515,7 +514,7 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     except ImportError:
         log.error("Git must be installed to use this feature, but couldn't be found.")
         log.error("Visit https://github.com/git-guides/install-git for assistance.")
-        return
+        raise ImportError
 
     try:
         repo = git.repo.Repo(project_path())
