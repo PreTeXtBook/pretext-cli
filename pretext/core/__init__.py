@@ -17,7 +17,9 @@ def cli_build_message() -> str:
     """
     Override the build_info_message function of core to report that the CLI was used to build.
     """
-    return f"built with the PreTeXt-CLI, version {VERSION} using core commit {CORE_COMMIT}"
+    return (
+        f"built with the PreTeXt-CLI, version {VERSION} using core commit {CORE_COMMIT}"
+    )
 
 
 pretext.build_info_message = cli_build_message
