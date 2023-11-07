@@ -613,7 +613,7 @@ def view(
     access: Literal["public", "private"],
     port: int,
     build: bool,
-    generate: Optional[str],
+    generate: bool,
     no_launch: bool,
     restart_server: bool,
     stop_server: bool,
@@ -659,20 +659,13 @@ def view(
             log.warning(f"Failed to build: {e}")
             log.debug("Exception info:\n------------------------\n", exc_info=True)
 
+    # Set up the url path and target name
     if stage:
-        url = (
-            utils.url_for_access(access=access, port=port)
-            + "/"
-            + project.stage.as_posix()
-        )
         target_name = "staged deployment"
+        url_path = "/" + project.stage.as_posix()
     else:
-        url = (
-            utils.url_for_access(access=access, port=port)
-            + "/"
-            + target.output_dir_relpath().as_posix()
-        )
         target_name = f"target `{target.name}`"
+        url_path = "/" + target.output_dir_relpath().as_posix()
 
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
@@ -697,9 +690,13 @@ def view(
             port=port,
         )
         server.start()
-        log.info(
-            f"Server will soon be available at {utils.url_for_access(access=access,port=port)}"
-        )
+
+        # Now get the updated port in case we had to pick a new one
+        actual_port = utils.active_server_port() or port
+        # set the url
+        url_base = utils.url_for_access(access=access, port=actual_port)
+        url = url_base + url_path
+        log.info(f"Server will soon be available at {url_base}")
         if no_launch:
             log.info(f"The {target_name} will be available at {url}")
         else:
@@ -715,9 +712,9 @@ def view(
             server.terminate()
             return
     else:
-        log.info(
-            f"Server is already available at {utils.url_for_access(access=access,port=used_port)}"
-        )
+        url_base = utils.url_for_access(access=access, port=used_port)
+        url = url_base + url_path
+        log.info(f"Server is already available at {url_base}")
         if no_launch:
             log.info(f"The {target_name} is available at {url}")
         else:
