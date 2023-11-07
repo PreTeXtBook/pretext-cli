@@ -613,7 +613,7 @@ def view(
     access: Literal["public", "private"],
     port: int,
     build: bool,
-    generate: Optional[str],
+    generate: bool,
     no_launch: bool,
     restart_server: bool,
     stop_server: bool,
@@ -697,6 +697,14 @@ def view(
             port=port,
         )
         server.start()
+
+        # Now get the updated port in case we had to pick a new one
+        actual_port = utils.active_server_port() or port
+        # update url with actual port if needed
+        if actual_port != port:
+            url = url.replace(str(port), str(actual_port), 1)
+            log.debug(f"url has been changed to {url}")
+
         log.info(
             f"Server will soon be available at {utils.url_for_access(access=access,port=port)}"
         )
