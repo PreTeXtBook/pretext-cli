@@ -445,7 +445,6 @@ def build(
         raise SystemExit(1)
 
 
-
 # pretext generate
 @main.command(
     short_help="Generate specified assets for default target or targets specified by `-t`",
