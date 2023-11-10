@@ -158,8 +158,7 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
             return False
     # check for file IO error
     except IOError:
-        log.error(f"The file {xmlfile} does not exist")
-        return False
+        raise IOError(f"The file {xmlfile} does not exist")
     # check for XML syntax errors
     except ET.XMLSyntaxError as err:
         log.error("XML Syntax Error caused build to fail:")
