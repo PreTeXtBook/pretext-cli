@@ -275,12 +275,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
                 with templates.resource_path("publication.ptx") as self.publication:
                     pass
-        # Otherwise, verify that the provided publication file exists. TODO: perhaps skip this, instead reporting a file open error when this is read?
+        # Otherwise, verify that the provided publication file exists. TODO: It is silly to check that all publication files exist.  We warn when they don't.  If the target we are calling has a non-existent publication file, then that error will be caught anyway.
         else:
             p_full = self.publication_abspath()
             if not p_full.exists():
-                raise FileNotFoundError(
-                    f"Provided publication file {p_full} does not exist."
+                log.warning(
+                    f'The target "{self.name}" has a specified publication file that does not exist: {p_full}'
                 )
         # Pass `Project.asy_method` to `Target.asy_method` if it's not specified.
         self.asy_method = self.asy_method or self._project.asy_method

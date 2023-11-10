@@ -57,16 +57,26 @@ def nice_errors(f: Callable[..., None]) -> Any:
             return ctx.invoke(f, *args, **kwargs)
         except ValidationError as e:
             log.critical(
-                "Failed to parse project.ptx. Please fix the following errors:"
+                "Failed to parse project.ptx. Check the entire file, including all targets, and fix the following errors:"
             )
+            print(e)
             for error in e.errors():
-                if error["type"] == "value_error.missing":
+                print(error)
+                if error["type"] == "missing":
                     log.error(
-                        f"There is a missing required attribute: {error['loc'][0]}."
+                        f"One of the targets has a missing required attribute: {error['loc'][0]}; look for the target with {error['input']}."
                     )
-                elif error["type"] == "type_error.enum":
+                elif error["type"] == "enum":
                     log.error(
-                        f"Incorrect value for the attribute `{error['loc']}`.  Pick from {error['msg'].split(': ')[-1]}."
+                        f"One of the targets has an attribute with illegal value: @{error['loc'][0]}=\"{error['input']}\" is not allowed.  Pick from the values:{error['msg'].split(': ')[-1].replace('Input should be','')}."
+                    )
+                elif error["type"] == "extra_forbidden":
+                    log.error(
+                        f"Either one of the targets or the root project element has an extra attribute it shouldn't: {error['loc'][0]}=\"{error['input']}\""
+                    )
+                elif error["type"] == "value_error":
+                    log.error(
+                        f"In at least one target, you cannot have @{error['loc'][0]}=\"{error['input']}\".  {error['msg'].replace('Value error, ','')}"
                     )
                 else:
                     log.error(f"{error['msg']} ({error['loc']}; {error['type']})")
