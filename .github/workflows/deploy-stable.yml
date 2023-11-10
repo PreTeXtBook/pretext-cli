@@ -116,7 +116,12 @@ jobs:
           # Stage the file, commit and push
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
-          git push origin ${{ inputs.branch }}
+
+      - name: Push to protected main branch
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.PUSH_CODESPACES }}
+          branch: ${{ inputs.branch }}
 
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2

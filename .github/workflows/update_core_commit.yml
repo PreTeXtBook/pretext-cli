@@ -46,4 +46,9 @@ jobs:
           # Stage the file, commit and push
           git add pretext/__init__.py
           git commit -m "update to latest core commit"
-          git push origin ${{ inputs.branch }}
+
+      - name: Push to protected main branch
+          uses: CasperWA/push-protected@v2
+          with:
+            token: ${{ secrets.PUSH_CODESPACES }}
+            branch: ${{ inputs.branch }}
