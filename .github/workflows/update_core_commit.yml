@@ -48,7 +48,7 @@ jobs:
           git commit -m "update to latest core commit"
 
       - name: Push to protected main branch
-          uses: CasperWA/push-protected@v2
-          with:
-            token: ${{ secrets.PUSH_CODESPACES }}
-            branch: ${{ inputs.branch }}
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.PUSH_CODESPACES }}
+          branch: ${{ inputs.branch }}
