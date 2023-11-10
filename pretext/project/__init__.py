@@ -1112,6 +1112,14 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 d = tgt.model_dump()
                 del d["format"]
 
+                # Ensure publication file exists (necessary for v2 validation)
+                if not Path(tgt.publication).exists():
+                    log.warning(
+                        f"Publication file at {tgt.publication} does not exist."
+                    )
+                    log.warning(f"{tgt.name} will not be available.")
+                    continue
+
                 # Remove the `None` from optional values, so the new format can replace these.
                 for key in ("site", "xsl", "latex_engine"):
                     if d[key] is None:
