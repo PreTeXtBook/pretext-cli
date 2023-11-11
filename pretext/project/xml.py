@@ -51,7 +51,7 @@ class LegacyStringParam(pxml.BaseXmlModel):
 
 
 class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
-    model_config = ConfigDict()
+    model_config = ConfigDict(str_strip_whitespace=True)
     name: str = pxml.attr()
     latex_engine: t.Optional[LatexEngine] = pxml.attr(name="pdf-method", default=None)
     format: LegacyFormat = pxml.element()
@@ -70,7 +70,7 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORD
 class LegacyExecutables(
     pxml.BaseXmlModel, tag="executables", search_mode=SearchMode.UNORDERED
 ):
-    model_config = ConfigDict()
+    model_config = ConfigDict(str_strip_whitespace=True)
     latex: str = pxml.element()
     pdflatex: str = pxml.element()
     xelatex: str = pxml.element()

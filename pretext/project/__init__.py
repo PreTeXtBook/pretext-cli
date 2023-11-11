@@ -94,7 +94,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     build targeting a format such as HTML, LaTeX, etc.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     # Provide access to the containing project.
     _project: "Project" = PrivateAttr()
     # These two attribute are required; everything else is optional.
@@ -984,7 +984,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     To create a Project object from a project.ptx file, use the `Project.parse()` method.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     ptx_version: t.Literal["2"] = pxml.attr(name="ptx-version", default="2")
     _executables: Executables
     # A path, relative to the project directory (defined by `self.abspath()`), prepended to any target's `source`.
