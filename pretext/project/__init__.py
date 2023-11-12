@@ -1121,7 +1121,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     continue
 
                 # Remove the `None` from optional values, so the new format can replace these.
-                for key in ("site", "xsl", "latex_engine"):
+                for key in ("deploy_dir", "xsl", "latex_engine"):
                     if d[key] is None:
                         del d[key]
 

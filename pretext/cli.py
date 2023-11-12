@@ -59,9 +59,7 @@ def nice_errors(f: Callable[..., None]) -> Any:
             log.critical(
                 "Failed to parse project.ptx. Check the entire file, including all targets, and fix the following errors:"
             )
-            print(e)
             for error in e.errors():
-                print(error)
                 if error["type"] == "missing":
                     log.error(
                         f"One of the targets has a missing required attribute: {error['loc'][0]}; look for the target with {error['input']}."

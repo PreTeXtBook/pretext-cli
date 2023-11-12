@@ -60,7 +60,7 @@ class LegacyTarget(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORD
     output_dir: Path = pxml.element(tag="output-dir")
     output_filename: t.Optional[str] = pxml.element(tag="output-filename", default=None)
     # The v1 file called this `deploy-dir`; the v2 file uses `site`.
-    site: t.Optional[str] = pxml.element(tag="deploy-dir", default=None)
+    deploy_dir: t.Optional[str] = pxml.element(tag="deploy-dir", default=None)
     xsl: t.Optional[str] = pxml.element(default=None)
     asy_method: t.Optional[str] = pxml.element(tag="asy-method", default="server")
     stringparams: t.List[LegacyStringParam] = pxml.element(
