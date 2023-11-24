@@ -87,7 +87,22 @@ jobs:
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
 
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v$VERSION
+          release_name: v$VERSION
+          # body: |
+          #   Changes in this Release
+          #   - First Change
+          #   - Second Change
+          draft: false
+          prerelease: false
+
       - name: pull request
-        run: gh pr create --head --fill
+        run: gh pr create --fill
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
