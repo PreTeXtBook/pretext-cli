@@ -81,11 +81,11 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
 
-      - name: commit
-        run: |
-          # Stage the file, commit and push
-          git add pyproject.toml
-          git commit -m "bump version to next patch level for nightly releases"
+      # - name: commit
+      #   run: |
+      #     # Stage the file, commit and push
+      #     git add pyproject.toml
+      #     git commit -m "bump version to next patch level for nightly releases"
 
       - name: Create Release
         id: create_release
@@ -93,8 +93,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v$VERSION
-          release_name: v$VERSION
+          tag_name: v"$VERSION"
+          release_name: v"$VERSION"
           # body: |
           #   Changes in this Release
           #   - First Change
@@ -103,6 +103,11 @@ jobs:
           prerelease: false
 
       - name: pull request
-        run: gh pr create --fill
+        run: |
+          git checkout -b "$VERSION"
+          git add pyproject.toml
+          git commit -m "bump version to next patch level for nightly releases"
+          git push --set-upstream origin "$VERSION"
+          gh pr create --fill
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
