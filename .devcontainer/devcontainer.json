@@ -1,11 +1,11 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "PreTeXt-CLI-dev",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "oscarlevin/pretext:full",
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	// "name": "PreTeXt-CLI-dev",
+	// // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	// "image": "oscarlevin/pretext:full",
+	// // Features to add to the dev container. More info: https://containers.dev/features.
+	// // "features": {},
 	"features": {
 		"ghcr.io/devcontainers/features/github-cli:1": {}
 	},
@@ -44,5 +44,5 @@
 		}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "sh ./.devcontainer/postCreateCommand.sh"
+	// "postCreateCommand": "sh ./.devcontainer/postCreateCommand.sh"
 }
