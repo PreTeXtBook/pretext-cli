@@ -55,7 +55,7 @@ jobs:
       - name: Update version if needed
         if: ${{ inputs.level != 'patch' }}
         run: |
-          echo "VERSION=$(poetry version ${{ inputs.level }} -s)" >> $GITHUB_EVN
+          echo "VERSION=$(poetry version ${{ inputs.level }} -s)" >> $GITHUB_ENV
 
       - name: Publish
         env:
