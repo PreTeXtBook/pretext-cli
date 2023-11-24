@@ -49,13 +49,13 @@ jobs:
         shell: bash
         run: poetry install
 
+      - name: Build package
+        run: poetry run python scripts/build_package.py
+
       - name: Discover current version
         run: |
           poetry run pretext --version
           echo "VERSION=$(poetry run pretext --version)" >> $GITHUB_ENV
-
-      - name: Build package
-        run: poetry run python scripts/build_package.py
 
       - name: Update version if needed
         if: ${{ inputs.level != 'patch' }}
