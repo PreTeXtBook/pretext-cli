@@ -49,6 +49,11 @@ jobs:
         shell: bash
         run: poetry install
 
+      - name: Discover current version
+        run: |
+          pretext --version
+          echo "VERSION=$(pretext --version)" >> $GITHUB_ENV
+
       - name: Build package
         run: poetry run python scripts/build_package.py
 
@@ -85,3 +90,5 @@ jobs:
 
       - name: pull request
         run: gh pr create --head --fill
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
