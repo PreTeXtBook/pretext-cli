@@ -1,0 +1,53 @@
+name: deploy-codespace-template
+
+on:
+  # Runs on completion of the deploy-stable workflow
+  workflow_run:
+    workflows: ["deploy-stable"]
+    branches: ["main"]
+    types:
+      - completed
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Checkout codespace
+        uses: actions/checkout@v3
+        with:
+          repository: PreTeXtBook/pretext-codespace
+          token: ${{ secrets.PUSH_CODESPACES }}
+
+      - name: Install pretext
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pretext
+
+      - name: pretext new book
+        shell: bash
+        run: |
+          rm -f project.ptx
+          python -m pretext new book -d .
+
+      - name: setup git config
+        run: |
+          # setup the username and email.
+          git config user.name ${{ github.actor }}
+          git config user.email ${{ github.actor }}@users.noreply.github.com
+
+      - name: revert to previous README
+        run: git restore README.md
+
+      - name: commit
+        run: |
+          # Stage the file, commit and push
+          git add .
+          git commit -m "update to latest `pretext new book`" || echo "No new commit needed"
+          git push origin main || echo "All done"
