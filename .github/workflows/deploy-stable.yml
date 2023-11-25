@@ -95,6 +95,11 @@ jobs:
         if: ${{ inputs.level != 'patch' }}
         run: poetry version ${{ inputs.level }}
 
+      - name: Discover current version
+        run: |
+          poetry run pretext --version
+          echo "VERSION=$(poetry run pretext --version)" >> $GITHUB_ENV
+
       - name: Publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
@@ -105,23 +110,36 @@ jobs:
       - name: Update version for next dev release
         run: poetry version patch
 
+      - name: Create Release
+        id: create_release
+        if: ${{ inputs.level != 'patch' }}
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: v${{ env.VERSION }}
+          # body: |
+          #   Changes in this Release
+          draft: false
+          prerelease: false
+
       - name: setup git config
         run: |
           # setup the username and email.
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
+          git config user.name ${{ github.actor }} via GitHub Actions
+          git config user.email ${{ github.actor }}@github_actions.no_reply
 
-      - name: commit
+      - name: commit version bump via pr
         run: |
-          # Stage the file, commit and push
+          git checkout -b ${{ env.VERSION }}
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
-
-      - name: Push to protected main branch
-        uses: CasperWA/push-protected@v2
-        with:
-          token: ${{ secrets.PUSH_CODESPACES }}
-          branch: ${{ inputs.branch }}
+          git push --set-upstream origin ${{ env.VERSION }}
+          gh pr create --fill
+          gh pr merge -s -d -t "bump version to next patch level for nightly releases"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2

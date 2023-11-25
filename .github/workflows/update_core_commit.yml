@@ -38,17 +38,16 @@ jobs:
       - name: setup git config
         run: |
           # setup the username and email.
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<>"
+          git config user.name ${{ github.actor }} via GitHub Actions
+          git config user.email ${{ github.actor }}@github_actions.no_reply
 
-      - name: commit-legacy
+      - name: commit core update via pr
         run: |
-          # Stage the file, commit and push
+          git checkout -b core-commit-update
           git add pretext/__init__.py
           git commit -m "update to latest core commit"
-
-      - name: Push to protected main branch
-        uses: CasperWA/push-protected@v2
-        with:
-          token: ${{ secrets.PUSH_CODESPACES }}
-          branch: ${{ inputs.branch }}
+          git push --set-upstream origin core-commit-update
+          gh pr create --fill
+          gh pr merge -s -d -t "update to latest core commit"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
