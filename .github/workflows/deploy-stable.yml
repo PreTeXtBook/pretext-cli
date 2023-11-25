@@ -109,5 +109,6 @@ jobs:
           git commit -m "bump version to next patch level for nightly releases"
           git push --set-upstream origin "$VERSION"
           gh pr create --fill
+          gh pr merge -s -d -t "bump version to next patch level for nightly releases"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
