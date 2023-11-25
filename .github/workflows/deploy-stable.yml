@@ -24,7 +24,46 @@ on:
           - "legacy-support"
 
 jobs:
+  test:
+    name: Run tests
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        poetry-version: ["1.5.1"]
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install poetry ${{ matrix.poetry-version }}
+        run: |
+          python -m ensurepip
+          python -m pip install --upgrade pip
+          python -m pip install poetry==${{ matrix.poetry-version }}
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m poetry install
+          python -m poetry run python scripts/fetch_core.py
+          python -m poetry run python scripts/zip_templates.py
+
+      - name: Test with pytest
+        run: |
+          python -m poetry run pytest -v --cov
+
   deploy:
+    needs: test
     name: Deploy to pypi
     runs-on: ubuntu-latest
     steps:
@@ -52,26 +91,17 @@ jobs:
       - name: Build package
         run: poetry run python scripts/build_package.py
 
-      - name: Discover current version
-        run: |
-          poetry run pretext --version
-          echo "VERSION=$(poetry run pretext --version)" >> $GITHUB_ENV
-
       - name: Update version if needed
         if: ${{ inputs.level != 'patch' }}
-        run: |
-          echo "VERSION=$(poetry version ${{ inputs.level }} -s)" >> $GITHUB_ENV
+        run: poetry version ${{ inputs.level }}
 
       - name: Publish
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          echo "Would be publishing here..."
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build
 
-      - name: echo version
-        run: |
-          echo "Version is $VERSION"
-          
       - name: Update version for next dev release
         run: poetry version patch
 
@@ -81,34 +111,22 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
 
-      # - name: commit
-      #   run: |
-      #     # Stage the file, commit and push
-      #     git add pyproject.toml
-      #     git commit -m "bump version to next patch level for nightly releases"
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v"$VERSION"
-          release_name: v"$VERSION"
-          # body: |
-          #   Changes in this Release
-          #   - First Change
-          #   - Second Change
-          draft: false
-          prerelease: false
-
-      - name: pull request
+      - name: commit
         run: |
-          git checkout -b "$VERSION"
+          # Stage the file, commit and push
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
-          git push --set-upstream origin "$VERSION"
-          gh pr create --fill
-          gh pr merge -s -d -t "bump version to next patch level for nightly releases"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to protected main branch
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.PUSH_CODESPACES }}
+          branch: ${{ inputs.branch }}
+
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.PUSH_CODESPACES }}
+          repository: oscarlevin/pretext-docker
+          event-type: pretext-publish
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
