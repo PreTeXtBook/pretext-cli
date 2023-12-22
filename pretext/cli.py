@@ -282,13 +282,15 @@ def new(template: str, directory: Path, url_template: str) -> None:
     project_ptx_path = Path(archive.namelist()[project_ptx_index])
     project_dir_path = project_ptx_path.parent
     with tempfile.TemporaryDirectory() as tmpdirname:
+        temp_path = Path(tmpdirname) / "new-project"
+        temp_path.mkdir()
         for filepath in [
             filepath
             for filepath in archive.namelist()
             if project_dir_path in Path(filepath).parents
         ]:
-            archive.extract(filepath, path=tmpdirname)
-        tmpsubdirname = Path(tmpdirname) / project_dir_path
+            archive.extract(filepath, path=temp_path)
+        tmpsubdirname = temp_path / project_dir_path
         shutil.copytree(tmpsubdirname, directory_fullpath, dirs_exist_ok=True)
     # generate remaining boilerplate like requirements.txt
     project = Project.parse(directory_fullpath)
