@@ -302,8 +302,8 @@ def test_html_build_permissions(tmp_path: Path) -> None:
     prj_path = tmp_path / "hello"
     shutil.copytree(TEMPLATES_DIR / "hello", prj_path)
     with utils.working_directory(prj_path):
-        project = pr.Project.parse()
-        project.get_target("web").build()
+        p = pr.Project(ptx_version="2")
+        p.new_target("web", "html").build()
         assert (prj_path / "output" / "web").exists()
         assert (prj_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
 
