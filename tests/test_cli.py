@@ -51,6 +51,8 @@ def test_version(script_runner: ScriptRunner) -> None:
 
 def test_new(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "new"], cwd=tmp_path).success
+    # correct permissions
+    assert (tmp_path / "new-pretext-project").stat().st_mode == "755"
     # minimal file for a project
     assert (tmp_path / "new-pretext-project" / "project.ptx").exists()
     # boilerplate files generated for new projects
