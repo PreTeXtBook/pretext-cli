@@ -445,7 +445,9 @@ def build(
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
         target.build(clean=clean, generate=not no_generate, xmlid=xmlid)
         # Temporary hack to ensure the correct permissions are set on the output directory.
-        utils.match_permissions(target.output_dir_abspath().parent, target.output_dir_abspath())
+        utils.match_permissions(
+            target.output_dir_abspath().parent, target.output_dir_abspath()
+        )
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except Exception as e:
         log.critical(e)
