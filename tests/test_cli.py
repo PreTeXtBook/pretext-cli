@@ -84,6 +84,8 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         cwd=project_path,
     ).success
     assert (project_path / "output" / "web").exists()
+    # ensure sufficient permissions (n.b. 0oABC expresses integers in octal)
+    assert (project_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
     assert not (project_path / "output" / "web" / "ch-empty.html").exists()
     assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
     # Also do a subset without assets
