@@ -303,8 +303,8 @@ def test_html_build_permissions(tmp_path: Path) -> None:
     with utils.working_directory(tmp_path):
         project = pr.Project.parse()
         project.get_target("web").build()
-        assert (prj_path / "output" / "web").exists()
-        assert (prj_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
+        assert (tmp_path / "output" / "web").exists()
+        assert (tmp_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
 
 
 def test_demo_html_build(tmp_path: Path) -> None:
