@@ -299,12 +299,13 @@ def test_manifest_legacy_wrong() -> None:
 
 
 def test_html_build_permissions(tmp_path: Path) -> None:
-    shutil.copytree(TEMPLATES_DIR / "hello", tmp_path)
-    with utils.working_directory(tmp_path):
+    prj_path = tmp_path / "hello"
+    shutil.copytree(TEMPLATES_DIR / "hello", prj_path)
+    with utils.working_directory(prj_path):
         project = pr.Project.parse()
         project.get_target("web").build()
-        assert (tmp_path / "output" / "web").exists()
-        assert (tmp_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
+        assert (prj_path / "output" / "web").exists()
+        assert (prj_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
 
 
 def test_demo_html_build(tmp_path: Path) -> None:
