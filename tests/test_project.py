@@ -298,6 +298,15 @@ def test_manifest_legacy_wrong() -> None:
         assert project._executables.latex == "latex1"
 
 
+def test_html_build_permissions(tmp_path: Path) -> None:
+    shutil.copytree(TEMPLATES_DIR / "hello", tmp_path)
+    with utils.working_directory(tmp_path):
+        project = pr.Project.parse()
+        project.get_target("web").build()
+        assert (prj_path / "output" / "web").exists()
+        assert (prj_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
+
+
 def test_demo_html_build(tmp_path: Path) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
