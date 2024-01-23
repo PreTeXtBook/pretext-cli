@@ -21,7 +21,7 @@ def main() -> None:
         archive.extractall(tmpdirname)
         print("Creating zip of static folders")
         # Copy required folders to a single folder to be zipped:
-        for subdir in ["xsl", "schema", "script", "css", "pretext"]:
+        for subdir in ["xsl", "schema", "script", "css", "js", "js_lib", "pretext"]:
             shutil.copytree(
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / subdir,
                 Path(tmpdirname) / "static" / subdir,
