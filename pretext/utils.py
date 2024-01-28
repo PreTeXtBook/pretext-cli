@@ -576,7 +576,7 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     ghp_import.ghp_import(
         directory,
         mesg="Latest build deployed.",
-        nojekyll=False,
+        nojekyll=True,
     )
     log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
     # log.info("(Your SSH password may be required.)")
