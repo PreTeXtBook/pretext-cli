@@ -654,10 +654,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 )
             else:
                 log.critical(f"Unknown format {self.format}")
-        # Temporary hack to ensure the correct permissions are set on the output directory.
-        utils.match_permissions(
-            self.output_dir_abspath().parent, self.output_dir_abspath()
-        )
 
     def generate_assets(
         self,

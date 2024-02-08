@@ -679,14 +679,3 @@ def stop_server(port: t.Optional[int] = None) -> None:
             if proc.name() == "pretext" and proc.parent().name() == "pretext":
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
-
-
-def match_permissions(src: Path, dst: Path) -> None:
-    """
-    Match the permissions of src to dst.
-    """
-    if not src.exists():
-        return
-    if not dst.exists():
-        return
-    shutil.copystat(src, dst, follow_symlinks=False)
