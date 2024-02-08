@@ -1259,6 +1259,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         Returns a process for running a simple local web server
         providing the contents of the output directory.
         """
+        # This seems to still work, but now that we don't have a --watch option, using multiprocessing probably isn't necessary.  Consider removing in the future.
         return multiprocessing.Process(
             target=utils.serve_forever,
             args=[self.abspath(), access, port],
