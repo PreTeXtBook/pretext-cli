@@ -678,4 +678,3 @@ def stop_server(port: t.Optional[int] = None) -> None:
             if proc.name() == "pretext" and proc.parent().name() == "pretext":
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
-
