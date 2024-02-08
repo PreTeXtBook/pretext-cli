@@ -147,6 +147,7 @@ def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None
 def test_generate_interactive(tmp_path: Path, script_runner: ScriptRunner) -> None:
     int_path = tmp_path / "interactive"
     shutil.copytree(EXAMPLES_DIR / "projects" / "interactive", int_path)
+    script_runner.run([PTX_CMD, "-v", "debug", "view", "-s"])
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "generate", "-t", "pdf"], cwd=int_path
     ).success

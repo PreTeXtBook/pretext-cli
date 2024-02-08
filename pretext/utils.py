@@ -228,6 +228,7 @@ def serve_forever(
 ) -> None:
     binding = binding_for_access(access)
 
+    # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args: Any, **kwargs: Any):
             super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
@@ -249,7 +250,7 @@ def serve_forever(
     looking_for_port = True
     while looking_for_port:
         try:
-            with TCPServer((binding, port), RequestHandler) as httpd:
+            with TCPServer((binding, port), SimpleHTTPRequestHandler) as httpd:
                 looking_for_port = False
                 httpd.serve_forever()
         except OSError:
