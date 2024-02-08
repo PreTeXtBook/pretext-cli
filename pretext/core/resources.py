@@ -21,6 +21,11 @@ def path(*args: str) -> Path:
 
 
 def install(local_base_path: Path) -> None:
+    backup_dir = local_base_path.with_name(local_base_path.name + ".bak")
+    if Path.is_dir(local_base_path):
+        print(f"Backing up old static files to {backup_dir}")
+        Path.rename(local_base_path, backup_dir)
+    Path.mkdir(local_base_path)
     with importlib.resources.path("pretext.core", "resources.zip") as static_zip:
         with zipfile.ZipFile(static_zip, "r") as zip:
             zip.extractall(local_base_path)
