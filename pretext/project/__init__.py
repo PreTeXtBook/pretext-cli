@@ -1417,4 +1417,4 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     or project_resource_path.read_text() != requirements_txt
                 ):
                     project_resource_path.write_text(requirements_txt)
-            logger(f"Generated `{project_resource_path}`\n")
+            log.info(f"Generated `{project_resource_path}`\n")

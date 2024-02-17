@@ -66,7 +66,7 @@ def nice_errors(f: Callable[..., None]) -> Any:
                     )
                 elif error["type"] == "enum":
                     log.error(
-                        f"One of the targets has an attribute with illegal value: @{error['loc'][0]}=\"{error['input']}\" is not allowed.  Pick from the values:{error['msg'].split(': ')[-1].replace('Input should be','')}."
+                        f"One of the targets has an attribute with illegal value: @{error['loc'][0]}=\"{error['input']}\" is not allowed.  Pick from the values:{error['msg'].split(': ')[-1].replace('Input should be', '')}."
                     )
                 elif error["type"] == "extra_forbidden":
                     log.error(
@@ -74,7 +74,7 @@ def nice_errors(f: Callable[..., None]) -> Any:
                     )
                 elif error["type"] == "value_error":
                     log.error(
-                        f"In at least one target, you cannot have @{error['loc'][0]}=\"{error['input']}\".  {error['msg'].replace('Value error, ','')}"
+                        f"In at least one target, you cannot have @{error['loc'][0]}=\"{error['input']}\".  {error['msg'].replace('Value error, ', '')}"
                     )
                 else:
                     log.error(f"{error['msg']} ({error['loc']}; {error['type']})")
@@ -447,6 +447,18 @@ def build(
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
         target.build(clean=clean, generate=not no_generate, xmlid=xmlid)
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
+    except ValidationError as e:
+        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        log.critical(
+            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+        )
+        log.critical("Failed to build.  Exiting...")
+        log.debug(e)
+        log.debug(
+            "\n------------------------\nException info:\n------------------------\n",
+            exc_info=True,
+        )
+        raise SystemExit(1)
     except Exception as e:
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
@@ -527,10 +539,10 @@ def generate(
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
     try:
-        f'Generating assets in for the target "{target.name}".'
+        log.debug(f'Generating assets in for the target "{target.name}".')
         target.generate_assets(
             requested_asset_types=assets,
             all_formats=all_formats,
@@ -539,12 +551,24 @@ def generate(
             pymupdf=pymupdf,
         )
         log.info("Finished generating assets.\n")
+    except ValidationError as e:
+        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        log.critical(
+            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+        )
+        log.critical("Failed to build.  Exiting...")
+        log.debug(e)
+        log.debug(
+            "\n------------------------\nException info:\n------------------------\n",
+            exc_info=True,
+        )
+        raise SystemExit(1) from e
     except Exception as e:
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
         log.critical("Generating assets as failed.  Exiting...")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 # pretext view
