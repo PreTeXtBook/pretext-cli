@@ -820,7 +820,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 )
                 successful_assets.append(("webwork", None))
             except Exception as e:
-                log.error("Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior.")
+                log.error(
+                    "Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior."
+                )
                 log.warning(e)
         if "latex-image" in assets_to_generate:
             for id in assets_to_generate["latex-image"]:
@@ -946,7 +948,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
                 except Exception as e:
-                    log.warning(f"Unable to generate some qrcodes:\n {e}", exc_info=True)
+                    log.warning(
+                        f"Unable to generate some qrcodes:\n {e}", exc_info=True
+                    )
 
         # Delete temporary directories left behind by core:
         try:
@@ -1181,7 +1185,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def _get_target(
         self,
         # If `name` is `None`, return the default (first) target; otherwise, return the target given by `name`.
-        name: t.Optional[str] = None
+        name: t.Optional[str] = None,
         # Returns the target if found, or `None`` if it's not found.
     ) -> t.Optional["Target"]:
         if len(self.targets) == 0:
