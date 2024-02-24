@@ -814,7 +814,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=stringparams_copy,
                     xmlid_root=xmlid,
-                    abort_early=True,
+                    abort_early=False,
                     dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
                     server_params=None,
                 )
