@@ -232,7 +232,7 @@ def devscript(args: List[str]) -> None:
 
 # pretext new
 @main.command(
-    short_help="Generates the necessary files for a new PreTeXt project.",
+    short_help="Generates all the necessary files for a new PreTeXt project.",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument(
@@ -256,7 +256,7 @@ def devscript(args: List[str]) -> None:
 @nice_errors
 def new(template: str, directory: Path, url_template: str) -> None:
     """
-    Generates the necessary files for a new PreTeXt project.
+    Generates all the necessary files for a new PreTeXt project.
     Supports `pretext new book` (default) and `pretext new article`,
     or generating from URL with `pretext new --url-template [URL]`.
     """
@@ -307,7 +307,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
 
 # pretext init
 @main.command(
-    short_help="Generates the project manifest for a PreTeXt project in the current directory.",
+    short_help="Generates/updates CLI-specific files for the current version of PreTeXt-CLI.",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.option(
@@ -327,8 +327,9 @@ def new(template: str, directory: Path, url_template: str) -> None:
 @nice_errors
 def init(refresh: bool, files: List[str]) -> None:
     """
-    Generates the project manifest for a PreTeXt project in the current directory. This feature
-    is mainly intended for updating existing projects to use this CLI.
+    Generates/updates CLI-specific files for the current version of PreTeXt-CLI.
+    This feature is mainly intended for updating existing PreTeXt projects to use this CLI,
+    or to update project files generated from earlier CLI versions.
 
     If --refresh is used, files will be generated even if the project has already been initialized.
     Existing files won't be overwritten; a copy of the fresh initialized file will be created
