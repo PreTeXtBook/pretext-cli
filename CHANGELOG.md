@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Temporary hack fixes `pretext view` issues in codespaces.
+
+### Changed
+
+- `pretext view` now opens browser sooner when you are not using codespaces.
+
 ## [2.3.8] - 2024-02-25
 
 ### Added
