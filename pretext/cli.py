@@ -142,6 +142,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         fh.setFormatter(file_log_format)
         log.addHandler(fh)
         # output info
+        log.info(f"PreTeXt-CLI version: {VERSION}\n")
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         # permanently change working directory for rest of process
         os.chdir(pp)
@@ -164,6 +165,7 @@ def main(ctx: click.Context, targets: bool) -> None:
                 f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}."
             )
     else:
+        log.info(f"PreTeXt-CLI version: {VERSION}\n")
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
