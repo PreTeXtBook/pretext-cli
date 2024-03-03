@@ -768,9 +768,9 @@ def view(
         if no_launch:
             log.info(f"The {target_name} will be available at {url}")
         else:
-            SECONDS = 1
-            log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
-            time.sleep(SECONDS)
+            # SECONDS = 1
+            log.info(f"Opening browser for {target_name} at {url}")
+            # time.sleep(SECONDS)
             webbrowser.open(url)
         try:
             while server.is_alive():
