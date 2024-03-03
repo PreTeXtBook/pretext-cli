@@ -1,7 +1,7 @@
 import os
 from collections.abc import Generator
 from contextlib import contextmanager
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler
 import shutil
 from pathlib import Path
 import platform
