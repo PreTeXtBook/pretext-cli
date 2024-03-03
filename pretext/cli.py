@@ -642,6 +642,12 @@ def generate(
     default=False,
     help="View the staged deployment.",
 )
+@click.option(
+    "--default-server",
+    is_flag=True,
+    default=False,
+    help="Use the standard python server, even if in a codespace (for debugging)",
+)
 @nice_errors
 def view(
     target_name: str,
@@ -653,6 +659,7 @@ def view(
     restart_server: bool,
     stop_server: bool,
     stage: bool,
+    default_server: str,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
@@ -702,6 +709,32 @@ def view(
         target_name = f"target `{target.name}`"
         url_path = "/" + target.output_dir_relpath().as_posix()
 
+    in_codespace = os.environ.get("CODESPACES")
+
+    if in_codespace and not default_server:
+        log.info(
+            "Running in a codespace, so using the codespace server instead of the standard python server."
+        )
+        used_port = utils.active_server_port()
+        # First terminate any existing server using this port
+        if used_port == port:
+            utils.stop_server(used_port)
+        # set the url
+        url_base = utils.url_for_access(access=access, port=port)
+        url = url_base + url_path
+        log.info(f"Server will soon be available at {url_base}")
+        if no_launch:
+            log.info(f"The {target_name} will be available at {url}")
+        else:
+            SECONDS = 3
+            log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
+            time.sleep(SECONDS)
+            webbrowser.open(url)
+        utils.start_codespace_server(port=port, access=access)
+        log.info(
+            f"Server will soon be available at {utils.url_for_access(access, port)}"
+        )
+        return
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
     if restart_server or (port != used_port) or (used_port is None):
@@ -735,7 +768,7 @@ def view(
         if no_launch:
             log.info(f"The {target_name} will be available at {url}")
         else:
-            SECONDS = 3
+            SECONDS = 1
             log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
             time.sleep(SECONDS)
             webbrowser.open(url)

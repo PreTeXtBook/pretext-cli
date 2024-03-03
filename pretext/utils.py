@@ -1,7 +1,7 @@
 import os
 from collections.abc import Generator
 from contextlib import contextmanager
-from http.server import SimpleHTTPRequestHandler
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 import shutil
 from pathlib import Path
 import platform
@@ -257,6 +257,20 @@ def serve_forever(
             log.warning(f"Port {port} could not be used.")
             port += 1
             log.warning(f"Trying port {port} instead.\n")
+
+
+def start_codespace_server(
+    access: t.Literal["public", "private"] = "private",
+    port: int = 8128,
+) -> None:
+    """
+    Temporary hack until we can figure out what is going on with codespaces an the (possibly more robust) server process we usually define.
+    """
+    subprocess.run(
+        f"python -m http.server {port}",
+        shell=True,
+    )
+    return
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
