@@ -26,6 +26,9 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
+  // Respect the project's designated dependencies
+  "postCreateCommand": "pip install -r requirements.txt",
+
   // Port forwarding
   // ---------------
   // This is needed by the CodeChat Server.

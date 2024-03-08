@@ -33,7 +33,7 @@ jobs:
       - name: pretext new book
         shell: bash
         run: |
-          rm -f project.ptx
+          rm -rf *
           python -m pretext new book -d .
 
       - name: setup git config
@@ -42,8 +42,11 @@ jobs:
           git config user.name ${{ github.actor }}
           git config user.email ${{ github.actor }}@users.noreply.github.com
 
-      - name: revert to previous README
-        run: git restore README.md
+      - name: restore previous files
+        run: |
+          git restore README.md
+          git restore GenerateAssetsHelp.md
+          git restore LICENSE
 
       - name: commit
         run: |
