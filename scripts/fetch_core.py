@@ -17,7 +17,7 @@ def main() -> None:
         f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip"
     )
     archive = zipfile.ZipFile(io.BytesIO(r.content))
-    with tempfile.TemporaryDirectory() as tmpdirname:
+    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
         archive.extractall(tmpdirname)
         print("Creating zip of static folders")
         # Copy required folders to a single folder to be zipped:
