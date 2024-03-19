@@ -522,7 +522,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         self.ensure_output_directory()
 
         # Proceed with the build
-        with tempfile.TemporaryDirectory() as tmp_xsl_str:
+        with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_xsl_str:
             tmp_xsl_path = Path(tmp_xsl_str)
             # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
             if (txp := self.xsl_abspath()) is not None:

@@ -11,7 +11,7 @@ def main() -> None:
     for template_directory in glob.iglob("templates/[!.]*"):
         template_path = Path(template_directory)
         if template_path.is_dir():
-            with tempfile.TemporaryDirectory() as temporary_directory:
+            with tempfile.TemporaryDirectory(prefix="pretext_") as temporary_directory:
                 temporary_path = Path(temporary_directory)
                 shutil.copytree(
                     template_path,

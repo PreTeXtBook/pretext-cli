@@ -283,7 +283,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     project_ptx_index = filenames.index("project.ptx")
     project_ptx_path = Path(archive.namelist()[project_ptx_index])
     project_dir_path = project_ptx_path.parent
-    with tempfile.TemporaryDirectory() as tmpdirname:
+    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
         temp_path = Path(tmpdirname) / "new-project"
         temp_path.mkdir()
         for filepath in [
