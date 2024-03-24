@@ -1,0 +1,3 @@
+<pretext>
+  <div tal:replace="self"></div>
+</pretext>
