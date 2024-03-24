@@ -26,16 +26,44 @@ name: maketitle
 name: document
 {{ obj }}
 
-name: part chapter section
+
+
+name: part
+<part>
+  <title>{{ obj.title }}</title>
+
+  {{obj}}
+
+</part>
+
+
+name: chapter
+<chapter>
+  <title>{{ obj.title }}</title>
+
+  {{obj}}
+
+</chapter>
+
+
+name: section
 <section>
   <title>{{ obj.title }}</title>
+
   {{ obj }}
+
 </section>
+
+
 
 name: center
 <blockquote>
+
   {{ obj }}
+
 </blockquote>
+{# #}
+
 
 
 name: subsection 

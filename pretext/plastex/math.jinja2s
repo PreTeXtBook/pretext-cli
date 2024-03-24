@@ -1,0 +1,7 @@
+name: math
+<m>{{ obj.source }}</m>
+
+name: displaymath
+<me>
+  {{ obj.source }}
+</me>

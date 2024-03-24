@@ -1,0 +1,6 @@
+name: LaTeX
+<latex />
+
+name: TeX
+type: xml
+<tex /> 
