@@ -2,14 +2,13 @@ from plasTeX.Renderers.PageTemplate import Renderer as _Renderer
 from plasTeX.TeX import TeX
 from pathlib import Path
 import logging
-import shutil
 
 log = logging.getLogger("ptxlogger")
 
 
 class Pretext(_Renderer):
     """ Renderer for the PreTeXt XML format """
-
+    fileExtension = '.ptx'
 
 Renderer = Pretext
 
