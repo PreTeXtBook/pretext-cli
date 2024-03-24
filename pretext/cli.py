@@ -856,9 +856,18 @@ def import_command(
         output_path.mkdir(parents=True, exist_ok=True)
     # Now we use plastex to convert:
     log.info(f"Converting {latex_file_path} to PreTeXt.")
-    try:
-        plastex.convert(latex_file_path, output_path)
-    except Exception as e:
-        log.error(e)
-        log.debug("Exception info:\n------------------------\n", exc_info=True)
-        raise SystemExit(1)
+    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+        temp_path = Path(tmpdirname) / "import"
+        temp_path.mkdir()
+        log.info(f"Using temporary directory {temp_path}")
+        # change to this directory to run plastex
+        with utils.working_directory(temp_path):
+            try:
+                plastex.convert(latex_file_path, output_path)
+                shutil.copytree(temp_path, output_path, dirs_exist_ok=True)
+                log.debug(f"Conversion done in {temp_path}")
+            except Exception as e:
+                log.error(e)
+                log.debug("Exception info:\n------------------------\n", exc_info=True)
+                raise SystemExit(1)
+

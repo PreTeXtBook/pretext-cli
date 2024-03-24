@@ -16,20 +16,16 @@ Renderer = Pretext
 
 def convert(input_file: Path, output: Path):
     log.info(f'Converting {input_file} to {output}')
-    outputfile = output / 'test.xml'
-    if not outputfile.exists():
-        log.info(f'{outputfile} does not exist')
-    else:
-        shutil.rm(outputfile)
+
     with open(input_file, 'r') as f:
         tex = TeX()
-        tex.ownerDocument.config['files']['split-level'] = -100
-        tex.ownerDocument.config['files']['filename'] = "test.xml"
+        # tex.ownerDocument.config['files']['split-level'] = -100
+        # tex.ownerDocument.config['files']['filename'] = "test.xml"
         tex.input(f.read())
         doc = tex.parse()
 
         renderer = Renderer()
         renderer.render(doc)
 
-    shutil.move('test.xml', output)
-    log.info('Conversion complete')
+    # shutil.move('test.xml', output)
+    log.info('\nConversion complete')
