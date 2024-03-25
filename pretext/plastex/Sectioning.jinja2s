@@ -56,36 +56,26 @@ name: section
 
 
 
-name: center
-<blockquote>
+name: subsection 
+<subsection xml:id="{{ obj.id }}">
+  <title>{{ obj.title }}</title>
 
   {{ obj }}
-
-</blockquote>
-{# #}
-
-
-
-name: subsection 
-<h2 id="{{ obj.id }}">{{ obj.fullTitle }}</h2>
-{{ obj }}
+</subsection>
+{{# #}}
 
 
 name: subsubsection
-<h3 id="{{ obj.id }}">{{ obj.fullTitle }}</h3>
-{{ obj }}
+<subsection xml:id="{{ obj.id }}">
+  <title>{{ obj.Title }}</title
+  
+  {{ obj }}
+</subsection>
 
 
 name: paragraph
-<h4 id="{{ obj.id }}">{{ obj.fullTitle }}</h4>
-{{ obj }}
+<paragraphs xml:id="{{ obj.id }}">
+  <title>{{ obj.Title }}</title>
 
-
-name: subparagraph
-<h5 id="{{ obj.id }}">{{ obj.fullTitle }}</h5>
-{{ obj }}
-
-
-name: subsubparagraph
-<h6 id="{{ obj.id }}">{{ obj.fullTitle }}</h6>
-{{ obj }}
+  {{ obj }}
+</paragraphs>
