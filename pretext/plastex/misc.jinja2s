@@ -1,6 +1,25 @@
 name: LaTeX
-<latex />
+<latex />{{" "}}
 
 name: TeX
 type: xml
-<tex /> 
+<tex />{{" "}} 
+
+
+name: center
+<blockquote>
+
+  {{ obj }}
+
+</blockquote>
+{{"\n"}}
+
+
+name: active::^ 
+{{ obj.source | trim}}
+
+name: active::_
+{{ obj.source | trim }}
+
+name: active::~
+{{ " " }}

@@ -10,6 +10,7 @@ class Pretext(_Renderer):
     """ Renderer for the PreTeXt XML format """
     fileExtension = '.ptx'
 
+
 Renderer = Pretext
 
 
