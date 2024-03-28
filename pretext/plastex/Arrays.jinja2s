@@ -1,0 +1,15 @@
+name: tabular array tabular* tabularx
+<tabular>
+{% for row in obj %}
+  <row>
+  {% for cell in row %}
+    <cell>{{ cell }}</cell>
+  {% endfor %}
+  </row>
+{% endfor %}
+</tabular>
+
+name: multicolumn
+{{ obj }}
+
+name: cline toprule bottomrule midrule cmidrule morecmidrules addlinespace specialrule

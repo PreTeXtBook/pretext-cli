@@ -1,26 +1,46 @@
 name: abstract
-<div class="abstract">{{ obj }}</div>
+<abstract>
+  {{ obj }}
+</abstract>
 
-name: title author date thanks
+name: title 
+<title>{{ obj }}</title>
+
+
+name: author 
+<author>
+  {{ obj }}
+</author>
+
+
+name: date 
+<date>
+  {{ obj }}
+</date>
+
+name: thanks
+<acknowledgement>
+  {{ obj }}
+</acknowledgement>
 
 name: maketitle
 {% set metadata=obj.ownerDocument.userdata %}
-<div class="titlepage">
-<h1>{{ metadata.title }}</h1>
+<frontmatter>
+<titlepage>
+<title>{{ metadata.title }}</title>
 {% if metadata.author %}
-<p class="authors">
 {%for author in metadata.author %}
-<span class="author">{{ author }}</span>
+<author>{{ author }}</author>
 {% endfor %}
-</p>
 {% endif %}
 {% if metadata.date %}
-<p class="date">{{ metadata.date }}</p>
+<date>{{ metadata.date }}</date>
 {% endif %}
 {% if metadata.thanks %}
-<p class="thanks">{{ metadata.thanks }}</p>
+<acknowledgement>{{ metadata.thanks }}</acknowledgement>
 {% endif %}
-</div>
+</titlepage>
+</frontmatter>
 
 
 name: document
@@ -66,7 +86,7 @@ name: subsection
 
 name: subsubsection
 <subsection xml:id="{{ obj.id }}">
-  <title>{{ obj.Title }}</title
+  <title>{{ obj.title }}</title
   
   {{ obj }}
 </subsection>
@@ -74,7 +94,7 @@ name: subsubsection
 
 name: paragraph
 <paragraphs xml:id="{{ obj.id }}">
-  <title>{{ obj.Title }}</title>
+  <title>{{ obj.title }}</title>
 
   {{ obj }}
   
