@@ -1,0 +1,29 @@
+figure {
+	display: flex;
+	flex-direction: column;
+	vertical-align: bottom;
+	overflow: auto;
+}
+
+figure img {
+	display: block;
+	margin: 0 auto;
+}
+
+figcaption {
+	display: block;
+	text-align: center;
+	margin-bottom: .1rem;
+}
+
+span.caption_title, span.caption_ref, span.subcaption {
+  font-weight: bold;
+}
+
+span.caption_ref::after {
+  content: ":";
+}
+
+span.subref::after {
+  content: ")";
+}

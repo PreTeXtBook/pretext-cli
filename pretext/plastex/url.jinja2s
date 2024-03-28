@@ -1,0 +1,8 @@
+name: url path
+<url href="{{ obj.attributes.url }}" />
+
+name: email
+<url href="mailto:{{ objattributes.url }}">{{ obj.attributes.url }}</url>
+
+
+name: urldef urlstyle DeclareUrlCommand

@@ -1,0 +1,45 @@
+$toc-break: 1024px;
+
+$titles-color: rgb(0, 0, 0);
+
+$background-color: white;
+$main-text-color: black;
+
+$prevupnext-nav-color: #669933;
+$pun-height: 2.5rem;
+$pun-color: white;
+$pun-shadow: 1px 2px 0 rgba(0,0,0,.8);
+$pun-background: linear-gradient(to bottom,
+    lighten($prevupnext-nav-color, 10%) 0%,
+    darken($prevupnext-nav-color, 10%) 100%);
+
+$toc-width: 30rem;
+$toc-background-color: lighten($prevupnext-nav-color, 10%);
+$toc-text-color: white;
+$toc-text-shadow: 2px 2px 2px rgba(0,0,0,.8);
+$header-text-shadow: 1px 2px 0px rgba(0,0,0,0.8);
+$toc-padding: .8rem;
+$toc-font-size: 1.2rem;
+$toc-current-bg-color: lighten($toc-background-color,10%);
+$toc-current-font-weight: normal;
+$toc-border-right: none;
+
+$doc-title-height: 2.5rem;
+$doc-title-font-size: 1.5rem;
+$doc-title-color: #ffffcc;
+$doc-title-background: linear-gradient(to bottom,
+                              lighten($prevupnext-nav-color, 10%) 0%,
+                              darken($prevupnext-nav-color, 10%) 100%);
+
+$breadcrumbs-color: darken($prevupnext-nav-color, 10%);
+
+
+$content-line-height: 1.4rem;
+
+$smallskipamount: 1rem;
+
+// z-index
+$pun-z-index: 200;
+$toc-z-index: 300;
+$header-z-index: 400;
+$modal-z-index: 500;

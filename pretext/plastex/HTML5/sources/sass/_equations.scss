@@ -1,0 +1,26 @@
+// Maths
+
+div.equation
+{
+    display: flex;
+    align-items:center;
+
+    margin: 1rem 1rem;
+
+    span.equation_label
+    {
+        margin-right: 1rem;
+    }
+    span.equation_label::before
+    {
+        content: '(';
+    };
+    span.equation_label::after
+    {
+        content: ')';
+    };
+    div.equation_content
+    {
+        margin: auto;
+    }
+}

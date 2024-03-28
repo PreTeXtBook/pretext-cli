@@ -1,7 +1,7 @@
 name: math
-<m>{{ obj.mathjax_source[2:-2] | trim }}</m>{# -#}
+<m>{{ obj.mathjax_source[2:-2].replace(" _","_").replace(" ^","^") }}</m>{# -#}
 
 name: displaymath
 <me>
-  {{ obj.mathjax_source[2:-2] | trim }}
+  {{  obj.mathjax_source[2:-2].replace(" _","_").replace(" ^","^") }}
 </me>
