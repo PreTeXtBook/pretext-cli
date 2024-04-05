@@ -55,7 +55,9 @@ def test_new(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # ensure sufficient permissions (n.b. 0oABC expresses integers in octal)
     assert (tmp_path / "new-pretext-project").stat().st_mode % 0o1000 >= 0o755
     for resource in constants.PROJECT_RESOURCES:
-        assert (tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]).exists()
+        assert (
+            tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]
+        ).exists()
 
 
 def test_devscript(script_runner: ScriptRunner) -> None:
@@ -113,7 +115,9 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
     for resource in constants.PROJECT_RESOURCES:
-        assert (tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]).exists()
+        assert (
+            tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]
+        ).exists()
 
 
 def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None:

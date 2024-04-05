@@ -1385,7 +1385,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 f"{resources} includes a resource not in {constants.PROJECT_RESOURCES}"
             )
         for resource in resources:
-            project_resource_path = (self.abspath() / constants.PROJECT_RESOURCES[resource]).resolve()
+            project_resource_path = (
+                self.abspath() / constants.PROJECT_RESOURCES[resource]
+            ).resolve()
             if project_resource_path.exists():
                 # check if file is unmanaged by PreTeXt
                 if (
