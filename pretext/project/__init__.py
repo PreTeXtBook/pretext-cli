@@ -1416,6 +1416,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         or resource_path.read_text()
                         != project_resource_path.read_text()
                     ):
+                        project_resource_path.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copyfile(resource_path, project_resource_path)
             elif update_requirements:
                 requirements_txt = f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
