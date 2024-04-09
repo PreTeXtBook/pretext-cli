@@ -9,6 +9,7 @@ from pathlib import Path
 from contextlib import contextmanager
 import requests
 import pretext
+from pretext import constants
 from typing import cast, Generator
 from pytest_console_scripts import ScriptRunner
 from .common import DEMO_MAPPING
@@ -53,13 +54,10 @@ def test_new(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "new"], cwd=tmp_path).success
     # ensure sufficient permissions (n.b. 0oABC expresses integers in octal)
     assert (tmp_path / "new-pretext-project").stat().st_mode % 0o1000 >= 0o755
-    # minimal file for a project
-    assert (tmp_path / "new-pretext-project" / "project.ptx").exists()
-    # boilerplate files generated for new projects
-    assert (tmp_path / "new-pretext-project" / "requirements.txt").exists()
-    assert (tmp_path / "new-pretext-project" / ".devcontainer.json").exists()
-    assert (tmp_path / "new-pretext-project" / ".gitignore").exists()
-    assert (tmp_path / "new-pretext-project" / "codechat_config.yaml").exists()
+    for resource in constants.PROJECT_RESOURCES:
+        assert (
+            tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]
+        ).exists()
 
 
 def test_devscript(script_runner: ScriptRunner) -> None:
@@ -116,9 +114,8 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
 
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
-    assert (tmp_path / "project.ptx").exists()
-    assert (tmp_path / "requirements.txt").exists()
-    assert (tmp_path / ".gitignore").exists()
+    for resource in constants.PROJECT_RESOURCES:
+        assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
 
 
 def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None:

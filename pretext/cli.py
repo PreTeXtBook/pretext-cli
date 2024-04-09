@@ -324,7 +324,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     "files",
     help="Specify file to refresh.",
     multiple=True,
-    type=click.Choice(constants.PROJECT_RESOURCES, case_sensitive=False),
+    type=click.Choice([r for r in constants.PROJECT_RESOURCES], case_sensitive=False),
 )
 @nice_errors
 def init(refresh: bool, files: List[str]) -> None:
