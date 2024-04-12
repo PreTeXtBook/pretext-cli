@@ -21,12 +21,12 @@ name: #
 
 
 name: LaTeX
-<latex />{{" "}}
+<latex />{{""}}
 
 
 name: TeX
 type: xml
-<tex />{{" "}} 
+<tex />{{""}} 
 
 name: emph em
 <em>{{ obj }}</em>

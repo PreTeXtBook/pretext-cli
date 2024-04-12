@@ -1,0 +1,13 @@
+name: mbox makebox
+<!-- \mbox{ -->{{ obj }}<!-- } -->
+
+name: fbox framebox
+<!-- \fbox{ -->{{ obj }}<!-- } -->
+
+name: parbox
+<!-- \parbox -->{{ obj }}<!-- } -->
+
+name: minipage
+<!-- \minipage{ -->{{ obj }}<!-- } -->
+
+name: raisebox rule
