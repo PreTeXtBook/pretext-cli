@@ -4,9 +4,8 @@ name: theindex printindex
   <index-list />
 </index>
 
-
 name: index
-<a name="{{ obj.id }}" id="{{ obj.id}}"></a>
+<idx><h>{{obj.argSource[1:-1]}}</h></idx>
 
 name: see seealso
-<i>{{ obj.captionName }}</i>{{ obj }}
+<idx><h>{{ obj.captionName }}</h></idx>
