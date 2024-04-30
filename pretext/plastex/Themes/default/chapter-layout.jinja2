@@ -1,28 +1,13 @@
 {% set links = obj.links %}
-{% set doc = obj.ownerDocument.getElementsByTagName('document')[0] %}
-{% set toc = doc.tableofcontents %}
-
+{% set toc = obj.tableofcontents %}
 <?xml version="1.0" encoding="utf-8"?>
 
-<chapter xml:id="{{ obj.id }} xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter xml:id="{{ obj.id }}" xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+  {{ obj }}
 
-
-
-
-<book xml:id="{{ obj.id }}" >
-    <title>{{ obj.title }}</title>
-
-
-    <!-- Include frontmatter -->
-    <!-- <xi:include href="./frontmatter.ptx" /> -->
-
-    {{ obj }}
-
-
-{% for section in toc recursive %}
-  <xi:include href="{{ section.url }}"/>
- {% endfor %}
-
+  {% for section in toc recursive %}
+    <xi:include href="{{ section.url }}"/>
+  {% endfor %}
 
 </chapter>
 

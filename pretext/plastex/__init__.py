@@ -21,7 +21,6 @@ def convert(input_file: Path, output: Path):
         with open(input_file, 'r') as f:
             lines = str()
             line = f.readline()
-            print(line)
             while line:
                 if line.strip().startswith("\\input") or line.strip().startswith("\\include"):
                     inner_file = input_file.parent / line[line.find("{")+1:line.find("}")]

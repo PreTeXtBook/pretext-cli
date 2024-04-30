@@ -57,12 +57,16 @@ name: part
 
 
 name: chapter
-<chapter xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
   <title>{{ obj.title }}</title>
 
-  {{obj}}
+  {% if obj.links.child and obj.childNodes[0].nodeName == "par" %}
+  <introduction>
+    {{ obj }}
+  </introduction>
+  {%- else -%}
+  {{ obj }}
+  {%- endif -%}
 
-</chapter>
 
 
 name: section
