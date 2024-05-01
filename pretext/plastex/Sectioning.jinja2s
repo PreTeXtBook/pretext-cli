@@ -51,12 +51,23 @@ name: part
 <part xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
   <title>{{ obj.title }}</title>
 
-  {{obj}}
+  {% if obj.links.child and obj.childNodes[0].nodeName == "par" %}
+  <introduction>
+    {{ obj }}
+  </introduction>
+  {%- else -%}
+  {{ obj }}
+  {%- endif %}
 
+  {% for section in obj.tableofcontents recursive %}
+    <xi:include href="{{ section.url }}"/>
+  {% endfor %}
 </part>
+{# #}
 
 
 name: chapter
+<chapter xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
   <title>{{ obj.title }}</title>
 
   {% if obj.links.child and obj.childNodes[0].nodeName == "par" %}
@@ -65,15 +76,20 @@ name: chapter
   </introduction>
   {%- else -%}
   {{ obj }}
-  {%- endif -%}
+  {%- endif %}
 
+  {% for section in obj.tableofcontents recursive %}
+    <xi:include href="{{ section.url }}"/>
+  {% endfor %}
+</chapter>
+{# #}
 
 
 name: section
 <section xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
   <title>{{ obj.title }}</title>
 
-  {{ obj }}
+    {{ obj }}
 
 </section>
 
@@ -84,8 +100,9 @@ name: subsection
   <title>{{ obj.title }}</title>
 
   {{ obj }}
+
 </subsection>
-{{# #}}
+{# #}
 
 
 name: subsubsection
@@ -94,6 +111,7 @@ name: subsubsection
   
   {{ obj }}
 </subsection>
+{# #}
 
 
 name: paragraph
@@ -101,5 +119,5 @@ name: paragraph
   <title>{{ obj.title }}</title>
 
   {{ obj }}
-  
 </paragraphs>
+{# #}
