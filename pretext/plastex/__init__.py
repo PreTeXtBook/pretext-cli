@@ -12,7 +12,7 @@ class Pretext(_Renderer):
 
     fileExtension = ".ptx"
 
-    def processFileContent(self, document: str, s: str) -> str:
+    def processFileContent(self, document: Any, s: str) -> str:
         s = _Renderer.processFileContent(self, document, s)
 
         # Remove empty paragraphs
