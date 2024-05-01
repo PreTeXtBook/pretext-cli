@@ -5,14 +5,11 @@ import logging
 
 log = logging.getLogger("ptxlogger")
 
-
 class Pretext(_Renderer):
     """ Renderer for the PreTeXt XML format """
     fileExtension = '.ptx'
 
-
 Renderer = Pretext
-
 
 def convert(input_file: Path, output: Path):
     log.info(f'Converting {input_file} to {output}')
@@ -34,8 +31,8 @@ def convert(input_file: Path, output: Path):
     tex.input(getLines(input_file))
     doc = tex.parse()
 
-    # tex.ownerDocument.config['files']['split-level'] = -100
-    # tex.ownerDocument.config['files']['filename'] = "test.xml"
+    tex.ownerDocument.config['files']['split-level'] = 1
+    tex.ownerDocument.config['files']['filename'] = "main $name-[$id, $title, $ref, sect$num(4)]"
     # tex.input(f.read())
 
     renderer = Renderer()
