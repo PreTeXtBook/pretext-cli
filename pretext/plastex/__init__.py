@@ -1,15 +1,34 @@
 from plasTeX.Renderers.PageTemplate import Renderer as _Renderer
 from plasTeX.TeX import TeX
 from pathlib import Path
+import re
 import logging
 
 log = logging.getLogger("ptxlogger")
+
 
 class Pretext(_Renderer):
     """ Renderer for the PreTeXt XML format """
     fileExtension = '.ptx'
 
+    def processFileContent(self, document, s):
+        s = _Renderer.processFileContent(self, document, s)
+
+        # Remove empty paragraphs
+        s = re.compile(r'<p>\s*</p>', re.I).sub(r'', s)
+
+        # Fix fancy quotes
+        s = re.compile(r'“(.*?)”', re.I).sub(r'<q>\1</q>', s)
+        s = re.compile(r'‘(.*?)’', re.I).sub(r'<sq>\1</sq>', s)
+
+        # Fix strange apostrophes
+        s = s.replace('’', "'")
+
+        return s
+
+
 Renderer = Pretext
+
 
 def convert(input_file: Path, output: Path):
     log.info(f'Converting {input_file} to {output}')
@@ -33,7 +52,6 @@ def convert(input_file: Path, output: Path):
 
     tex.ownerDocument.config['files']['split-level'] = 1
     tex.ownerDocument.config['files']['filename'] = "main $name-[$id, $title, $ref, sect$num(4)]"
-    # tex.input(f.read())
 
     renderer = Renderer()
     renderer.render(doc)
