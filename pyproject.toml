@@ -105,6 +105,8 @@ module = [
     "lxml.ElementInclude",
     "pytest",
     "pytest_console_scripts",
+    "plasTeX.TeX",
+    "plasTeX.Renderers.PageTemplate",
 ]
 ignore_missing_imports = true
 

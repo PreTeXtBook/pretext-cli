@@ -12,7 +12,7 @@ class Pretext(_Renderer):
 
     fileExtension = ".ptx"
 
-    def processFileContent(self, document, s):
+    def processFileContent(self, document: str, s: str) -> str:
         s = _Renderer.processFileContent(self, document, s)
 
         # Remove empty paragraphs
@@ -31,10 +31,10 @@ class Pretext(_Renderer):
 Renderer = Pretext
 
 
-def convert(input_file: Path, output: Path):
+def convert(input_file: Path, output: Path) -> None:
     log.info(f"Converting {input_file} to {output}")
 
-    def getLines(input_file: Path):
+    def getLines(input_file: Path) -> str:
         with open(input_file, "r") as f:
             lines = str()
             line = f.readline()
