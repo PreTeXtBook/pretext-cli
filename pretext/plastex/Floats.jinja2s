@@ -1,0 +1,17 @@
+name: figure figure*
+<figure {% if obj.title %}xml:id="{{ obj.title.id }}"{% endif %}>
+  {{ obj }}
+</figure>
+
+name: table table*
+<table xml:id="{% if obj.title %}{{ obj.title.id}}{% else %}{{ obj.id }}{% endif %}">
+  {{ obj }}
+</table>
+
+name: marginpar
+<aside>{{ obj.attributes.right }}</aside>
+
+name: caption
+<caption>
+  {{ obj }} 
+</caption>

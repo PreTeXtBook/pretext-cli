@@ -1,0 +1,6 @@
+name: picture
+<image source="{{ obj.image.url }}" alt="{{ obj.source }}" width="{{ obj.image.width.px }}">
+<shortdescription>
+{{ obj.source }}
+</shortdescription>
+</image>

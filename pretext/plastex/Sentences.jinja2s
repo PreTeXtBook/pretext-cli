@@ -1,0 +1,56 @@
+name: $
+$ 
+
+name: %
+%
+
+name: {
+{
+
+name: }
+}
+
+name: _
+_
+
+name: &
+&amp;
+
+name: #
+#
+
+
+name: LaTeX
+<latex />{{""}}
+
+
+name: TeX
+type: xml
+<tex />{{""}} 
+
+name: emph em
+<em>{{ obj }}</em>
+
+name: active::~
+&#160;
+
+name: enspace enskip
+comment: &#8194;
+
+name: quad
+<!-- \quad -->
+
+name: qquad
+<!-- qquad -->
+
+name: thinspace /
+comment: &#8201;
+
+name: underbar
+<span class="underbar">{{ obj }}</span>
+
+name: textsuperscript
+<!--<sup>{{ obj }}</sup>-->
+
+name: textsubscript
+<!-- <sub>{{ obj }}</sub>-->

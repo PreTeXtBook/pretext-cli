@@ -20,11 +20,13 @@ from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
 from functools import update_wrapper
 
+
 from . import (
     utils,
     templates,
     core,
     constants,
+    plastex,
     VERSION,
     CORE_COMMIT,
 )
@@ -822,3 +824,47 @@ def deploy(
         ctx.invoke(view, stage=True)
     else:
         project.deploy(update_source=update_source, skip_staging=True)
+
+
+# pretext import
+@main.command(
+    short_help="Experimental: convert a latex file to pretext",
+    context_settings=CONTEXT_SETTINGS,
+    name="import",
+)
+@nice_errors
+@click.pass_context
+@click.argument("latex_file", required=True)
+@click.option("-o", "--output", help="Specify output directory", required=False)
+def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
+    """
+    Experimental: convert a latex file to pretext
+    """
+    latex_file_path = Path(latex_file).resolve()
+    if not latex_file_path.exists():
+        log.error(f"File {latex_file_path} does not exist.")
+        return
+    if output is not None:
+        output_path = Path(output).resolve()
+        if not output_path.exists():
+            log.warning("Output directory does not exist. Creating it.")
+            output_path.mkdir(parents=True)
+    else:
+        output_path = Path.cwd() / "imports" / latex_file_path.stem
+        output_path.mkdir(parents=True, exist_ok=True)
+    # Now we use plastex to convert:
+    log.info(f"Converting {latex_file_path} to PreTeXt.")
+    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+        temp_path = Path(tmpdirname) / "import"
+        temp_path.mkdir()
+        log.info(f"Using temporary directory {temp_path}")
+        # change to this directory to run plastex
+        with utils.working_directory(temp_path):
+            try:
+                plastex.convert(latex_file_path, output_path)
+                shutil.copytree(temp_path, output_path, dirs_exist_ok=True)
+                log.debug(f"Conversion done in {temp_path}")
+            except Exception as e:
+                log.error(e)
+                log.debug("Exception info:\n------------------------\n", exc_info=True)
+                raise SystemExit(1)

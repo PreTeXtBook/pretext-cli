@@ -1,0 +1,14 @@
+name: quote
+<blockquote>
+  {{ obj }}
+</blockquote>
+
+name: quotation
+<blockquote>
+  {{ obj }}
+</blockquote>
+
+name: verse
+<poem>
+  {{ obj }}
+</poem>

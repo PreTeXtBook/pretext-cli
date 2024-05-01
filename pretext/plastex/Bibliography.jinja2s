@@ -1,0 +1,15 @@
+name: thebibliography
+<references>
+{% for item in obj %}
+  <biblio xml:id="{{ item.id }}">{{ item }}</biblio>
+{% endfor %}
+</references>
+
+name: bibliography
+<references>
+
+{{ obj }}
+
+</references>
+
+

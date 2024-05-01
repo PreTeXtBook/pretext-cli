@@ -1,0 +1,9 @@
+name: includegraphics rotatebox scalebox reflectbox resizebox
+{% set image = obj.image %}
+<image source="{{ image.url }}" width="{{ image.width.px }}">
+<shortdescription>
+{{ obj.source }}
+</shortdescription>
+</image>
+
+name: DeclareGraphicsExtensions graphicspath

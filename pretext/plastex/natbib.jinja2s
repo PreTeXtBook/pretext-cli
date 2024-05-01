@@ -1,0 +1,9 @@
+name: cite citet citep citealt citealp citeauthor citeyear citeyearpar \
+      Cite Citet Citep Citealt Citealp Citeauthor citefullauthor citetalias \
+      citepalias
+<xref ref="{{ obj.argSource[1:-1] }}"/>
+
+name: citetext
+{{ obj }}
+
+name: newblock nocite defcitealias

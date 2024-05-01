@@ -1,0 +1,38 @@
+{% set links = obj.links %}
+{% set doc = obj.ownerDocument.getElementsByTagName('document')[0] %}
+{% set type = obj.ownerDocument.getElementsByTagName('documentclass')[0].attributes['name'] %}
+{% set toc = obj.tableofcontents %}
+<?xml version="1.0" encoding="utf-8"?>
+
+<pretext xml:lang="en-US" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <!-- we first include a file which contains the docinfo element: -->
+  <xi:include href="./docinfo.ptx" />
+
+{% if type == 'article' %}
+<article xml:id="{{ obj.id }}" >
+    <title>{{ obj.title }}</title>
+    {{ obj }}
+{% for section in toc recursive %}
+  <xi:include href="{{ section.url }}"/>
+ {% endfor %}
+ </article>
+ {% else %}
+<book xml:id="{{ obj.id }}" >
+    <title>{{ obj.title }}</title>
+
+    <!-- Include frontmatter -->
+    <!-- <xi:include href="./frontmatter.ptx" /> -->
+
+    {{ obj }}
+
+{% for section in toc recursive %}
+  <xi:include href="{{ section.url }}"/>
+ {% endfor %}
+
+    <!-- Include backmatter -->
+   <!-- <xi:include href="./backmatter.ptx" /> -->
+
+  </book>
+{% endif %}
+</pretext>
+

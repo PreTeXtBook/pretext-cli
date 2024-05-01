@@ -1,0 +1,87 @@
+name: mdseries textmd
+<!-- \textmd{ -->{{ obj }}<!-- }-->
+
+name: bfseries textbf
+<!-- \textbf --><term>{{ obj }}</term>
+
+name: rmfamily textrm
+<!-- \textrm{ -->{{ obj }}<!-- } -->
+
+name: sffamily textsf
+<!-- \textsf --><init>{{ obj }}</init>
+
+name: ttfamily texttt
+<!-- \texttt --><c>{{ obj }}</c>
+
+name: upshape textup
+<!-- \textup --><init>{{ obj }}</init>
+
+name: itshape textit
+<!-- \textit --><em>{{ obj }}</em>
+
+name: slshape textsl
+<!-- \textsl --><em>{{ obj }}</em>
+
+name: scshape textsc
+<!-- \textsc --><init>{{ obj }}</init>
+
+name: textnormal
+<!-- \textnormal{ -->{{ obj }}<!-- } -->
+
+name: rm
+<!-- \rm{ -->{{ obj }}<!-- } -->
+
+name: cal
+<!-- \cal{ -->{{ obj }}<!-- } -->
+
+name: it
+<!-- \it --><em>{{ obj }}</em>
+
+name: sl
+<!-- \sl{ -->{{ obj }}<!-- } -->
+
+name: bf
+<!-- \bf{ -->{{ obj }}<!-- } -->
+
+name: tt
+<!-- \tt --><init>{{ obj }}</inti>
+
+name: sc
+<!-- \sc --><init>{{ obj }}</init>
+
+
+name: tiny
+<!-- \tiny{ -->{{ obj }}<!-- } -->
+
+
+name: scriptsize
+<!-- \scriptsize{ -->{{ obj }}<!-- } -->
+
+name: footnotesize
+<!-- \footnotesize{ -->{{ obj }}<!-- } -->
+
+name: small
+<!-- \small{ -->{{ obj }}<!-- } -->
+
+name: normalsize
+<!-- \normalsize{ -->{{ obj }}<!-- } -->
+
+name: large
+<!-- \large{ -->{{ obj }}<!-- } -->
+
+name: Large
+<!-- \xlarge{ -->{{ obj }}<!-- } -->
+
+name: LARGE
+<!-- \xxlarge{ -->{{ obj }}<!-- } -->
+
+name: huge
+<!-- \huge{ -->{{ obj }}<!-- } -->
+
+name: Huge
+<!-- \xhuge{ -->{{ obj }}<!-- } -->
+
+
+name: symbol
+  <!-- \symbol{} -->{{obj}}<!-- } -->
+
