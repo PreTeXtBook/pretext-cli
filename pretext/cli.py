@@ -836,9 +836,7 @@ def deploy(
 @click.pass_context
 @click.argument("latex_file", required=True)
 @click.option("-o", "--output", help="Specify output directory", required=False)
-def import_command(
-    ctx: click.Context, latex_file: str, output: str
-) -> None:
+def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
     """
     Experimental: convert a latex file to pretext
     """
@@ -870,4 +868,3 @@ def import_command(
                 log.error(e)
                 log.debug("Exception info:\n------------------------\n", exc_info=True)
                 raise SystemExit(1)
-
