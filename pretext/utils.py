@@ -267,7 +267,7 @@ def start_codespace_server(
     """
     Temporary hack until we can figure out what is going on with codespaces an the (possibly more robust) server process we usually define.
     """
-    subprocess.run(
+    subprocess.Popen(
         f"python -m http.server {port}",
         shell=True,
     )

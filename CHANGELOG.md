@@ -9,11 +9,15 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Improved `pretext view` for inside codespaces.
+
 ## [2.4.0] - 2024-05-02
 
 ### Added
 
-- `pretext import` command.  Pass a path to a `.tex` file and it will use PlasTeX to do its best to convert the latex to pretext. 
+- `pretext import` command.  Pass a path to a `.tex` file and it will use PlasTeX to do its best to convert the latex to pretext.
 
 ## [2.3.10] - 2024-04-10
 
