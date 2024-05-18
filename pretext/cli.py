@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+import random
 import sys
 import time
 import click
@@ -719,25 +720,20 @@ def view(
         log.info(
             "Running in a codespace, so using the codespace server instead of the standard python server."
         )
-        used_port = utils.active_server_port()
-        # First terminate any existing server using this port
-        if used_port == port:
-            utils.stop_server(used_port)
+        if port == 8128:
+            port = random.randint(8129, 8999)
         # set the url
         url_base = utils.url_for_access(access=access, port=port)
         url = url_base + url_path
         log.info(f"Server will soon be available at {url_base}")
+        utils.start_codespace_server(port=port, access=access)
         if no_launch:
             log.info(f"The {target_name} will be available at {url}")
         else:
-            SECONDS = 5
+            SECONDS = 2
             log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
             time.sleep(SECONDS)
             webbrowser.open(url)
-        utils.start_codespace_server(port=port, access=access)
-        log.info(
-            f"Server will soon be available at {utils.url_for_access(access, port)}"
-        )
         return
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
