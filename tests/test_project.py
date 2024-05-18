@@ -180,7 +180,7 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert t_web.asy_method == "server"
         assert sorted(t_web.server, key=lambda k: k.name) == [
             pr.Server(name="asy", url="http://example1.com"),  # type: ignore
-            pr.Server(name="sage", url="http://example2.dcom"),  # type: ignore
+            pr.Server(name="sage", url="http://example2.com"),  # type: ignore
         ]
 
         t_print = project.get_target("print")
