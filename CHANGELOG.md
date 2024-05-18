@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.4.1] - 2024-05-18
+
 ### Fixed
 
 - Improved `pretext view` for inside codespaces.
