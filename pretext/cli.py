@@ -210,7 +210,7 @@ def support() -> None:
         project = Project.parse()
         project.init_core()
 
-        for exec_name in project.get_executables().dict():
+        for exec_name in project.get_executables().model_dump():
             if utils.check_executable(exec_name) is None:
                 log.warning(
                     f"Unable to locate the command for <{exec_name}> on your system."
