@@ -1270,7 +1270,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         return self._executables
 
     def init_core(self) -> None:
-        # core.set_executables(self._executables.model_dump())
         # core does not support None as an executable value, so we must
         # adjust accordingly
         exec_dict = self._executables.model_dump()
