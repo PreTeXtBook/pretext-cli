@@ -220,6 +220,4 @@ def test_support(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "new", "-d", "."], cwd=tmp_path
     ).success
-    assert script_runner.run(
-        [PTX_CMD, "support"], cwd=tmp_path
-    ).success
+    assert script_runner.run([PTX_CMD, "support"], cwd=tmp_path).success
