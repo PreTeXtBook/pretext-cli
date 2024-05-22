@@ -1276,7 +1276,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         for k in exec_dict:
             if exec_dict[k] is None:
                 exec_dict[k] = "None"
-        log.info(exec_dict)
         core.set_executables(exec_dict)
 
     def deploy_targets(self) -> t.List[Target]:
