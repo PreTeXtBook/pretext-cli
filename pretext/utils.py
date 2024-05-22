@@ -583,7 +583,9 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         log.info("")
         repourl = input("Paste url here: ")
         log.info("Next, set up a GitHub personal access token. Instructions:")
-        log.info("    https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic")
+        log.info(
+            "    https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic"
+        )
         pat = input("Paste your personal access token: ")
         repourl = f"https://{pat}.github.com/{repourl.split('/')[-2:].join('/')}"
         repo.create_remote("origin", url=repourl)
