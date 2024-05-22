@@ -1,0 +1,123 @@
+name: abstract
+<abstract>
+  {{ obj }}
+</abstract>
+
+name: title 
+<title>{{ obj }}</title>
+
+
+name: author 
+<author>
+  {{ obj }}
+</author>
+
+
+name: date 
+<date>
+  {{ obj }}
+</date>
+
+name: thanks
+<acknowledgement>
+  {{ obj }}
+</acknowledgement>
+
+name: maketitle
+{% set metadata=obj.ownerDocument.userdata %}
+<frontmatter>
+<titlepage>
+<title>{{ metadata.title }}</title>
+{% if metadata.author %}
+{%for author in metadata.author %}
+<author>{{ author }}</author>
+{% endfor %}
+{% endif %}
+{% if metadata.date %}
+<date>{{ metadata.date }}</date>
+{% endif %}
+{% if metadata.thanks %}
+<acknowledgement>{{ metadata.thanks }}</acknowledgement>
+{% endif %}
+</titlepage>
+</frontmatter>
+
+
+name: document
+{{ obj }}
+
+
+name: part
+<part xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
+  <title>{{ obj.title }}</title>
+
+  {% if obj.links.child and obj.childNodes[0].nodeName == "par" %}
+  <introduction>
+    {{ obj }}
+  </introduction>
+  {%- else -%}
+  {{ obj }}
+  {%- endif %}
+
+  {% for section in obj.tableofcontents recursive %}
+    <xi:include href="{{ section.url }}"/>
+  {% endfor %}
+</part>
+{# #}
+
+
+name: chapter
+<chapter xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
+  <title>{{ obj.title }}</title>
+
+  {% if obj.links.child and obj.childNodes[0].nodeName == "par" %}
+  <introduction>
+    {{ obj }}
+  </introduction>
+  {%- else -%}
+  {{ obj }}
+  {%- endif %}
+
+  {% for section in obj.tableofcontents recursive %}
+    <xi:include href="{{ section.url }}"/>
+  {% endfor %}
+</chapter>
+{# #}
+
+
+name: section
+<section xml:id="{{ obj.id }}" xmlns:xi="http://www.w3.org/2001/XInclude" >
+  <title>{{ obj.title }}</title>
+
+    {{ obj }}
+
+</section>
+
+
+
+name: subsection 
+<subsection xml:id="{{ obj.id }}">
+  <title>{{ obj.title }}</title>
+
+  {{ obj }}
+
+</subsection>
+{# #}
+
+
+name: subsubsection
+<subsection xml:id="{{ obj.id }}">
+  <title>{{ obj.title }}</title
+  
+  {{ obj }}
+</subsection>
+{# #}
+
+
+name: paragraph
+<paragraphs xml:id="{{ obj.id }}">
+  <title>{{ obj.title }}</title>
+
+  {{ obj }}
+</paragraphs>
+{# #}

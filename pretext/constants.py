@@ -1,4 +1,5 @@
 import typing as t
+from pathlib import Path
 
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
@@ -143,10 +144,12 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
     },
 }
 
-PROJECT_RESOURCES = [
-    "project.ptx",
-    "codechat_config.yaml",
-    ".gitignore",
-    ".devcontainer.json",
-    "requirements.txt",
-]
+PROJECT_RESOURCES = {
+    "project.ptx": Path("project.ptx"),
+    "codechat_config.yaml": Path("codechat_config.yaml"),
+    ".gitignore": Path(".gitignore"),
+    ".devcontainer.json": Path(".devcontainer.json"),
+    "requirements.txt": Path("requirements.txt"),
+    "deploy.yml": Path(".github", "workflows", "deploy.yml"),
+    "test-build.yml": Path(".github", "workflows", "test-build.yml"),
+}

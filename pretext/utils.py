@@ -228,6 +228,8 @@ def serve_forever(
 ) -> None:
     binding = binding_for_access(access)
 
+    # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
+    # 2024-04-05: try using this again to let Firefox work
     class RequestHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args: Any, **kwargs: Any):
             super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
@@ -256,6 +258,20 @@ def serve_forever(
             log.warning(f"Port {port} could not be used.")
             port += 1
             log.warning(f"Trying port {port} instead.\n")
+
+
+def start_codespace_server(
+    access: t.Literal["public", "private"] = "private",
+    port: int = 8128,
+) -> None:
+    """
+    Temporary hack until we can figure out what is going on with codespaces an the (possibly more robust) server process we usually define.
+    """
+    subprocess.Popen(
+        f"python -m http.server {port}",
+        shell=True,
+    )
+    return
 
 
 # Info on namespaces: http://lxml.de/tutorial.html#namespaces
@@ -577,7 +593,7 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
     ghp_import.ghp_import(
         directory,
         mesg="Latest build deployed.",
-        nojekyll=False,
+        nojekyll=True,
     )
     log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
     # log.info("(Your SSH password may be required.)")
@@ -679,14 +695,3 @@ def stop_server(port: t.Optional[int] = None) -> None:
             if proc.name() == "pretext" and proc.parent().name() == "pretext":
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
-
-
-def match_permissions(src: Path, dst: Path) -> None:
-    """
-    Match the permissions of src to dst.
-    """
-    if not src.exists():
-        return
-    if not dst.exists():
-        return
-    shutil.copystat(src, dst, follow_symlinks=False)

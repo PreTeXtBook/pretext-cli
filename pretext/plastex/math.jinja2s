@@ -1,0 +1,12 @@
+name: math ensuremath
+<m>{{ obj.mathjax_source[2:-2].replace(" _","_").replace(" ^","^") }}</m>{# -#}
+
+name: displaymath equation* eqnarray eqnarray* align align* gather gather* flalign flalign* multline multline* alignat alignat* split
+<me>
+  {{  obj.mathjax_source[2:-2].replace(" _","_").replace(" ^","^") }}
+</me>
+
+name: equation
+<men id="{{ obj.id }}">
+    {{  obj.mathjax_source[2:-2].replace(" _","_").replace(" ^","^") }}
+</men>

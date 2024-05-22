@@ -1,0 +1,5 @@
+name: verbatim
+<pre>{{ obj }}</pre>
+
+name: verb
+<c>{{ obj }}</c>

@@ -1,0 +1,8 @@
+name: par 
+{% if obj.blockType %}
+{{ obj }}
+{% else %}
+<p>
+  {{ obj }}
+</p>
+{% endif %}

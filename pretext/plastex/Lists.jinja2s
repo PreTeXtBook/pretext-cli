@@ -1,0 +1,21 @@
+name: itemize
+<ul>
+{% for item in obj %}
+  <li>{{ item }}</li>
+{% endfor %}
+</ul>
+
+name: enumerate
+<ol>
+{% for item in obj %}
+  <li>{{ item }}</li>
+{% endfor %}
+</ol>
+
+name: list trivlist description
+<dl>
+{% for item in obj %}
+  <title>{{ item.attributes.term or obj.attributes.defaultlabel }}</title>
+  <li>{{ item }}</li>
+{% endfor %}
+</dl>

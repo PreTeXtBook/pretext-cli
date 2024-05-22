@@ -119,8 +119,8 @@ jobs:
         with:
           tag_name: v${{ env.VERSION }}
           release_name: v${{ env.VERSION }}
-          # body: |
-          #   Changes in this Release
+          body: |
+            See the [changelog](CHANGELOG.md) for details.
           draft: false
           prerelease: false
 
@@ -130,14 +130,22 @@ jobs:
           git config user.name "${{ github.actor }} via GitHub Actions"
           git config user.email "${{ github.actor }}@github_actions.no_reply"
 
+      - name: update changelog
+        run: |
+          newline="\\n## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')"
+          sed '/## \[UNRELEASED\]/a\'"$newline" CHANGELOG.md > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
+
       - name: commit version bump via pr
         run: |
           git checkout -b ${{ env.VERSION }}
+          git add CHANGELOG.md
+          git commit -m "update changelog for release"
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
           git push --set-upstream origin ${{ env.VERSION }}
           gh pr create --fill
-          gh pr merge -s -d -t "bump version to next patch level for nightly releases"
+          gh pr merge -s -d -t "Update changelog and bump version to next patch level for nightly releases"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

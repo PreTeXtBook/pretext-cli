@@ -522,7 +522,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         self.ensure_output_directory()
 
         # Proceed with the build
-        with tempfile.TemporaryDirectory() as tmp_xsl_str:
+        with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_xsl_str:
             tmp_xsl_path = Path(tmp_xsl_str)
             # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
             if (txp := self.xsl_abspath()) is not None:
@@ -654,10 +654,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 )
             else:
                 log.critical(f"Unknown format {self.format}")
-        # Temporary hack to ensure the correct permissions are set on the output directory.
-        utils.match_permissions(
-            self.output_dir_abspath().parent, self.output_dir_abspath()
-        )
 
     def generate_assets(
         self,
@@ -818,13 +814,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=stringparams_copy,
                     xmlid_root=xmlid,
-                    abort_early=True,
+                    abort_early=False,
                     dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
                     server_params=None,
                 )
                 successful_assets.append(("webwork", None))
             except Exception as e:
-                log.debug(f"Unable to generate webwork: {e}")
+                log.error(
+                    "Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior."
+                )
+                log.warning(e)
         if "latex-image" in assets_to_generate:
             for id in assets_to_generate["latex-image"]:
                 log.debug(f"Generating latex-image assets for {id}")
@@ -842,7 +841,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some latex-image assets: {e}")
+                    log.warning(f"Unable to generate some latex-image assets:\n {e}")
         if "asymptote" in assets_to_generate:
             for id in assets_to_generate["asymptote"]:
                 try:
@@ -858,7 +857,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some asymptote elements: {e}")
+                    log.warning(f"Unable to generate some asymptote elements: \n{e}")
 
         if "sageplot" in assets_to_generate:
             for id in assets_to_generate["sageplot"]:
@@ -874,7 +873,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                     successful_assets.append(("sageplot", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some sageplot images: {e}")
+                    log.warning(f"Unable to generate some sageplot images:\n {e}")
 
         if "interactive" in assets_to_generate:
             # Ensure playwright is installed:
@@ -890,7 +889,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("interactive", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some interactive previews: {e}")
+                    log.warning(f"Unable to generate some interactive previews: \n{e}")
         if "youtube" in assets_to_generate:
             for id in assets_to_generate["youtube"]:
                 try:
@@ -903,7 +902,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("youtube", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some youtube thumbnails: {e}")
+                    log.warning(f"Unable to generate some youtube thumbnails: \n{e}")
             # youtube also requires the play button.
             self.ensure_play_button()
         if "codelens" in assets_to_generate:
@@ -918,7 +917,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("codelens", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some codelens traces: {e}")
+                    log.warning(f"Unable to generate some codelens traces: \n{e}")
         if "datafile" in assets_to_generate:
             for id in assets_to_generate["datafile"]:
                 log.debug(f"Generating datafile assets for {id}")
@@ -932,7 +931,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("datafile", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some datafiles: {e}")
+                    log.warning(f"Unable to generate some datafiles:\n {e}")
         # Finally, also generate the qrcodes for interactive and youtube assets:
         # NOTE: we do not currently check for success of this for saving assets to the asset cache.
         if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
@@ -949,7 +948,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
                 except Exception as e:
-                    log.warning(f"Unable to generate some qrcodes: {e}", exc_info=True)
+                    log.warning(
+                        f"Unable to generate some qrcodes:\n {e}", exc_info=True
+                    )
 
         # Delete temporary directories left behind by core:
         try:
@@ -1184,7 +1185,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def _get_target(
         self,
         # If `name` is `None`, return the default (first) target; otherwise, return the target given by `name`.
-        name: t.Optional[str] = None
+        name: t.Optional[str] = None,
         # Returns the target if found, or `None`` if it's not found.
     ) -> t.Optional["Target"]:
         if len(self.targets) == 0:
@@ -1259,6 +1260,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         Returns a process for running a simple local web server
         providing the contents of the output directory.
         """
+        # This seems to still work, but now that we don't have a --watch option, using multiprocessing probably isn't necessary.  Consider removing in the future.
         return multiprocessing.Process(
             target=utils.serve_forever,
             args=[self.abspath(), access, port],
@@ -1377,13 +1379,15 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         and then overwritten.
         """
         if resources is None or len(resources) == 0:
-            resources = constants.PROJECT_RESOURCES
+            resources = [resource for resource in constants.PROJECT_RESOURCES]
         if not set(resources) <= set(constants.PROJECT_RESOURCES):
             raise TypeError(
                 f"{resources} includes a resource not in {constants.PROJECT_RESOURCES}"
             )
         for resource in resources:
-            project_resource_path = (self.abspath() / resource).resolve()
+            project_resource_path = (
+                self.abspath() / constants.PROJECT_RESOURCES[resource]
+            ).resolve()
             if project_resource_path.exists():
                 # check if file is unmanaged by PreTeXt
                 if (
@@ -1412,6 +1416,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         or resource_path.read_text()
                         != project_resource_path.read_text()
                     ):
+                        project_resource_path.parent.mkdir(parents=True, exist_ok=True)
                         shutil.copyfile(resource_path, project_resource_path)
             elif update_requirements:
                 requirements_txt = f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
@@ -1420,4 +1425,4 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     or project_resource_path.read_text() != requirements_txt
                 ):
                     project_resource_path.write_text(requirements_txt)
-            logger(f"Generated `{project_resource_path}`\n")
+            log.info(f"Generated `{project_resource_path}`\n")

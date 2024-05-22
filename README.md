@@ -244,22 +244,25 @@ commit of core PreTeXt XSL/Python code we're developing against
 (from `PreTeXtBook/pretext`).
 To fetch these updates from upstream, run:
 
-```
+```bash
 poetry run python scripts/fetch_core.py
 ```
 
 If you instead want to point to a local copy of `PreTeXtBook/pretext`,
 try this instead to set up symlinks:
 
-```
+```bash
 poetry run python scripts/symlink_core.py path/to/pretext
 ```
+
+For more detailed directions on using a local copy of the core resources to develop core and CLI together, see [docs/core_development.md](docs/core_development.md).
+
 
 Updates to `templates/` must be zipped and moved into
 `pretext/templates/resources`. This is done automatically by
 running:
 
-```
+```bash
 poetry run python scripts/zip_templates.py
 ```
 

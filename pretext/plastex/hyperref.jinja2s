@@ -1,0 +1,28 @@
+name: href
+<url href="{{ obj.attributes.url}}">{{ obj }}</url>
+
+name: url
+<url href="{{ obj.attributes.url or obj }}" />
+
+name: nolinkurl
+{{ obj.attributes.url }}
+
+
+name: hyperimage
+<!-- img src="{{ obj.attributes.url }}" -->
+
+name: hyperdef
+<!-- a name="{{ obj.attributes.category }}.{{ obj.attributes.name }}" {{ obj }}-->
+
+name: hyperref
+<!-- a href="{{ obj.attributes.url }}#{{ obj.attributes.category }}.{{ obj.attributes.name}}" {{ obj }} -->
+
+name: hyperlink
+<!-- a href="{{ obj.idref.label.url }}" {{ obj }} -->
+
+name: hypertarget
+<!-- a name="{{ obj.id }}" >{{ obj }} -->
+
+name: phantomsection
+<!-- \phantomsection: a name="{{ obj.id }}" -->
+

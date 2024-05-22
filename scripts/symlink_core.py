@@ -4,8 +4,9 @@ from remove_path import remove_path
 import pretext.core.resources
 
 
+# This will redirect the static resources for pretext, including the core python script, xsl, css, etc to a local directory of your choosing that contains the clone of the pretext repository. This is useful for development purposes, as it allows you to make changes to the core python script and test with the CLI as you normally would.
 def main(core_path: Path = Path("../pretext")) -> None:
-    for subdir in ["xsl", "schema", "script", "css"]:
+    for subdir in ["xsl", "schema", "script", "css", "js", "js_lib"]:
         original_path = (core_path / subdir).resolve()
         link_path = pretext.core.resources.path(subdir)
         remove_path(link_path)

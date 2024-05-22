@@ -1,0 +1,24 @@
+name: center centering centerline
+<!-- \begin{center} -->
+  {{ obj }}
+<!-- \end{center} -->
+{# #}
+
+name: flushleft raggedright leftline
+<!-- \begin{flushleft} -->
+  {{ obj }}
+<!-- \end{flushleft} -->
+{# #}
+
+
+name: raggedleft flushright llap
+<!-- \begin{flushright} -->
+  {{ obj }}
+<!-- \end{flushright} -->
+{# #}
+
+name: raggedbottom
+<!-- \begin{raggedbottom} -->
+  {{ obj }}
+<!-- \end{raggedbottom} -->
+{# #}

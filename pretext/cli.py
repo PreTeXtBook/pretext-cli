@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+import random
 import sys
 import time
 import click
@@ -20,11 +21,13 @@ from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
 from functools import update_wrapper
 
+
 from . import (
     utils,
     templates,
     core,
     constants,
+    plastex,
     VERSION,
     CORE_COMMIT,
 )
@@ -66,7 +69,7 @@ def nice_errors(f: Callable[..., None]) -> Any:
                     )
                 elif error["type"] == "enum":
                     log.error(
-                        f"One of the targets has an attribute with illegal value: @{error['loc'][0]}=\"{error['input']}\" is not allowed.  Pick from the values:{error['msg'].split(': ')[-1].replace('Input should be','')}."
+                        f"One of the targets has an attribute with illegal value: @{error['loc'][0]}=\"{error['input']}\" is not allowed.  Pick from the values:{error['msg'].split(': ')[-1].replace('Input should be', '')}."
                     )
                 elif error["type"] == "extra_forbidden":
                     log.error(
@@ -74,7 +77,7 @@ def nice_errors(f: Callable[..., None]) -> Any:
                     )
                 elif error["type"] == "value_error":
                     log.error(
-                        f"In at least one target, you cannot have @{error['loc'][0]}=\"{error['input']}\".  {error['msg'].replace('Value error, ','')}"
+                        f"In at least one target, you cannot have @{error['loc'][0]}=\"{error['input']}\".  {error['msg'].replace('Value error, ', '')}"
                     )
                 else:
                     log.error(f"{error['msg']} ({error['loc']}; {error['type']})")
@@ -142,6 +145,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         fh.setFormatter(file_log_format)
         log.addHandler(fh)
         # output info
+        log.info(f"PreTeXt-CLI version: {VERSION}\n")
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         # permanently change working directory for rest of process
         os.chdir(pp)
@@ -164,6 +168,7 @@ def main(ctx: click.Context, targets: bool) -> None:
                 f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}."
             )
     else:
+        log.info(f"PreTeXt-CLI version: {VERSION}\n")
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
@@ -232,7 +237,7 @@ def devscript(args: List[str]) -> None:
 
 # pretext new
 @main.command(
-    short_help="Generates the necessary files for a new PreTeXt project.",
+    short_help="Generates all the necessary files for a new PreTeXt project.",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.argument(
@@ -256,7 +261,7 @@ def devscript(args: List[str]) -> None:
 @nice_errors
 def new(template: str, directory: Path, url_template: str) -> None:
     """
-    Generates the necessary files for a new PreTeXt project.
+    Generates all the necessary files for a new PreTeXt project.
     Supports `pretext new book` (default) and `pretext new article`,
     or generating from URL with `pretext new --url-template [URL]`.
     """
@@ -281,7 +286,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     project_ptx_index = filenames.index("project.ptx")
     project_ptx_path = Path(archive.namelist()[project_ptx_index])
     project_dir_path = project_ptx_path.parent
-    with tempfile.TemporaryDirectory() as tmpdirname:
+    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
         temp_path = Path(tmpdirname) / "new-project"
         temp_path.mkdir()
         for filepath in [
@@ -307,7 +312,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
 
 # pretext init
 @main.command(
-    short_help="Generates the project manifest for a PreTeXt project in the current directory.",
+    short_help="Generates/updates CLI-specific files for the current version of PreTeXt-CLI.",
     context_settings=CONTEXT_SETTINGS,
 )
 @click.option(
@@ -322,13 +327,14 @@ def new(template: str, directory: Path, url_template: str) -> None:
     "files",
     help="Specify file to refresh.",
     multiple=True,
-    type=click.Choice(constants.PROJECT_RESOURCES, case_sensitive=False),
+    type=click.Choice([r for r in constants.PROJECT_RESOURCES], case_sensitive=False),
 )
 @nice_errors
 def init(refresh: bool, files: List[str]) -> None:
     """
-    Generates the project manifest for a PreTeXt project in the current directory. This feature
-    is mainly intended for updating existing projects to use this CLI.
+    Generates/updates CLI-specific files for the current version of PreTeXt-CLI.
+    This feature is mainly intended for updating existing PreTeXt projects to use this CLI,
+    or to update project files generated from earlier CLI versions.
 
     If --refresh is used, files will be generated even if the project has already been initialized.
     Existing files won't be overwritten; a copy of the fresh initialized file will be created
@@ -447,6 +453,18 @@ def build(
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
         target.build(clean=clean, generate=not no_generate, xmlid=xmlid)
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
+    except ValidationError as e:
+        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        log.critical(
+            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+        )
+        log.critical("Failed to build.  Exiting...")
+        log.debug(e)
+        log.debug(
+            "\n------------------------\nException info:\n------------------------\n",
+            exc_info=True,
+        )
+        raise SystemExit(1)
     except Exception as e:
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
@@ -527,10 +545,10 @@ def generate(
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
     try:
-        f'Generating assets in for the target "{target.name}".'
+        log.debug(f'Generating assets in for the target "{target.name}".')
         target.generate_assets(
             requested_asset_types=assets,
             all_formats=all_formats,
@@ -539,12 +557,24 @@ def generate(
             pymupdf=pymupdf,
         )
         log.info("Finished generating assets.\n")
+    except ValidationError as e:
+        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        log.critical(
+            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+        )
+        log.critical("Failed to build.  Exiting...")
+        log.debug(e)
+        log.debug(
+            "\n------------------------\nException info:\n------------------------\n",
+            exc_info=True,
+        )
+        raise SystemExit(1) from e
     except Exception as e:
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
         log.critical("Generating assets as failed.  Exiting...")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
 
 # pretext view
@@ -617,6 +647,12 @@ def generate(
     default=False,
     help="View the staged deployment.",
 )
+@click.option(
+    "--default-server",
+    is_flag=True,
+    default=False,
+    help="Use the standard python server, even if in a codespace (for debugging)",
+)
 @nice_errors
 def view(
     target_name: str,
@@ -628,6 +664,7 @@ def view(
     restart_server: bool,
     stop_server: bool,
     stage: bool,
+    default_server: str,
 ) -> None:
     """
     Starts a local server to preview built PreTeXt documents in your browser.
@@ -677,6 +714,27 @@ def view(
         target_name = f"target `{target.name}`"
         url_path = "/" + target.output_dir_relpath().as_posix()
 
+    in_codespace = os.environ.get("CODESPACES")
+
+    if in_codespace and not default_server:
+        log.info(
+            "Running in a codespace, so using the codespace server instead of the standard python server."
+        )
+        if port == 8128:
+            port = random.randint(8129, 8999)
+        # set the url
+        url_base = utils.url_for_access(access=access, port=port)
+        url = url_base + url_path
+        log.info(f"Server will soon be available at {url_base}")
+        utils.start_codespace_server(port=port, access=access)
+        if no_launch:
+            log.info(f"The {target_name} will be available at {url}")
+        else:
+            SECONDS = 2
+            log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
+            time.sleep(SECONDS)
+            webbrowser.open(url)
+        return
     # Start server if there isn't one running already:
     used_port = utils.active_server_port()
     if restart_server or (port != used_port) or (used_port is None):
@@ -710,9 +768,9 @@ def view(
         if no_launch:
             log.info(f"The {target_name} will be available at {url}")
         else:
-            SECONDS = 3
-            log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
-            time.sleep(SECONDS)
+            # SECONDS = 2
+            log.info(f"Opening browser for {target_name} at {url}")
+            # time.sleep(SECONDS)
             webbrowser.open(url)
         try:
             while server.is_alive():
@@ -762,3 +820,47 @@ def deploy(
         ctx.invoke(view, stage=True)
     else:
         project.deploy(update_source=update_source, skip_staging=True)
+
+
+# pretext import
+@main.command(
+    short_help="Experimental: convert a latex file to pretext",
+    context_settings=CONTEXT_SETTINGS,
+    name="import",
+)
+@nice_errors
+@click.pass_context
+@click.argument("latex_file", required=True)
+@click.option("-o", "--output", help="Specify output directory", required=False)
+def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
+    """
+    Experimental: convert a latex file to pretext
+    """
+    latex_file_path = Path(latex_file).resolve()
+    if not latex_file_path.exists():
+        log.error(f"File {latex_file_path} does not exist.")
+        return
+    if output is not None:
+        output_path = Path(output).resolve()
+        if not output_path.exists():
+            log.warning("Output directory does not exist. Creating it.")
+            output_path.mkdir(parents=True)
+    else:
+        output_path = Path.cwd() / "imports" / latex_file_path.stem
+        output_path.mkdir(parents=True, exist_ok=True)
+    # Now we use plastex to convert:
+    log.info(f"Converting {latex_file_path} to PreTeXt.")
+    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+        temp_path = Path(tmpdirname) / "import"
+        temp_path.mkdir()
+        log.info(f"Using temporary directory {temp_path}")
+        # change to this directory to run plastex
+        with utils.working_directory(temp_path):
+            try:
+                plastex.convert(latex_file_path, output_path)
+                shutil.copytree(temp_path, output_path, dirs_exist_ok=True)
+                log.debug(f"Conversion done in {temp_path}")
+            except Exception as e:
+                log.error(e)
+                log.debug("Exception info:\n------------------------\n", exc_info=True)
+                raise SystemExit(1)
