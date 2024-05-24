@@ -578,15 +578,26 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         log.info("    https://github.com/new")
         log.info('(Do NOT check any "initialize" options.)')
         log.info(
-            'On the next page, copy the URL in the "Quick Setup" section (use HTTPS unless you have SSH setup already).'
+            'On the next page, copy the "HTTPS" version of the URL in the "Quick Setup" section.'
         )
         log.info("")
-        repourl = input("Paste url here: ").strip()
+        repourl = input("Paste url here: ")
+        username = repourl.split("/")[-2]
+        reponame = repourl.split("/")[-1]
+        log.info("")
+        log.info("Next, set up a GitHub personal access token. Instructions:")
+        log.info(
+            "    https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic"
+        )
+        log.info(
+            "Be sure to check the `repo` and `workflow` scopes when generating this token."
+        )
+        log.info("")
+        pat = input("Paste your personal access token (`ghp_RANDOMCHARCTERS`): ")
+        log.info("")
+        repourl = f"https://{username}:{pat}@github.com/{username}/{reponame}"
         repo.create_remote("origin", url=repourl)
         origin = repo.remotes.origin
-        log.info(
-            "\nFor information about authentication options for github, see: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github\n"
-        )
     log.info("Committing your latest build to the `gh-pages` branch.")
     log.info("")
     ghp_import.ghp_import(
