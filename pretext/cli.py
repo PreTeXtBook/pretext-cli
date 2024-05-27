@@ -36,16 +36,17 @@ from . import (
 from .project import Project
 
 log = logging.getLogger("ptxlogger")
-click_log.basic_config(log)
-click_log_format = click_log.ColorFormatter()
+# Use a handler for standard out that works with click:
+click_handler = logging.StreamHandler(sys.stdout)
+click_handler.setFormatter(click_log.ColorFormatter())
+log.addHandler(click_handler)
 # create memory handler which displays error and critical messages at the end as well.
 sh = logging.StreamHandler(sys.stderr)
-sh.setFormatter(click_log_format)
 mh = logging.handlers.MemoryHandler(
     capacity=1024 * 100, flushLevel=100, target=sh, flushOnClose=False
 )
 mh.setLevel(logging.ERROR)
-mh.setFormatter(click_log_format)
+mh.setFormatter(sh.setFormatter(click_log.ColorFormatter()))
 log.addHandler(mh)
 
 # Call exit_command() at close to handle errors encountered during run.
