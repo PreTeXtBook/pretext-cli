@@ -34,17 +34,23 @@ Renderer = Pretext
 def convert(input_file: Path, output: Path) -> None:
     log.info(f"Converting {input_file} to {output}")
 
+    input_file_dir = input_file.parent
+
     def getLines(input_file: Path) -> str:
         with open(input_file, "r") as f:
             lines = str()
             line = f.readline()
             while line:
-                if line.strip().startswith("\\input") or line.strip().startswith(
-                    "\\include"
+                if line.strip().startswith("\\input{") or line.strip().startswith(
+                    "\\include{"
                 ):
                     inner_file = (
-                        input_file.parent / line[line.find("{") + 1 : line.find("}")]
+                        input_file_dir / line[line.find("{") + 1 : line.find("}")]
                     )
+                    # ensure inner_file has file extension:
+                    if not inner_file.suffix:
+                        inner_file = inner_file.with_suffix(".tex")
+                        log.debug(f"Adding .tex extension to {inner_file}")
                     lines = lines + "\n" + getLines(inner_file) + "\n"
                 else:
                     lines += line
@@ -54,11 +60,16 @@ def convert(input_file: Path, output: Path) -> None:
     tex = TeX()
     tex.input(getLines(input_file))
     doc = tex.parse()
+    log.debug("Done reading input file.")
 
     tex.ownerDocument.config["files"]["split-level"] = 1
     tex.ownerDocument.config["files"][
         "filename"
     ] = "main $name-[$id, $title, $ref, sect$num(4)]"
+    # Disable image generation
+    tex.ownerDocument.config["images"]["enabled"] = "no"
+    tex.ownerDocument.config["images"]["imager"] = "none"
+    tex.ownerDocument.config["images"]["vector-imager"] = "none"
 
     renderer = Renderer()
     renderer.render(doc)

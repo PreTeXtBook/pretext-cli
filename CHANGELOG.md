@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Improved `pretext import` command to handle modular latex files better.
+- Turned off image conversions for `pretext import`.
+
 ## [2.4.1] - 2024-05-18
 
 ### Fixed
