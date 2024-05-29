@@ -56,6 +56,7 @@ def convert(input_file: Path, output: Path) -> None:
                     lines += line
                 line = f.readline()
             return lines
+
     tex = TeX()
     tex.input(getLines(input_file))
     doc = tex.parse()
