@@ -1282,6 +1282,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         return [target for target in self.targets if target.deploy_dir is not None]
 
     def stage_deployment(self) -> None:
+        # First empty the stage directory (as long as it is safely in the project directory).
+        if self.stage_abspath().exists() and self.abspath() in self.stage_abspath.parents:
+            shutil.rmtree(self.stage_abspath())
+            log.debug("Removed old stage directory")
         # Ensure stage directory exists
         self.stage_abspath().mkdir(parents=True, exist_ok=True)
         # Stage all configured targets for deployment
