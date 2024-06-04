@@ -824,6 +824,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     "Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior."
                 )
                 log.warning(e)
+                log.debug(e, exc_info=True)
         if "latex-image" in assets_to_generate:
             for id in assets_to_generate["latex-image"]:
                 log.debug(f"Generating latex-image assets for {id}")
@@ -841,7 +842,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some latex-image assets:\n {e}")
+                    log.error(f"Unable to generate some latex-image assets:\n {e}")
+                    log.debug(e, exc_info=True)
         if "asymptote" in assets_to_generate:
             for id in assets_to_generate["asymptote"]:
                 try:
@@ -857,8 +859,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some asymptote elements: \n{e}")
-
+                    log.error(f"Unable to generate some asymptote elements: \n{e}")
+                    log.debug(e, exc_info=True)
         if "sageplot" in assets_to_generate:
             for id in assets_to_generate["sageplot"]:
                 try:
@@ -873,8 +875,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                     successful_assets.append(("sageplot", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some sageplot images:\n {e}")
-
+                    log.error(f"Unable to generate some sageplot images:\n {e}")
+                    log.debug(e, exc_info=True)
         if "interactive" in assets_to_generate:
             # Ensure playwright is installed:
             utils.playwright_install()
@@ -889,7 +891,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("interactive", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some interactive previews: \n{e}")
+                    log.error(f"Unable to generate some interactive previews: \n{e}")
+                    log.debug(e, exc_info=True)
         if "youtube" in assets_to_generate:
             for id in assets_to_generate["youtube"]:
                 try:
@@ -902,7 +905,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("youtube", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some youtube thumbnails: \n{e}")
+                    log.error(f"Unable to generate some youtube thumbnails: \n{e}")
+                    log.debug(e, exc_info=True)
             # youtube also requires the play button.
             self.ensure_play_button()
         if "codelens" in assets_to_generate:
@@ -917,7 +921,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("codelens", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some codelens traces: \n{e}")
+                    log.error(f"Unable to generate some codelens traces: \n{e}")
+                    log.debug(e, exc_info=True)
         if "datafile" in assets_to_generate:
             for id in assets_to_generate["datafile"]:
                 log.debug(f"Generating datafile assets for {id}")
@@ -931,7 +936,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     )
                     successful_assets.append(("datafile", id))
                 except Exception as e:
-                    log.warning(f"Unable to generate some datafiles:\n {e}")
+                    log.error(f"Unable to generate some datafiles:\n {e}")
+                    log.debug(e, exc_info=True)
         # Finally, also generate the qrcodes for interactive and youtube assets:
         # NOTE: we do not currently check for success of this for saving assets to the asset cache.
         if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
@@ -948,10 +954,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         dest_dir=self.generated_dir_abspath() / "qrcode",
                     )
                 except Exception as e:
-                    log.warning(
-                        f"Unable to generate some qrcodes:\n {e}", exc_info=True
-                    )
-
+                    log.error(f"Unable to generate some qrcodes:\n {e}", exc_info=True)
+                    log.debug(e, exc_info=True)
         # Delete temporary directories left behind by core:
         try:
             core.release_temporary_directories()
@@ -959,10 +963,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             log.error(
                 "Unable to release temporary directories.  Please report this error to pretext-support"
             )
-            log.error(e, exc_info=True)
+            log.debug(e, exc_info=True)
         # After all assets are generated, update the asset cache:
         log.debug(f"Updated these assets successfully: {successful_assets}")
-
         for asset_type, id in successful_assets:
             if asset_type not in saved_asset_table:
                 saved_asset_table[asset_type] = {}
