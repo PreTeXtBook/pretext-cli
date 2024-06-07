@@ -43,14 +43,16 @@ click_handler.setFormatter(click_log.ColorFormatter())
 log.addHandler(click_handler)
 
 # error_handler captures error/critical logs for flushing to stderr at the end of a CLI run
+sh = logging.StreamHandler(sys.stderr)
+sh.setFormatter(click_log.ColorFormatter())
+sh.setLevel(logging.ERROR)
 error_handler = logging.handlers.MemoryHandler(
     capacity=1024 * 100,
     flushLevel=100,
-    target=logging.StreamHandler(sys.stderr),
+    target=sh,
     flushOnClose=False,
 )
 error_handler.setLevel(logging.ERROR)
-error_handler.setFormatter(click_log.ColorFormatter())
 log.addHandler(error_handler)
 
 # Call exit_command() at close to handle errors encountered during run.
