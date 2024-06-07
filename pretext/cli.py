@@ -47,7 +47,7 @@ error_handler = logging.handlers.MemoryHandler(
     capacity=1024 * 100,
     flushLevel=100,
     target=logging.StreamHandler(sys.stderr),
-    flushOnClose=False
+    flushOnClose=False,
 )
 error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(click_log.ColorFormatter())
