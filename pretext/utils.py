@@ -481,12 +481,12 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
     Checks to see if anything (errors etc.) is in the memory handler.  If it is, reports that there are errors before the handler gets flushed.  Otherwise, adds a single blank line.
     """
     if len(mh.buffer) > 0:
-        print("\n----------------------------------------------------")
+        log.info("\n----------------------------------------------------")
         log.info("While running pretext, the following errors occurred:\n")
         mh.flush()
-        print("----------------------------------------------------")
+        log.info("----------------------------------------------------")
     else:
-        print("")
+        log.info("")
 
 
 def format_docstring_as_help_str(string: str) -> str:
