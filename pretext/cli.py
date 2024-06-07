@@ -36,21 +36,25 @@ from . import (
 from .project import Project
 
 log = logging.getLogger("ptxlogger")
-# Use a handler for standard out that works with click:
+
+# click_handler logs all messages to stdout as the CLI runs
 click_handler = logging.StreamHandler(sys.stdout)
 click_handler.setFormatter(click_log.ColorFormatter())
 log.addHandler(click_handler)
-# create memory handler which displays error and critical messages at the end as well.
-sh = logging.StreamHandler(sys.stderr)
-mh = logging.handlers.MemoryHandler(
-    capacity=1024 * 100, flushLevel=100, target=sh, flushOnClose=False
+
+# error_handler captures error/critical logs for flushing to stderr at the end of a CLI run
+error_handler = logging.handlers.MemoryHandler(
+    capacity=1024 * 100,
+    flushLevel=100,
+    target=logging.StreamHandler(sys.stderr),
+    flushOnClose=False
 )
-mh.setLevel(logging.ERROR)
-mh.setFormatter(click_log.ColorFormatter())
-log.addHandler(mh)
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(click_log.ColorFormatter())
+log.addHandler(error_handler)
 
 # Call exit_command() at close to handle errors encountered during run.
-atexit.register(utils.exit_command, mh)
+atexit.register(utils.exit_command, error_handler)
 
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
