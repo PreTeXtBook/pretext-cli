@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pretext>
+  <article xml:id="article">
+    <title>Xref Example</title>
+    <theorem xml:id="foobar">
+      <title>Foo</title>
+      <statement><p>Bar.</p></statement>
+      <proof><p>Baz.</p></proof>
+    </theorem>
+    <p>This is an xref: <xref ref="foobar"/>.</p>
+  </article>
+</pretext>
