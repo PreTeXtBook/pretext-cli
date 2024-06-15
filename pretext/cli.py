@@ -405,6 +405,11 @@ def init(refresh: bool, files: List[str]) -> None:
     type=click.STRING,
     help="xml:id of the root of the subtree to be built.",
 )
+@click.option(
+    "--no-knowls",
+    is_flag=True,
+    help="Produce html-format output without knowls (e.g. for previews of substrees)",
+)
 @nice_errors
 def build(
     target_name: str,
@@ -412,6 +417,7 @@ def build(
     generate: bool,
     no_generate: bool,
     xmlid: Optional[str],
+    no_knowls: bool,
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -458,7 +464,9 @@ def build(
     # Call build
     try:
         log.debug(f"Building target {target.name} with root of tree below {xmlid}")
-        target.build(clean=clean, generate=not no_generate, xmlid=xmlid)
+        target.build(
+            clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
+        )
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except ValidationError as e:
         # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
