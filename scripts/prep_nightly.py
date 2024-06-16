@@ -61,7 +61,7 @@ def main() -> None:
     ):
         if line.startswith("version"):
             version = str(line.split('"')[1])
-            newversion = version + ".dev" + datetime.now().strftime("%Y%m%d")
+            newversion = version + ".dev" + datetime.now().strftime("%Y%m%d%H%M%S")
             print(line.replace(line, f'version = "{newversion}"'.rstrip()))
         else:
             print(line.rstrip())
