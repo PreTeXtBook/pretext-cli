@@ -495,6 +495,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         clean: bool = False,
         generate: bool = True,
         xmlid: t.Optional[str] = None,
+        no_knowls: bool = False,
     ) -> None:
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):
@@ -520,6 +521,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
         # Ensure the output directories exist.
         self.ensure_output_directory()
+
+        # Modify stringparams for no_knowls
+        if no_knowls:
+            self.stringparams["debug.skip-knowls"] = "yes"
 
         # Proceed with the build
         with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_xsl_str:

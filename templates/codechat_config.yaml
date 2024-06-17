@@ -46,7 +46,7 @@ output_path: output/web
 # - ``{output_path}``: the ``output_path`` above, but as an absolute path.
 # - ``{sys_executable}``: the value of the running Python's `sys.executable <https://docs.python.org/3/library/sys.html#sys.executable>`_.
 # - ``{xml_id}``: The value of the the first ``xml:id`` attribute in the currently open file.
-args: "{sys_executable} -m pretext build web --xmlid {xml_id}"
+args: "{sys_executable} -m pretext build web --xmlid {xml_id} --no-knowls"
 
 # ``html_ext``: optional; defaults to ``.html``. The extension used by this renderer when generating HTML files.
 #html_ext: .html

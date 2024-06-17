@@ -432,3 +432,18 @@ def test_validation(tmp_path: Path) -> None:
     with utils.working_directory(prj_path):
         with pytest.raises(pydantic.ValidationError):
             pr.Project.parse()
+
+
+def test_no_knowls(tmp_path: Path) -> None:
+    prj_path = tmp_path / "xref"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "xref", prj_path)
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.build()
+        with open(Path("output") / "web" / "article.html") as article_file:
+            contents = article_file.read()
+            assert "data-knowl" in contents
+        target.build(no_knowls=True)
+        with open(Path("output") / "web" / "article.html") as article_file:
+            contents = article_file.read()
+            assert "data-knowl" not in contents
