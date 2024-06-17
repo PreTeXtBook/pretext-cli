@@ -341,16 +341,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     def output_dir_relpath(self) -> Path:
         return self._project.output_dir / self.output_dir
+    
+    def deploy_dir_path(self) -> Path:
+        if self.deploy_dir is None:
+            return Path(self.name)
+        return self.deploy_dir
 
     def deploy_dir_abspath(self) -> Path:
-        if self.deploy_dir is None:
-            return self._project.stage_abspath() / self.name
-        return self._project.stage_abspath() / self.deploy_dir
+        return self._project.stage_abspath() / self.deploy_dir_path()
 
     def deploy_dir_relpath(self) -> Path:
-        if self.deploy_dir is None:
-            return self._project.stage / self.name
-        return self._project.stage / self.deploy_dir
+        return self._project.stage / self.deploy_dir_path()
 
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
