@@ -372,12 +372,17 @@ def test_deploy(tmp_path: Path) -> None:
         project = pr.Project.parse()
         project.get_target("web").build()
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
+        project.get_target("no-deploy-dir").build()
+        assert (prj_path / "build" / "here" / "no-deploy-dir" / "index.html").exists()
         project.deploy(stage_only=True)
         assert (prj_path / "build" / "here" / "staging" / "index.html").exists()
         assert (
             "hi mom"
             in (prj_path / "build" / "here" / "staging" / "index.html").read_text()
         )
+        assert (
+            prj_path / "build" / "here" / "staging" / "no-deploy-dir" / "index.html"
+        ).exists()
 
 
 def test_validation(tmp_path: Path) -> None:

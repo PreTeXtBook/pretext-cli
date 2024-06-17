@@ -28,5 +28,12 @@
       <server name="asy" url="http://example3.com" />
       <stringparams foo="bar" baz="goo" />
     </target>
+    <target
+      name="no-deploy-dir"
+      format="html"
+      deploy="yes">
+      <server name="asy" url="http://example3.com" />
+      <stringparams foo="bar" baz="goo" />
+    </target>
   </targets>
 </project>

@@ -113,8 +113,15 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         name="braille-mode", default=BrailleMode.EMBOSS
     )
     stringparams: t.Dict[str, str] = pxml.element(default={})
-    # A path to the subdirectory of your deployment where this target will live.
+
+    # Specify whether this target should be included in a deployment
+    deploy: t.Optional[Path] = pxml.attr(name="deploy", default=None)
+    # A non-default path to the subdirectory of your deployment where this target will live.
     deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir", default=None)
+
+    # To support skipping `deploy` but specify `deploy_dir`:
+    def to_deploy(self) -> bool:
+        return self.deploy is not None or self.deploy_dir is not None
 
     # These attributes have complex validators.
     # Note that in each case, since we may not have validated the properties we refer to in values, we should use `values.get` instead of `values[]`.
@@ -329,14 +336,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def output_dir_relpath(self) -> Path:
         return self._project.output_dir / self.output_dir
 
-    def deploy_dir_abspath(self) -> t.Optional[Path]:
+    def deploy_dir_abspath(self) -> Path:
         if self.deploy_dir is None:
-            return None
+            return self._project.stage_abspath() / self.name
         return self._project.stage_abspath() / self.deploy_dir
 
-    def deploy_dir_relpath(self) -> t.Optional[Path]:
+    def deploy_dir_relpath(self) -> Path:
         if self.deploy_dir is None:
-            return None
+            return self._project.stage / self.name
         return self._project.stage / self.deploy_dir
 
     def xsl_abspath(self) -> t.Optional[Path]:
@@ -1045,6 +1052,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         return v
 
     # This validator sets the `_path`, which is provided in the validation context. It can't be loaded from the XML, since this is metadata about the XML (the location of the file it was loaded from).
+    # (It's unclear why the typing of the next line is causing issues.)
     @model_validator(mode="after")
     def set_metadata(self, info: ValidationInfo) -> "Project":
         c = info.context
@@ -1287,7 +1295,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         core.set_executables(exec_dict)
 
     def deploy_targets(self) -> t.List[Target]:
-        return [target for target in self.targets if target.deploy_dir is not None]
+        return [tgt for tgt in self.targets if tgt.to_deploy()]
 
     def stage_deployment(self) -> None:
         # First empty the stage directory (as long as it is safely in the project directory).
@@ -1301,8 +1309,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         self.stage_abspath().mkdir(parents=True, exist_ok=True)
         # Stage all configured targets for deployment
         for target in self.deploy_targets():
-            deploy_dir = target.deploy_dir
-            assert deploy_dir is not None
             if not target.output_dir_abspath().exists():
                 log.warning(
                     f"No build for `{target.name}` was found in the directory `{target.output_dir_abspath()}`."
@@ -1312,12 +1318,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             else:
                 shutil.copytree(
                     target.output_dir_abspath(),
-                    (self.stage_abspath() / deploy_dir).resolve(),
+                    target.deploy_dir_abspath(),
                     dirs_exist_ok=True,
                 )
-                log.info(
-                    f"Staging `{target.name}` at `{self.stage_abspath() / deploy_dir}`."
-                )
+                log.info(f"Staging `{target.name}` at `{target.deploy_dir_abspath()}`.")
         # If no target is configured to deploy, stage the default target
         if len(self.deploy_targets()) == 0:
             target = self.get_target()
