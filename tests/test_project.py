@@ -370,6 +370,10 @@ def test_deploy(tmp_path: Path) -> None:
     )
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
+        assert project.get_target("web").to_deploy()
+        assert not project.get_target("print").to_deploy()
+        assert project.get_target("no-deploy-dir").to_deploy()
+        assert not project.get_target("deploy-dir-no-deploy").to_deploy()
         project.get_target("web").build()
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
         project.get_target("no-deploy-dir").build()
