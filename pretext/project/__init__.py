@@ -341,7 +341,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     def output_dir_relpath(self) -> Path:
         return self._project.output_dir / self.output_dir
-    
+
     def deploy_dir_path(self) -> Path:
         if self.deploy_dir is None:
             return Path(self.name)

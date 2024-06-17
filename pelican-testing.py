@@ -8,8 +8,8 @@ config["THEME"] = "pelican-ptx"
 config["OUTPUT_PATH"] = "foobar-out"
 config["RELATIVE_URLS"] = True
 config["TIMEZONE"] = "Etc/UTC"
-config["ARTICLE_PATHS"] = ['updates']
-config["ARTICLE_SAVE_AS"] = 'updates/{date:%Y%m%d}-{slug}.html'
+config["ARTICLE_PATHS"] = ["updates"]
+config["ARTICLE_SAVE_AS"] = "updates/{date:%Y%m%d}-{slug}.html"
 config["ARTICLE_URL"] = config["ARTICLE_SAVE_AS"]
 
 p = Project.parse("new-pretext-project")
@@ -24,8 +24,7 @@ for title_ele in root.iterdescendants("subtitle"):
     break
 
 config["PTX_TARGETS"] = [
-    (t.name.capitalize(), t.deploy_dir_path())
-    for t in p.deploy_targets()
+    (t.name.capitalize(), t.deploy_dir_path()) for t in p.deploy_targets()
 ]
 
 Pelican(configure_settings(config)).run()
