@@ -364,12 +364,67 @@ def test_asset_table(tmp_path: Path) -> None:
 
 
 def test_deploy(tmp_path: Path) -> None:
+    # check permutations of deploy / deploy-dir
+    project = pr.Project(ptx_version="2")
+
+    t = project.new_target(
+        name="none-deploy-none-dir",
+        format="html",
+    )
+    assert not t.to_deploy()
+    assert t.deploy_dir_relpath().name == t.name
+
+    t = project.new_target(
+        name="no-deploy-none-dir",
+        format="html",
+        deploy="no",
+    )
+    assert not t.to_deploy()
+    assert t.deploy_dir_relpath().name == t.name
+
+    t = project.new_target(
+        name="yes-deploy-none-dir",
+        format="html",
+        deploy="yes",
+    )
+    assert t.to_deploy()
+    assert t.deploy_dir_relpath().name == t.name
+
+    t = project.new_target(
+        name="none-deploy-custom-dir",
+        format="html",
+        deploy_dir="custom",
+    )
+    assert t.to_deploy()
+    assert t.deploy_dir_relpath().name == "custom"
+
+    t = project.new_target(
+        name="no-deploy-custom-dir",
+        format="html",
+        deploy="no",
+        deploy_dir="custom",
+    )
+    assert not t.to_deploy()
+    assert t.deploy_dir_relpath().name == "custom"
+
+    t = project.new_target(
+        name="yes-deploy-custom-dir",
+        format="html",
+        deploy="yes",
+        deploy_dir="custom",
+    )
+    assert t.to_deploy()
+    assert t.deploy_dir_relpath().name == "custom"
+
+    # check elaborate settings
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
     )
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
+        assert project.get_target("web").to_deploy()
+        assert not project.get_target("print").to_deploy()
         project.get_target("web").build()
         assert (prj_path / "build" / "here" / "web" / "index.html").exists()
         project.deploy(stage_only=True)
