@@ -6,7 +6,7 @@ Often you will want to host multiple versions and formats of your project on you
 
 ## Four Options for Deploying your Project
 
-When running `pretext deploy`, you can get four different resutls.
+When running `pretext deploy`, you can get four different results.
 
 1. Deploy a single target (the default `web` target) at the root of your github pages site.  This is the default behavior. 
 1. Deploy one or more targets with a bare-bones landing page that is automatically generated for you.  To get this option, include a `@deploy-dir` attribute for each target you want hosted, with a value that is the relative path to where on the website the target should live.  You should not have a `site` folder in your project directory (if you do, rename it something like `_site` so it is ignored).
