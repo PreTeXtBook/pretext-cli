@@ -115,13 +115,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     stringparams: t.Dict[str, str] = pxml.element(default={})
 
     # Specify whether this target should be included in a deployment
-    deploy: t.Optional[Path] = pxml.attr(name="deploy", default=None)
+    deploy: t.Optional[str] = pxml.attr(name="deploy", default=None)
     # A non-default path to the subdirectory of your deployment where this target will live.
     deploy_dir: t.Optional[Path] = pxml.attr(name="deploy-dir", default=None)
 
-    # To support skipping `deploy` but specify `deploy_dir`:
+    # Case-check different combos of `deploy` / `deploy-dir`
     def to_deploy(self) -> bool:
-        return self.deploy is not None or self.deploy_dir is not None
+        deploy = self.deploy
+        if deploy is None:
+            # didn't specify `deploy`, so deploy iff there's a `deploy_dir`
+            return self.deploy_dir is not None
+        else:
+            # specified `deploy` attr, so deploy iff choice isn't "no"
+            return deploy.lower() != "no"
 
     # These attributes have complex validators.
     # Note that in each case, since we may not have validated the properties we refer to in values, we should use `values.get` instead of `values[]`.
