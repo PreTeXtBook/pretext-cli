@@ -408,7 +408,7 @@ def init(refresh: bool, files: List[str]) -> None:
 @click.option(
     "--no-knowls",
     is_flag=True,
-    help="Suppress knowl generation for html-format output (e.g. for faster previews of individual sections)",
+    help="Use hyperlinks instead of knowls (e.g. for previewing individual sections when knowl files from other sections may not exist)",
 )
 @nice_errors
 def build(
