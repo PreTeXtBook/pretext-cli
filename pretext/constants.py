@@ -153,7 +153,7 @@ PROJECT_RESOURCES = {
     "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
 }
 
-PROJECT_DEPRECATED_RESOURCES = {
+DEPRECATED_PROJECT_RESOURCES = {
     "deploy.yml": Path(".github", "workflows", "deploy.yml"),
     "test-build.yml": Path(".github", "workflows", "test-build.yml"),
 }

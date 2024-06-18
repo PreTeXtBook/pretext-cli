@@ -362,7 +362,7 @@ def init(refresh: bool, files: List[str]) -> None:
             return
 
     project.generate_boilerplate(
-        skip_unmanaged=False, update_requirements=True, logger=log.info, resources=files
+        skip_unmanaged=False, update_requirements=True, resources=files
     )
 
     if project_path is None:
