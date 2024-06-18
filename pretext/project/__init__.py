@@ -1463,8 +1463,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 self.abspath() / constants.DEPRECATED_PROJECT_RESOURCES[resource]
             ).resolve()
             backup_resource_path = (
-                project_resource_path.parent
-                / f"{project_resource_path.name}.bak"
+                project_resource_path.parent / f"{project_resource_path.name}.bak"
             )
             if project_resource_path.exists():
                 # check if file is unmanaged by PreTeXt
@@ -1473,7 +1472,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     not in project_resource_path.read_text()
                 ):
                     if skip_unmanaged:
-                        log.warning(f"Resource f{depr_resource} is deprecated and no longer distributed with PreTeXt-CLI.")
+                        log.warning(
+                            f"Resource f{depr_resource} is deprecated and no longer distributed with PreTeXt-CLI."
+                        )
                         continue  # continue on to next resource in resources, not deleting anything
                     # back it up
                     shutil.copyfile(project_resource_path, backup_resource_path)
@@ -1482,8 +1483,4 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     )
                 # delete deprecated resource
                 project_resource_path.unlink()
-                log.warning(
-                    f"The deprecated {depr_resource} file has been deleted."
-                )
-
-
+                log.warning(f"The deprecated {depr_resource} file has been deleted.")
