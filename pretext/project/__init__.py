@@ -1460,7 +1460,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         if remove_deprecated:
             for depr_resource in constants.DEPRECATED_PROJECT_RESOURCES:
                 project_resource_path = (
-                    self.abspath() / constants.DEPRECATED_PROJECT_RESOURCES[depr_resource]
+                    self.abspath()
+                    / constants.DEPRECATED_PROJECT_RESOURCES[depr_resource]
                 ).resolve()
                 backup_resource_path = (
                     project_resource_path.parent / f"{project_resource_path.name}.bak"
@@ -1483,4 +1484,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         )
                     # delete deprecated resource
                     project_resource_path.unlink()
-                    log.warning(f"The deprecated {depr_resource} file has been deleted.")
+                    log.warning(
+                        f"The deprecated {depr_resource} file has been deleted."
+                    )
