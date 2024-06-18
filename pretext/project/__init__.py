@@ -1400,6 +1400,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         logger: t.Callable[[str], None] = log.debug,
         update_requirements: bool = False,
         resources: t.Optional[t.List[str]] = None,
+        remove_deprecated: bool = True,
     ) -> None:
         """
         Generates boilerplate files needed/suggested for
@@ -1457,3 +1458,32 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 ):
                     project_resource_path.write_text(requirements_txt)
             log.info(f"Generated `{project_resource_path}`\n")
+        for depr_resource in constants.DEPRECATED_PROJECT_RESOURCES:
+            project_resource_path = (
+                self.abspath() / constants.DEPRECATED_PROJECT_RESOURCES[resource]
+            ).resolve()
+            backup_resource_path = (
+                project_resource_path.parent
+                / f"{project_resource_path.name}.bak"
+            )
+            if project_resource_path.exists():
+                # check if file is unmanaged by PreTeXt
+                if (
+                    "<!-- Managed automatically by PreTeXt authoring tools -->"
+                    not in project_resource_path.read_text()
+                ):
+                    if skip_unmanaged:
+                        log.warning(f"Resource f{depr_resource} is deprecated and no longer distributed with PreTeXt-CLI.")
+                        continue  # continue on to next resource in resources, not deleting anything
+                    # back it up
+                    shutil.copyfile(project_resource_path, backup_resource_path)
+                    log.warning(
+                        f"The deprecated {depr_resource} file has been backed up at {backup_resource_path}."
+                    )
+                # delete deprecated resource
+                project_resource_path.unlink()
+                log.warning(
+                    f"The deprecated {depr_resource} file has been deleted."
+                )
+
+
