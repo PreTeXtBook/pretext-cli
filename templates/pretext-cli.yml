@@ -35,6 +35,7 @@ jobs:
                   name: deploy
                   path: output/stage
 
+    # only runs if Cloudflare secrets are set in the GitHub repo
     deploy-cloudflare:
         runs-on: ubuntu-latest
         needs: build
@@ -58,3 +59,35 @@ jobs:
                   projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
                   directory: deploy
                   gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+    # This job deploys the artifact built in the previous job to Github pages.
+    # Only triggers on main branch
+    deploy-ghpages:
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        needs: build
+        permissions:
+            contents: read
+            pages: write
+            id-token: write
+        concurrency:
+            group: "page"
+            cancel-in-progress: false
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - name: Download website artifact
+              uses: actions/download-artifact@v4
+              with:
+                  name: deploy
+                  path: deploy
+            - name: Setup Pages
+              uses: actions/configure-pages@v4
+            - name: Upload artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: deploy
+            - name: Deploy to Github Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
