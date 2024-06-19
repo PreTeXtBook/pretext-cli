@@ -186,7 +186,7 @@ def main(ctx: click.Context, targets: bool) -> None:
 
 
 @main.result_callback()
-def exit_with_errors():
+def exit_with_errors() -> None:
     if error_exit_handler.fired():
         raise SystemExit(1)
 
