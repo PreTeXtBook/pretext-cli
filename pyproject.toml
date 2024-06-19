@@ -47,6 +47,7 @@ jinja2 = "^3"
 
 # Development dependencies
 # ------------------------
+errorhandler = "^2.0.1"
 [tool.poetry.group.dev.dependencies]
 black = ">=23,<25"
 codechat-server = "^0"
