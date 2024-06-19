@@ -1457,3 +1457,44 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 ):
                     project_resource_path.write_text(requirements_txt)
             log.info(f"Generated `{project_resource_path}`\n")
+
+    def generate_mapping(self) -> None:
+        """
+        Generates a JSON string that describes how to map target/xmlid pairs to the path of
+        the relevant html file output
+        """
+        parser = ET.XMLParser(huge_tree=True)
+        ptx_common_path = core.resources.path("xsl", "pretext-common.xsl")
+        enhance_xslt_path = core.resources.path("xsl", "utilities", "pretext-enhanced-source.xsl")
+        with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_dir:
+            with open(Path(tmp_dir)/"filename.xsl", mode="w") as f:
+                print(f'''
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+ <xsl:import href="{ptx_common_path}"/>
+ <xsl:output method="xml"/>
+ <xsl:template match="node()|@*">
+  <xsl:copy>
+   <xsl:apply-templates select="node()|@*"/>
+  </xsl:copy>
+ </xsl:template>
+ <xsl:template match="*[@unique-id]">
+  <xsl:copy>
+   <xsl:attribute name="output-filename">
+    <xsl:apply-templates select="." mode="containing-filename"/>
+   </xsl:attribute>
+   <xsl:apply-templates select="node()|@*"/>
+  </xsl:copy>
+ </xsl:template>
+</xsl:stylesheet>
+                ''', file=f)
+            for target in [t for t in self.targets if t.format == 'html']:
+                # run pretext-enhanced-source.xsl on target
+                source_tree = ET.parse(target.source_abspath(), parser=parser)
+                source_tree.xinclude()
+                enhance_xslt_tree = ET.parse(enhance_xslt_path)
+                enhance_xslt = ET.XSLT(enhance_xslt_tree)
+                enhanced_tree = enhance_xslt(source_tree)
+                filename_xslt_tree = ET.parse(Path(tmp_dir)/"filename.xsl", parser=parser)
+                filename_xslt = ET.XSLT(filename_xslt_tree)
+                filename_tree = filename_xslt(enhanced_tree)
+                print(filename_tree)
