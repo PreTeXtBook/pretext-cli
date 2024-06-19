@@ -411,7 +411,7 @@ def init(refresh: bool, files: List[str]) -> None:
     help="Use hyperlinks instead of knowls (e.g. for previewing individual sections when knowl files from other sections may not exist)",
 )
 @click.option(
-    "--deploy-targets",
+    "--deploys",
     is_flag=True,
     help="Build all targets configured to be deployed.",
 )
@@ -423,7 +423,7 @@ def build(
     no_generate: bool,
     xmlid: Optional[str],
     no_knowls: bool,
-    deploy_targets: bool,
+    deploys: bool,
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -445,7 +445,7 @@ def build(
     project = Project.parse()
     # Now create the target if the target_name is not missing.
     try:
-        if deploy_targets and len(project.deploy_targets()) > 0:
+        if deploys and len(project.deploy_targets()) > 0:
             targets = project.deploy_targets()
         else:
             targets = [project.get_target(name=target_name)]
