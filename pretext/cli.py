@@ -57,7 +57,7 @@ error_flush_handler.setLevel(logging.ERROR)
 log.addHandler(error_flush_handler)
 
 # error_exit_handler captures error/critical logs for exiting with failure at the end of a CLI run
-error_exit_handler = errorhandler.ErrorHandler(logger='ptxlogger')
+error_exit_handler = errorhandler.ErrorHandler(logger="ptxlogger")
 
 # Call exit_command() at close to handle errors encountered during run.
 atexit.register(utils.exit_command, error_flush_handler)
