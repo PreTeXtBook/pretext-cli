@@ -25,7 +25,7 @@ jobs:
               run: pip install -r requirements.txt
 
             - name: build deploy targets
-              run: pretext build --deploy-targets
+              run: pretext build --deploys
             - name: stage deployment
               run: pretext deploy --stage-only
 
