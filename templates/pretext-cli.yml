@@ -25,7 +25,7 @@ jobs:
               run: pip install -r requirements.txt
 
             - name: build deploy_targets
-              run: pretext build --deploy-targets
+              run: pretext build
             - name: stage deployment
               run: pretext deploy --stage-only
 
@@ -35,13 +35,10 @@ jobs:
                   name: deploy
                   path: output/stage
 
-    # only runs if Cloudflare secrets are set in the GitHub repo
     deploy-cloudflare:
         runs-on: ubuntu-latest
         needs: build
-        env: 
-            CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
-        if: ${{ env.CLOUDFLARE_PROJECT_NAME != '' }}
+        if: vars.CLOUDFLARE_PROJECT_NAME != ''
 
         steps:
             - name: Download artifact
@@ -56,16 +53,14 @@ jobs:
               with:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  projectName: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+                  projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
                   directory: deploy
                   gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
-    # This job deploys the artifact built in the previous job to Github pages.
-    # Only triggers on main branch
     deploy-ghpages:
         runs-on: ubuntu-latest
-        if: github.ref == 'refs/heads/main'
         needs: build
+        if: vars.PTX_ENABLE_DEPLOY_GHPAGES == 'yes'
         permissions:
             contents: read
             pages: write
@@ -82,7 +77,8 @@ jobs:
               with:
                   name: deploy
                   path: deploy
-            - name: Setup Pages
+            - name: Setup GitHub Pages
+              id: check
               uses: actions/configure-pages@v4
             - name: Upload artifact
               uses: actions/upload-pages-artifact@v3
