@@ -10,6 +10,7 @@ on:
 jobs:
   format-and-types:
     runs-on: ubuntu-latest
+    container: oscarlevin/pretext:full
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
