@@ -410,6 +410,11 @@ def init(refresh: bool, files: List[str]) -> None:
     is_flag=True,
     help="Use hyperlinks instead of knowls (e.g. for previewing individual sections when knowl files from other sections may not exist)",
 )
+@click.option(
+    "--deploy-targets",
+    is_flag=True,
+    help="Build all targets configured to be deployed.",
+)
 @nice_errors
 def build(
     target_name: str,
@@ -418,6 +423,7 @@ def build(
     no_generate: bool,
     xmlid: Optional[str],
     no_knowls: bool,
+    deploy_targets: bool,
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -439,7 +445,10 @@ def build(
     project = Project.parse()
     # Now create the target if the target_name is not missing.
     try:
-        target = project.get_target(name=target_name)
+        if deploy_targets and len(project.deploy_targets()) > 0:
+            targets = project.deploy_targets()
+        else:
+            targets = [project.get_target(name=target_name)]
     except AssertionError as e:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
@@ -449,7 +458,8 @@ def build(
     # Call generate if flag is set
     if generate and not no_generate:
         try:
-            target.generate_assets(only_changed=False, xmlid=xmlid)
+            for t in targets:
+                t.generate_assets(only_changed=False, xmlid=xmlid)
             no_generate = True
         except Exception as e:
             log.error(f"Failed to generate assets: {e} \n")
@@ -463,10 +473,13 @@ def build(
 
     # Call build
     try:
-        log.debug(f"Building target {target.name} with root of tree below {xmlid}")
-        target.build(
-            clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
-        )
+        for t in targets:
+            log.debug(f"Building target {t.name}")
+            if xmlid is not None:
+                log.debug(f"with root of tree below {xmlid}")
+            t.build(
+                clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
+            )
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except ValidationError as e:
         # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
