@@ -150,6 +150,10 @@ PROJECT_RESOURCES = {
     ".gitignore": Path(".gitignore"),
     ".devcontainer.json": Path(".devcontainer.json"),
     "requirements.txt": Path("requirements.txt"),
+    "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
+}
+
+DEPRECATED_PROJECT_RESOURCES = {
     "deploy.yml": Path(".github", "workflows", "deploy.yml"),
     "test-build.yml": Path(".github", "workflows", "test-build.yml"),
 }
