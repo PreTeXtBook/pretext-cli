@@ -39,6 +39,9 @@ jobs:
         runs-on: ubuntu-latest
         needs: build
         if: vars.CLOUDFLARE_PROJECT_NAME != ''
+        permissions:
+          contents: read
+          deployments: write
 
         steps:
             - name: Download artifact
