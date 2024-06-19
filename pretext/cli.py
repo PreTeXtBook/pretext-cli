@@ -16,7 +16,7 @@ import platform
 import webbrowser
 from pathlib import Path
 import atexit
-import errorhandler
+import errorhandler  # type: ignore
 import subprocess
 from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
