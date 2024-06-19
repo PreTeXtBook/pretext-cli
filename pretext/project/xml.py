@@ -18,6 +18,7 @@ class Executables(pxml.BaseXmlModel, tag="executables"):
     asy: t.Optional[str] = pxml.attr(default=shutil.which("asy"))
     # The same applies to Sage.
     sage: t.Optional[str] = pxml.attr(default=shutil.which("sage"))
+    mermaid: str = pxml.attr(default="mmdc")
     pdfpng: str = pxml.attr(default="convert")
     pdfeps: str = pxml.attr(default="pdftops")
     node: str = pxml.attr(default="node")
