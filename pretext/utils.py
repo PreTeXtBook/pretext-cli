@@ -16,6 +16,7 @@ import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
+from pelican.settings import configure_settings, DEFAULT_CONFIG
 from typing import Any, cast, List, Optional
 
 
@@ -705,3 +706,15 @@ def stop_server(port: t.Optional[int] = None) -> None:
             if proc.name() == "pretext" and proc.parent().name() == "pretext":
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
+
+
+def pelican_default_settings() -> dict[str, t.Any]:
+    config = DEFAULT_CONFIG
+    config["THEME"] = "pelican-ptx"
+    config["OUTPUT_PATH"] = "foobar-out"
+    config["RELATIVE_URLS"] = True
+    config["TIMEZONE"] = "Etc/UTC"
+    config["ARTICLE_PATHS"] = ["updates"]
+    config["ARTICLE_SAVE_AS"] = "updates/{date:%Y%m%d}-{slug}.html"
+    config["ARTICLE_URL"] = config["ARTICLE_SAVE_AS"]
+    return config

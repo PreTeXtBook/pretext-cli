@@ -18,19 +18,20 @@ def main() -> None:
                     temporary_path,
                     dirs_exist_ok=True,
                 )
-                template_files = [
-                    "project.ptx",
-                    ".gitignore",
-                    "codechat_config.yaml",
-                    ".devcontainer.json",
-                ]
-                for template_file in template_files:
-                    copied_template_file = temporary_path / template_file
-                    if not copied_template_file.is_file():
-                        shutil.copyfile(
-                            Path("templates") / template_file,
-                            copied_template_file,
-                        )
+                if template_path.name != "pelican":
+                    template_files = [
+                        "project.ptx",
+                        ".gitignore",
+                        "codechat_config.yaml",
+                        ".devcontainer.json",
+                    ]
+                    for template_file in template_files:
+                        copied_template_file = temporary_path / template_file
+                        if not copied_template_file.is_file():
+                            shutil.copyfile(
+                                Path("templates") / template_file,
+                                copied_template_file,
+                            )
                 template_zip_basename = template_path.name
                 shutil.make_archive(
                     str(static_template_path / template_zip_basename),

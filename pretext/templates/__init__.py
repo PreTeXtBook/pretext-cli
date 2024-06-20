@@ -2,6 +2,8 @@ from __future__ import annotations
 from contextlib import AbstractContextManager
 from pathlib import Path
 import importlib.resources as ir
+import shutil
+import zipfile
 
 
 def resource_path(filename: str) -> AbstractContextManager[Path]:
@@ -26,3 +28,13 @@ def resource_path(filename: str) -> AbstractContextManager[Path]:
         return ir.as_file(ir.files(resources).joinpath(filename))  # type: ignore[attr-defined]
     except AttributeError:
         return ir.path(resources, filename)
+
+
+def install(local_base_path: Path) -> None:
+    with resource_path("pelican.zip") as pelican_zip:
+        with zipfile.ZipFile(pelican_zip, "r") as zip:
+            zip.extractall(local_base_path)
+    print(
+        f"Pelican template has now been installed to {local_base_path}"
+    )
+    return
