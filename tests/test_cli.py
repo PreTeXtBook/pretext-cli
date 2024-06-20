@@ -126,23 +126,22 @@ def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
 
 
 def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
-    (tmp_path / "source").mkdir()
-    shutil.copyfile(EXAMPLES_DIR / "asymptote.ptx", tmp_path / "source" / "main.ptx")
+    asy_path = tmp_path / "asymptote"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "asymptote", asy_path)
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=tmp_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=asy_path
     ).success
-    assert (tmp_path / "generated-assets" / "asymptote" / "test.html").exists()
-    os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
+    assert (asy_path / "generated-assets" / "asymptote" / "test.html").exists()
+    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "-x", "test"], cwd=tmp_path
+        [PTX_CMD, "-v", "debug", "generate", "-x", "test"], cwd=asy_path
     ).success
-    assert (tmp_path / "generated-assets" / "asymptote" / "test.html").exists()
-    os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
+    assert (asy_path / "generated-assets" / "asymptote" / "test.html").exists()
+    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=tmp_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=asy_path
     ).success
-    os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
+    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
 
 
 # @pytest.mark.skip(
