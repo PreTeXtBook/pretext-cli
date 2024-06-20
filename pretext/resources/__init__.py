@@ -30,9 +30,7 @@ def install(reinstall: bool = False) -> None:
         )
 
     log.info("Installing templates")
+    (RESOURCE_BASE_PATH / "templates").mkdir()
     with importlib.resources.path("pretext.resources", "templates.zip") as static_zip:
         with zipfile.ZipFile(static_zip, "r") as zip:
-            zip.extractall(path=RESOURCE_BASE_PATH)
-        (RESOURCE_BASE_PATH / f"pretext-{CORE_COMMIT}").rename(
-            RESOURCE_BASE_PATH / "core"
-        )
+            zip.extractall(path=RESOURCE_BASE_PATH / "templates")
