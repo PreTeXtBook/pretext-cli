@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/tests.yml
 
   deploy:
-    needs: test
+    needs: tests
     name: Deploy to pypi
     runs-on: ubuntu-latest
     steps:
