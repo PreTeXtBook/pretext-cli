@@ -34,7 +34,5 @@ def install(local_base_path: Path) -> None:
     with resource_path("pelican.zip") as pelican_zip:
         with zipfile.ZipFile(pelican_zip, "r") as zip:
             zip.extractall(local_base_path)
-    print(
-        f"Pelican template has now been installed to {local_base_path}"
-    )
+    print(f"Pelican template has now been installed to {local_base_path}")
     return
