@@ -1385,9 +1385,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     dirs_exist_ok=True,
                 )
             else:  # strategy == "pelican_default" or "pelican_custom"
-                log.info(
-                    f"Staging generated site at `{self.stage_abspath()}`."
-                )
+                log.info(f"Staging generated site at `{self.stage_abspath()}`.")
                 # set variables
                 config = utils.pelican_default_settings()
                 config["OUTPUT_PATH"] = str(self.stage_abspath())
@@ -1401,7 +1399,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     config["SITESUBTITLE"] = title_ele.text
                     break
                 config["PTX_TARGETS"] = [
-                    (t.name.capitalize(), t.deploy_dir_path()) for t in self.deploy_targets()
+                    (t.name.capitalize(), t.deploy_dir_path())
+                    for t in self.deploy_targets()
                 ]
                 pelican.Pelican(pelican.settings.configure_settings(config)).run()
             log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
