@@ -15,7 +15,7 @@ def main() -> None:
     r = requests.get(
         f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip"
     )
-    with open(core_zip_path, 'wb') as f:
+    with open(core_zip_path, "wb") as f:
         f.write(r.content)
     with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
         with zipfile.ZipFile(core_zip_path) as archive:
@@ -24,7 +24,9 @@ def main() -> None:
                 path=tmpdirname,
             )
             assert Path(pretext_py).exists()
-        shutil.copyfile(Path(pretext_py), Path("pretext").resolve() / "core" / "pretext.py")
+        shutil.copyfile(
+            Path(pretext_py), Path("pretext").resolve() / "core" / "pretext.py"
+        )
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
 
 
