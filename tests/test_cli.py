@@ -11,14 +11,17 @@ import requests
 import pretext
 from pretext import constants
 from typing import cast, Generator
+import pytest
 from pytest_console_scripts import ScriptRunner
-from .common import DEMO_MAPPING
+from .common import DEMO_MAPPING, check_installed
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 
 PTX_CMD = cast(str, shutil.which("pretext"))
 assert PTX_CMD is not None
 PY_CMD = sys.executable
+
+HAS_XELATEX = check_installed(["xelatex", "--version"])
 
 
 @contextmanager
@@ -69,6 +72,10 @@ def test_devscript(script_runner: ScriptRunner) -> None:
     assert "PreTeXt utility script" in result.stdout
 
 
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
 def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
