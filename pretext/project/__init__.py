@@ -927,6 +927,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     log.debug(e, exc_info=True)
             # youtube also requires the play button.
             self.ensure_play_button()
+        if "mermaid" in assets_to_generate:
+            for id in assets_to_generate["mermaid"]:
+                try:
+                    core.mermaid_images(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=stringparams_copy,
+                        xmlid_root=id,
+                        dest_dir=self.generated_dir_abspath() / "mermaid",
+                    )
+                    successful_assets.append(("mermaid", id))
+                except Exception as e:
+                    log.error(f"Unable to generate some mermaid images: \n{e}")
+                    log.debug(e, exc_info=True)
         if "codelens" in assets_to_generate:
             for id in assets_to_generate["codelens"]:
                 try:
