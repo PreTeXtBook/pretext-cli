@@ -73,7 +73,7 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces, "-q"],
+        [PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces],
         cwd=tmp_path,
     ).success
 
