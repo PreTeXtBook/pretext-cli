@@ -104,7 +104,7 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
 
     # Do a full build.
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web"], cwd=project_path
+        [PTX_CMD, "-v", "debug", "build", "web", "-q"], cwd=project_path
     ).success
     web_path = project_path / "output" / "web"
     assert web_path.exists()
