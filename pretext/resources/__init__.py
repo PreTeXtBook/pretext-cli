@@ -2,7 +2,6 @@ import importlib.resources
 import logging
 from pathlib import Path
 import shutil
-import typing as t
 import zipfile
 
 from .. import VERSION, CORE_COMMIT
