@@ -13,7 +13,9 @@ from .common import check_installed
 )
 def test_sample_article(tmp_path: Path) -> None:
     prj_path = tmp_path / "sample"
-    shutil.copytree(resource_base_path() / "core" / "examples" / "sample-article", prj_path)
+    shutil.copytree(
+        resource_base_path() / "core" / "examples" / "sample-article", prj_path
+    )
     with pretext.utils.working_directory(prj_path):
         project = Project.parse()
         t = project.get_target()
