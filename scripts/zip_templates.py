@@ -43,8 +43,7 @@ def main() -> None:
         "publication.ptx",
         ".gitignore",
         ".devcontainer.json",
-        "deploy.yml",
-        "test-build.yml",
+        "pretext-cli.yml",
     ]:
         shutil.copyfile(Path("templates") / f, static_template_path / f)
 

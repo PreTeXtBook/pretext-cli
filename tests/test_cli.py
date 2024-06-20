@@ -11,14 +11,17 @@ import requests
 import pretext
 from pretext import constants
 from typing import cast, Generator
+import pytest
 from pytest_console_scripts import ScriptRunner
-from .common import DEMO_MAPPING
+from .common import DEMO_MAPPING, check_installed
 
 EXAMPLES_DIR = Path(__file__).parent / "examples"
 
 PTX_CMD = cast(str, shutil.which("pretext"))
 assert PTX_CMD is not None
 PY_CMD = sys.executable
+
+HAS_XELATEX = check_installed(["xelatex", "--version"])
 
 
 @contextmanager
@@ -69,6 +72,10 @@ def test_devscript(script_runner: ScriptRunner) -> None:
     assert "PreTeXt utility script" in result.stdout
 
 
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
 def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
@@ -119,23 +126,22 @@ def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
 
 
 def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
-    (tmp_path / "source").mkdir()
-    shutil.copyfile(EXAMPLES_DIR / "asymptote.ptx", tmp_path / "source" / "main.ptx")
+    asy_path = tmp_path / "asymptote"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "asymptote", asy_path)
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=tmp_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=asy_path
     ).success
-    assert (tmp_path / "generated-assets" / "asymptote" / "test.html").exists()
-    os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
+    assert (asy_path / "generated-assets" / "asymptote" / "test.html").exists()
+    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "-x", "test"], cwd=tmp_path
+        [PTX_CMD, "-v", "debug", "generate", "-x", "test"], cwd=asy_path
     ).success
-    assert (tmp_path / "generated-assets" / "asymptote" / "test.html").exists()
-    os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
+    assert (asy_path / "generated-assets" / "asymptote" / "test.html").exists()
+    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=tmp_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=asy_path
     ).success
-    os.remove(tmp_path / "generated-assets" / "asymptote" / "test.html")
+    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
 
 
 # @pytest.mark.skip(

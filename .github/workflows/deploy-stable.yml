@@ -24,46 +24,12 @@ on:
           - "legacy-support"
 
 jobs:
-  test:
+  tests:
     name: Run tests
-    strategy:
-      fail-fast: true
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-        poetry-version: ["1.5.1"]
-        os: [ubuntu-latest, windows-latest]
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.branch }}
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install poetry ${{ matrix.poetry-version }}
-        run: |
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install poetry==${{ matrix.poetry-version }}
-
-      - name: Install dependencies
-        shell: bash
-        run: |
-          python -m poetry install
-          python -m poetry run python scripts/fetch_core.py
-          python -m poetry run python scripts/zip_templates.py
-
-      - name: Test with pytest
-        run: |
-          python -m poetry run pytest -v --cov
+    uses: ./.github/workflows/tests.yml
 
   deploy:
-    needs: test
+    needs: tests
     name: Deploy to pypi
     runs-on: ubuntu-latest
     steps:
