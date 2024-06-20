@@ -248,7 +248,8 @@ def devscript(args: List[str]) -> None:
     """
     PY_CMD = sys.executable
     subprocess.run(
-        [PY_CMD, str(resources.resource_base_path() / "pretext" / "pretext")] + list(args)
+        [PY_CMD, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
+        + list(args)
     )
 
 
