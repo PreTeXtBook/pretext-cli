@@ -11,7 +11,7 @@ log = logging.getLogger("ptxlogger")
 RESOURCE_BASE_PATH = Path.home() / ".ptx" / VERSION
 
 
-def install(reinstall=False) -> None:
+def install(reinstall: bool = False) -> None:
     if RESOURCE_BASE_PATH.exists():
         if reinstall:
             log.info(f"Deleting existing resources at {RESOURCE_BASE_PATH}")

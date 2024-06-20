@@ -25,7 +25,7 @@ from functools import update_wrapper
 
 from . import (
     utils,
-    templates,
+    resources,
     core,
     constants,
     plastex,
@@ -296,7 +296,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
     else:
-        with templates.resource_path(f"{template}.zip") as template_path:
+        with resources.RESOURCE_BASE_PATH / "templates" / f"{template}.zip" as template_path:
             archive = zipfile.ZipFile(template_path)
     # find (first) project.ptx to use as root of template
     filenames = [Path(filepath).name for filepath in archive.namelist()]

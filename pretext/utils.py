@@ -19,7 +19,7 @@ from lxml.etree import _ElementTree, _Element
 from typing import Any, cast, List, Optional
 
 
-from . import core, templates, constants
+from . import core, constants, resources
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -94,7 +94,7 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
         dirpath = Path()  # current directory
     pp = project_path(dirpath)
     if pp is None:
-        with templates.resource_path("project.ptx") as project_manifest:
+        with resources.RESOURCE_BASE_PATH / "templates" / "project.ptx" as project_manifest:
             return ET.parse(project_manifest)
     else:
         project_manifest = pp / "project.ptx"
