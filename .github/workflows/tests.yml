@@ -1,4 +1,4 @@
-name: test-on-PR
+name: tests
 
 on:
   push:
@@ -6,42 +6,30 @@ on:
   pull_request:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  # Allows usage from other workflows
+  workflow_call:
 
 jobs:
   format-and-types:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install poetry 1.5.1
+      - name: Install linters and formatters
+        run: python -m pip install flake8 black mypy
+      - name: Initialize project
         run: |
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install poetry==1.5.1
-
-      - name: Install dependencies
-        shell: bash
-        run: |
-          python -m poetry install
-          python -m poetry run python scripts/fetch_core.py
-          python -m poetry run python scripts/zip_templates.py
-
+          python -m pip install -e .
+          python scripts/fetch_core.py
+          python scripts/zip_templates.py
       - name: Check formatting with black
-        run: |
-          python -m poetry run black --check --diff $(git ls-files "*.py")
-
+        run: python -m black --check --diff $(git ls-files "*.py")
       - name: Check for lint
-        run: |
-          python -m poetry run flake8
-
+        run: python -m flake8
       - name: Check types
-        run: |
-          python -m poetry run mypy --install-types --non-interactive
+        run: python -m mypy --install-types --non-interactive
 
-  build:
+  tests:
+    needs: format-and-types
     strategy:
       fail-fast: true
       matrix:

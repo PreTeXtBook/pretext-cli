@@ -16,6 +16,7 @@ import platform
 import webbrowser
 from pathlib import Path
 import atexit
+import errorhandler  # type: ignore
 import subprocess
 from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
@@ -42,21 +43,24 @@ click_handler = logging.StreamHandler(sys.stdout)
 click_handler.setFormatter(click_log.ColorFormatter())
 log.addHandler(click_handler)
 
-# error_handler captures error/critical logs for flushing to stderr at the end of a CLI run
+# error_flush_handler captures error/critical logs for flushing to stderr at the end of a CLI run
 sh = logging.StreamHandler(sys.stderr)
 sh.setFormatter(click_log.ColorFormatter())
 sh.setLevel(logging.ERROR)
-error_handler = logging.handlers.MemoryHandler(
+error_flush_handler = logging.handlers.MemoryHandler(
     capacity=1024 * 100,
     flushLevel=100,
     target=sh,
     flushOnClose=False,
 )
-error_handler.setLevel(logging.ERROR)
-log.addHandler(error_handler)
+error_flush_handler.setLevel(logging.ERROR)
+log.addHandler(error_flush_handler)
+
+# error_exit_handler captures error/critical logs for exiting with failure at the end of a CLI run
+error_exit_handler = errorhandler.ErrorHandler(logger="ptxlogger")
 
 # Call exit_command() at close to handle errors encountered during run.
-atexit.register(utils.exit_command, error_handler)
+atexit.register(utils.exit_command, error_flush_handler)
 
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
@@ -179,6 +183,12 @@ def main(ctx: click.Context, targets: bool) -> None:
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
+
+
+@main.result_callback()
+def exit_with_errors(*_, **__):  # type: ignore
+    if error_exit_handler.fired:
+        raise SystemExit(1)
 
 
 # pretext support
@@ -362,7 +372,7 @@ def init(refresh: bool, files: List[str]) -> None:
             return
 
     project.generate_boilerplate(
-        skip_unmanaged=False, update_requirements=True, logger=log.info, resources=files
+        skip_unmanaged=False, update_requirements=True, resources=files
     )
 
     if project_path is None:
@@ -410,6 +420,11 @@ def init(refresh: bool, files: List[str]) -> None:
     is_flag=True,
     help="Use hyperlinks instead of knowls (e.g. for previewing individual sections when knowl files from other sections may not exist)",
 )
+@click.option(
+    "--deploys",
+    is_flag=True,
+    help="Build all targets configured to be deployed.",
+)
 @nice_errors
 def build(
     target_name: str,
@@ -418,6 +433,7 @@ def build(
     no_generate: bool,
     xmlid: Optional[str],
     no_knowls: bool,
+    deploys: bool,
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -439,7 +455,10 @@ def build(
     project = Project.parse()
     # Now create the target if the target_name is not missing.
     try:
-        target = project.get_target(name=target_name)
+        if deploys and len(project.deploy_targets()) > 0:
+            targets = project.deploy_targets()
+        else:
+            targets = [project.get_target(name=target_name)]
     except AssertionError as e:
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
@@ -449,7 +468,9 @@ def build(
     # Call generate if flag is set
     if generate and not no_generate:
         try:
-            target.generate_assets(only_changed=False, xmlid=xmlid)
+            for t in targets:
+                log.info(f"Generating assets for {t.name}")
+                t.generate_assets(only_changed=False, xmlid=xmlid)
             no_generate = True
         except Exception as e:
             log.error(f"Failed to generate assets: {e} \n")
@@ -463,10 +484,13 @@ def build(
 
     # Call build
     try:
-        log.debug(f"Building target {target.name} with root of tree below {xmlid}")
-        target.build(
-            clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
-        )
+        for t in targets:
+            log.info(f"Building target {t.name}")
+            if xmlid is not None:
+                log.info(f"with root of tree below {xmlid}")
+            t.build(
+                clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
+            )
         log.info("\nSuccess! Run `pretext view` to see the results.\n")
     except ValidationError as e:
         # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
@@ -819,7 +843,7 @@ def deploy(
     ctx: click.Context, update_source: bool, stage_only: bool, preview: bool
 ) -> None:
     """
-    Automatically deploys most recent build of [TARGET] to GitHub Pages,
+    Automatically deploys project to GitHub Pages,
     making it available to the general public.
     Requires that your project is under Git version control
     properly configured with GitHub and GitHub Pages. Deployed
