@@ -16,7 +16,7 @@ import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET
 from lxml.etree import _ElementTree, _Element
-from pelican.settings import configure_settings, DEFAULT_CONFIG
+import pelican.settings
 from typing import Any, cast, List, Optional
 
 
@@ -709,7 +709,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
 
 
 def pelican_default_settings() -> dict[str, t.Any]:
-    config = DEFAULT_CONFIG
+    config = pelican.settings.DEFAULT_CONFIG
     config["THEME"] = "../pelican/ptx-theme"  # TODO: FIXME
     config["RELATIVE_URLS"] = True
     config["TIMEZONE"] = "Etc/UTC"

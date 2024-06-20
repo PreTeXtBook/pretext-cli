@@ -2,7 +2,6 @@ from __future__ import annotations
 from contextlib import AbstractContextManager
 from pathlib import Path
 import importlib.resources as ir
-import shutil
 import zipfile
 
 
