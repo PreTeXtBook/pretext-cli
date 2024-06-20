@@ -28,6 +28,7 @@ DEMO_MAPPING = {
     "source/backmatter.ptx": ["backmatter"],
 }
 
+
 # Return True if the given binary is installed and exits with a return code of 0; otherwise, return False. This provides an easy way to check that a given binary is installed.
 def check_installed(
     # The command to run to check that a given binary is installed; for example, `["python", "--version"]` would check that Python is installed.
