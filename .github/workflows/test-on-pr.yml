@@ -42,6 +42,7 @@ jobs:
           python -m poetry run mypy --install-types --non-interactive
 
   build:
+    needs: format-and-types
     strategy:
       fail-fast: true
       matrix:
