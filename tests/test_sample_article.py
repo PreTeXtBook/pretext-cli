@@ -1,6 +1,7 @@
 import shutil
 import pytest
 from pathlib import Path
+import errorhandler  # type: ignore
 from pretext.project import Project
 from pretext.resources import resource_base_path
 import pretext.utils
@@ -12,6 +13,7 @@ from .common import check_installed
     reason="Note: several tests are skipped, since xelatex wasn't installed.",
 )
 def test_sample_article(tmp_path: Path) -> None:
+    error_checker = errorhandler.ErrorHandler(logger="ptxlogger")
     prj_path = tmp_path / "sample"
     shutil.copytree(
         resource_base_path() / "core" / "examples" / "sample-article", prj_path
@@ -20,3 +22,4 @@ def test_sample_article(tmp_path: Path) -> None:
         project = Project.parse()
         t = project.get_target()
         t.build()
+        assert not error_checker.fired
