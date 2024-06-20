@@ -16,6 +16,7 @@ jobs:
         run: python -m pip install flake8 black mypy
       - name: Initialize project
         run: |
+          python -m pip install -e .
           python scripts/fetch_core.py
           python scripts/zip_templates.py
       - name: Check formatting with black
