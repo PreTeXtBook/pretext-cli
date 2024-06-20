@@ -289,9 +289,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
         )
         log.error("No new project will be generated.")
         return
-    log.info(
-        f"Generating new PreTeXt project in `{directory_fullpath}`"
-    )
+    log.info(f"Generating new PreTeXt project in `{directory_fullpath}`")
     directory_fullpath.mkdir(exist_ok=True)
     if url_template is not None:
         log.info(f"Using template at `{url_template}`")
