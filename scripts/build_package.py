@@ -1,6 +1,6 @@
 import subprocess
 import fetch_core
-import scripts.bundle_resources as bundle_resources
+import bundle_resources
 
 
 def main() -> None:
