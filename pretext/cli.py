@@ -469,6 +469,7 @@ def build(
     if generate and not no_generate:
         try:
             for t in targets:
+                log.info(f"Generating assets for {t.name}")
                 t.generate_assets(only_changed=False, xmlid=xmlid)
             no_generate = True
         except Exception as e:
@@ -484,9 +485,9 @@ def build(
     # Call build
     try:
         for t in targets:
-            log.debug(f"Building target {t.name}")
+            log.info(f"Building target {t.name}")
             if xmlid is not None:
-                log.debug(f"with root of tree below {xmlid}")
+                log.info(f"with root of tree below {xmlid}")
             t.build(
                 clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
             )
