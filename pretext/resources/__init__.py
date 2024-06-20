@@ -12,10 +12,6 @@ log = logging.getLogger("ptxlogger")
 RESOURCE_BASE_PATH = Path.home() / ".ptx" / VERSION
 
 
-def path(resource_type: t.Literal["core", "templates"]) -> Path:
-    return Path(RESOURCE_BASE_PATH / resource_type)
-
-
 def install(reinstall=False) -> None:
     if RESOURCE_BASE_PATH.exists():
         if reinstall:

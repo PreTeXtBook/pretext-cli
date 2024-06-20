@@ -24,7 +24,7 @@ from .. import core
 from .. import codechat
 from .. import utils
 from .. import types as pt  # PreTeXt types
-from .. import templates
+from ..resources import RESOURCE_BASE_PATH
 from .. import VERSION
 
 
@@ -286,7 +286,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             if not self.publication_abspath().exists():
                 # ... then use the CLI's built-in template file.
                 # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
-                with templates.resource_path("publication.ptx") as self.publication:
+                with RESOURCE_BASE_PATH / "templates" / "publication.ptx" as self.publication:
                     pass
         # Otherwise, verify that the provided publication file exists. TODO: It is silly to check that all publication files exist.  We warn when they don't.  If the target we are calling has a non-existent publication file, then that error will be caught anyway.
         else:
@@ -1441,7 +1441,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         f"Your existing {resource} file has been backed up at {backup_resource_path}."
                     )
             if resource != "requirements.txt":
-                with templates.resource_path(resource) as resource_path:
+                with RESOURCE_BASE_PATH / "templates" / resource as resource_path:
                     if (
                         not project_resource_path.exists()
                         or resource_path.read_text()
