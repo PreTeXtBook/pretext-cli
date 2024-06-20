@@ -9,7 +9,7 @@ import pytest
 
 from pretext import project as pr
 from pretext import utils
-from pretext.resources import RESOURCE_BASE_PATH
+from pretext.resources import resource_base_path
 
 from .common import DEMO_MAPPING, check_installed
 
@@ -51,7 +51,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.source == Path("main.ptx")
             assert (
                 target.publication
-                == RESOURCE_BASE_PATH / "templates" / "publication.ptx"
+                == resource_base_path() / "templates" / "publication.ptx"
             )
             assert target.output_dir == Path(name)
             assert target.deploy_dir is None

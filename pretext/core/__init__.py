@@ -10,7 +10,7 @@ except ImportError as e:
 from .. import resources
 from .. import CORE_COMMIT, VERSION
 
-set_ptx_path(resources.RESOURCE_BASE_PATH / "core")
+set_ptx_path(resources.resource_base_path() / "core")
 
 
 def cli_build_message() -> str:

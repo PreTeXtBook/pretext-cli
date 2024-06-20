@@ -8,29 +8,36 @@ from .. import VERSION, CORE_COMMIT
 
 log = logging.getLogger("ptxlogger")
 
-RESOURCE_BASE_PATH = Path.home() / ".ptx" / VERSION
+_RESOURCE_BASE_PATH = Path.home() / ".ptx" / VERSION
 
 
 def install(reinstall: bool = False) -> None:
-    if RESOURCE_BASE_PATH.exists():
+    if _RESOURCE_BASE_PATH.exists():
         if reinstall:
-            log.info(f"Deleting existing resources at {RESOURCE_BASE_PATH}")
-            shutil.rmtree(RESOURCE_BASE_PATH)
+            log.info(f"Deleting existing resources at {_RESOURCE_BASE_PATH}")
+            shutil.rmtree(_RESOURCE_BASE_PATH)
         else:
-            log.warning(f"Resources are already installed at {RESOURCE_BASE_PATH}")
+            log.warning(f"Resources are already installed at {_RESOURCE_BASE_PATH}")
             return
-    RESOURCE_BASE_PATH.mkdir(parents=True)
+    _RESOURCE_BASE_PATH.mkdir(parents=True)
 
     log.info("Installing core resources")
     with importlib.resources.path("pretext.resources", "core.zip") as static_zip:
         with zipfile.ZipFile(static_zip, "r") as zip:
-            zip.extractall(path=RESOURCE_BASE_PATH)
-        (RESOURCE_BASE_PATH / f"pretext-{CORE_COMMIT}").rename(
-            RESOURCE_BASE_PATH / "core"
+            zip.extractall(path=_RESOURCE_BASE_PATH)
+        (_RESOURCE_BASE_PATH / f"pretext-{CORE_COMMIT}").rename(
+            _RESOURCE_BASE_PATH / "core"
         )
 
     log.info("Installing templates")
-    (RESOURCE_BASE_PATH / "templates").mkdir()
+    (_RESOURCE_BASE_PATH / "templates").mkdir()
     with importlib.resources.path("pretext.resources", "templates.zip") as static_zip:
         with zipfile.ZipFile(static_zip, "r") as zip:
-            zip.extractall(path=RESOURCE_BASE_PATH / "templates")
+            zip.extractall(path=_RESOURCE_BASE_PATH / "templates")
+
+
+def resource_base_path() -> Path:
+    if not _RESOURCE_BASE_PATH.exists():
+        log.info(f"Installing resources to {_RESOURCE_BASE_PATH}")
+        install()
+    return _RESOURCE_BASE_PATH

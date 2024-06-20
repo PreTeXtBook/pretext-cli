@@ -94,7 +94,7 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
         dirpath = Path()  # current directory
     pp = project_path(dirpath)
     if pp is None:
-        with resources.RESOURCE_BASE_PATH / "templates" / "project.ptx" as project_manifest:
+        with resources.resource_base_path() / "templates" / "project.ptx" as project_manifest:
             return ET.parse(project_manifest)
     else:
         project_manifest = pp / "project.ptx"
