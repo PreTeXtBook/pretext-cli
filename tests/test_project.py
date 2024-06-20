@@ -49,7 +49,10 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.name == name
             assert target.format == format
             assert target.source == Path("main.ptx")
-            assert target.publication == RESOURCE_BASE_PATH / "templates" / "publication.ptx"
+            assert (
+                target.publication
+                == RESOURCE_BASE_PATH / "templates" / "publication.ptx"
+            )
             assert target.output_dir == Path(name)
             assert target.deploy_dir is None
             assert target.xsl is None
