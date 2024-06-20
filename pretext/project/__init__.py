@@ -9,8 +9,8 @@ import pickle
 from pathlib import Path
 
 from lxml import etree as ET
-import pelican
-import pelican.settings
+import pelican  # type: ignore
+import pelican.settings  # type: ignore
 from pydantic import (
     field_validator,
     model_validator,
@@ -1402,7 +1402,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     (t.name.capitalize(), t.deploy_dir_path())
                     for t in self.deploy_targets()
                 ]
-                pelican.Pelican(pelican.settings.configure_settings(config)).run()
+                pelican.Pelican(pelican.settings.configure_settings(config)).run()  # type: ignore
             log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
 
     def deploy(
