@@ -710,8 +710,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
 
 def pelican_default_settings() -> dict[str, t.Any]:
     config = DEFAULT_CONFIG
-    config["THEME"] = "pelican-ptx"
-    config["OUTPUT_PATH"] = "foobar-out"
+    config["THEME"] = "../pelican/ptx-theme"  # TODO: FIXME
     config["RELATIVE_URLS"] = True
     config["TIMEZONE"] = "Etc/UTC"
     config["ARTICLE_PATHS"] = ["updates"]
