@@ -708,7 +708,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
                 proc.terminate()
 
 
-def pelican_default_settings() -> dict[str, t.Any]:
+def pelican_default_settings() -> t.Dict[str, t.Any]:
     config = pelican.settings.DEFAULT_CONFIG
     config["THEME"] = "../pelican/ptx-theme"  # TODO: FIXME
     config["RELATIVE_URLS"] = True
