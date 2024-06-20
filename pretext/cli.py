@@ -842,7 +842,7 @@ def deploy(
     ctx: click.Context, update_source: bool, stage_only: bool, preview: bool
 ) -> None:
     """
-    Automatically deploys most recent build of [TARGET] to GitHub Pages,
+    Automatically deploys project to GitHub Pages,
     making it available to the general public.
     Requires that your project is under Git version control
     properly configured with GitHub and GitHub Pages. Deployed
