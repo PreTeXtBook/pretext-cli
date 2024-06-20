@@ -26,7 +26,7 @@ jobs:
       - name: Check types
         run: python -m mypy --install-types --non-interactive
 
-  build:
+  tests:
     needs: format-and-types
     strategy:
       fail-fast: true
