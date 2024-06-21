@@ -23,6 +23,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "interactive",
+        "mermaid",
     ],
     "latex": [
         "webwork",
@@ -32,6 +33,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "interactive",
+        "mermaid",
     ],
     "epub": [
         "webwork",
@@ -42,6 +44,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "interactive",
+        "mermaid",
     ],
     "kindle": [
         "webwork",
@@ -52,6 +55,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "interactive",
+        "mermaid",
     ],
     "braille": [
         "webwork",
@@ -62,6 +66,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "interactive",
+        "mermaid",
     ],
     "webwork": [
         "webwork",
@@ -75,6 +80,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "interactive",
+        "mermaid",
     ],
 }
 
@@ -87,6 +93,7 @@ ASSET_TO_XPATH = {
     "codelens": ".//program[@interactive = 'codelens']",
     "datafile": ".//datafile",
     "interactive": ".//interactive",
+    "mermaid": ".//mermaid",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
@@ -99,6 +106,7 @@ ASSET_TO_DIR = {
     "interactive": ["preview", "qrcode"],
     "codelens": ["trace"],
     "datafile": ["datafile"],
+    "mermaid": ["mermaid"],
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
@@ -106,11 +114,13 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "asymptote": ["pdf"],
         "latex-image": [],
         "sageplot": ["pdf", "png"],
+        "mermaid": ["png"],
     },
     "latex": {
         "asymptote": ["pdf"],
         "latex-image": [],
         "sageplot": ["pdf", "png"],
+        "mermaid": ["png"],
     },
     "html": {
         "asymptote": ["html"],
@@ -126,21 +136,25 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "asymptote": ["svg"],
         "latex-image": ["svg"],
         "sageplot": ["svg"],
+        "mermaid": ["png"],
     },
     "kindle": {
         "asymptote": ["png"],
         "latex-image": ["png"],
         "sageplot": ["png"],
+        "mermaid": ["png"],
     },
     "braille": {
         "asymptote": ["all"],
         "latex-image": ["all"],
         "sageplot": ["all"],
+        "mermaid": ["png"],
     },
     "custom": {
         "asymptote": ["all"],
         "latex-image": ["all"],
         "sageplot": ["all"],
+        "mermaid": ["png"],
     },
 }
 
