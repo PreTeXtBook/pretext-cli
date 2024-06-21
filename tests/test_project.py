@@ -11,10 +11,9 @@ from pretext import project as pr
 from pretext import utils
 from pretext.resources import resource_base_path
 
-from .common import DEMO_MAPPING, check_installed
+from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
 
 
-EXAMPLES_DIR = Path(__file__).parent / "examples"
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 HAS_XELATEX = check_installed(["xelatex", "--version"])
 
