@@ -1,44 +1,32 @@
+from pathlib import Path
 import requests
-import zipfile
-import io
 import shutil
 import tempfile
+import zipfile
+
 from pretext import CORE_COMMIT
-from pathlib import Path
-from remove_path import remove_path
 
 
 def main() -> None:
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
 
     print(f"Requesting core PreTeXtBook/pretext commit {CORE_COMMIT} from GitHub.")
-    pretext_dir = Path("pretext").resolve()
+    core_zip_path = Path("pretext").resolve() / "resources" / "core.zip"
     r = requests.get(
         f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip"
     )
-    archive = zipfile.ZipFile(io.BytesIO(r.content))
+    with open(core_zip_path, "wb") as f:
+        f.write(r.content)
     with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
-        archive.extractall(tmpdirname)
-        print("Creating zip of static folders")
-        # Copy required folders to a single folder to be zipped:
-        for subdir in ["xsl", "schema", "script", "css", "js", "js_lib", "pretext"]:
-            shutil.copytree(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / subdir,
-                Path(tmpdirname) / "static" / subdir,
+        with zipfile.ZipFile(core_zip_path) as archive:
+            pretext_py = archive.extract(
+                f"pretext-{CORE_COMMIT}/pretext/pretext.py",
+                path=tmpdirname,
             )
-        shutil.make_archive(
-            "pretext/core/resources", "zip", Path(tmpdirname) / "static"
-        )
-        print("Copying new version of pretext.py to core directory")
-        remove_path(pretext_dir / "core" / "pretext.py")
+            assert Path(pretext_py).exists()
         shutil.copyfile(
-            Path(tmpdirname).resolve()
-            / f"pretext-{CORE_COMMIT}"
-            / "pretext"
-            / "pretext.py",
-            Path("pretext") / "core" / "pretext.py",
+            Path(pretext_py), Path("pretext").resolve() / "core" / "pretext.py"
         )
-
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
 
 

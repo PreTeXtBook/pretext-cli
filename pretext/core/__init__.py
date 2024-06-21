@@ -7,10 +7,10 @@ except ImportError as e:
         "Run `scripts/fetch_core.py` to grab a copy of pretex core.\n"
         "The original error message is: " + e.msg
     )
-from . import resources
+from .. import resources
 from .. import CORE_COMMIT, VERSION
 
-set_ptx_path(resources.path())
+set_ptx_path(resources.resource_base_path() / "core")
 
 
 def cli_build_message() -> str:

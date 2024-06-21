@@ -19,7 +19,7 @@ from lxml.etree import _ElementTree, _Element
 from typing import Any, cast, List, Optional
 
 
-from . import core, templates, constants
+from . import core, constants, resources
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -94,7 +94,7 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
         dirpath = Path()  # current directory
     pp = project_path(dirpath)
     if pp is None:
-        with templates.resource_path("project.ptx") as project_manifest:
+        with resources.resource_base_path() / "templates" / "project.ptx" as project_manifest:
             return ET.parse(project_manifest)
     else:
         project_manifest = pp / "project.ptx"
@@ -173,7 +173,7 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
 
 def xml_source_validates_against_schema(xmlfile: Path) -> bool:
     # get path to RelaxNG schema file:
-    schemarngfile = core.resources.path("schema", "pretext.rng")
+    schemarngfile = resources.resource_base_path() / "core" / "schema" / "pretext.rng"
 
     # Open schemafile for validation:
     relaxng = ET.RelaxNG(file=schemarngfile)
@@ -295,7 +295,9 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path) -> None:
     log.debug(f"Copying all files in {xsl_dir} to {output_dir}")
     shutil.copytree(xsl_dir, output_dir, dirs_exist_ok=True)
     log.debug(f"Copying core XSL to {output_dir}/core")
-    shutil.copytree(core.resources.path("xsl"), output_dir / "core")
+    shutil.copytree(
+        resources.resource_base_path() / "core" / "xsl", output_dir / "core"
+    )
 
 
 def check_executable(exec_name: str) -> Optional[str]:
@@ -439,7 +441,9 @@ def show_target_hints(
 
 
 def npm_install() -> None:
-    with working_directory(core.resources.path("script", "mjsre")):
+    with working_directory(
+        resources.resource_base_path() / "core" / "script" / "mjsre"
+    ):
         log.info("Attempting to install/update required node packages.")
         try:
             subprocess.run("npm install", shell=True)

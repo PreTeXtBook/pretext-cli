@@ -20,7 +20,7 @@ jobs:
         run: |
           python -m pip install -e .
           python scripts/fetch_core.py
-          python scripts/zip_templates.py
+          python scripts/bundle_resources.py
       - name: Check formatting with black
         run: python -m black --check --diff $(git ls-files "*.py")
       - name: Check for lint
@@ -75,7 +75,7 @@ jobs:
         run: |
           python -m poetry install
           python -m poetry run python scripts/fetch_core.py
-          python -m poetry run python scripts/zip_templates.py
+          python -m poetry run python scripts/bundle_resources.py
 
       - name: Test with pytest
         run: |

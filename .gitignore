@@ -138,11 +138,8 @@ cython_debug/
 
 #pretext-core
 pretext/core/pretext.py
-pretext/core/resources.zip
-#shipped templates
-pretext/templates/resources
-#old "static" stuff (deprecated
-pretext/static
+#zipped resources
+pretext/resources/*.zip
 
 #default new pretext project
 new-pretext-project

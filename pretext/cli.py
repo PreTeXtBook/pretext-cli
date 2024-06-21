@@ -25,7 +25,7 @@ from functools import update_wrapper
 
 from . import (
     utils,
-    templates,
+    resources,
     core,
     constants,
     plastex,
@@ -248,7 +248,8 @@ def devscript(args: List[str]) -> None:
     """
     PY_CMD = sys.executable
     subprocess.run(
-        [PY_CMD, str(core.resources.path("pretext", "pretext"))] + list(args)
+        [PY_CMD, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
+        + list(args)
     )
 
 
@@ -284,47 +285,35 @@ def new(template: str, directory: Path, url_template: str) -> None:
     """
     directory_fullpath = Path(directory).resolve()
     if utils.project_path(directory_fullpath) is not None:
-        log.warning(
+        log.error(
             f"A project already exists in `{utils.project_path(directory_fullpath)}`."
         )
-        log.warning("No new project will be generated.")
+        log.error("No new project will be generated.")
         return
-    log.info(
-        f"Generating new PreTeXt project in `{directory_fullpath}` using `{template}` template."
-    )
+    log.info(f"Generating new PreTeXt project in `{directory_fullpath}`")
+    directory_fullpath.mkdir(exist_ok=True)
     if url_template is not None:
+        log.info(f"Using template at `{url_template}`")
+        # get project and extract to directory
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
+        with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+            archive.extractall(tmpdirname)
+            content_path = [Path(tmpdirname) / i for i in os.listdir(tmpdirname)][0]
+            shutil.copytree(content_path, directory_fullpath, dirs_exist_ok=True)
     else:
-        with templates.resource_path(f"{template}.zip") as template_path:
-            archive = zipfile.ZipFile(template_path)
-    # find (first) project.ptx to use as root of template
-    filenames = [Path(filepath).name for filepath in archive.namelist()]
-    project_ptx_index = filenames.index("project.ptx")
-    project_ptx_path = Path(archive.namelist()[project_ptx_index])
-    project_dir_path = project_ptx_path.parent
-    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
-        temp_path = Path(tmpdirname) / "new-project"
-        temp_path.mkdir()
-        for filepath in [
-            filepath
-            for filepath in archive.namelist()
-            if project_dir_path in Path(filepath).parents
-        ]:
-            archive.extract(filepath, path=temp_path)
-        tmpsubdirname = temp_path / project_dir_path
-        shutil.copytree(tmpsubdirname, directory_fullpath, dirs_exist_ok=True)
-    # generate remaining boilerplate like requirements.txt
-    project = Project.parse(directory_fullpath)
-    project.generate_boilerplate(update_requirements=True)
-    if len(project.targets) == 0:
-        log.warning("The generated project has no targets!")
-    else:
-        target = project.targets[0]
-        log.info(f"Success! Open `{target.source_abspath()}` to edit your document")
-    log.info(
-        f"Then try to `pretext build` and `pretext view` from within `{directory_fullpath}`."
-    )
+        log.info(f"Using `{template}` template.")
+        # copy project from installed resources
+        with resources.resource_base_path() / "templates" / f"{template}" as template_path:
+            shutil.copytree(template_path, directory_fullpath, dirs_exist_ok=True)
+        # generate missing boilerplate
+        with utils.working_directory(directory_fullpath):
+            project_path = utils.project_path()
+            if project_path is None:
+                project = Project()
+            else:
+                project = Project.parse(project_path)
+            project.generate_boilerplate(update_requirements=True)
 
 
 # pretext init

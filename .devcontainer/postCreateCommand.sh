@@ -8,7 +8,7 @@ echo 'export PATH="/root/.local/bin:$PATH"' > ~/.bashrc
 sudo `which poetry` config virtualenvs.create false
 sudo `which poetry` install --with dev
 python scripts/fetch_core.py
-python scripts/zip_templates.py
+python scripts/bundle_resources.py
 playwright install-deps
 playwright install
 # Run mypy once so that it will install any needed type stubs. After this, the VSCode extension will run it automatically.

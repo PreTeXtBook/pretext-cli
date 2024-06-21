@@ -1,6 +1,6 @@
 import subprocess
 import fetch_core
-import zip_templates
+import bundle_resources
 
 
 def main() -> None:
@@ -10,7 +10,7 @@ def main() -> None:
 
     # ensure up-to-date "static" resources
     fetch_core.main()
-    zip_templates.main()
+    bundle_resources.main()
 
     # Build package
     subprocess.run(["poetry", "build"], shell=True)
