@@ -2,10 +2,10 @@ import os
 from collections.abc import Generator
 from contextlib import contextmanager
 from http.server import SimpleHTTPRequestHandler
-import shutil
 from pathlib import Path
 import platform
 import re
+import shutil
 import socketserver
 import socket
 import subprocess
