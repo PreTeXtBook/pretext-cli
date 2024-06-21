@@ -185,12 +185,6 @@ def main(ctx: click.Context, targets: bool) -> None:
         log.info("Run `pretext --help` for help.")
 
 
-@main.result_callback()
-def exit_with_errors(*_, **__):  # type: ignore
-    if error_exit_handler.fired:
-        raise SystemExit(1)
-
-
 # pretext support
 @main.command(
     short_help="Use when communicating with PreTeXt support.",
