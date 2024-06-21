@@ -734,4 +734,6 @@ def pelican_default_settings() -> t.Dict[str, t.Any]:
     config["TRANSLATION_FEED_ATOM"] = None
     config["AUTHOR_FEED_ATOM"] = None
     config["AUTHOR_FEED_RSS"] = None
+    # for now, all PTX_ custom settings are strings (due to use of XML)
+    config["PTX_SHOW_TARGETS"] = "yes"
     return config
