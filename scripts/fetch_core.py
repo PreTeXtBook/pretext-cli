@@ -28,7 +28,7 @@ def main() -> None:
             shutil.copytree(
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "examples",
                 Path("tests").resolve() / "examples" / "core" / "examples",
-                dirs_exist_ok=True
+                dirs_exist_ok=True,
             )
             shutil.rmtree(
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "examples",
@@ -36,20 +36,22 @@ def main() -> None:
             shutil.copytree(
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "doc",
                 Path("tests").resolve() / "examples" / "core" / "doc",
-                dirs_exist_ok=True
+                dirs_exist_ok=True,
             )
             shutil.rmtree(
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "doc",
             )
             with zipfile.ZipFile(
                 Path("pretext").resolve() / "resources" / "core.zip",
-                'w',
-                zipfile.ZIP_DEFLATED
+                "w",
+                zipfile.ZIP_DEFLATED,
             ) as zip_ref:
                 for folder_name, _, filenames in os.walk(tmpdirname):
                     for filename in filenames:
                         file_path = Path(folder_name) / filename
-                        zip_ref.write(file_path, arcname=os.path.relpath(file_path, tmpdirname))
+                        zip_ref.write(
+                            file_path, arcname=os.path.relpath(file_path, tmpdirname)
+                        )
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
 
 
