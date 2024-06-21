@@ -500,7 +500,7 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
         log.info("----------------------------------------------------")
         raise SystemExit(1)
     else:
-        log.info()
+        log.info("")
 
 
 def format_docstring_as_help_str(string: str) -> str:
