@@ -680,12 +680,12 @@ sub {
     padding: 1.5rem
 }
 
-header {
+body>header {
     background: repeat url(ptx-bg-light.svg)
 }
 
 @media (prefers-color-scheme: dark) {
-    header {
+    body>header {
         background: url(ptx-bg-dark.svg)
     }
 }
