@@ -1399,30 +1399,36 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     dirs_exist_ok=True,
                 )
             else:  # strategy == "pelican_default" or "pelican_custom"
-                log.info(f"Staging generated site at `{self.stage_abspath()}`.")
-                # set variables
-                config = utils.pelican_default_settings()
-                config["OUTPUT_PATH"] = str(self.stage_abspath())
-                config["PATH"] = str(self.site_abspath())
-                root = self.deploy_targets()[0].source_element()
-                for title_ele in root.iterdescendants("title"):
-                    config["SITENAME"] = title_ele.text
-                    break
-                else:
-                    config["SITENAME"] = "My PreTeXt Project"
-                for title_ele in root.iterdescendants("subtitle"):
-                    config["SITESUBTITLE"] = title_ele.text
-                    break
-                config["PTX_TARGETS"] = [
-                    (t.name.capitalize(), t.deploy_dir_path())
-                    for t in self.deploy_targets()
-                ]
-                if strategy == "pelican_custom":
-                    customization = ET.parse(self.site_abspath() / "pelican.ptx")
-                    customization.xinclude()
-                    for child in customization.getroot():
-                        config[str(child.tag).upper().replace("-", "_")] = child.text
-                pelican.Pelican(pelican.settings.configure_settings(config)).run()  # type: ignore
+                with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_dir_str:
+                    log.info(f"Staging generated site at `{self.stage_abspath()}`.")
+                    # set variables
+                    config = utils.pelican_default_settings()
+                    config["OUTPUT_PATH"] = str(self.stage_abspath())
+                    if strategy == "pelican_custom":
+                        config["PATH"] = str(self.site_abspath())
+                    else:
+                        config["PATH"] = tmp_dir_str
+                    root = self.deploy_targets()[0].source_element()
+                    for title_ele in root.iterdescendants("title"):
+                        config["SITENAME"] = title_ele.text
+                        break
+                    else:
+                        config["SITENAME"] = "My PreTeXt Project"
+                    for title_ele in root.iterdescendants("subtitle"):
+                        config["SITESUBTITLE"] = title_ele.text
+                        break
+                    config["PTX_TARGETS"] = [
+                        (t.name.capitalize(), t.deploy_dir_path())
+                        for t in self.deploy_targets()
+                    ]
+                    if strategy == "pelican_custom":
+                        customization = ET.parse(self.site_abspath() / "pelican.ptx")
+                        customization.xinclude()
+                        for child in customization.getroot():
+                            config[str(child.tag).upper().replace("-", "_")] = (
+                                child.text
+                            )
+                    pelican.Pelican(pelican.settings.configure_settings(config)).run()  # type: ignore
             log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
 
     def deploy(
