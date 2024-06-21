@@ -480,12 +480,19 @@ def remove_path(path: Path) -> None:
         shutil.rmtree(path)  # remove dir and all it contains
 
 
+def has_errors(mh: logging.handlers.MemoryHandler) -> bool:
+    """
+    Checks to see if anything (errors etc.) is in the memory handler.
+    """
+    return len(mh.buffer) > 0
+
+
 def exit_command(mh: logging.handlers.MemoryHandler) -> None:
     """
-    Clean's up at the end of a run.
+    Clean up at the end of a run.
     Checks to see if anything (errors etc.) is in the memory handler.  If it is, reports that there are errors before the handler gets flushed.  Otherwise, adds a single blank line.
     """
-    if len(mh.buffer) > 0:
+    if has_errors(mh):
         log.info("\n----------------------------------------------------")
         log.info("While running pretext, the following errors occurred:\n")
         mh.flush()
