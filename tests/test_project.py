@@ -8,8 +8,8 @@ import pydantic
 import pytest
 
 from pretext import project as pr
-from pretext import templates
 from pretext import utils
+from pretext.resources import resource_base_path
 
 from .common import DEMO_MAPPING, check_installed
 
@@ -36,8 +36,6 @@ def test_defaults(tmp_path: Path) -> None:
         project = pr.Project(ptx_version="2")
         for t in ts:
             ts_dict[t[0]] = project.new_target(*t)
-        with templates.resource_path("publication.ptx") as pub_path:
-            pass
         assert project._path == Path.cwd() / Path("project.ptx")
         assert project.source == Path("source")
         assert project.publication == Path("publication")
@@ -51,7 +49,10 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.name == name
             assert target.format == format
             assert target.source == Path("main.ptx")
-            assert target.publication == pub_path
+            assert (
+                target.publication
+                == resource_base_path() / "templates" / "publication.ptx"
+            )
             assert target.output_dir == Path(name)
             assert target.deploy_dir is None
             assert target.xsl is None
