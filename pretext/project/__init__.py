@@ -1425,9 +1425,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         customization = ET.parse(self.site_abspath() / "pelican.ptx")
                         customization.xinclude()
                         for child in customization.getroot():
-                            config[str(child.tag).upper().replace("-", "_")] = (
-                                child.text
-                            )
+                            config[
+                                str(child.tag).upper().replace("-", "_")
+                            ] = child.text
                     pelican.Pelican(pelican.settings.configure_settings(config)).run()  # type: ignore
             log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
 
