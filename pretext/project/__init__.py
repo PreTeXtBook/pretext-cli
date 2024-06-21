@@ -1418,9 +1418,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     for t in self.deploy_targets()
                 ]
                 if strategy == "pelican_custom":
-                    customization = ET.parse(
-                        self.site_abspath() / "pelican.ptx"
-                    )
+                    customization = ET.parse(self.site_abspath() / "pelican.ptx")
                     customization.xinclude()
                     for child in customization.getroot():
                         config[str(child.tag).upper().replace("-", "_")] = child.text
