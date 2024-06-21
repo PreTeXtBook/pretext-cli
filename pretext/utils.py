@@ -714,10 +714,15 @@ def stop_server(port: t.Optional[int] = None) -> None:
 
 def pelican_default_settings() -> t.Dict[str, t.Any]:
     config = pelican.settings.DEFAULT_CONFIG
-    config["THEME"] = "../pelican/ptx-theme"  # TODO: FIXME
+    config["THEME"] = resources.resource_base_path() / "pelican" / "ptx-theme"
     config["RELATIVE_URLS"] = True
     config["TIMEZONE"] = "Etc/UTC"
     config["ARTICLE_PATHS"] = ["updates"]
     config["ARTICLE_SAVE_AS"] = "updates/{date:%Y%m%d}-{slug}.html"
     config["ARTICLE_URL"] = config["ARTICLE_SAVE_AS"]
+    config["FEED_ALL_ATOM"] = None
+    config["CATEGORY_FEED_ATOM"] = None
+    config["TRANSLATION_FEED_ATOM"] = None
+    config["AUTHOR_FEED_ATOM"] = None
+    config["AUTHOR_FEED_RSS"] = None
     return config

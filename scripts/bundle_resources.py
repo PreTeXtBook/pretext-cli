@@ -7,9 +7,10 @@ def main() -> None:
         str(Path("pretext") / "resources" / "templates"), "zip", Path("templates")
     )
     print("Templates successfully zipped.")
-    # TODO: incorporate in pelican branch
-    # shutil.make_archive(str(Path("pretext") / "resources" / "pelican"), 'zip', Path("pelican"))
-    # print("Pelican resources successfully zipped.")
+    shutil.make_archive(
+        str(Path("pretext") / "resources" / "pelican"), "zip", Path("pelican")
+    )
+    print("Pelican resources successfully zipped.")
 
 
 if __name__ == "__main__":
