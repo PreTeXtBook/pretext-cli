@@ -47,7 +47,6 @@ pelican = {extras = ["markdown"], version = "^4.9.1"}
 
 # Development dependencies
 # ------------------------
-errorhandler = "^2.0.1"
 [tool.poetry.group.dev.dependencies]
 black = ">=23,<25"
 codechat-server = "^0"
@@ -63,6 +62,7 @@ toml = "^0"
 
 # Misc
 # ----
+errorhandler = "^2.0.1"
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
 

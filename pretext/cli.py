@@ -16,7 +16,6 @@ import platform
 import webbrowser
 from pathlib import Path
 import atexit
-import errorhandler  # type: ignore
 import subprocess
 from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
@@ -55,9 +54,6 @@ error_flush_handler = logging.handlers.MemoryHandler(
 )
 error_flush_handler.setLevel(logging.ERROR)
 log.addHandler(error_flush_handler)
-
-# error_exit_handler captures error/critical logs for exiting with failure at the end of a CLI run
-error_exit_handler = errorhandler.ErrorHandler(logger="ptxlogger")
 
 # Call exit_command() at close to handle errors encountered during run.
 atexit.register(utils.exit_command, error_flush_handler)
@@ -183,12 +179,6 @@ def main(ctx: click.Context, targets: bool) -> None:
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
-
-
-@main.result_callback()
-def exit_with_errors(*_, **__):  # type: ignore
-    if error_exit_handler.fired:
-        raise SystemExit(1)
 
 
 # pretext support
