@@ -510,4 +510,6 @@ def test_stage(tmp_path: Path) -> None:
         assert project.deploy_strategy() == "pelican_default"
         project.stage_deployment()
         assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "index.html").exists()
+        assert (project.stage_abspath() / "web2" / "article-id.html").exists()
         shutil.rmtree(project.stage_abspath())
