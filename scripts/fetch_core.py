@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import requests
 import shutil
@@ -19,14 +20,36 @@ def main() -> None:
         f.write(r.content)
     with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
         with zipfile.ZipFile(core_zip_path) as archive:
-            pretext_py = archive.extract(
-                f"pretext-{CORE_COMMIT}/pretext/pretext.py",
-                path=tmpdirname,
+            archive.extractall(tmpdirname)
+            shutil.copyfile(
+                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "pretext" / "pretext.py",
+                Path("pretext").resolve() / "core" / "pretext.py",
             )
-            assert Path(pretext_py).exists()
-        shutil.copyfile(
-            Path(pretext_py), Path("pretext").resolve() / "core" / "pretext.py"
-        )
+            shutil.copytree(
+                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "examples",
+                Path("tests").resolve() / "examples" / "core" / "examples",
+                dirs_exist_ok=True
+            )
+            shutil.rmtree(
+                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "examples",
+            )
+            shutil.copytree(
+                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "doc",
+                Path("tests").resolve() / "examples" / "core" / "doc",
+                dirs_exist_ok=True
+            )
+            shutil.rmtree(
+                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "doc",
+            )
+            with zipfile.ZipFile(
+                Path("pretext").resolve() / "resources" / "core.zip",
+                'w',
+                zipfile.ZIP_DEFLATED
+            ) as zip_ref:
+                for folder_name, _, filenames in os.walk(tmpdirname):
+                    for filename in filenames:
+                        file_path = Path(folder_name) / filename
+                        zip_ref.write(file_path, arcname=os.path.relpath(file_path, tmpdirname))
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
 
 
