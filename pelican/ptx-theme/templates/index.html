@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+    {% if SITE_DESCRIPTION %}
+        <div>{{ SITE_DESCRIPTION }}</div>
+    {% endif %}
     <ul>
         {% for title, link in PTX_TARGETS %}
             <li><a href="{{ link }}">{{ title }}</a></li>
