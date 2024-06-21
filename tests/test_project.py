@@ -513,3 +513,24 @@ def test_stage(tmp_path: Path) -> None:
         assert (project.stage_abspath() / "index.html").exists()
         assert (project.stage_abspath() / "web2" / "article-id.html").exists()
         shutil.rmtree(project.stage_abspath())
+
+        project.site_abspath().mkdir()
+        (project.site_abspath() / "foo.html").touch()
+        assert project.deploy_strategy() == "static"
+        project.stage_deployment()
+        assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "foo.html").exists()
+        assert (project.stage_abspath() / "web2" / "article-id.html").exists()
+        shutil.rmtree(project.stage_abspath())
+
+        (project.site_abspath() / "pelican.ptx").touch()
+        with open(project.site_abspath() / "pelican.ptx", "w") as f:
+            print("<pelican><site-description>foobar</site-description></pelican>", file=f)
+        assert project.deploy_strategy() == "pelican_custom"
+        project.stage_deployment()
+        assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "index.html").exists()
+        with open(project.stage_abspath() / "index.html", 'r') as f:
+            assert "foobar" in f.read()
+        assert (project.stage_abspath() / "web2" / "article-id.html").exists()
+        shutil.rmtree(project.stage_abspath())
