@@ -3,7 +3,6 @@ import pytest
 from pathlib import Path
 import errorhandler  # type: ignore
 from pretext.project import Project
-from pretext.resources import resource_base_path
 import pretext.utils
 from .common import check_installed
 
