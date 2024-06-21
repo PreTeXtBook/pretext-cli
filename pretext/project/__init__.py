@@ -356,6 +356,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def deploy_dir_relpath(self) -> Path:
         return self._project.stage / self.deploy_dir_path()
 
+    def deploy_path(self) -> Path:
+        if self.output_filename is None:
+            return self.deploy_dir_path()
+        return self.deploy_dir_path() / self.output_filename
+
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
             return None
@@ -1428,7 +1433,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         config["SITESUBTITLE"] = title_ele.text
                         break
                     config["PTX_TARGETS"] = [
-                        (t.name.capitalize(), t.deploy_dir_path())
+                        (t.name.capitalize(), t.deploy_path())
                         for t in self.deploy_targets()
                     ]
                     if strategy == "pelican_custom":
