@@ -1295,7 +1295,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             return "default_target"
         if not self.site_abspath().exists():
             return "pelican_default"
-        if (self.site_abspath() / "pelican.ptx").exists():
+        if (self.site_abspath() / "site.ptx").exists():
             return "pelican_custom"
         return "static"
 
@@ -1422,7 +1422,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         for t in self.deploy_targets()
                     ]
                     if strategy == "pelican_custom":
-                        customization = ET.parse(self.site_abspath() / "pelican.ptx")
+                        customization = ET.parse(self.site_abspath() / "site.ptx")
                         customization.xinclude()
                         for child in customization.getroot():
                             config[
