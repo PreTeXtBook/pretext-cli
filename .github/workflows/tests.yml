@@ -75,6 +75,9 @@ jobs:
         run: |
           python -m poetry install
           python -m poetry run python scripts/fetch_core.py
+          ls tests/examples
+          ls tests/examples/core
+          ls tests/examples/core/examples
           python -m poetry run python scripts/bundle_resources.py
 
       - name: Test with pytest
