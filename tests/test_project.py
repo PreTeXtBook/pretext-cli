@@ -487,3 +487,50 @@ def test_no_knowls(tmp_path: Path) -> None:
         with open(Path("output") / "web" / "article.html") as article_file:
             contents = article_file.read()
             assert "data-knowl" not in contents
+
+
+def test_stage(tmp_path: Path) -> None:
+    prj_path = tmp_path / "test_stage"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    (prj_path / "project.ptx").unlink()
+    with utils.working_directory(prj_path):
+        project = pr.Project(ptx_version="2")
+
+        project.new_target(name="web", format="html").build()
+        project.new_target(name="web2", format="html").build()
+        project.new_target(name="web3", format="html").build()
+
+        assert project.deploy_strategy() == "default_target"
+        project.stage_deployment()
+        assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "article-id.html").exists()
+        shutil.rmtree(project.stage_abspath())
+
+        project.get_target(name="web2").deploy = "yes"
+        assert project.deploy_strategy() == "pelican_default"
+        project.stage_deployment()
+        assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "index.html").exists()
+        assert (project.stage_abspath() / "web2" / "article-id.html").exists()
+        shutil.rmtree(project.stage_abspath())
+
+        project.site_abspath().mkdir()
+        (project.site_abspath() / "foo.html").touch()
+        assert project.deploy_strategy() == "static"
+        project.stage_deployment()
+        assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "foo.html").exists()
+        assert (project.stage_abspath() / "web2" / "article-id.html").exists()
+        shutil.rmtree(project.stage_abspath())
+
+        (project.site_abspath() / "site.ptx").touch()
+        with open(project.site_abspath() / "site.ptx", "w") as f:
+            print("<site><site-description>foobar</site-description></site>", file=f)
+        assert project.deploy_strategy() == "pelican_custom"
+        project.stage_deployment()
+        assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "index.html").exists()
+        with open(project.stage_abspath() / "index.html", "r") as f:
+            assert "foobar" in f.read()
+        assert (project.stage_abspath() / "web2" / "article-id.html").exists()
+        shutil.rmtree(project.stage_abspath())

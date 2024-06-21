@@ -4,7 +4,7 @@
     <document-id>runestone-document-id</document-id>
     <blurb shelf="AP Computer Science">A Runestone book</blurb>
   </docinfo>
-  <article>
+  <article xml:id="article-id">
     <title>Hello World!</title>
     <p>This is a PreTeXt document.</p>
   </article>
