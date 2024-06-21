@@ -503,6 +503,7 @@ def test_stage(tmp_path: Path) -> None:
         assert project.deploy_strategy() == "default_target"
         project.stage_deployment()
         assert project.stage_abspath().exists()
+        assert (project.stage_abspath() / "article-id.html").exists()
         shutil.rmtree(project.stage_abspath())
 
         project.get_target(name="web2").deploy = "yes"
