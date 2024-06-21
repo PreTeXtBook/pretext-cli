@@ -1403,6 +1403,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 # set variables
                 config = utils.pelican_default_settings()
                 config["OUTPUT_PATH"] = str(self.stage_abspath())
+                config["PATH"] = str(self.site_abspath())
                 root = self.deploy_targets()[0].source_element()
                 for title_ele in root.iterdescendants("title"):
                     config["SITENAME"] = title_ele.text
@@ -1416,6 +1417,13 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     (t.name.capitalize(), t.deploy_dir_path())
                     for t in self.deploy_targets()
                 ]
+                if strategy == "pelican_custom":
+                    customization = ET.parse(
+                        self.site_abspath() / "pelican.ptx"
+                    )
+                    customization.xinclude()
+                    for child in customization.getroot():
+                        config[str(child.tag).upper().replace("-", "_")] = child.text
                 pelican.Pelican(pelican.settings.configure_settings(config)).run()  # type: ignore
             log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
 
