@@ -13,9 +13,7 @@ from pretext import constants
 from typing import cast, Generator
 import pytest
 from pytest_console_scripts import ScriptRunner
-from .common import DEMO_MAPPING, check_installed
-
-EXAMPLES_DIR = Path(__file__).parent / "examples"
+from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
 
 PTX_CMD = cast(str, shutil.which("pretext"))
 assert PTX_CMD is not None
