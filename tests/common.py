@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 from typing import List
 
-EXAMPLES_DIR = Path(__file__).parent / "examples"
+EXAMPLES_DIR = Path(__file__).parent.resolve() / "examples"
 
 DEMO_MAPPING = {
     "source/main.ptx": ["my-demo-book"],
