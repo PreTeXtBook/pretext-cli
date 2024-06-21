@@ -20,8 +20,7 @@ authors = ["Oscar Levin <oscar.levin@unco.edu>", "Steven Clontz <steven.clontz@g
 license = "GPL-3.0-or-later"
 include = [
     "pretext/core/pretext.py",
-    "pretext/core/resources.zip",
-    "pretext/templates/resources/*",
+    "pretext/resources/*.zip",
 ]
 
 # Dependencies
