@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+    {% if SITE_DESCRIPTION %}
+        <div>{{ SITE_DESCRIPTION }}</div>
+    {% endif %}
+    <ul>
+        {% for title, link in PTX_TARGETS %}
+            <li><a href="{{ link }}">{{ title }}</a></li>
+        {% endfor %}
+    </ul>
+    {% if articles_page.object_list %}
+        {% block content_title %}
+            <h2>News and updates</h2>
+        {% endblock %}
+        {% for article in articles_page.object_list %}
+            {% include 'article-block.html' %}
+        {% endfor %}
+        {% if articles_page.has_other_pages() %}
+            {% include 'pagination.html' %}
+        {% endif %}
+    {% endif %}
+
+{% endblock content %}

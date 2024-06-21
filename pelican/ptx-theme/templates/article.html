@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block html_lang %}{{ article.lang }}{% endblock %}
+
+{% block title %}{{ SITENAME|striptags }} - {{ article.title|striptags }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+
+{% import 'translations.html' as translations with context %}
+{% if translations.entry_hreflang(article) %}
+{{ translations.entry_hreflang(article) }}
+{% endif %}
+
+{% if article.description %}
+<meta name="description" content="{{article.description}}" />
+{% endif %}
+
+{% for tag in article.tags %}
+<meta name="tags" content="{{tag}}" />
+{% endfor %}
+
+{% endblock %}
+
+{% block content %}
+{% include 'article-block.html' %}
+{% endblock %}

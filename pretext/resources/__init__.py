@@ -35,6 +35,12 @@ def install(reinstall: bool = False) -> None:
         with zipfile.ZipFile(static_zip, "r") as zip:
             zip.extractall(path=_RESOURCE_BASE_PATH / "templates")
 
+    log.info("Installing pelican files")
+    (_RESOURCE_BASE_PATH / "pelican").mkdir()
+    with importlib.resources.path("pretext.resources", "pelican.zip") as static_zip:
+        with zipfile.ZipFile(static_zip, "r") as zip:
+            zip.extractall(path=_RESOURCE_BASE_PATH / "pelican")
+
 
 def resource_base_path() -> Path:
     if not _RESOURCE_BASE_PATH.exists():
