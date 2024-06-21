@@ -491,7 +491,7 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
     """
     Clean up at the end of a run.
     Reports that there are errors before the handler gets flushed, then exits with errors.
-    Otherwise, notes successful run.
+    Otherwise, logs a blank line.
     """
     if has_errors(mh):
         log.info("\n----------------------------------------------------")
@@ -500,9 +500,7 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
         log.info("----------------------------------------------------")
         raise SystemExit(1)
     else:
-        log.info("\n----------------------------------------------------")
-        log.info("No errors logged during this run of pretext!")
-        log.info("----------------------------------------------------")
+        log.info()
 
 
 def format_docstring_as_help_str(string: str) -> str:
