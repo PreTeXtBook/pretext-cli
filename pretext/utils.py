@@ -727,8 +727,11 @@ def pelican_default_settings() -> t.Dict[str, t.Any]:
     config["RELATIVE_URLS"] = True
     config["TIMEZONE"] = "Etc/UTC"
     config["ARTICLE_PATHS"] = ["updates"]
-    config["ARTICLE_SAVE_AS"] = "updates/{date:%Y%m%d}-{slug}.html"
-    config["ARTICLE_URL"] = config["ARTICLE_SAVE_AS"]
+    config["ARTICLE_URL"] = "updates/{date:%Y%m%d}-{slug}/"
+    config["ARTICLE_SAVE_AS"] = config["ARTICLE_URL"] + "index.html"
+    config["PAGE_PATHS"] = ["pages"]
+    config["PAGE_URL"] = "{slug}/"
+    config["PAGE_SAVE_AS"] = config["PAGE_URL"] + "index.html"
     config["FEED_ALL_ATOM"] = None
     config["CATEGORY_FEED_ATOM"] = None
     config["TRANSLATION_FEED_ATOM"] = None
