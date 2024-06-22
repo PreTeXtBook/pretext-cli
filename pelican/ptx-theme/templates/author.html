@@ -5,3 +5,17 @@
 {% block content_title %}
     <h2>Articles by {{ author }}</h2>
 {% endblock %}
+
+{% block content %}
+    {% if articles_page.object_list %}
+        {% block content_title %}
+            <h2>News and updates</h2>
+        {% endblock %}
+        {% for article in articles_page.object_list %}
+            {% include 'article-block.html' %}
+        {% endfor %}
+        {% if articles_page.has_other_pages() %}
+            {% include 'pagination.html' %}
+        {% endif %}
+    {% endif %}
+{% endblock}
