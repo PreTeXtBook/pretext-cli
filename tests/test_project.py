@@ -524,7 +524,10 @@ def test_stage(tmp_path: Path) -> None:
 
         (project.site_abspath() / "site.ptx").touch()
         with open(project.site_abspath() / "site.ptx", "w") as f:
-            print("<site><site-description>foobar</site-description></site>", file=f)
+            print(
+                "<site><ptx-site-description>foobar</ptx-site-description></site>",
+                file=f,
+            )
         assert project.deploy_strategy() == "pelican_custom"
         project.stage_deployment()
         assert project.stage_abspath().exists()
