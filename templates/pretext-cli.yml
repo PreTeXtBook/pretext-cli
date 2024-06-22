@@ -57,8 +57,9 @@ jobs:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   projectName: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
-                  directory: deploy
                   gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+                  branch:  ${{ github.head_ref || github.ref_name }}
+                  directory: deploy
 
     deploy-ghpages:
         runs-on: ubuntu-latest
