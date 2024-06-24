@@ -5,8 +5,9 @@
 # ensure this file is tracked
 !.gitignore
 
-# don't track unpublished builds or stage
+# don't track unpublished builds or stage (note: Runestone uses `published`)
 output
+published
 
 # don't track assets generated from source
 generated-assets
