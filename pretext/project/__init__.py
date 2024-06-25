@@ -1429,8 +1429,11 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         break
                     else:
                         config["SITENAME"] = "My PreTeXt Project"
-                    for title_ele in root.iterdescendants("subtitle"):
-                        config["SITESUBTITLE"] = title_ele.text
+                    for subtitle_ele in root.iterdescendants("subtitle"):
+                        config["SITESUBTITLE"] = subtitle_ele.text
+                        break
+                    for blurb_ele in root.iterdescendants("blurb"):
+                        config["PTX_SITE_DESCRIPTION"] = blurb_ele.text
                         break
                     config["PTX_TARGETS"] = [
                         (t.name.capitalize(), t.deploy_path())
