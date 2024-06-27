@@ -6,6 +6,7 @@ import pretext.resources
 
 # This will redirect the static resources for pretext, including the core python script, xsl, css, etc to a local directory of your choosing that contains the clone of the pretext repository. This is useful for development purposes, as it allows you to make changes to the core python script and test with the CLI as you normally would.
 def main(core_path: Path = Path("../pretext")) -> None:
+    core_path = core_path.resolve()
     link_path = pretext.resources.resource_base_path() / "core"
     if link_path.is_dir():
         shutil.rmtree(link_path)
