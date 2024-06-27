@@ -11,5 +11,17 @@ When running `pretext deploy`, you can get four different results.
 1. Deploy a single target (the default `web` target) at the root of your github pages site.  This is the default behavior. 
 1. Deploy one or more targets with a bare-bones landing page that is automatically generated for you.  To get this option, include a `@deploy-dir` attribute for each target you want hosted, with a value that is the relative path to where on the website the target should live.  You should not have a `site` folder in your project directory (if you do, rename it something like `_site` so it is ignored).
 1. Deploy one or more targets with a static landing page (or multiple pages) that you create yourself and store in the `sites` directory.  Each project that should be deployed must have a `@deploy-dir` attribute.  You must have a `sites` directory, and it should **not** have a `pelicanconf.py` file present. 
-1. Deploy one or more targets with a landing page (or multiple pages) that pretext will generate for you using [pelican](https://getpelican.com/). Set up your `sites` directory following the pelican documentation, which means it will include the main configuration file, `pelicanconf.py`.
+1. Deploy one or more targets with a landing page (or multiple pages) that pretext will generate for you using [pelican](https://getpelican.com/). Your `sites` directory must be set up to use pelican, which means it will include the main configuration file, `pelicanconf.py`.
+
+The CLI will provide a template pelican site for you, but you are welcome to set up the site following the documentation for pelican.  In that case, the CLI will essentially run `pelican content` from the sites directory and copy the `output` directory of sites to the staging directory. 
+
+A faster way to start your landing page is to use the template provided by the CLI.  To do this, run:
+
+```
+pretext init site
+```
+
+from within your project.
+
+This will create 
 
