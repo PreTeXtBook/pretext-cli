@@ -6,6 +6,7 @@ import tempfile
 import zipfile
 
 from pretext import CORE_COMMIT
+from scripts import utils
 
 
 def main() -> None:
@@ -16,6 +17,9 @@ def main() -> None:
     r = requests.get(
         f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip"
     )
+    # remove current core/pretext.py file in case it is a link
+    utils.remove_path(Path("pretext").resolve() / "core" / "pretext.py")
+
     with open(core_zip_path, "wb") as f:
         f.write(r.content)
     with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
