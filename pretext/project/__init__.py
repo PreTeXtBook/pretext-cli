@@ -865,7 +865,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
-                            pyMuPDF=not(non_pymupdf),
+                            pyMuPDF=not (non_pymupdf),
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
