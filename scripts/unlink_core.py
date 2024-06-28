@@ -1,5 +1,3 @@
-import shutil
-from pathlib import Path
 import pretext.resources
 from scripts import fetch_core, utils
 
@@ -9,7 +7,8 @@ def main() -> None:
     link_path = pretext.resources.resource_base_path() / "core"
     utils.remove_path(link_path)
 
-    # fetch_core.main()
+    # fetch core resources to replace the symlinked core pretext script
+    fetch_core.main()
     print("Restored original core directory and reinstalled core resources.")
     pretext.resources.install(reinstall=True)
     print("Finished unlinking core resources.")
