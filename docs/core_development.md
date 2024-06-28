@@ -15,11 +15,13 @@ git clone https://github.com/PreTeXtBook/pretext-cli.git
 git clone https://github.com/PreTeXtBook/pretext.git
 ```
 
-As in the development directions in the README, we will use poetry to install the CLI from source.  First, navigate to the pretext-cli directory and install the CLI with the following command:
+As in the development directions in the README, we will use poetry to install the CLI from source.  First, navigate to the pretext-cli directory and install the CLI with the following commands:
 
 ```bash
 cd pretext-cli
 poetry install
+python ./scripts/fetch_core.py
+python ./scripts/bundle_resources.py
 ```
 
 You should now be able to test that everything worked by running the following commands:
@@ -44,13 +46,13 @@ The CLI has a script `script\symlink_core.py` that will create symbolic links fr
 Assuming you have the pretext and pretext-cli repositories in the same directory, you can run the following command to link the core resources:
 
 ```bash
-python script/symlink_core.py
+python ./scripts/symlink_core.py
 ```
 
 If you have the pretext repository elsewhere, you can specify the path to the pretext repository as an argument to the script:
 
 ```bash
-python script/symlink_core.py /path/to/pretext
+python ./scripts/symlink_core.py /path/to/pretext
 ```
 
 Now any changes you make the python script, xsl, css, js, or schema in the pretext repository will be reflected in the CLI (just stay in the `poetry shell`).
@@ -60,5 +62,5 @@ Now any changes you make the python script, xsl, css, js, or schema in the prete
 To go back to using the version of core resources specified in the `CORE_COMMIT` file, you can run the following command:
 
 ```bash
-python ./script/fetch_core.py
+python ./scripts/unlink_core.py
 ```
