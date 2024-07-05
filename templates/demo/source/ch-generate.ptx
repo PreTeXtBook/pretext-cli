@@ -25,6 +25,16 @@
       <xi:include href="./ww.ptx" />
     </exercise>
   </section>
+  <section xml:id="sec-mom">
+    <title>MyOpenMath</title>
+    <exercise>
+      <introduction>
+        <p>
+          Here is a problem from MyOpenMath.
+        </p>
+      </introduction>
+      <myopenmath problem="2572"/>
+    </exercise>
   <section xml:id="sec-youtube">
     <title>YouTube Example</title>
     <video youtube="dQw4w9WgXcQ" />
