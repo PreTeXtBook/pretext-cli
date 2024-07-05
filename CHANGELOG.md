@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Added
+
+- Static versions of problems for MyOpenMath can now be downloaded using the CLI.  Build/generate for print as usual to get these.  
+
 ### Fixed
 
 - Improved `pretext import` command to handle modular latex files better.
