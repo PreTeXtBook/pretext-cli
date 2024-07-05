@@ -865,9 +865,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 )
                 successful_assets.append(("myopenmath", None))
             except Exception as e:
-                log.error(
-                    "Unable to generate MyOpenMath static files."
-                )
+                log.error("Unable to generate MyOpenMath static files.")
                 log.warning(e)
                 log.debug(e, exc_info=True)
         if "latex-image" in assets_to_generate:

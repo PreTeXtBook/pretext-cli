@@ -114,7 +114,7 @@ ASSET_TO_DIR = {
     "codelens": ["trace"],
     "datafile": ["datafile"],
     "mermaid": ["mermaid"],
-    "myopenmath": ["problems"]
+    "myopenmath": ["problems"],
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
