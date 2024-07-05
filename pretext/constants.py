@@ -24,6 +24,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
     ],
     "latex": [
         "webwork",
@@ -34,6 +35,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
     ],
     "epub": [
         "webwork",
@@ -45,6 +47,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
     ],
     "kindle": [
         "webwork",
@@ -56,6 +59,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
     ],
     "braille": [
         "webwork",
@@ -67,6 +71,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
     ],
     "webwork": [
         "webwork",
@@ -81,6 +86,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
     ],
 }
 
@@ -94,6 +100,7 @@ ASSET_TO_XPATH = {
     "datafile": ".//datafile",
     "interactive": ".//interactive",
     "mermaid": ".//mermaid",
+    "myopenmath": ".//myopenmath",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
@@ -107,6 +114,7 @@ ASSET_TO_DIR = {
     "codelens": ["trace"],
     "datafile": ["datafile"],
     "mermaid": ["mermaid"],
+    "myopenmath": ["problems"]
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {

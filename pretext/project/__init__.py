@@ -836,6 +836,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # generate assets by calling appropriate core functions :
         if "webwork" in assets_to_generate:
             try:
+                log.debug("Generating webwork [839].")
                 core.webwork_to_xml(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -849,6 +850,23 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             except Exception as e:
                 log.error(
                     "Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior."
+                )
+                log.warning(e)
+                log.debug(e, exc_info=True)
+        if "myopenmath" in assets_to_generate:
+            try:
+                log.debug("Generating MyOpenMath static files [858].")
+                core.mom_static_problems(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=(self.generated_dir_abspath() / "problems").as_posix(),
+                )
+                successful_assets.append(("myopenmath", None))
+            except Exception as e:
+                log.error(
+                    "Unable to generate MyOpenMath static files."
                 )
                 log.warning(e)
                 log.debug(e, exc_info=True)
