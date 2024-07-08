@@ -24,6 +24,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "dynamic-subs",
     ],
     "latex": [
         "webwork",
@@ -34,6 +35,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "dynamic-subs",
     ],
     "epub": [
         "webwork",
@@ -45,6 +47,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "dynamic-subs",
     ],
     "kindle": [
         "webwork",
@@ -56,6 +59,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "dynamic-subs",
     ],
     "braille": [
         "webwork",
@@ -67,6 +71,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "dynamic-subs",
     ],
     "webwork": [
         "webwork",
@@ -81,6 +86,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "dynamic-subs",
     ],
 }
 
@@ -94,6 +100,7 @@ ASSET_TO_XPATH = {
     "datafile": ".//datafile",
     "interactive": ".//interactive",
     "mermaid": ".//mermaid",
+    "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
@@ -107,6 +114,7 @@ ASSET_TO_DIR = {
     "codelens": ["trace"],
     "datafile": ["datafile"],
     "mermaid": ["mermaid"],
+    "dynamic-subs": ["dynamic_subs"],
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
