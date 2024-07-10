@@ -5,7 +5,7 @@ NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
 FORMATS = ["html", "pdf", "latex", "epub", "kindle", "braille", "webwork", "custom"]
 
-# Give list of assets that each build format requires.
+# Give list of assets that each build format requires.  Note that myopenmath must be present for html to generate some other "static" assets, even in html.
 ASSETS_BY_FORMAT = {
     "html": [
         "webwork",
@@ -14,6 +14,7 @@ ASSETS_BY_FORMAT = {
         "asymptote",
         "codelens",
         "datafile",
+        "myopenmath",
     ],
     "pdf": [
         "webwork",
