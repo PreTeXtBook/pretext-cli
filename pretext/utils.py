@@ -496,10 +496,14 @@ def exit_command(mh: logging.handlers.MemoryHandler) -> None:
     if has_errors(mh):
         log.info("\n----------------------------------------------------")
         log.info("While running pretext, the following errors occurred:\n")
+        log.info(
+            "(see log messages above or in the 'logs' folder for more information)"
+        )
         mh.flush()
         log.info("----------------------------------------------------")
         raise SystemExit(1)
     else:
+        log.debug("Completed without errors.")
         log.info("")
 
 

@@ -15,7 +15,6 @@ import tempfile
 import platform
 import webbrowser
 from pathlib import Path
-import atexit
 import subprocess
 from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
@@ -54,9 +53,6 @@ error_flush_handler = logging.handlers.MemoryHandler(
 )
 error_flush_handler.setLevel(logging.ERROR)
 log.addHandler(error_flush_handler)
-
-# Call exit_command() at close to handle errors encountered during run.
-atexit.register(utils.exit_command, error_flush_handler)
 
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
@@ -179,6 +175,8 @@ def main(ctx: click.Context, targets: bool) -> None:
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
+    # Exit gracefully:
+    utils.exit_command(error_flush_handler)
 
 
 # pretext support
@@ -241,6 +239,7 @@ def devscript(args: List[str]) -> None:
         [PY_CMD, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
         + list(args)
     )
+    utils.exit_command(error_flush_handler)
 
 
 # pretext new
@@ -489,6 +488,8 @@ def build(
         log.info("------------------------")
         log.critical("Failed to build.  Exiting...")
         raise SystemExit(1)
+    finally:
+        utils.exit_command(error_flush_handler)
 
 
 # pretext generate
@@ -593,6 +594,9 @@ def generate(
         log.info("------------------------")
         log.critical("Generating assets as failed.  Exiting...")
         raise SystemExit(1) from e
+    finally:
+        # Check for errors before exiting.
+        utils.exit_command(error_flush_handler)
 
 
 # pretext view
@@ -838,6 +842,8 @@ def deploy(
         ctx.invoke(view, stage=True)
     else:
         project.deploy(update_source=update_source, skip_staging=True)
+    # Check for errors before exiting.
+    utils.exit_command(error_flush_handler)
 
 
 # pretext import
@@ -882,3 +888,5 @@ def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
                 log.error(e)
                 log.debug("Exception info:\n------------------------\n", exc_info=True)
                 raise SystemExit(1)
+    # Check for errors before exiting.
+    utils.exit_command(error_flush_handler)
