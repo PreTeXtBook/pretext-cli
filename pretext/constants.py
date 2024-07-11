@@ -5,7 +5,7 @@ NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
 FORMATS = ["html", "pdf", "latex", "epub", "kindle", "braille", "webwork", "custom"]
 
-# Give list of assets that each build format requires.
+# Give list of assets that each build format requires.  Note that myopenmath must be present for html to generate some other "static" assets, even in html.
 ASSETS_BY_FORMAT = {
     "html": [
         "webwork",
@@ -14,6 +14,7 @@ ASSETS_BY_FORMAT = {
         "asymptote",
         "codelens",
         "datafile",
+        "myopenmath",
     ],
     "pdf": [
         "webwork",
@@ -24,6 +25,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
         "dynamic-subs",
     ],
     "latex": [
@@ -35,6 +37,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
         "dynamic-subs",
     ],
     "epub": [
@@ -47,6 +50,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
         "dynamic-subs",
     ],
     "kindle": [
@@ -59,6 +63,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
         "dynamic-subs",
     ],
     "braille": [
@@ -71,6 +76,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
         "dynamic-subs",
     ],
     "webwork": [
@@ -86,6 +92,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "interactive",
         "mermaid",
+        "myopenmath",
         "dynamic-subs",
     ],
 }
@@ -100,6 +107,7 @@ ASSET_TO_XPATH = {
     "datafile": ".//datafile",
     "interactive": ".//interactive",
     "mermaid": ".//mermaid",
+    "myopenmath": ".//myopenmath",
     "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
@@ -114,6 +122,7 @@ ASSET_TO_DIR = {
     "codelens": ["trace"],
     "datafile": ["datafile"],
     "mermaid": ["mermaid"],
+    "myopenmath": ["problems"],
     "dynamic-subs": ["dynamic_subs"],
 }
 

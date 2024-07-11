@@ -1,56 +1,76 @@
 <?xml version='1.0' encoding='utf-8'?>
 <chapter xml:id="ch-generate" xmlns:xi="http://www.w3.org/2001/XInclude">
-  <title><pretext /> features that require generation</title>
-  <introduction>
-    <p>
-      Here we demonstrate various kinds of assets.
-    </p>
-  </introduction>
-  <section xml:id="sec-latex-image">
-    <title>LaTeX-Image Example</title>
-    <xi:include href="./fig-tikz.ptx" />
-  </section>
-  <section xml:id="sec-sageplot">
-    <title>SagePlot Examples</title>
-    <xi:include href="./fig-sage2d.ptx" />
-    <xi:include href="./fig-sage3d.ptx" />
-  </section>
-  <section xml:id="sec-asymptote">
-    <title>Asymptote Example</title>
-    <xi:include href="./fig-asymptote.ptx" />
-  </section>
-  <section xml:id="sec-webwork">
-    <title><webwork /> Example</title>
-    <exercise>
-      <xi:include href="./ww.ptx" />
-    </exercise>
-  </section>
-  <section xml:id="sec-youtube">
-    <title>YouTube Example</title>
-    <video youtube="dQw4w9WgXcQ" />
-  </section>
-  <section xml:id="sec-interactive">
-    <title>Interactive Example</title>
-    <!-- From the sample article -->
-    <figure>
-      <caption>Infinity, from the JSXGraph Showcase</caption>
+	<title><pretext /> features that require generation</title>
+	<introduction>
+		<p>
+			Here we demonstrate various kinds of assets.
+		</p>
+	</introduction>
 
-      <interactive xml:id="interactive-infinity" platform="jsxgraph" width="60%"
-        source="jsxgraph/infinity.js">
-        <slate xml:id="jsxgraph-infinity" surface="jsxboard" />
-        <instructions>
-          <p>Drag the sliders to change the pattern, and drag any of the four red corners to change
-            the overall shape.</p>
-        </instructions>
-      </interactive>
-    </figure>
-  </section>
-  <section xml:id="sec-codelens">
+	<section xml:id="sec-latex-image">
+		<title>LaTeX-Image Example</title>
+		<xi:include href="./fig-tikz.ptx" />
+	</section>
+
+	<section xml:id="sec-sageplot">
+		<title>SagePlot Examples</title>
+		<xi:include href="./fig-sage2d.ptx" />
+		<xi:include href="./fig-sage3d.ptx" />
+	</section>
+
+	<section xml:id="sec-asymptote">
+		<title>Asymptote Example</title>
+		<xi:include href="./fig-asymptote.ptx" />
+	</section>
+
+	<section xml:id="sec-webwork">
+		<title><webwork /> Example</title>
+		<exercise>
+			<xi:include href="./ww.ptx" />
+		</exercise>
+	</section>
+
+	<section xml:id="sec-mom">
+		<title>MyOpenMath</title>
+		<exercise>
+			<introduction>
+				<p>
+					Here is a problem from MyOpenMath.
+				</p>
+			</introduction>
+			<myopenmath problem="2572"/>
+		</exercise>
+	</section>
+
+	<section xml:id="sec-youtube">
+		<title>YouTube Example</title>
+		<video youtube="dQw4w9WgXcQ" />
+	</section>
+
+	<section xml:id="sec-interactive">
+		<title>Interactive Example</title>
+		<!-- From the sample article -->
+		<figure>
+			<caption>Infinity, from the JSXGraph Showcase</caption>
+			<interactive xml:id="interactive-infinity" platform="jsxgraph" width="60%"
+			source="jsxgraph/infinity.js">
+			<slate xml:id="jsxgraph-infinity" surface="jsxboard" />
+			<instructions>
+			<p>
+Drag the sliders to change the pattern, and drag any of the four red corners to change
+            the overall shape.
+			</p>
+			</instructions>
+			</interactive>
+		</figure>
+	</section>
+
+	<section xml:id="sec-codelens">
     <title>Codelens
       Example</title>
-    <listing xml:id="sieve-python">
+		<listing xml:id="sieve-python">
       <caption>Finding primes</caption>
-      <program xml:id="sieve-codelens-python" interactive="codelens" language="python">
+			<program xml:id="sieve-codelens-python" interactive="codelens" language="python">
         <input><![CDATA[
 def SieveOfEratosthenes(n):
     # array of type boolean with True values in it
@@ -75,7 +95,7 @@ if __name__=='__main__':
     print ("The prime numbers smaller than or equal to", n,"is")
     SieveOfEratosthenes(n)
       ]]></input>
-      </program>
-    </listing>
-  </section>
+			</program>
+		</listing>
+	</section>
 </chapter>

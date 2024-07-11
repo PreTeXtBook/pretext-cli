@@ -469,6 +469,37 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
             pickle.dump(asset_table, f)
 
+    def ensure_myopenmath_xml(self) -> None:
+        """
+        Ensures that the myopenmath xml files are present if the source contains myopenmath exercises.  Needed to build or generate other "static" assets and targets.
+        """
+        if self.source_element().xpath(".//myopenmath/@problem"):
+            mom_prob_nums = self.source_element().xpath(".//myopenmath/@problem")
+            assert isinstance(mom_prob_nums, t.List)
+            if not (self.generated_dir_abspath() / "problems").exists():
+                log.debug("MyOpenMath directory does not exist, creating")
+                (self.generated_dir_abspath() / "problems").mkdir(
+                    parents=True, exist_ok=True
+                )
+            else:
+                log.debug("MyOpenMath directory exists, not creating")
+
+            for prob_num in mom_prob_nums:
+                assert isinstance(prob_num, str)
+                if not (
+                    self.generated_dir_abspath() / "problems" / f"{prob_num}.xml"
+                ).exists():
+                    log.debug(
+                        f"MyOpenMath problem {prob_num} does not exist, generating"
+                    )
+                    self.generate_assets(
+                        requested_asset_types=["myopenmath"], only_changed=False
+                    )
+                # Only need to generate once a single missing file is discovered.
+                break
+        else:
+            log.debug("Source does not contain myopenmath problems")
+
     def ensure_webwork_reps(self) -> None:
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
@@ -536,6 +567,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
+
+        # verify that a myopenmath xml files exist if it is needed; generated if needed.
+        self.ensure_myopenmath_xml()
 
         # Generate needed assets unless requested not to.
         if generate:
@@ -698,6 +732,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
            - pymupdf: temporary boolean to test alternative image generation with pymupdf instead of external programs.
         """
+        # If generate was not called for just webwork, ensure that the webwork representations file is present.
+        if requested_asset_types != ["webwork"] and requested_asset_types != [
+            "myopenmath"
+        ]:
+            log.debug("Ensuring webwork representations file is present.")
+            self.ensure_webwork_reps()
+            self.ensure_myopenmath_xml()
+        # If generate was not called for just myopenmath, ensure that the myopenmath xml files are present.
+        # if requested_asset_types != ["myopenmath"]:
+        #     log.debug("Ensuring MyOpenMath XML files are present.")
+        #     self.ensure_myopenmath_xml()
+
         # Start by getting the assets that need to be generated for the particular target.  This will either be all of them, or just the asset type that was specifically requested.
         if requested_asset_types is None or "ALL" in requested_asset_types:
             requested_asset_types = list(constants.ASSET_TO_XPATH.keys())
@@ -716,7 +762,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         saved_asset_table = utils.clean_asset_table(
             self.load_asset_table(), source_asset_table
         )
-        log.debug(f"Starting asset table: {source_asset_table}")
+        # log.debug(f"Starting asset table: {source_asset_table}")
         # Throw away any asset types that were not requested:
         source_asset_table = {
             asset: source_asset_table[asset]
@@ -850,6 +896,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.error(
                     "Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior."
                 )
+                log.warning(e)
+                log.debug(e, exc_info=True)
+        if "myopenmath" in assets_to_generate:
+            try:
+                core.mom_static_problems(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=(self.generated_dir_abspath() / "problems").as_posix(),
+                )
+                successful_assets.append(("myopenmath", None))
+            except Exception as e:
+                log.error("Unable to generate MyOpenMath static files.")
                 log.warning(e)
                 log.debug(e, exc_info=True)
         if "latex-image" in assets_to_generate:
