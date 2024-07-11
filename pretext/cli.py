@@ -88,11 +88,11 @@ def nice_errors(f: Callable[..., None]) -> Any:
                 "\n------------------------\nException info:\n------------------------\n",
                 exc_info=True,
             )
-            raise SystemExit(1)
+            return
         except Exception as e:
             log.error(e)
             log.debug("Exception info:\n------------------------\n", exc_info=True)
-            raise SystemExit(1)
+            return
 
     return update_wrapper(try_except, f)
 
@@ -175,9 +175,11 @@ def main(ctx: click.Context, targets: bool) -> None:
         log.info("No existing PreTeXt project found.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
+
+@main.result_callback()
+def exit(*_, **__):  # type: ignore
     # Exit gracefully:
     utils.exit_command(error_flush_handler)
-
 
 # pretext support
 @main.command(
@@ -239,7 +241,6 @@ def devscript(args: List[str]) -> None:
         [PY_CMD, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
         + list(args)
     )
-    utils.exit_command(error_flush_handler)
 
 
 # pretext new
@@ -441,7 +442,7 @@ def build(
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
-        raise SystemExit(1)
+        return
 
     # Call generate if flag is set
     if generate and not no_generate:
@@ -481,15 +482,13 @@ def build(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,
         )
-        raise SystemExit(1)
+        return
     except Exception as e:
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
         log.critical("Failed to build.  Exiting...")
-        raise SystemExit(1)
-    finally:
-        utils.exit_command(error_flush_handler)
+        return
 
 
 # pretext generate
@@ -564,7 +563,7 @@ def generate(
         utils.show_target_hints(target_name, project, task="generating assets for")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
-        raise SystemExit(1) from e
+        return
 
     try:
         log.debug(f'Generating assets in for the target "{target.name}".')
@@ -587,16 +586,13 @@ def generate(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,
         )
-        raise SystemExit(1) from e
+        return
     except Exception as e:
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
         log.critical("Generating assets as failed.  Exiting...")
-        raise SystemExit(1) from e
-    finally:
-        # Check for errors before exiting.
-        utils.exit_command(error_flush_handler)
+        return
 
 
 # pretext view
@@ -711,7 +707,7 @@ def view(
         utils.show_target_hints(target_name, project, task="view")
         log.critical("Exiting.")
         log.debug(e, exc_info=True)
-        raise SystemExit(1)
+        return
 
     # Call generate if flag is set
     if generate:
@@ -842,8 +838,6 @@ def deploy(
         ctx.invoke(view, stage=True)
     else:
         project.deploy(update_source=update_source, skip_staging=True)
-    # Check for errors before exiting.
-    utils.exit_command(error_flush_handler)
 
 
 # pretext import
@@ -887,6 +881,4 @@ def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
             except Exception as e:
                 log.error(e)
                 log.debug("Exception info:\n------------------------\n", exc_info=True)
-                raise SystemExit(1)
-    # Check for errors before exiting.
-    utils.exit_command(error_flush_handler)
+                return
