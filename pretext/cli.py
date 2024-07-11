@@ -176,10 +176,12 @@ def main(ctx: click.Context, targets: bool) -> None:
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
 
+
 @main.result_callback()
 def exit(*_, **__):  # type: ignore
     # Exit gracefully:
     utils.exit_command(error_flush_handler)
+
 
 # pretext support
 @main.command(
