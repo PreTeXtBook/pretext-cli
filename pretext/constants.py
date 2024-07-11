@@ -26,6 +26,7 @@ ASSETS_BY_FORMAT = {
         "interactive",
         "mermaid",
         "myopenmath",
+        "dynamic-subs",
     ],
     "latex": [
         "webwork",
@@ -37,6 +38,7 @@ ASSETS_BY_FORMAT = {
         "interactive",
         "mermaid",
         "myopenmath",
+        "dynamic-subs",
     ],
     "epub": [
         "webwork",
@@ -49,6 +51,7 @@ ASSETS_BY_FORMAT = {
         "interactive",
         "mermaid",
         "myopenmath",
+        "dynamic-subs",
     ],
     "kindle": [
         "webwork",
@@ -61,6 +64,7 @@ ASSETS_BY_FORMAT = {
         "interactive",
         "mermaid",
         "myopenmath",
+        "dynamic-subs",
     ],
     "braille": [
         "webwork",
@@ -73,6 +77,7 @@ ASSETS_BY_FORMAT = {
         "interactive",
         "mermaid",
         "myopenmath",
+        "dynamic-subs",
     ],
     "webwork": [
         "webwork",
@@ -88,6 +93,7 @@ ASSETS_BY_FORMAT = {
         "interactive",
         "mermaid",
         "myopenmath",
+        "dynamic-subs",
     ],
 }
 
@@ -102,6 +108,7 @@ ASSET_TO_XPATH = {
     "interactive": ".//interactive",
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
+    "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
@@ -116,6 +123,7 @@ ASSET_TO_DIR = {
     "datafile": ["datafile"],
     "mermaid": ["mermaid"],
     "myopenmath": ["problems"],
+    "dynamic-subs": ["dynamic_subs"],
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
