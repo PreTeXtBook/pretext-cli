@@ -23,6 +23,7 @@ DEMO_MAPPING = {
         "sec-sageplot",
         "sec-asymptote",
         "sec-webwork",
+        "sec-mom",
         "sec-youtube",
         "sec-interactive",
         "interactive-infinity",
