@@ -16,12 +16,12 @@ description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 homepage = "https://pretextbook.org"
 repository = "https://github.com/PreTeXtBook/pretext-cli"
-authors = ["Oscar Levin <oscar.levin@unco.edu>", "Steven Clontz <steven.clontz@gmail.com>",]
-license = "GPL-3.0-or-later"
-include = [
-    "pretext/core/pretext.py",
-    "pretext/resources/*.zip",
+authors = [
+    "Oscar Levin <oscar.levin@unco.edu>",
+    "Steven Clontz <steven.clontz@gmail.com>",
 ]
+license = "GPL-3.0-or-later"
+include = ["pretext/core/pretext.py", "pretext/resources/*.zip"]
 
 # Dependencies
 # ------------
@@ -43,7 +43,7 @@ qrcode = "^7"
 psutil = "^5"
 plastex = "^3"
 jinja2 = "^3"
-pelican = {extras = ["markdown"], version = "^4.9.1"}
+pelican = { extras = ["markdown"], version = "^4.9.1", optional = true }
 
 # Development dependencies
 # ------------------------
@@ -63,6 +63,10 @@ toml = "^0"
 # Misc
 # ----
 errorhandler = "^2.0.1"
+
+[tool.poetry.extras]
+homepage = ["pelican"]
+
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
 
@@ -70,7 +74,7 @@ pretext = 'pretext.cli:main'
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-# Fix for `poetry install` not installing the correct docutils version.  
+# Fix for `poetry install` not installing the correct docutils version.
 # see https://github.com/python-poetry/poetry/issues/9293
 [[tool.poetry.source]]
 name = "pypi-public"
@@ -123,13 +127,13 @@ follow_imports = "skip"
 # ======================
 [tool.coverage.run]
 # Select code to be covered -- everything in the `pretext` subdirectory.
-source = [ "pretext" ]
+source = ["pretext"]
 # This doesn't work. It works if the path is absolute, but I can't find any relative path that does work.
 #omit = [ "pretext/core/pretext.py" ]
 
 [tool.coverage.report]
 # This is a simple workaround for the `omit` setting above: don't report coverage for the PreTeXt core.
-omit = [ "pretext/core/pretext.py" ]
+omit = ["pretext/core/pretext.py"]
 
 [tool.coverage.html]
 # For better organization, place generated reports under the tests.
