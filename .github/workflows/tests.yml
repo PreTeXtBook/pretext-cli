@@ -73,7 +73,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          python -m poetry install
+          python -m poetry install --extras "homepage"
           python -m poetry run python scripts/fetch_core.py
           python -m poetry run python scripts/bundle_resources.py
 
