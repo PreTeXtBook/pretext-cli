@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.5.0] - 2024-07-15
+
 ### Added
 
 - Automatically build a landing page for a project when deploying multiple targets.
