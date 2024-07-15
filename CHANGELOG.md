@@ -11,13 +11,24 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ### Added
 
+- Automatically build a landing page for a project when deploying multiple targets.
+- New (optional) github action workflows for publishing/deploying sites.
 - Static versions of problems for MyOpenMath can now be downloaded using the CLI.  Build/generate for print as usual to get these.  
+- Support of mermaid diagrams.
 
 ### Fixed
 
 - Improved `pretext import` command to handle modular latex files better.
 - Turned off image conversions for `pretext import`.
 - Always stage to a clean stage directory for `pretext deploy`.
+- Improved output messages for info and error messages.
+
+### Incorporated improvements from 'core' PreTeXt
+
+- Parsons problems can have partially ordered solutions.
+- Fill In The Blank problems improvements
+- Improved MyOpenMath support
+- Support "circular" cases for proofs (TFAE, eg)
 
 ## [2.4.1] - 2024-05-18
 
