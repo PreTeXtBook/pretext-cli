@@ -83,8 +83,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: v${{ env.VERSION }}
+          tag_name: "v${{ env.VERSION }}"
+          release_name: "v${{ env.VERSION }}"
           body: |
             See the [changelog](CHANGELOG.md) for details.
           draft: false
