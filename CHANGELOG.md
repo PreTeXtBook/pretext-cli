@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.5.1] - 2024-07-16
+
 ### Fixed
 
 - For compatibility with Runestone you must install pretext with pip install pretext[homepage] in order to get the landing page features.
