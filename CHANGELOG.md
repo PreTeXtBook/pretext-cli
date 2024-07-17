@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Bug with html build for source with version controlled components with duplicate ids.
+
 ## [2.5.1] - 2024-07-16
 
 ### Fixed
