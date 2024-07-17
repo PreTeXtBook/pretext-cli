@@ -473,6 +473,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Saves the asset_table to a pickle file in the generated assets directory
         based on the target name.
         """
+        self.ensure_asset_directories()
+        log.warning("Saving asset table")
         with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
             pickle.dump(asset_table, f)
 
@@ -1088,24 +1090,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 "Unable to release temporary directories.  Please report this error to pretext-support"
             )
             log.debug(e, exc_info=True)
-        # After all assets are generated, update the asset cache:
+        # After all assets are generated, update the asset cache (but we shouldn't do this if we didn't generate any assets successfully)
         log.debug(f"Updated these assets successfully: {successful_assets}")
-        for asset_type, id in successful_assets:
-            if asset_type not in saved_asset_table:
-                saved_asset_table[asset_type] = {}
-            if id is None:
-                # We have updated all assets of this type, so update all of them in the saved asset table:
-                for id in source_asset_table[asset_type]:
-                    saved_asset_table[asset_type][id] = source_asset_table[asset_type][
-                        id
-                    ]
-            else:
-                if id in source_asset_table.get(asset_type, {}):
-                    saved_asset_table[asset_type][id] = source_asset_table[asset_type][
-                        id
-                    ]
-        # Save the asset table to disk:
-        self.save_asset_table(saved_asset_table)
+        if len(successful_assets) > 0:
+            for asset_type, id in successful_assets:
+                if asset_type not in saved_asset_table:
+                    saved_asset_table[asset_type] = {}
+                if id is None:
+                    # We have updated all assets of this type, so update all of them in the saved asset table:
+                    for id in source_asset_table[asset_type]:
+                        saved_asset_table[asset_type][id] = source_asset_table[
+                            asset_type
+                        ][id]
+                else:
+                    if id in source_asset_table.get(asset_type, {}):
+                        saved_asset_table[asset_type][id] = source_asset_table[
+                            asset_type
+                        ][id]
+            # Save the asset table to disk:
+            self.save_asset_table(saved_asset_table)
 
 
 class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED):
