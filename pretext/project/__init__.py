@@ -736,7 +736,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         all_formats: bool = False,
         only_changed: bool = True,
         xmlid: t.Optional[str] = None,
-        pymupdf: bool = False,
+        non_pymupdf: bool = False,
     ) -> None:
         """
         Generates assets for the current target.  Options:
@@ -744,7 +744,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - all_formats: boolean to decide whether the output format of the assets will be just those that the target format uses (default/False) or all possible output formats for that asset (True).
            - only_changed: boolean.  When True (default), function will only generate assets that have changed since last generation.  When False, all assets will be built (hash table will be ignored).
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
-           - pymupdf: temporary boolean to test alternative image generation with pymupdf instead of external programs.
+           - non_pymupdf: temporary boolean to revert to legacy alternative image generation without pymupdf (and use old external programs).
         """
         # If generate was not called for just webwork, ensure that the webwork representations file is present.
         if requested_asset_types != ["webwork"] and requested_asset_types != [
@@ -939,7 +939,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
-                            pyMuPDF=pymupdf,
+                            pyMuPDF=not (non_pymupdf),
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
