@@ -1451,7 +1451,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
         strategy = self.deploy_strategy()
 
-        print(f"Staging deployment according to strategy {strategy}")
+        log.info(f"Staging deployment according to strategy {strategy}")
 
         if strategy == "default_target":
             target = self.get_target()
