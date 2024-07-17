@@ -1333,6 +1333,15 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             # return first target matching the provided name
             return next(t for t in self.targets if t.name == name)
         except StopIteration:
+            # if there is no target matching, check if there is a format
+            # that matches. Use that as a backup with a warning
+            for target in self.targets:
+                if target.format == name:
+                    true_name = target.name
+                    log.warning(
+                        f"Could not find a target '{name}', but found a target '{true_name}' with format='{name}'; using this target."
+                    )
+                    return target
             # but no such target was found
             return None
 
