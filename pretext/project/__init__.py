@@ -635,11 +635,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
-                codechat.map_path_to_xml_id(
-                    self.source_abspath(),
-                    self._project.abspath(),
-                    self.output_dir_abspath().as_posix(),
-                )
+                try:
+                    codechat.map_path_to_xml_id(
+                        self.source_abspath(),
+                        self._project.abspath(),
+                        self.output_dir_abspath().as_posix(),
+                    )
+                except Exception as e:
+                    log.warning(
+                        "Failed to map codechat path to xml id; codechat will not work."
+                    )
+                    log.debug(f"Error: {e}")
+                    log.debug("Traceback:", exc_info=True)
             elif self.format == Format.PDF:
                 core.pdf(
                     xml=self.source_abspath(),
