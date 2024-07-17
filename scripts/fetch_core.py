@@ -8,6 +8,7 @@ import zipfile
 from pretext import CORE_COMMIT
 from scripts import utils
 
+from . import bundle_resources
 
 def main() -> None:
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
@@ -57,6 +58,8 @@ def main() -> None:
                             file_path, arcname=os.path.relpath(file_path, tmpdirname)
                         )
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
+    bundle_resources.main()
+    print("Successfully bundled core PreTeXtBook/pretext resources.")
 
 
 if __name__ == "__main__":
