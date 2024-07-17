@@ -473,8 +473,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Saves the asset_table to a pickle file in the generated assets directory
         based on the target name.
         """
-        self.ensure_asset_directories()
-        log.warning("Saving asset table")
         with open(self.generated_dir_abspath() / f".{self.name}_assets.pkl", "wb") as f:
             pickle.dump(asset_table, f)
 
