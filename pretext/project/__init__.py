@@ -575,9 +575,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
 
-        # verify that a myopenmath xml files exist if it is needed; generated if needed.
-        # self.ensure_myopenmath_xml()
-
         # Generate needed assets unless requested not to.
         if generate:
             self.generate_assets(xmlid=xmlid)
