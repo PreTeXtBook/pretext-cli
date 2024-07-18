@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.6.0] - 2024-07-18
+
 ### Changed
 
 - Updated the process for generating latex-image to use pyMuPDF instead of pdf2svg
