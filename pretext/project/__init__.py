@@ -744,7 +744,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - non_pymupdf: temporary boolean to revert to legacy alternative image generation without pymupdf (and use old external programs).
         """
         # Two "ensure" functions call generate to get just a single asset.  Every generation step other than webwork must have webwork generated, so unless we are "ensuring" webwork, we will need to call ensure webwork.  Note if this function was called with just webwork, then we would move down and actually build webwork.
-        if requested_asset_types != ["webwork"] :
+        if requested_asset_types != ["webwork"]:
             log.debug("Ensuring webwork representations file is present.")
             self.ensure_webwork_reps()
             # We also need to ensure myopenmath for all assets except webwork.  However, if we are generating only myopenmath, we should not ensure myopenmath again.
