@@ -478,7 +478,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     def ensure_myopenmath_xml(self) -> None:
         """
-        Ensures that the myopenmath xml files are present if the source contains myopenmath exercises.  Needed to build or generate other "static" assets and targets.
+        Ensures that the myopenmath xml files are present if the source contains myopenmath exercises.  Needed to generate other "static" assets and targets.
         """
         if self.source_element().xpath(".//myopenmath/@problem"):
             mom_prob_nums = self.source_element().xpath(".//myopenmath/@problem")
@@ -574,9 +574,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
-
-        # verify that a myopenmath xml files exist if it is needed; generated if needed.
-        self.ensure_myopenmath_xml()
 
         # Generate needed assets unless requested not to.
         if generate:
@@ -746,17 +743,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
            - non_pymupdf: temporary boolean to revert to legacy alternative image generation without pymupdf (and use old external programs).
         """
-        # If generate was not called for just webwork, ensure that the webwork representations file is present.
-        if requested_asset_types != ["webwork"] and requested_asset_types != [
-            "myopenmath"
-        ]:
+        # Two "ensure" functions call generate to get just a single asset.  Every generation step other than webwork must have webwork generated, so unless we are "ensuring" webwork, we will need to call ensure webwork.  Note if this function was called with just webwork, then we would move down and actually build webwork.
+        if requested_asset_types != ["webwork"]:
             log.debug("Ensuring webwork representations file is present.")
             self.ensure_webwork_reps()
-            self.ensure_myopenmath_xml()
-        # If generate was not called for just myopenmath, ensure that the myopenmath xml files are present.
-        # if requested_asset_types != ["myopenmath"]:
-        #     log.debug("Ensuring MyOpenMath XML files are present.")
-        #     self.ensure_myopenmath_xml()
+            # We also need to ensure myopenmath for all assets except webwork.  However, if we are generating only myopenmath, we should not ensure myopenmath again.
+            if requested_asset_types != ["myopenmath"]:
+                log.debug("Ensuring MyOpenMath XML files are present.")
+                self.ensure_myopenmath_xml()
 
         # Start by getting the assets that need to be generated for the particular target.  This will either be all of them, or just the asset type that was specifically requested.
         if requested_asset_types is None or "ALL" in requested_asset_types:
