@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Changed
+
+- Updated the process for generating latex-image to use pyMuPDF instead of pdf2svg
+
+### Fixed
+
+- Only generate myopenmath problems when actually needed.
+
 ## [2.5.2] - 2024-07-17
 
 ### Fixed
