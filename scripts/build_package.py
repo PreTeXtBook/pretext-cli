@@ -1,6 +1,5 @@
 import subprocess
 import fetch_core
-import bundle_resources
 
 
 def main() -> None:
@@ -10,7 +9,7 @@ def main() -> None:
 
     # ensure up-to-date "static" resources
     fetch_core.main()
-    bundle_resources.main()
+    # bundle_resources.main() not needed; now part of fetch_core.main()
 
     # Build package
     subprocess.run(["poetry", "build"], shell=True)

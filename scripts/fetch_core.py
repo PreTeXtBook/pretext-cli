@@ -6,7 +6,9 @@ import tempfile
 import zipfile
 
 from pretext import CORE_COMMIT
-from scripts import utils
+import utils
+
+import bundle_resources
 
 
 def main() -> None:
@@ -57,6 +59,8 @@ def main() -> None:
                             file_path, arcname=os.path.relpath(file_path, tmpdirname)
                         )
     print("Successfully updated core PreTeXtBook/pretext resources from GitHub.")
+    bundle_resources.main()
+    print("Successfully bundled core PreTeXtBook/pretext resources.")
 
 
 if __name__ == "__main__":

@@ -150,7 +150,10 @@ cd pretext-cli
 Developers and contributors must install a
 version of Python that matching the requirements in `pyproject.toml`.
 
-#### Using pyenv and poetry (Mac/Linux)
+
+### Installing dependencies
+<details>
+<summary><b>Optional</b>: use pyenv as a virtual environment</summary>
 
 The `pyenv` tool for Linux automates the process of running the correct
 version of Python when working on this project (even if you have
@@ -163,54 +166,6 @@ Run the following, replacing `PYTHON_VERSION` with your desired version.
 ```
 pyenv install PYTHON_VERSION
 ```
-
-Then follow these instructions to install `poetry`.
-
--   https://python-poetry.org/docs/#installation
-    -   Note 2022/06/21: you may ignore "This installer is deprecated". See
-        [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
-
-Then you should be able to install dependencies into a virtual environment
-with this command.
-
-```
-poetry install
-```
-
-Before you attempt to run `pretext` locally, you must fetch a copy of the core pretext library
-and zip up templates by running
-
-```
-poetry run python scripts/fetch_core.py
-poetry run python scripts/zip_templates.py
-```
-
-Then to use the in-development package, you can either enter a poetry shell:
-
-```
-pretext --version # returns system version
-poetry shell
-pretext --version # returns version being developed
-exit
-pretext --version # returns system version
-```
-
-Or use the runner (as long as you remain within the package directory):
-
-```
-pretext --version             # returns system version
-poetry run pretext --version  # returns version being developed
-```
-
-If you run `echo 'alias pr="poetry run"' >> ~/.bashrc` then restart your
-shell, this becomes less of a mouthful:
-
-```
-pretext --version     # returns system version
-pr pretext --version  # returns version being developed
-```
-(On Windows, in PowerShell, you get get such an alias with `Function pr {poetry run @Args}`)
-
 #### Steps on Windows
 
 In windows, you can either use the bash shell and follow the directions above,
@@ -220,8 +175,49 @@ the **Finish the installation**. Then proceed to follow the directions above to
 install a version of python matching `pyproject.toml`. Finally, you may then need
 to manually add that version of python to your path.
 
-### Updating dependencies
+</details>
 
+<br/>
+
+The first time you set up your development environment, you should follow these steps:
+
+1. Follow these instructions to install `poetry`.
+
+    -   https://python-poetry.org/docs/#installation
+        -   Note 2022/06/21: you may ignore "This installer is deprecated". See
+            [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
+
+2. Install dependencies into a virtual environment with this command.
+
+    ```
+    poetry install
+    ```
+
+3. Fetch a copy of the core pretext library and bundle templates by running
+
+    ```
+    poetry run python scripts/fetch_core.py
+    ```
+
+The last command above should also be run when returning to development after some time, since the core commit you develop against might have changed.
+
+
+Make sure you are in a `poetry shell` during development mode so that you
+execute the development version of `pretext-cli` rather than the system-installed
+version.
+
+```
+pretext --version # returns system version
+poetry shell
+pretext --version # returns version being developed
+```
+
+When inside a `poetry shell` you can navegate to other folders and run pretext commands.  Doing so will use the current development environment version of pretext.
+
+
+### Updating dependencies
+<details>
+<summary>Show instructions</summary>
 To add dependencies for the package, run
 
 ```
@@ -233,38 +229,14 @@ If someone else has added a dependency:
 ```
 poetry install
 ```
-
-### Syncing untracked updates
-
-Updates to certain files tracked to the repository will
-need to be rebuilt by each user when pulled from GitHub.
-
-The file `pretext/__init__.py` tracks the upstream
-commit of core PreTeXt XSL/Python code we're developing against
-(from `PreTeXtBook/pretext`).
-To fetch these updates from upstream, run:
-
-```bash
-poetry run python scripts/fetch_core.py
-```
-
-If you instead want to point to a local copy of `PreTeXtBook/pretext`,
-try this instead to set up symlinks:
-
-```bash
-poetry run python scripts/symlink_core.py path/to/pretext
-```
-
-For more detailed directions on using a local copy of the core resources to develop core and CLI together, see [docs/core_development.md](docs/core_development.md).
+</details>
 
 
-Updates to `templates/` must be zipped and moved into
-`pretext/templates/resources`. This is done automatically by
-running:
+### Using a local copy of `PreTeXtBook/pretext`
 
-```bash
-poetry run python scripts/zip_templates.py
-```
+See [docs/core_development.md](docs/core_development.md).
+
+
 
 ### Formatting code before a commit
 
