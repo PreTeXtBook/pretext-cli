@@ -1,6 +1,5 @@
 import subprocess
 import fetch_core
-import bundle_resources
 
 
 def main() -> None:
