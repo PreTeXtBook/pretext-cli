@@ -702,7 +702,7 @@ def view(
             utils.stop_server()
         except Exception as e:
             log.warning("Failed to stop server.")
-            log.debug("e", exc_info=True)
+            log.debug(e, exc_info=True)
         finally:
             return
     if utils.cannot_find_project(task="view the output for"):
@@ -780,7 +780,7 @@ def view(
                 utils.stop_server(used_port)
             except Exception as e:
                 log.warning("Failed to stop server.")
-                log.debug("e", exc_info=True)
+                log.debug(e, exc_info=True)
                 pass
         # Start the new server
         server = project.server_process(

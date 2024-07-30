@@ -79,10 +79,13 @@ build-backend = "poetry.core.masonry.api"
 [[tool.poetry.source]]
 name = "pypi-public"
 url = "https://pypi.org/simple/"
+priority = "primary"
 
 
-# Pytest configuration
-# ====================
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
 [tool.pytest.ini_options]
 script_launch_mode = "subprocess"
 
