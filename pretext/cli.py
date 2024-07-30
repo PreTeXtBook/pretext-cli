@@ -697,9 +697,14 @@ def view(
 
     # pretext view -s should immediately stop the server and do nothing else.
     if stop_server:
-        log.info("\nStopping server.")
-        utils.stop_server()
-        return
+        try:
+            log.info("\nStopping server.")
+            utils.stop_server()
+        except Exception as e:
+            log.warning("Failed to stop server.")
+            log.debug(e, exc_info=True)
+        finally:
+            return
     if utils.cannot_find_project(task="view the output for"):
         return
     project = Project.parse()
@@ -771,7 +776,12 @@ def view(
         log.info("")
         # First terminate any existing server using this port
         if used_port == port:
-            utils.stop_server(used_port)
+            try:
+                utils.stop_server(used_port)
+            except Exception as e:
+                log.warning("Failed to stop server.")
+                log.debug(e, exc_info=True)
+                pass
         # Start the new server
         server = project.server_process(
             access=access,
