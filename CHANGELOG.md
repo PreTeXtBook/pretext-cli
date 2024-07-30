@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- `pretext view` should now work even if a previous view process did not exit properly.
+
 ## [2.6.0] - 2024-07-18
 
 ### Changed
