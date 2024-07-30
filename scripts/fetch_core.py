@@ -6,9 +6,10 @@ import tempfile
 import zipfile
 
 from pretext import CORE_COMMIT
-from scripts import utils
+import utils
 
-from . import bundle_resources
+import bundle_resources
+
 
 def main() -> None:
     # grab copy of necessary PreTeXtBook/pretext files from specified commit

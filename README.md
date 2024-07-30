@@ -153,8 +153,7 @@ version of Python that matching the requirements in `pyproject.toml`.
 
 ### Installing dependencies
 <details>
-<summary>Optional: use pyenv as a virtual environment</summary>
-
+<summary><b>Optional</b>: use pyenv as a virtual environment</summary>
 
 The `pyenv` tool for Linux automates the process of running the correct
 version of Python when working on this project (even if you have
@@ -178,29 +177,34 @@ to manually add that version of python to your path.
 
 </details>
 
+<br/>
 
-Follow these instructions to install `poetry`.
+The first time you set up your development environment, you should follow these steps:
 
--   https://python-poetry.org/docs/#installation
-    -   Note 2022/06/21: you may ignore "This installer is deprecated". See
-        [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
+1. Follow these instructions to install `poetry`.
 
-Then you should be able to install dependencies into a virtual environment
-with this command.
+    -   https://python-poetry.org/docs/#installation
+        -   Note 2022/06/21: you may ignore "This installer is deprecated". See
+            [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
 
-```
-poetry install
-```
+2. Install dependencies into a virtual environment with this command.
 
-Before you attempt to run `pretext` locally, you must fetch a copy of the core pretext library
-and zip up templates by running
+    ```
+    poetry install
+    ```
 
-```
-poetry run python scripts/fetch_core.py
-poetry run python scripts/bundle_resources.py
-```
+3. Fetch a copy of the core pretext library and bundle templates by running
 
-Then to use the in-development package, you can either enter a poetry shell:
+    ```
+    poetry run python scripts/fetch_core.py
+    ```
+
+The last command above should also be run when returning to development after some time, since the core commit you develop against might have changed.
+
+
+Make sure you are in a `poetry shell` during development mode so that you
+execute the development version of `pretext-cli` rather than the system-installed
+version.
 
 ```
 pretext --version # returns system version
@@ -208,9 +212,7 @@ poetry shell
 pretext --version # returns version being developed
 ```
 
-Make sure you are in a `poetry shell` during development mode so that you
-execute the development version of `pretext-cli` rather than the system-installed
-version.
+When inside a `poetry shell` you can navegate to other folders and run pretext commands.  Doing so will use the current development environment version of pretext.
 
 
 ### Updating dependencies

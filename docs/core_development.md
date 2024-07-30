@@ -15,13 +15,16 @@ git clone https://github.com/PreTeXtBook/pretext-cli.git
 git clone https://github.com/PreTeXtBook/pretext.git
 ```
 
-As in the development directions in the README, we will use poetry to install the CLI from source.  First, navigate to the pretext-cli directory and install the CLI with the following commands:
+To install the CLI from source, we follow the same instructions as in the development section of the README.
+
+<details>
+<summary>Show instructions</summary>
+First, navigate to the pretext-cli directory and install the CLI with the following commands:
 
 ```bash
 cd pretext-cli
 poetry install
 python ./scripts/fetch_core.py
-python ./scripts/bundle_resources.py
 ```
 
 You should now be able to test that everything worked by running the following commands:
@@ -38,6 +41,7 @@ poetry shell
 ```
 
 Now when you run `pretext --version` you should get the version installed with poetry.
+</details>
 
 ## Linking the core resources
 
