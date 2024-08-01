@@ -13,10 +13,9 @@ from lxml import etree as ET
 try:
     import pelican  # type: ignore
     import pelican.settings  # type: ignore
-
-    USEPELICAN = True
+    PELICAN_NOT_INSTALLED = False
 except ImportError:
-    USEPELICAN = False
+    PELICAN_NOT_INSTALLED = True
 
 from pydantic import (
     field_validator,
@@ -1498,7 +1497,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     dirs_exist_ok=True,
                 )
             else:  # strategy == "pelican_default" or "pelican_custom"
-                if USEPELICAN is False:
+                if PELICAN_NOT_INSTALLED:
                     log.error(
                         "Pelican is not installed. Please install Pelican to use this feature."
                     )
