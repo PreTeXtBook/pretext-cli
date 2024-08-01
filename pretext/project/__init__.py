@@ -1395,7 +1395,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             return "default_target"
         if not self.site_abspath().exists():
             return "pelican_default"
-        if (self.site_abspath() / "site.ptx").exists() or (self.site_abspath() / "site.json").exists():
+        if (self.site_abspath() / "site.ptx").exists() or (
+            self.site_abspath() / "site.json"
+        ).exists():
             return "pelican_custom"
         return "static"
 
