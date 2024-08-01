@@ -13,6 +13,7 @@ from lxml import etree as ET
 try:
     import pelican  # type: ignore
     import pelican.settings  # type: ignore
+
     PELICAN_NOT_INSTALLED = False
 except ImportError:
     PELICAN_NOT_INSTALLED = True
