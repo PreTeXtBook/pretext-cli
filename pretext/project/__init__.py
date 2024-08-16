@@ -1,6 +1,7 @@
 import typing as t
 from enum import Enum
 import hashlib
+import json
 import logging
 import multiprocessing
 import shutil
@@ -14,9 +15,9 @@ try:
     import pelican  # type: ignore
     import pelican.settings  # type: ignore
 
-    USEPELICAN = True
+    PELICAN_NOT_INSTALLED = False
 except ImportError:
-    USEPELICAN = False
+    PELICAN_NOT_INSTALLED = True
 
 from pydantic import (
     field_validator,
@@ -1394,7 +1395,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             return "default_target"
         if not self.site_abspath().exists():
             return "pelican_default"
-        if (self.site_abspath() / "site.ptx").exists():
+        if (self.site_abspath() / "site.ptx").exists() or (
+            self.site_abspath() / "site.json"
+        ).exists():
             return "pelican_custom"
         return "static"
 
@@ -1498,7 +1501,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     dirs_exist_ok=True,
                 )
             else:  # strategy == "pelican_default" or "pelican_custom"
-                if USEPELICAN is False:
+                if PELICAN_NOT_INSTALLED:
                     log.error(
                         "Pelican is not installed. Please install Pelican to use this feature."
                     )
@@ -1539,12 +1542,17 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         for t in self.deploy_targets()
                     ]
                     if strategy == "pelican_custom":
-                        customization = ET.parse(self.site_abspath() / "site.ptx")
-                        customization.xinclude()
-                        for child in customization.getroot():
-                            config[str(child.tag).upper().replace("-", "_")] = (
-                                child.text
-                            )
+                        if (self.site_abspath() / "site.ptx").exists():
+                            customization = ET.parse(self.site_abspath() / "site.ptx")
+                            customization.xinclude()
+                            for child in customization.getroot():
+                                config[str(child.tag).upper().replace("-", "_")] = (
+                                    child.text
+                                )
+                        else:
+                            with open(self.site_abspath() / "site.json") as f:
+                                customization = json.load(f)
+                            config = {**config, **customization}
                     pelican.Pelican(pelican.settings.configure_settings(config)).run()  # type: ignore
             log.info(f"Deployment is now staged at `{self.stage_abspath()}`.")
 
