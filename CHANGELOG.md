@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.6.2] - 2024-08-21
+
 ## [2.6.1] - 2024-08-10
 
 ### Fixed
