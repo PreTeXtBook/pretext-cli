@@ -9,7 +9,15 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Updated
+
+- Bumped `lxml` to at least 5.3 and `psutils` to at least 6.0.
+
 ## [2.6.2] - 2024-08-21
+
+### Updated
+
+- Newest version of core pretext.
 
 ## [2.6.1] - 2024-08-10
 
