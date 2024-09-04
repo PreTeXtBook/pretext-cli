@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Bug preventing the extraction of webwork sets.
+
 ### Updated
 
 - Bumped `lxml` to at least 5.3 and `psutils` to at least 6.0.

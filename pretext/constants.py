@@ -167,6 +167,12 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "sageplot": ["all"],
         "mermaid": ["png"],
     },
+    "webwork": {
+        "asymptote": [],
+        "latex-image": [],
+        "sageplot": [],
+        "mermaid": [],
+    },
     "custom": {
         "asymptote": ["all"],
         "latex-image": ["all"],
