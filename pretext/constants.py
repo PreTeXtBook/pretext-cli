@@ -3,7 +3,17 @@ from pathlib import Path
 
 NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
 
-FORMATS = ["html", "pdf", "latex", "epub", "kindle", "braille", "revealjs", "webwork", "custom"]
+FORMATS = [
+    "html",
+    "pdf",
+    "latex",
+    "epub",
+    "kindle",
+    "braille",
+    "revealjs",
+    "webwork",
+    "custom",
+]
 
 # Give list of assets that each build format requires.  Note that myopenmath must be present for html to generate some other "static" assets, even in html.
 ASSETS_BY_FORMAT = {
@@ -86,7 +96,7 @@ ASSETS_BY_FORMAT = {
         "asymptote",
         "codelens",
         "datafile",
-        "myopenmath", 
+        "myopenmath",
     ],
     "webwork": [
         "webwork",
