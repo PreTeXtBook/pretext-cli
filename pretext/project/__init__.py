@@ -49,6 +49,7 @@ class Format(str, Enum):
     EPUB = "epub"
     KINDLE = "kindle"
     BRAILLE = "braille"
+    REVEALJS = "revealjs"
     WEBWORK = "webwork"
     CUSTOM = "custom"
 
@@ -170,6 +171,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     compression: t.Optional[Compression] = pxml.attr(default=None)
 
     # Compression is only supported for HTML and WeBWorK formats.
+    # TODO: add support for revealjs when core supports it.
     @field_validator("compression")
     @classmethod
     def compression_validator(
@@ -688,6 +690,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     math_format="kindle",
                     stringparams=stringparams_copy,
+                )
+            elif self.format == Format.REVEALJS:
+                core.revealjs(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    file_format=None,
+                    extra_xsl=custom_xsl,
+                    out_file=out_file,
+                    dest_dir=self.output_dir_abspath().as_posix(),
                 )
             elif self.format == Format.BRAILLE:
                 log.warning(

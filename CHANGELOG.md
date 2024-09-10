@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Added
+
+- Support for reveal.js slides via `format="revealjs"`.
+
 ### Fixed
 
 - Bug preventing the extraction of webwork sets.
