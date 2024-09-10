@@ -3,10 +3,8 @@
 <project ptx-version="2">
   <targets>
     <target
-        name="web"
-        format="custom"
-        xsl="slides.xsl"
-        output-filename="slides.html"
+        name="slides"
+        format="revealjs"
         />
   </targets>
 </project>
