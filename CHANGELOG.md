@@ -12,6 +12,7 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 ### Added
 
 - Support for reveal.js slides via `format="revealjs"`.
+- Support for custom xsl that imports core xsl via `../xsl/pretext-[type].xsl`
 
 ### Fixed
 
