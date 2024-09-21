@@ -303,6 +303,11 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path) -> None:
     shutil.copytree(
         resources.resource_base_path() / "core" / "xsl", output_dir / "core"
     )
+    # Create a symlink to the {output_dir}/core from the parent of the output_dir
+    symlink = output_dir.parent / "xsl"
+    if symlink.exists():
+        symlink.unlink()
+    symlink.symlink_to(output_dir / "core")
 
 
 def check_executable(exec_name: str) -> Optional[str]:
