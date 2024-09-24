@@ -626,7 +626,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     assert self.output_filename is None
                     # This is equivalent to setting `<platform host="runestone">` in the publication file.
                     stringparams_copy.update({"host-platform": "runestone"})
-                    if core.get_platform_host(self.publication_abspath().as_posix()) != "runestone":
+                    if (
+                        core.get_platform_host(self.publication_abspath().as_posix())
+                        != "runestone"
+                    ):
                         log.warning(
                             "The platform host in the publication file is not set to runestone. Since the requested target has @platform='runestone', we will override the publication file's platform host."
                         )
