@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.7.0] - 2024-09-24
+
 ### Added
 
 - Support for reveal.js slides via `format="revealjs"`.
