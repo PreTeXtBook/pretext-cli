@@ -590,7 +590,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             self.stringparams["debug.skip-knowls"] = "yes"
 
         # Proceed with the build
-        with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_xsl_str:
+        with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmp_xsl_str:
             # Put the custom xsl in a "cli_xsl" directory inside the temporary directory, so we can create a symlink to core from the temporary directory itself.
             tmp_xsl_path = Path(tmp_xsl_str) / "cli_xsl"
             # if custom xsl, copy it into a temporary directory (different from the building temporary directory)
@@ -748,6 +748,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 )
             else:
                 log.critical(f"Unknown format {self.format}")
+                    # Delete temporary directories left behind by core:
+        try:
+            core.release_temporary_directories()
+        except Exception as e:
+            log.error(
+                "Unable to release temporary directories.  Please report this error to pretext-support"
+            )
+            log.debug(e, exc_info=True)
 
     def generate_assets(
         self,
@@ -1537,7 +1545,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                     log.warning(
                         "Discussion: <https://github.com/PreTeXtBook/pretext-cli/discussions/766>"
                     )
-                with tempfile.TemporaryDirectory(prefix="pretext_") as tmp_dir_str:
+                with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmp_dir_str:
                     log.info(f"Staging generated site at `{self.stage_abspath()}`.")
                     # set variables
                     config = utils.pelican_default_settings()

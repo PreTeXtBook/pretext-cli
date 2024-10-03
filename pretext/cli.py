@@ -289,7 +289,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
         # get project and extract to directory
         r = requests.get(url_template)
         archive = zipfile.ZipFile(io.BytesIO(r.content))
-        with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+        with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmpdirname:
             archive.extractall(tmpdirname)
             content_path = [Path(tmpdirname) / i for i in os.listdir(tmpdirname)][0]
             shutil.copytree(content_path, directory_fullpath, dirs_exist_ok=True)
@@ -880,7 +880,7 @@ def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
         output_path.mkdir(parents=True, exist_ok=True)
     # Now we use plastex to convert:
     log.info(f"Converting {latex_file_path} to PreTeXt.")
-    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+    with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmpdirname:
         temp_path = Path(tmpdirname) / "import"
         temp_path.mkdir()
         log.info(f"Using temporary directory {temp_path}")

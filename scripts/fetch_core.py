@@ -24,7 +24,7 @@ def main() -> None:
 
     with open(core_zip_path, "wb") as f:
         f.write(r.content)
-    with tempfile.TemporaryDirectory(prefix="pretext_") as tmpdirname:
+    with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmpdirname:
         with zipfile.ZipFile(core_zip_path) as archive:
             archive.extractall(tmpdirname)
             shutil.copyfile(
