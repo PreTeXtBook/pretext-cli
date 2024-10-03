@@ -748,7 +748,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 )
             else:
                 log.critical(f"Unknown format {self.format}")
-                    # Delete temporary directories left behind by core:
+                # Delete temporary directories left behind by core:
         try:
             core.release_temporary_directories()
         except Exception as e:
