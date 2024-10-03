@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.7.1] - 2024-10-03
+
 ### Fixed
 
 - Bug: temporary directories from core not deleted on builds.
