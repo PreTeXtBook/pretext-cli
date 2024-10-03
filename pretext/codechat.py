@@ -91,7 +91,7 @@ def map_path_to_xml_id(
     lxml.ElementInclude.include(src_tree, loader=my_loader)
 
     # Walk though every element with an xml ID. Note: the type stubs don't have the ``iterfind`` method, hence the ignore in the next line.
-    for elem in src_tree.iterfind(f"//*[@{xml_id_attrib}]"):  # type: ignore
+    for elem in src_tree.iterfind(f".//*[@{xml_id_attrib}]"):  # type: ignore
         # Consider only elemets whose ID produced an HTML file. TODO: use a walrus operator after Python 3.7 is EOL.
         xml_id = elem.get(xml_id_attrib)
         if xml_id in html_files:
