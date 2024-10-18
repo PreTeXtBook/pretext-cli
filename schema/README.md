@@ -1,0 +1,1 @@
+This directory will contain the RelaxNG schema for the project manifest `project.ptx`.  

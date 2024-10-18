@@ -9,6 +9,16 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Added
+
+- From core: publication option to control latex style file.
+- From core: default programming language can be set in `<docinfo>`
+
+### Changed
+
+- From core: `<bibinfo>` container for bibliographic information previous held in `<titlepage>` and `<colophon>`.
+- Improved publication file template.
+
 ## [2.7.1] - 2024-10-03
 
 ### Fixed

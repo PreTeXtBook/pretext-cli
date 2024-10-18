@@ -183,6 +183,7 @@ def test_custom_xsl(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (custom_path / "output" / "test2").exists()
 
 
+@pytest.mark.skip(reason="secondary webwork server not currently available")
 def test_custom_webwork_server(tmp_path: Path, script_runner: ScriptRunner) -> None:
     custom_path = tmp_path / "custom"
     shutil.copytree(EXAMPLES_DIR / "projects" / "custom-wwserver", custom_path)
