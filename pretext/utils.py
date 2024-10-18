@@ -691,7 +691,7 @@ def active_server_port() -> t.Optional[int]:
     """
     # We look at all currently running processes and check if any are a pretext process that is a child of a pretext process.  This would only happen if we have run a `pretext view` command to start the server, so we can assume that this is the server we are looking for.
     for proc in psutil.process_iter():
-        if proc.name() == "pretext" and proc.parent().name() == "pretext":
+        if proc.name() == "pretext" and proc.parent().name() == "pretext":  # type: ignore
             log.debug(f"Found pretext server running with pid {proc.pid}")
             # Sometimes the process stops but doesn't get removed from the process list.  We check if the process is still running by checking its status.
             if proc.status() not in [psutil.STATUS_RUNNING, psutil.STATUS_SLEEPING]:
@@ -719,7 +719,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
             if len(proc.connections()) > 0:
                 if (
                     proc.name() == "pretext"
-                    and proc.parent().name() == "pretext"
+                    and proc.parent().name() == "pretext"  # type: ignore
                     and proc.connections()[0].laddr.port == port
                 ):
                     log.debug(
@@ -729,7 +729,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
     else:
         # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
         for proc in psutil.process_iter():
-            if proc.name() == "pretext" and proc.parent().name() == "pretext":
+            if proc.name() == "pretext" and proc.parent().name() == "pretext":  # type: ignore
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
 
