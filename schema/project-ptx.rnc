@@ -17,75 +17,108 @@
 # > java -jar path/to/jing.jar [...other arguments...]
 # ```
 
+grammar = {
+
 start = Project
 
 Project = element project {
+	ProjectReqAttributes,
+	ProjectOptAttributes*,
 	Targets
 }
+
+ProjectReqAttributes = attribute ptx-version { "2" }
+
+ProjectOptAttributes = (
+  attribute source { text }?,
+  attribute publication { text }?,
+  attribute output-dir { text }?,
+  attribute site {text}?,
+  attribute xsl { text }?,
+  attribute asy-method { "server" | "local" }?,
+)
+
 Targets = element targets { Target+ }
-Target = element target { 
+
+Target = element target {
 	## Unique identifier for this build target. This is the name you pass on the
 	## command line when building via the `pretext` CLI.
-	attribute name { string },
-	## The LaTeX executable should be used when compiling to PDF.
-	## There must be a corresponding entry in `<executables>`
-	attribute pdf-method { string }?,
-	Format,
+	attribute name { text },
+	## the required format can be `html`, `pdf`, `latex`, `epub`, `kindle`, `braille`, `revealjs`, `webwork`, or `custom`.
 	(
-		element (
-			## Relative or absolute path to the "root" file of your PreTeXt project.
-			## This file is often called `main.ptx`
-			source |
-			## Relative or absolute path to the publication file for your
-			## PreTeXt project. Often called `publication.ptx`
-			publication |
-			## Relative or absolute path to the folder you wish to output compiled files to.
-			output-dir |
-			xmlid-root |
-			## Relative or absolute path to custom XSL files
-			xsl |
-			output-filename
-		) { text } |
-		## Parameters that get passed directly to the XSL processing backend.
-		## These parameters are rarely used by content authors.
-		Stringparam
-	)*
-}
-Executables = element executables { 
-	element (
-		latex |
-		pdflatex |
-		xelatex |
-		pdfsvg |
-		asy |
-		sage |
-		pdfpng |
-		pdfeps |
-		node |
-		liblouis |
-		pdfcrop |
-		pageres
-	) { text }*
+		HtmlAttributes
+		| PdfAttributes
+		| LatexAttributes
+		| EpubAttributes
+		| BrailleAttributes
+		| RevealjsAttributes
+		| WebworkAttributes
+		| CustomAttributes
+	),
+	CommonAttributes?,
+	## Parameters that get passed directly to the XSL processing backend.
+	## These parameters are rarely used by content authors.
+	Stringparams*
 }
 
-Format = element format {
-	## Generate a PDF file as output
-	"pdf" |
-	## Generate HTML that can be viewed with a standard web browser
-	"html" |
-	## Generate LaTeX files, but do not compile them
-	"latex" |
-	## Generate an ePub file suitable for e-reader devices
-	"epub" |
-	## Generate an ePub file suitable for the kindle e-reader
-	"kindle" |
-	## Generate braille ouput
-	"braille" |
-	## Custom build method. Often used with custom XSL
-	"custom"
-}
-Stringparam = element stringparam {
-	attribute key { string },
-	attribute value { string }
+CommonAttributes = (
+	attribute source { text }?,
+	attribute publication { text }?,
+	attribute output-dir { text }?,
+	attribute deploy-dir { text }?,
+	attribute site {text}?,
+	attribute xsl { text }?,
+	attribute asy-method { "server" | "local" }?,
+)
+
+HtmlAttributes = (
+	attribute format { "html" },
+	(attribute platform { "runestone" }?
+	| attribute compression { "zip" }?)
+)
+
+PdfAttributes = (
+	attribute format { "pdf" },
+	attribute latex-engine { "xelatex" | "pdflatex" | "latex" }?,
+	attribute output-filename { text }?,
+)
+
+LatexAttributes = (
+	attribute format { "latex" },
+	attribute output-filename { text }?,
+)
+
+EpubAttributes = (
+	attribute format { "epub"|"kindle" },
+)
+
+BrailleAttributes = (
+	attribute format { "braille" },
+	attribute braille-mode { "emboss" | "electronic" }?,
+)
+
+RevealjsAttributes = (
+	attribute format { "revealjs" }
+)
+
+WebworkAttributes = (
+	attribute format { "webwork" },
+	attribute compression { "zip" }?
+)
+
+CustomAttributes = (
+	attribute format { "custom" }
+)
+
+
+Stringparams = element stringparams {
+	# Attributes are the name of the string-param and the value is the value of the string-param.
+	attribute debug.datedfiles {"yes"|"no"}?,
+	attribute debug.mathjax4 { "yes" | "no" }?,
+	attribute debug.react.local { "yes" | "no" }?,
+	attribute debug.react.global { "yes" | "no" }?,
+	attribute debug.html.annotate { "yes" | "no" }?,
+	attribute debug.skip-knowls { "yes" | "no" }?,
 }
 
+}
