@@ -76,20 +76,6 @@ jobs:
       - name: Update version for next dev release
         run: poetry version patch
 
-      - name: Create Release
-        id: create_release
-        if: ${{ inputs.level != 'patch' }}
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: "v${{ env.VERSION }}"
-          release_name: "v${{ env.VERSION }}"
-          body: |
-            See the [changelog](CHANGELOG.md) for details.
-          draft: false
-          prerelease: false
-
       - name: setup git config
         run: |
           # setup the username and email.
@@ -115,6 +101,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Create Release
+        id: create_release
+        if: ${{ inputs.level != 'patch' }}
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v${{ env.VERSION }}"
+          release_name: "v${{ env.VERSION }}"
+          body: |
+            See the [changelog](CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+          
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
         with:
