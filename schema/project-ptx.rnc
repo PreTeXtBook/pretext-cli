@@ -20,7 +20,7 @@
 start = Project
 
 Project = element project {
-	Targets, Executables
+	Targets
 }
 Targets = element targets { Target+ }
 Target = element target { 
