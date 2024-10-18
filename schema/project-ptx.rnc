@@ -1,0 +1,91 @@
+# Relax-ng grammar for `project.ptx` files.
+# To use this grammar, it must first be converted from
+# "compact" form (the `.rnc` file) into XML (the `.rng` file).
+# This conversion is accomplished with [trang](https://github.com/relaxng/jing-trang) via
+# ```
+# > trang project-ptx.rnc project-ptx.rng
+# ```
+# You can then use [jing](https://github.com/relaxng/jing-trang) to test
+# whether a `project.ptx` file conforms to the schema.
+# ```
+# > jing project-ptx.rng path/to/project.ptx
+# ```
+#
+# If you are running these commands directly from Java `.jar` files, you will
+# instead run
+# ```
+# > java -jar path/to/jing.jar [...other arguments...]
+# ```
+
+start = Project
+
+Project = element project {
+	Targets, Executables
+}
+Targets = element targets { Target+ }
+Target = element target { 
+	## Unique identifier for this build target. This is the name you pass on the
+	## command line when building via the `pretext` CLI.
+	attribute name { string },
+	## The LaTeX executable should be used when compiling to PDF.
+	## There must be a corresponding entry in `<executables>`
+	attribute pdf-method { string }?,
+	Format,
+	(
+		element (
+			## Relative or absolute path to the "root" file of your PreTeXt project.
+			## This file is often called `main.ptx`
+			source |
+			## Relative or absolute path to the publication file for your
+			## PreTeXt project. Often called `publication.ptx`
+			publication |
+			## Relative or absolute path to the folder you wish to output compiled files to.
+			output-dir |
+			xmlid-root |
+			## Relative or absolute path to custom XSL files
+			xsl |
+			output-filename
+		) { text } |
+		## Parameters that get passed directly to the XSL processing backend.
+		## These parameters are rarely used by content authors.
+		Stringparam
+	)*
+}
+Executables = element executables { 
+	element (
+		latex |
+		pdflatex |
+		xelatex |
+		pdfsvg |
+		asy |
+		sage |
+		pdfpng |
+		pdfeps |
+		node |
+		liblouis |
+		pdfcrop |
+		pageres
+	) { text }*
+}
+
+Format = element format {
+	## Generate a PDF file as output
+	"pdf" |
+	## Generate HTML that can be viewed with a standard web browser
+	"html" |
+	## Generate LaTeX files, but do not compile them
+	"latex" |
+	## Generate an ePub file suitable for e-reader devices
+	"epub" |
+	## Generate an ePub file suitable for the kindle e-reader
+	"kindle" |
+	## Generate braille ouput
+	"braille" |
+	## Custom build method. Often used with custom XSL
+	"custom"
+}
+Stringparam = element stringparam {
+	attribute key { string },
+	attribute value { string }
+}
+
