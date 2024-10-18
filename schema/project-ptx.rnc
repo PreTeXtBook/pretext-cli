@@ -17,13 +17,13 @@
 # > java -jar path/to/jing.jar [...other arguments...]
 # ```
 
-grammar = {
+grammar {
 
 start = Project
 
 Project = element project {
 	ProjectReqAttributes,
-	ProjectOptAttributes*,
+	ProjectOptAttributes,
 	Targets
 }
 
@@ -35,7 +35,7 @@ ProjectOptAttributes = (
   attribute output-dir { text }?,
   attribute site {text}?,
   attribute xsl { text }?,
-  attribute asy-method { "server" | "local" }?,
+  attribute asy-method { "server" | "local" }?
 )
 
 Targets = element targets { Target+ }
@@ -55,7 +55,7 @@ Target = element target {
 		| WebworkAttributes
 		| CustomAttributes
 	),
-	CommonAttributes?,
+	CommonAttributes,
 	## Parameters that get passed directly to the XSL processing backend.
 	## These parameters are rarely used by content authors.
 	Stringparams*
@@ -68,7 +68,7 @@ CommonAttributes = (
 	attribute deploy-dir { text }?,
 	attribute site {text}?,
 	attribute xsl { text }?,
-	attribute asy-method { "server" | "local" }?,
+	attribute asy-method { "server" | "local" }?
 )
 
 HtmlAttributes = (
@@ -80,25 +80,27 @@ HtmlAttributes = (
 PdfAttributes = (
 	attribute format { "pdf" },
 	attribute latex-engine { "xelatex" | "pdflatex" | "latex" }?,
-	attribute output-filename { text }?,
+	attribute output-filename { text }?
 )
 
 LatexAttributes = (
 	attribute format { "latex" },
-	attribute output-filename { text }?,
+	attribute output-filename { text }?
 )
 
 EpubAttributes = (
 	attribute format { "epub"|"kindle" },
+	attribute output-filename { text }?
 )
 
 BrailleAttributes = (
 	attribute format { "braille" },
-	attribute braille-mode { "emboss" | "electronic" }?,
+	attribute braille-mode { "emboss" | "electronic" }?
 )
 
 RevealjsAttributes = (
-	attribute format { "revealjs" }
+	attribute format { "revealjs" },
+	attribute output-filename { text }?
 )
 
 WebworkAttributes = (
@@ -119,6 +121,8 @@ Stringparams = element stringparams {
 	attribute debug.react.global { "yes" | "no" }?,
 	attribute debug.html.annotate { "yes" | "no" }?,
 	attribute debug.skip-knowls { "yes" | "no" }?,
+	attribute author.tools { "yes" | "no" }?,
+	attribute html.css.extra { text }?
 }
 
 }
