@@ -80,3 +80,19 @@ jobs:
       - name: Test with pytest
         run: |
           python -m poetry run pytest -v --cov
+
+  schema:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: jing trang
+        version: 1.0
+    - name: Make sure Schema rnc and rng files in sync via TRANG
+      run: |
+        trang ./schema/project-ptx.rnc ./tmp-project-ptx.rng
+        cmp ./schema/project-ptx.rng ./tmp-project-ptx.rng
+    - name: Verify template `project.ptx` match schema via JING
+      run: |
+        for i in $(find ./templates -name "project.ptx"); do jing ./schema/project-ptx.rng "$i"; done

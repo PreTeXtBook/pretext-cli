@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Relax-ng grammar for `project.ptx` files.
+  To use this grammar, it must first be converted from
+  "compact" form (the `.rnc` file) into XML (the `.rng` file).
+  This conversion is accomplished with [trang](https://github.com/relaxng/jing-trang) via
+  ```
+  > trang project-ptx.rnc project-ptx.rng
+  ```
+  You can then use [jing](https://github.com/relaxng/jing-trang) to test
+  whether a `project.ptx` file conforms to the schema.
+  ```
+  > jing project-ptx.rng path/to/project.ptx
+  ```
+  
+  If you are running these commands directly from Java `.jar` files, you will
+  instead run
+  ```
+  > java -jar path/to/jing.jar [...other arguments...]
+  ```
+-->
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
+    <ref name="Project"/>
+  </start>
+  <define name="Project">
+    <element name="project">
+      <ref name="ProjectReqAttributes"/>
+      <ref name="ProjectOptAttributes"/>
+      <ref name="Targets"/>
+    </element>
+  </define>
+  <define name="ProjectReqAttributes">
+    <attribute name="ptx-version">
+      <value>2</value>
+    </attribute>
+  </define>
+  <define name="ProjectOptAttributes">
+    <optional>
+      <attribute name="source"/>
+    </optional>
+    <optional>
+      <attribute name="publication"/>
+    </optional>
+    <optional>
+      <attribute name="output-dir"/>
+    </optional>
+    <optional>
+      <attribute name="site"/>
+    </optional>
+    <optional>
+      <attribute name="xsl"/>
+    </optional>
+    <optional>
+      <attribute name="asy-method">
+        <choice>
+          <value>server</value>
+          <value>local</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="Targets">
+    <element name="targets">
+      <oneOrMore>
+        <ref name="Target"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="Target">
+    <element name="target">
+      <attribute name="name">
+        <a:documentation>Unique identifier for this build target. This is the name you pass on the
+command line when building via the `pretext` CLI.</a:documentation>
+      </attribute>
+      <choice>
+        <a:documentation>the required format can be `html`, `pdf`, `latex`, `epub`, `kindle`, `braille`, `revealjs`, `webwork`, or `custom`.</a:documentation>
+        <ref name="HtmlAttributes"/>
+        <ref name="PdfAttributes"/>
+        <ref name="LatexAttributes"/>
+        <ref name="EpubAttributes"/>
+        <ref name="BrailleAttributes"/>
+        <ref name="RevealjsAttributes"/>
+        <ref name="WebworkAttributes"/>
+        <ref name="CustomAttributes"/>
+      </choice>
+      <ref name="CommonAttributes"/>
+      <zeroOrMore>
+        <ref name="Stringparams">
+          <a:documentation>Parameters that get passed directly to the XSL processing backend.
+These parameters are rarely used by content authors.</a:documentation>
+        </ref>
+      </zeroOrMore>
+    </element>
+  </define>
+  <define name="CommonAttributes">
+    <optional>
+      <attribute name="source"/>
+    </optional>
+    <optional>
+      <attribute name="publication"/>
+    </optional>
+    <optional>
+      <attribute name="output-dir"/>
+    </optional>
+    <optional>
+      <attribute name="deploy-dir"/>
+    </optional>
+    <optional>
+      <attribute name="site"/>
+    </optional>
+    <optional>
+      <attribute name="xsl"/>
+    </optional>
+    <optional>
+      <attribute name="asy-method">
+        <choice>
+          <value>server</value>
+          <value>local</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="HtmlAttributes">
+    <attribute name="format">
+      <value>html</value>
+    </attribute>
+    <choice>
+      <optional>
+        <attribute name="platform">
+          <value>runestone</value>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="compression">
+          <value>zip</value>
+        </attribute>
+      </optional>
+    </choice>
+  </define>
+  <define name="PdfAttributes">
+    <attribute name="format">
+      <value>pdf</value>
+    </attribute>
+    <optional>
+      <attribute name="latex-engine">
+        <choice>
+          <value>xelatex</value>
+          <value>pdflatex</value>
+          <value>latex</value>
+        </choice>
+      </attribute>
+    </optional>
+    <optional>
+      <attribute name="output-filename"/>
+    </optional>
+  </define>
+  <define name="LatexAttributes">
+    <attribute name="format">
+      <value>latex</value>
+    </attribute>
+    <optional>
+      <attribute name="output-filename"/>
+    </optional>
+  </define>
+  <define name="EpubAttributes">
+    <attribute name="format">
+      <choice>
+        <value>epub</value>
+        <value>kindle</value>
+      </choice>
+    </attribute>
+    <optional>
+      <attribute name="output-filename"/>
+    </optional>
+  </define>
+  <define name="BrailleAttributes">
+    <attribute name="format">
+      <value>braille</value>
+    </attribute>
+    <optional>
+      <attribute name="braille-mode">
+        <choice>
+          <value>emboss</value>
+          <value>electronic</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="RevealjsAttributes">
+    <attribute name="format">
+      <value>revealjs</value>
+    </attribute>
+    <optional>
+      <attribute name="output-filename"/>
+    </optional>
+  </define>
+  <define name="WebworkAttributes">
+    <attribute name="format">
+      <value>webwork</value>
+    </attribute>
+    <optional>
+      <attribute name="compression">
+        <value>zip</value>
+      </attribute>
+    </optional>
+  </define>
+  <define name="CustomAttributes">
+    <attribute name="format">
+      <value>custom</value>
+    </attribute>
+  </define>
+  <define name="Stringparams">
+    <element name="stringparams">
+      <optional>
+        <!-- Attributes are the name of the string-param and the value is the value of the string-param. -->
+        <attribute name="debug.datedfiles">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="debug.mathjax4">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="debug.react.local">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="debug.react.global">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="debug.html.annotate">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="debug.skip-knowls">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="author.tools">
+          <choice>
+            <value>yes</value>
+            <value>no</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="html.css.extra"/>
+      </optional>
+    </element>
+  </define>
+</grammar>
