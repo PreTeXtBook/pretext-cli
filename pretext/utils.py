@@ -145,6 +145,11 @@ def project_xml_string(dirpath: Optional[Path] = None) -> str:
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
 
+# Returns the pretext directory under home.
+def home_path() -> Path:
+    return Path.home() / ".ptx"
+
+
 # TODO: is this ever called?
 def target_xml(
     alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
