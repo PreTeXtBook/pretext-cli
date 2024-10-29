@@ -1,10 +1,13 @@
 from dataclasses import dataclass
+from http.server import SimpleHTTPRequestHandler
 import logging
 import os
+from pathlib import Path
+import socketserver
 import typing as t
 import psutil
 
-from pretext.utils import home_path
+from pretext.utils import hash_path, home_path
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -102,12 +105,19 @@ def add_server_entry(pathHash: str, pid: id, port: int, binding: str) -> None:
     PURGE_LIMIT = 10  # If more servers active, try to clean up
     runningServers = get_running_servers()
     newEntry = RunningServerInfo(pathHash=pathHash, pid=pid, port=port, binding=binding)
-    runningServers.add(newEntry)
+    runningServers.append(newEntry)
     if len(runningServers) >= PURGE_LIMIT:
         log.info(f"There are {PURGE_LIMIT} or more servers on file. Cleaning up ...")
         runningServers = stop_inactive_servers(runningServers)
     save_running_servers(runningServers)
     log.info(f"Added server entry {newEntry.toFileLine()}")
+
+
+def remove_server_entry(pathHash: str):
+    remainingServers = [
+        info for info in get_running_servers() if info.pathHash != pathHash
+    ]
+    save_running_servers(remainingServers)
 
 
 def stop_inactive_servers(
@@ -121,8 +131,69 @@ def stop_inactive_servers(
             server.terminate()
 
 
-def active_server_for_pathHash(pathHash: str) -> t.Optional[RunningServerInfo]:
+def active_server_for_path_hash(pathHash: str) -> t.Optional[RunningServerInfo]:
     return next(
         (info for info in get_running_servers() if info.pathHash == pathHash),
-        default=None,
+        None,
     )
+
+
+# boilerplate to prevent overzealous caching by preview server, and
+# avoid port issues
+def binding_for_access(access: t.Literal["public", "private"] = "private") -> str:
+    if access == "private":
+        return "localhost"
+    return "0.0.0.0"
+
+
+def start_server(
+    base_dir: Path,
+    access: t.Literal["public", "private"] = "private",
+    port: int = 8128,
+    callback: t.Callable[[int], None] = None,
+) -> RunningServerInfo:
+    log.info("setting up ...")
+    pathHash = hash_path(base_dir)
+    pid = os.getpid()
+    port = 8128
+    binding = binding_for_access(access)
+    log.info("values set...")
+
+    # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
+    # 2024-04-05: try using this again to let Firefox work
+    class RequestHandler(SimpleHTTPRequestHandler):
+
+        def __init__(self, *args: t.Any, **kwargs: t.Any):
+            super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
+
+        """HTTP request handler with no caching"""
+
+        def end_headers(self) -> None:
+            self.send_my_headers()
+            SimpleHTTPRequestHandler.end_headers(self)
+
+        def send_my_headers(self) -> None:
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
+
+    class TCPServer(socketserver.TCPServer):
+        allow_reuse_address = True
+
+    while True:
+        try:
+            with TCPServer((binding, port), RequestHandler) as httpd:
+                log.info("adding server entry")
+                add_server_entry(pathHash, pid, port, binding)
+                log.info("Starting the server")
+                if callable is not None:
+                    callable(port)
+                httpd.serve_forever()
+        except OSError:
+            log.warning(f"Port {port} could not be used.")
+            port += 1
+            log.warning(f"Trying port {port} instead.\n")
+        except KeyboardInterrupt:
+            log.info("Stopping server.")
+            remove_server_entry(pathHash)
+            return
