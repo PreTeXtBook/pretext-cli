@@ -27,6 +27,7 @@ from . import (
     core,
     constants,
     plastex,
+    server,
     VERSION,
     CORE_COMMIT,
 )
@@ -848,8 +849,15 @@ def view(
             webbrowser.open(url)
         return
     # Start server if there isn't one running already:
-    used_port = utils.active_server_port()
-    if restart_server or (port != used_port) or (used_port is None):
+    projectHash = utils.hash_path(project.abspath())
+    current_server = server.active_server_for_path_hash(projectHash)
+    if restart_server and current_server is not None:
+        log.info(
+            f"Terminating existing server {current_server.pid} on port {current_server.port}"
+        )
+        current_server.terminate()
+        current_server = None
+    if current_server is None:
         log.info(
             f"Now preparing local server to preview your project directory `{project.abspath()}`."
         )
@@ -861,43 +869,24 @@ def view(
         )
         log.info("  personal computer.)")
         log.info("")
-        # First terminate any existing server using this port
-        if used_port == port:
-            try:
-                utils.stop_server(used_port)
-            except Exception as e:
-                log.warning("Failed to stop server.")
-                log.debug(e, exc_info=True)
-                pass
-        # Start the new server
-        server = project.server_process(
-            access=access,
-            port=port,
-        )
-        server.start()
 
-        # Now get the updated port in case we had to pick a new one
-        actual_port = utils.active_server_port() or port
-        # set the url
-        url_base = utils.url_for_access(access=access, port=actual_port)
-        url = url_base + url_path
-        log.info(f"Server will soon be available at {url_base}")
-        if no_launch:
-            log.info(f"The {target_name} will be available at {url}")
-        else:
-            # SECONDS = 2
-            log.info(f"Opening browser for {target_name} at {url}")
-            # time.sleep(SECONDS)
-            webbrowser.open(url)
-        try:
-            while server.is_alive():
-                time.sleep(1)
-        except KeyboardInterrupt:
-            log.info("Stopping server.")
-            server.terminate()
-            return
+        def callback(actual_port: int):
+            url_base = utils.url_for_access(access=access, port=actual_port)
+            url = url_base + url_path
+            log.info(f"Server will soon be available at {url_base}")
+            if no_launch:
+                log.info(f"The {target_name} will be available at {url}")
+            else:
+                # SECONDS = 2
+                log.info(f"Opening browser for {target_name} at {url}")
+                # time.sleep(SECONDS)
+                webbrowser.open(url)
+
+        log.info("starting server ...")
+        server.start_server(project.abspath(), access, port, callback)
+
     else:
-        url_base = utils.url_for_access(access=access, port=used_port)
+        url_base = utils.url_for_access(access=access, port=current_server.port)
         url = url_base + url_path
         log.info(f"Server is already available at {url_base}")
         if no_launch:
