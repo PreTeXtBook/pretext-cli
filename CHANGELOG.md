@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Bug: could not use custom XSL on windows without special permissions
+- Bug: Runestone issue "Failed to evaluate the AVT of attribute 'data-video-divid'"
 
 ## [2.8.0] - 2024-10-18
 
