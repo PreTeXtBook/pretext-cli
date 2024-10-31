@@ -95,8 +95,7 @@ jobs:
           git commit -m "update changelog for release"
           git add pyproject.toml
           git commit -m "bump version to next patch level for nightly releases"
-          git tag -d ${{ env.VERSION }}
-          git tag ${{ env.VERSION }}
+          git tag -f ${{ env.VERSION }}
           git push --set-upstream origin ${{ env.VERSION }}
           gh pr create --fill
           gh pr merge -s -d -t "Update changelog and bump version to next patch level for nightly releases"
@@ -105,7 +104,6 @@ jobs:
 
       - name: Create Release
         id: create_release
-        if: ${{ inputs.level != 'patch' }}
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
