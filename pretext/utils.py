@@ -304,10 +304,18 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path) -> None:
         resources.resource_base_path() / "core" / "xsl", output_dir / "core"
     )
     # Create a symlink to the {output_dir}/core from the parent of the output_dir
-    symlink = output_dir.parent / "xsl"
-    if symlink.exists():
-        symlink.unlink()
-    symlink.symlink_to(output_dir / "core")
+    # This supports custom xsl that includes "../xsl" instead of "./core".
+    try:
+        symlink = output_dir.parent / "xsl"
+        if symlink.exists():
+            symlink.unlink()
+        symlink.symlink_to(output_dir / "core")
+    except Exception as e:
+        # If the symlink fails, likely because of a Window's permission problem, we just make a second copy.
+        log.debug(f"Could not create symlink to {output_dir}/core")
+        log.debug(e)
+        log.debug("Copying core XSL to {symlink} instead.")
+        shutil.copytree(resources.resource_base_path() / "core" / "xsl", symlink)
 
 
 def check_executable(exec_name: str) -> Optional[str]:
