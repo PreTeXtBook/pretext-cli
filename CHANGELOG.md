@@ -9,6 +9,9 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+
+## [2.8.1] - 2024-10-31
+
 ### Fixed
 
 - Bug: could not use custom XSL on windows without special permissions
