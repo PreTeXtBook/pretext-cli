@@ -180,7 +180,8 @@ def main(ctx: click.Context, targets: bool) -> None:
             )
     else:
         log.info(f"PreTeXt-CLI version: {VERSION}\n")
-        log.info("No existing PreTeXt project found.")
+        utils.ensure_default_project_manifest()
+        log.warning("No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/project.ptx'.")
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
 
