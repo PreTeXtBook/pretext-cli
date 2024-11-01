@@ -298,9 +298,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # If this publication file doesn't exist, ...
             if not self.publication_abspath().exists():
                 # ... then use the CLI's built-in template file.
+                self.publication = (
+                    resource_base_path() / "templates" / "publication.ptx"
+                )
+                # I didn't understand the todo below, but the above seems to fix it.
                 # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
-                with resource_base_path() / "templates" / "publication.ptx" as self.publication:
-                    pass
+                # with resource_base_path() / "templates" / "publication.ptx" as self.publication:
+                # pass
         # Otherwise, verify that the provided publication file exists. TODO: It is silly to check that all publication files exist.  We warn when they don't.  If the target we are calling has a non-existent publication file, then that error will be caught anyway.
         else:
             p_full = self.publication_abspath()
@@ -1285,10 +1289,15 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def parse(
         cls,
         path: t.Union[Path, str] = Path("."),
+        global_manifest: bool = False,
     ) -> "Project":
         _path = cls.validate_path(path)
         # TODO: nicer errors if these files aren't found.
         xml_bytes = _path.read_bytes()
+
+        # Now that we have read the project manifest into xml_bytes, we can go back to the current working directory in case we are using the global manifest. Note that while validate_path returns a path ending in project.ptx, everything past this ignores that suffix, but does take the parent, so we need to include it.
+        if global_manifest:
+            _path = cls.validate_path(Path("."))
 
         # Determine the version of this project file.
         class ProjectVersionOnly(pxml.BaseXmlModel, tag="project"):
@@ -1377,6 +1386,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         for _tgt in p.targets:
             _tgt._project = p
             _tgt.post_validate()
+        # if global_manifest:
+        #    p._path = Path(".")
         return p
 
     def new_target(

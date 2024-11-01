@@ -139,6 +139,7 @@ def main(ctx: click.Context, targets: bool) -> None:
                 print(target)
             return
         # create file handler which logs even debug messages
+        # TODO: this will likely be moved out of this if to allow manifest-free builds
         logdir = pp / "logs"
         logdir.mkdir(exist_ok=True)
         logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
@@ -181,7 +182,14 @@ def main(ctx: click.Context, targets: bool) -> None:
     else:
         log.info(f"PreTeXt-CLI version: {VERSION}\n")
         utils.ensure_default_project_manifest()
-        log.warning("No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/project.ptx'.")
+        default_project_path = resources.resource_base_path().parent / "project.ptx"
+        project = Project.parse(default_project_path, global_manifest=True)
+        for target in project.target_names():
+            print(target)
+            print(project.output_dir_abspath())
+        log.warning(
+            "No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/project.ptx'."
+        )
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
 
