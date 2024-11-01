@@ -9,6 +9,9 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Added
+
+- Always checks whether there is a new version of the CLI available.
 
 ## [2.8.1] - 2024-10-31
 

@@ -762,3 +762,19 @@ def pelican_default_settings() -> t.Dict[str, t.Any]:
     # for now, all PTX_ custom settings are strings (due to use of XML)
     config["PTX_SHOW_TARGETS"] = "yes"
     return config
+
+
+def latest_version() -> t.Optional[str]:
+    """
+    Get the latest version of the pretext package from PyPI.
+    """
+    import requests
+
+    url = "https://pypi.org/pypi/pretext/json"
+    try:
+        response = requests.get(url)
+        return response.json()["info"]["version"]
+    except Exception as e:
+        log.debug("Could not determine latest version of pretext.")
+        log.debug(e, exc_info=True)
+        return None

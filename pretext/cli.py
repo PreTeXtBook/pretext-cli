@@ -148,7 +148,15 @@ def main(ctx: click.Context, targets: bool) -> None:
         fh.setFormatter(file_log_format)
         log.addHandler(fh)
         # output info
-        log.info(f"PreTeXt-CLI version: {VERSION}\n")
+        latest_version = utils.latest_version()
+        if latest_version and latest_version != VERSION:
+            log.info(
+                f"Using PreTeXt-CLI version {VERSION}.  The latest stable version available is {latest_version}. Run `pip install pretext --upgrade` to update.\n"
+            )
+        else:
+            log.info(
+                f"Using PreTeXt-CLI version: {VERSION}.  This is the latest available version.\n"
+            )
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
         # permanently change working directory for rest of process
         os.chdir(pp)
