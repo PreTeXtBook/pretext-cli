@@ -9,6 +9,9 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Fixed
+
+- Further video id bug.
 
 ## [2.8.1] - 2024-10-31
 
