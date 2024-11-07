@@ -44,6 +44,7 @@ psutil = "^6"
 plastex = "^3"
 jinja2 = "^3"
 pelican = { extras = ["markdown"], version = "^4.9.1", optional = true }
+prefig = "^0.2.5"
 
 # Development dependencies
 # ------------------------
