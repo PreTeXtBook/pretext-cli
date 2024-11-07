@@ -1002,6 +1002,22 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 except Exception as e:
                     log.error(f"Unable to generate some sageplot images:\n {e}")
                     log.debug(e, exc_info=True)
+        if "prefigure" in assets_to_generate:
+            for id in assets_to_generate["prefigure"]:
+                try:
+                    for outformat in asset_formats["prefigure"]:
+                        core.prefigure_conversion(
+                            xml_source=self.source_abspath(),
+                            pub_file=self.publication_abspath().as_posix(),
+                            stringparams=stringparams_copy,
+                            xmlid_root=id,
+                            dest_dir=self.generated_dir_abspath() / "prefigure",
+                            outformat=outformat,
+                        )
+                    successful_assets.append(("prefigure", id))
+                except Exception as e:
+                    log.error(f"Unable to generate some prefigure images:\n {e}")
+                    log.debug(e, exc_info=True)
         if "interactive" in assets_to_generate:
             # Ensure playwright is installed:
             utils.playwright_install()

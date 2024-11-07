@@ -11,7 +11,14 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ### Added
 
+- Support for generating prefigure graphics.
 - Always checks whether there is a new version of the CLI available.
+
+## [2.8.2] - 2024-11-05
+
+### Fixed
+
+- Further video id bug.
 
 ## [2.8.1] - 2024-10-31
 
