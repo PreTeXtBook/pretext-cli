@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
         poetry-version: ["1.5.1"]
         os: [ubuntu-latest, windows-latest]
         exclude:
@@ -44,6 +44,8 @@ jobs:
             python-version: "3.10"
           - os: windows-latest
             python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.12"
 
     runs-on: ${{ matrix.os }}
 
@@ -55,8 +57,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install apt packages (Linux with python 3.11 only)
-        if: runner.os == 'Linux' && matrix.python-version == '3.11'
+      - name: Install apt packages (Linux with python 3.13 only)
+        if: runner.os == 'Linux' && matrix.python-version == '3.13'
 
         run: |
           sudo apt update
