@@ -46,6 +46,7 @@ jinja2 = "^3"
 pelican = { extras = ["markdown"], version = "^4.9.1", optional = true }
 prefig = "^0.2.4"
 numpy = [{version = ">=1.19, <=1.25", python = "3.8"}, {version = "^1.26", python = ">=3.9"}]
+scipy = [{version = ">=1.5, <=1.7", python = "3.8"}, {version = "^1.8", python = ">=3.9"}]
 
 # Development dependencies
 # ------------------------
