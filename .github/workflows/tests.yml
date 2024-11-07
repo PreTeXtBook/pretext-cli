@@ -25,8 +25,8 @@ jobs:
       - name: Initialize project
         run: |
           python -m poetry install --extras "homepage"
-          python scripts/fetch_core.py
-          python scripts/bundle_resources.py
+          python -m poetry run python scripts/fetch_core.py
+          python -m poetry run python scripts/bundle_resources.py
       - name: Check formatting with black
         run: python -m black --check --diff $(git ls-files "*.py")
       - name: Check for lint

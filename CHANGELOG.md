@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Added
+
+- Support for generating prefigure graphics.
+
 ## [2.8.2] - 2024-11-05
 
 ### Fixed
