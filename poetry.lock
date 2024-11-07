@@ -2119,13 +2119,13 @@ reference = "pypi-public"
 
 [[package]]
 name = "prefig"
-version = "0.2.4"
+version = "0.2.5"
 description = "An authoring system for mathematical diagrams"
 optional = false
 python-versions = ">=3.8.5,<4.0.0"
 files = [
-    {file = "prefig-0.2.4-py3-none-any.whl", hash = "sha256:91c0b223ba5bd9ba0f6944c8543d7b1a6f7f4130ef8df41fe0692622c2c4123d"},
-    {file = "prefig-0.2.4.tar.gz", hash = "sha256:13a81a4007ec3705fbee3f740416bb18424ff7e0217cd95848c440ece60bf696"},
+    {file = "prefig-0.2.5-py3-none-any.whl", hash = "sha256:4f92d83bd6a9a49fe608618cf7149afc7e80f6e6f7f2157e99e4c8e05ff7b37c"},
+    {file = "prefig-0.2.5.tar.gz", hash = "sha256:1296abba8ef9d1d53592a33d96aa6cf9ebfc8fabbaabb6f20f6aae5686589b64"},
 ]
 
 [package.dependencies]
@@ -2133,10 +2133,16 @@ cairosvg = ">=2.7.1,<3.0.0"
 click = ">=8.1.7,<9.0.0"
 lxml = ">=5.3.0,<6.0.0"
 networkx = ">=2.5,<3.0"
-numpy = ">=1.19,<2.0"
+numpy = [
+    {version = ">=1.26,<2.0", markers = "python_version >= \"3.9\""},
+    {version = ">=1.19,<=1.25", markers = "python_version == \"3.8\""},
+]
 psutil = ">=6.0.0,<7.0.0"
 pycairo = ">=1.20,<2.0"
-scipy = ">=1.5,<2.0"
+scipy = [
+    {version = ">=1.8,<2.0", markers = "python_version >= \"3.9\""},
+    {version = ">=1.5,<=1.7", markers = "python_version == \"3.8\""},
+]
 shapely = ">=2.0.6,<3.0.0"
 
 [package.source]
@@ -3258,13 +3264,13 @@ reference = "pypi-public"
 
 [[package]]
 name = "typer"
-version = "0.12.5"
+version = "0.13.0"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "typer-0.12.5-py3-none-any.whl", hash = "sha256:62fe4e471711b147e3365034133904df3e235698399bc4de2b36c8579298d52b"},
-    {file = "typer-0.12.5.tar.gz", hash = "sha256:f592f089bedcc8ec1b974125d64851029c3b1af145f04aca64d69410f0c9b722"},
+    {file = "typer-0.13.0-py3-none-any.whl", hash = "sha256:d85fe0b777b2517cc99c8055ed735452f2659cd45e451507c76f48ce5c1d00e2"},
+    {file = "typer-0.13.0.tar.gz", hash = "sha256:f1c7198347939361eec90139ffa0fd8b3df3a2259d5852a0f7400e476d95985c"},
 ]
 
 [package.dependencies]
@@ -3687,4 +3693,4 @@ homepage = ["pelican"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.5"
-content-hash = "794e2fac1be594d8361b8cd548999c881c3c69081f569e0f75bf57db1720eb90"
+content-hash = "c70a5a8d5a6c1efc97f95b738838d50a5dccffe30b6796e00524b7160a7fc5f7"
