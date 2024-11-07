@@ -22,7 +22,6 @@ jobs:
         run: |
           python -m poetry install --extras "homepage"
           python -m poetry run python scripts/fetch_core.py
-          python -m poetry run python scripts/bundle_resources.py
       - name: Check formatting with black
         run: python -m poetry run black --check --diff $(git ls-files "*.py")
       - name: Check for lint
@@ -77,7 +76,6 @@ jobs:
         run: |
           python -m poetry install --extras "homepage"
           python -m poetry run python scripts/fetch_core.py
-          python -m poetry run python scripts/bundle_resources.py
 
       - name: Test with pytest
         run: |
