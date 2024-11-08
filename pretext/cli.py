@@ -184,12 +184,11 @@ def main(ctx: click.Context, targets: bool) -> None:
         utils.ensure_default_project_manifest()
         default_project_path = resources.resource_base_path().parent / "project.ptx"
         project = Project.parse(default_project_path, global_manifest=True)
-        for target in project.target_names():
-            print(target)
-            print(project.output_dir_abspath())
         log.warning(
             "No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/project.ptx'."
         )
+    # Add project to context so it can be used in subcommands
+    ctx.obj = {"project": project}
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
 
@@ -429,8 +428,10 @@ def init(refresh: bool, files: List[str]) -> None:
     is_flag=True,
     help="Build all targets configured to be deployed.",
 )
+@click.pass_context
 @nice_errors
 def build(
+    ctx: click.Context,
     target_name: str,
     clean: bool,
     generate: bool,
@@ -454,10 +455,12 @@ def build(
     # Set up project and target based on command line arguments and project.ptx
 
     # Supply help if not in project subfolder
-    if utils.cannot_find_project(task="build"):
-        return
+    # NOTE: we no longer need the following since we have added support for building without a manifest.
+    #if utils.cannot_find_project(task="build"):
+    #    return
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
-    project = Project.parse()
+    # Use the project discovered in the main command.
+    project = ctx.obj["project"]
     # Now create the target if the target_name is not missing.
     try:
         if deploys and len(project.deploy_targets()) > 0:
@@ -566,8 +569,10 @@ def build(
     default=False,
     help="Used to revert to non-pymupdf (legacy) method for generating svg and png.",
 )
+@click.pass_context
 @nice_errors
 def generate(
+    ctx: click.Context,
     assets: List[str],
     target_name: Optional[str],
     all_formats: bool,
@@ -593,7 +598,7 @@ def generate(
     if utils.cannot_find_project(task="generate assets for"):
         return
 
-    project = Project.parse()
+    project = ctx.obj["project"]
     # Now create the target if the target_name is not missing.
     try:
         target = project.get_target(name=target_name)
@@ -709,8 +714,10 @@ def generate(
     default=False,
     help="Use the standard python server, even if in a codespace (for debugging)",
 )
+@click.pass_context
 @nice_errors
 def view(
+    ctx: click.Context,
     target_name: str,
     access: Literal["public", "private"],
     port: int,
@@ -878,7 +885,7 @@ def deploy(
     """
     if utils.cannot_find_project(task="deploy"):
         return
-    project = Project.parse()
+    project = ctx.obj["project"]
     project.stage_deployment()
     if stage_only:
         return
