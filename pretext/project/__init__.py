@@ -141,6 +141,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # specified `deploy` attr, so deploy iff choice isn't "no"
             return deploy.lower() != "no"
 
+    # Specify whether this target is intended for standalone building
+    standalone: t.Optional[str] = pxml.attr(name="standalone", default=None)
+
+    # Check whether a target is standalone
+    def is_standalone(self) -> bool:
+        standalone = self.standalone
+        if standalone is None:
+            return False
+        return standalone.lower() != "no"
+
     # These attributes have complex validators.
     # Note that in each case, since we may not have validated the properties we refer to in values, we should use `values.get` instead of `values[]`.
     #
@@ -1520,6 +1530,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     def deploy_targets(self) -> t.List[Target]:
         return [tgt for tgt in self.targets if tgt.to_deploy()]
+
+    def standalone_targets(self) -> t.List[Target]:
+        return [tgt for tgt in self.targets if tgt.is_standalone()]
 
     def stage_deployment(self) -> None:
         # First empty the stage directory (as long as it is safely in the project directory).

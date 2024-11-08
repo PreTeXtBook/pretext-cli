@@ -452,6 +452,11 @@ def show_target_hints(
     if project.has_target(name=target_format):
         return
     # Otherwise continue with hints:
+    if target_format is None:
+        log.critical(
+            f"No viable targets found in project.ptx.  The available targets are named: {project.target_names()}."
+        )
+        return
     log.critical(
         f'There is not a target named "{target_format}" for this project.ptx manifest.'
     )
