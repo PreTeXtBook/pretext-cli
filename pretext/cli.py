@@ -428,6 +428,9 @@ def init(refresh: bool, files: List[str]) -> None:
     is_flag=True,
     help="Build all targets configured to be deployed.",
 )
+@click.option(
+    "-i", "--input", "source_file", type=click.Path(), help="Override the source file from the manifest by providing a path to the input."
+)
 @click.pass_context
 @nice_errors
 def build(
@@ -440,6 +443,7 @@ def build(
     xmlid: Optional[str],
     no_knowls: bool,
     deploys: bool,
+    source_file: Optional[str],
 ) -> None:
     """
     Build [TARGET] according to settings specified by project.ptx.
@@ -461,6 +465,14 @@ def build(
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
     # Use the project discovered in the main command.
     project = ctx.obj["project"]
+
+    # Check to see whether target_name is a path to a file:
+    if (target_name and Path(target_name).is_file()):
+        log.debug(f"target is a source file {Path(target_name).resolve()}.  Using this to override input.")
+        source_file = target_name
+        target_name = None
+
+
     # Now create the target if the target_name is not missing.
     try:
         if deploys and len(project.deploy_targets()) > 0:
@@ -484,6 +496,13 @@ def build(
         finally:
             # Theme flag means to only build the theme, so we...
             return
+
+    # If input/source_file is given, override the source file for the target
+    if source_file is not None:
+        for t in targets:
+            t.source = Path(source_file).resolve()
+            log.warning(f"Overriding source file for target with: {t.source}")
+            log.warning(t)
 
     # Call generate if flag is set
     if generate and not no_generate:
