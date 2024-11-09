@@ -44,7 +44,7 @@ psutil = "^6"
 plastex = "^3"
 jinja2 = "^3"
 pelican = { extras = ["markdown"], version = "^4.9.1", optional = true }
-prefig = "^0.2.5"
+prefig = { extras = ["pycairo"], version = "^0.2.6", optional = true }
 
 # Development dependencies
 # ------------------------
@@ -67,6 +67,7 @@ errorhandler = "^2.0.1"
 
 [tool.poetry.extras]
 homepage = ["pelican"]
+prefigure = ["prefig"]
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'

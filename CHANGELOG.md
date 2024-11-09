@@ -9,6 +9,9 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+### Changed
+
+- prefigure dependency is now an optional install.  To get it, install pretext with `pip install pretext[prefigure]`.
 
 ## [2.9.0] - 2024-11-07
 
