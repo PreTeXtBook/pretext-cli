@@ -52,7 +52,7 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: poetry install
+        run: poetry install --all-extras
 
       - name: Build package
         run: poetry run python scripts/build_package.py
