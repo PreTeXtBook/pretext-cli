@@ -450,8 +450,8 @@ def build(
     source_file: Optional[str],
 ) -> None:
     """
-    Build [TARGET] according to settings specified by project.ptx.
-
+    Build [TARGET], which can be the name of a target specified by project.ptx or the name of a pretext file.
+    
     If using elements that require separate generation of assets (e.g., webwork, latex-image, etc.) then these will be generated automatically if their source has changed since the last build.  You can suppress this with the `--no-generate` flag, or force a regeneration with the `--generate` flag.
 
     Certain builds may require installations not included with the CLI, or internet
@@ -475,6 +475,7 @@ def build(
         log.debug(
             f"target is a source file {Path(target_name).resolve()}.  Using this to override input."
         )
+        log.warning(f"Building standalone documents is an experimental feature and the interface may change.")
         # set the source_file to that target_name and reset target_name to None
         source_file = target_name
         target_name = None
