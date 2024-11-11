@@ -476,7 +476,7 @@ def build(
             f"target is a source file {Path(target_name).resolve()}.  Using this to override input."
         )
         log.warning(
-            f"Building standalone documents is an experimental feature and the interface may change."
+            "Building standalone documents is an experimental feature and the interface may change."
         )
         # set the source_file to that target_name and reset target_name to None
         source_file = target_name
