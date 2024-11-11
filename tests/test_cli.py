@@ -125,6 +125,7 @@ def test_build_no_manifest(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (tmp_path / "project.ptx").exists() is False
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=tmp_path).success
 
+
 @pytest.mark.skipif(
     not HAS_XELATEX,
     reason="Skipped since xelatex isn't found.",
