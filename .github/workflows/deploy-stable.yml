@@ -85,7 +85,7 @@ jobs:
       - name: update changelog
         run: |
           newline="\\n## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')"
-          sed '/## \[UNRELEASED\]/a\'"$newline" CHANGELOG.md > CHANGELOG.md.tmp
+          sed '/## \[Current Release\]/a\'"$newline" CHANGELOG.md > CHANGELOG.md.tmp
           mv CHANGELOG.md.tmp CHANGELOG.md
 
       - name: commit version bump via pr

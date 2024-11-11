@@ -439,7 +439,7 @@ def init(refresh: bool, files: List[str]) -> None:
 @nice_errors
 def build(
     ctx: click.Context,
-    target_name: str,
+    target_name: Optional[str],
     clean: bool,
     generate: bool,
     no_generate: bool,
