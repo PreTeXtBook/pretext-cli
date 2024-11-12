@@ -123,23 +123,27 @@ def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
         assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
 
 
-def test_generate_asymptote(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    asy_path = tmp_path / "asymptote"
-    shutil.copytree(EXAMPLES_DIR / "projects" / "asymptote", asy_path)
+def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    graphics_path = tmp_path / "graphics"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=asy_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=graphics_path
     ).success
-    assert (asy_path / "generated-assets" / "asymptote" / "test.html").exists()
-    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
+    assert (graphics_path / "generated-assets" / "asymptote" / "test.html").exists()
+    os.remove(graphics_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "-x", "test"], cwd=asy_path
+        [PTX_CMD, "-v", "debug", "generate", "-x", "test"], cwd=graphics_path
     ).success
-    assert (asy_path / "generated-assets" / "asymptote" / "test.html").exists()
-    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
+    assert (graphics_path / "generated-assets" / "asymptote" / "test.html").exists()
+    os.remove(graphics_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=asy_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=graphics_path
     ).success
-    os.remove(asy_path / "generated-assets" / "asymptote" / "test.html")
+    os.remove(graphics_path / "generated-assets" / "asymptote" / "test.html")
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "generate", "prefigure"], cwd=graphics_path
+    ).success
+    assert (graphics_path / "generated-assets" / "prefigure" / "pftest.svg").exists()
 
 
 # @pytest.mark.skip(
