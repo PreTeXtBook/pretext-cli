@@ -3589,4 +3589,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.5"
-content-hash = "9718eaaf03d0397724da11454fcb8b40e98c997987add8afe47f459691e5d32d"
+content-hash = "ac90882b233279a101fc959d14f9e5f03c1402b719ac49c39ecc5bbe5ab5f26c"

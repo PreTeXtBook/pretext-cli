@@ -79,6 +79,14 @@ jobs:
           python -m poetry install --all-extras
           python -m poetry run python scripts/fetch_core.py
 
+      - name: Ensure dependencies are present
+        run: |
+          npm --version
+          node --version
+          python --version
+          python -m poetry --version
+          pelican --version
+          
       - name: Test with pytest
         run: |
           python -m poetry run pytest -v --cov

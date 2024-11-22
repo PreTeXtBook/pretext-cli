@@ -43,8 +43,8 @@ qrcode = "^7"
 psutil = "^6"
 plastex = "^3"
 jinja2 = "^3"
-pelican = { extras = ["markdown"], version = "^4.9.1", optional = true }
-prefig = { extras = ["pycairo"], version = "^0.2.6", optional = true }
+pelican = { extras = ["markdown"], version = "^4.10", optional = true }
+prefig = { extras = ["pycairo"], version = "^0.2.8", optional = true }
 
 # Development dependencies
 # ------------------------
