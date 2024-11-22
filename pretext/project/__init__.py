@@ -1660,14 +1660,13 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         f"Your existing {resource} file has been backed up at {backup_resource_path}."
                     )
             if resource != "requirements.txt":
-                with resource_base_path() / "templates" / resource as resource_path:
-                    if (
-                        not project_resource_path.exists()
-                        or resource_path.read_text()
-                        != project_resource_path.read_text()
-                    ):
-                        project_resource_path.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copyfile(resource_path, project_resource_path)
+                resource_path = resource_base_path() / "templates" / resource
+                if (
+                    not project_resource_path.exists()
+                    or resource_path.read_text() != project_resource_path.read_text()
+                ):
+                    project_resource_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(resource_path, project_resource_path)
             elif update_requirements:
                 requirements_txt = f"# <!-- Managed automatically by PreTeXt authoring tools -->\npretext == {VERSION}\n"
                 if (
