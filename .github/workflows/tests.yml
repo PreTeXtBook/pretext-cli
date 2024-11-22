@@ -35,7 +35,7 @@ jobs:
       fail-fast: true
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-        poetry-version: ["1.5.1"]
+        poetry-version: ["1.8.4"]
         os: [ubuntu-latest, windows-latest]
         exclude:
           - os: windows-latest
@@ -43,9 +43,9 @@ jobs:
           - os: windows-latest
             python-version: "3.9"
           - os: windows-latest
-            python-version: "3.11"
+            python-version: "3.10"
           - os: windows-latest
-            python-version: "3.12"
+            python-version: "3.11"
 
     runs-on: ${{ matrix.os }}
 
@@ -81,10 +81,7 @@ jobs:
 
       - name: Ensure dependencies are present
         run: |
-          npm --version
-          node --version
-          python --version
-          python -m poetry run pip install pelican
+          echo "manually installing pelican; poetry does not seem to do this correctly."
           python -m poetry run pelican --version
 
       - name: Test with pytest
