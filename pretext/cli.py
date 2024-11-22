@@ -304,8 +304,8 @@ def new(template: str, directory: Path, url_template: str) -> None:
     else:
         log.info(f"Using `{template}` template.")
         # copy project from installed resources
-        with resources.resource_base_path() / "templates" / f"{template}" as template_path:
-            shutil.copytree(template_path, directory_fullpath, dirs_exist_ok=True)
+        template_path = resources.resource_base_path() / "templates" / f"{template}"
+        shutil.copytree(template_path, directory_fullpath, dirs_exist_ok=True)
         # generate missing boilerplate
         with utils.working_directory(directory_fullpath):
             project_path = utils.project_path()
