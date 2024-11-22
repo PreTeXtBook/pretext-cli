@@ -85,8 +85,8 @@ jobs:
           node --version
           python --version
           python -m poetry --version
-          pelican --version
-          
+          python -m poetry run pelican --version
+
       - name: Test with pytest
         run: |
           python -m poetry run pytest -v --cov
