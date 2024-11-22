@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[UNRELEASED]` for additions, fixes, change
 
 ## [UNRELEASED]
 
+## [2.9.2] - 2024-11-22
+
 ### Fixed
 
 - prefigure graphics were not not being recognized.
