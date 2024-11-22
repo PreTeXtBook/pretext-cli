@@ -137,7 +137,8 @@ def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (graphics_path / "generated-assets" / "asymptote" / "test.html").exists()
     os.remove(graphics_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"], cwd=graphics_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"],
+        cwd=graphics_path,
     ).success
     os.remove(graphics_path / "generated-assets" / "asymptote" / "test.html")
     assert script_runner.run(
