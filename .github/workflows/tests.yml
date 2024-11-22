@@ -82,6 +82,7 @@ jobs:
       - name: Ensure dependencies are present
         run: |
           echo "manually installing pelican; poetry does not seem to do this correctly."
+          python -m poetry run pip install pelican
           python -m poetry run pelican --version
 
       - name: Test with pytest
