@@ -84,7 +84,7 @@ jobs:
           npm --version
           node --version
           python --version
-          python -m poetry --version
+          python -m poetry run pip install pelican
           python -m poetry run pelican --version
 
       - name: Test with pytest
