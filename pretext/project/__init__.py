@@ -1663,8 +1663,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                 resource_path = resource_base_path() / "templates" / resource
                 if (
                     not project_resource_path.exists()
-                    or resource_path.read_text()
-                    != project_resource_path.read_text()
+                    or resource_path.read_text() != project_resource_path.read_text()
                 ):
                     project_resource_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.copyfile(resource_path, project_resource_path)
