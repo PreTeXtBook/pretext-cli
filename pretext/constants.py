@@ -126,7 +126,7 @@ ASSET_TO_XPATH = {
     "latex-image": ".//latex-image",
     "sageplot": ".//sageplot",
     "asymptote": ".//asymptote",
-    "prefigure": ".//prefigure",
+    "prefigure": ".//pf:prefigure",
     "youtube": ".//video[@youtube]",
     "codelens": ".//program[@interactive = 'codelens']",
     "datafile": ".//datafile",

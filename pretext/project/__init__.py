@@ -427,6 +427,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         ex: {latex-image: {img1: <hash>, img_another: <hash>}, asymptote: {asy_img_1: <hash>}}.
         """
         asset_hash_dict: pt.AssetTable = {}
+        ns = {"pf": "https://prefigure.org"}
         for asset in constants.ASSET_TO_XPATH.keys():
             if asset == "webwork":
                 # WeBWorK must be regenerated every time *any* of the ww exercises change.
@@ -445,7 +446,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 # everything else can be updated individually.
                 # get all the nodes for the asset attribute
                 source_assets = self.source_element().xpath(
-                    constants.ASSET_TO_XPATH[asset]
+                    constants.ASSET_TO_XPATH[asset], namespaces=ns
                 )
                 assert isinstance(source_assets, t.List)
                 if len(source_assets) == 0:
