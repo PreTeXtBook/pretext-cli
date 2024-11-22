@@ -49,12 +49,11 @@ prefig = { extras = ["pycairo"], version = "^0.2.6", optional = true }
 # Development dependencies
 # ------------------------
 [tool.poetry.group.dev.dependencies]
-black = ">=23,<25"
+black = [{version = "^23", python = "3.8"}, {version = "^24.10", python = ">=3.9"}]
 codechat-server = "^0"
 flake8 = "^6"
 lxml-stubs = "^0"
 mypy = "^1"
-pathspec = "^0"
 pytest = "^7"
 pytest-console-scripts = "^1"
 pytest-cov = "^4"
