@@ -83,7 +83,8 @@
   <!-- included in cross-references                                 -->
   <latex>
   <!-- Replace the <latex> tag above with the one below to try these-->
-  <!--<latex
+  <!--
+    <latex
           print="no"
           sides="one"
           open-odd="no"
@@ -91,12 +92,15 @@
           font-size="10"
           draft="no"
           latex-style="dyslexic-font"
-      > -->
-    <!-- Control text justification and bottom page behavior: -->
-      <!--<page right-alignment="flush" bottom-alignment="ragged" crop-marks="letter"/>-->
+      > 
+  -->
 
-    <!-- Add content to \geometry{}: -->
-      <!--<geometry></geometry>-->
+    <!-- Control text justification and bottom page behavior. Add content intended for \geometry{} inside the <geometry> element. -->
+    <!--
+      <page right-alignment="flush" bottom-alignment="ragged" crop-marks="letter">
+        <geometry></geometry>
+      </page>
+    -->
 
     <!-- The asymptote/@links set to "yes" would produce  -->
     <!-- links the html version of asymptote graphics.    -->
