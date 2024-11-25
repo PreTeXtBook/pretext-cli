@@ -92,11 +92,14 @@
           draft="no"
           latex-style="dyslexic-font"
       > -->
-    <!-- Control text justification and bottom page behavior: -->
-      <!--<page right-alignment="flush" bottom-alignment="ragged" crop-marks="letter"/>-->
 
-    <!-- Add content to \geometry{}: -->
-      <!--<geometry></geometry>-->
+    <!-- Add content to \geometry{} (inside of page): -->
+      <!--<page>
+            <geometry></geometry>
+          </page>-->
+
+    <!-- Control text justification and bottom page behavior, (add attributes inside page above instead if using geometry:) -->
+      <!--<page right-alignment="flush" bottom-alignment="ragged" crop-marks="letter"/>-->
 
     <!-- The asymptote/@links set to "yes" would produce  -->
     <!-- links the html version of asymptote graphics.    -->
