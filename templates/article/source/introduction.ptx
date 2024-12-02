@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<introduction xml:id="intro" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <p>Some words before the first section of the paper</p>
+    <p>Some more words.</p>
+</introduction>
