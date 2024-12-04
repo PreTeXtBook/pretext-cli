@@ -554,6 +554,31 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             )
             shutil.rmtree(self.output_dir_abspath())
 
+    def build_theme(self) -> None:
+        """
+        Builds or copies the theme for an HTML-formatted target.
+        """
+        # if the format of target is not HTML, do nothing with a warning.
+        if self.format != Format.HTML:
+            log.warning(
+                f"Theme building is only supported for HTML targets, not {self.format}."
+            )
+            return
+        # Call the core function to build and/or copy the theme to the output folder
+        log.info(f"Building theme for target '{self.name}'")
+        utils.ensure_css(
+            xml=self.source_abspath(),
+            pub_file=self.publication_abspath().as_posix(),
+            stringparams=self.stringparams,
+        )
+        core.build_or_copy_theme(
+            xml=self.source_abspath(),
+            pub_file=self.publication_abspath().as_posix(),
+            stringparams=self.stringparams,
+            tmp_dir=self.output_dir_abspath().as_posix(),
+        )
+        log.info(f"Theme built for target '{self.name}'")
+
     def build(
         self,
         clean: bool = False,

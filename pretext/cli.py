@@ -399,6 +399,12 @@ def init(refresh: bool, files: List[str]) -> None:
     help="Do not generate assets for target, even if their source has changed since the last time they were generated.",
 )
 @click.option(
+    "-t",
+    "--theme",
+    is_flag=True,
+    help="Only build the theme for the target, without performing any other build or generate steps.  (Themes are automatically built when building a target.)",
+)
+@click.option(
     "-x",
     "--xmlid",
     type=click.STRING,
@@ -420,6 +426,7 @@ def build(
     clean: bool,
     generate: bool,
     no_generate: bool,
+    theme: bool,
     xmlid: Optional[str],
     no_knowls: bool,
     deploys: bool,
@@ -453,6 +460,18 @@ def build(
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
+
+    # If theme flag is set, only build the theme
+    if theme:
+        try:
+            for t in targets:
+                t.build_theme()
+        except Exception as e:
+            log.error(f"Failed to build theme: {e}")
+            log.debug("Exception info:\n------------------------\n", exc_info=True)
+        finally:
+            # Theme flag means to only build the theme, so we...
+            return
 
     # Call generate if flag is set
     if generate and not no_generate:
