@@ -474,7 +474,14 @@ def mjsre_npm_install() -> None:
 
 
 def ensure_css(xml, pub_file, stringparams) -> None:
-    theme = core.get_publisher_variable(xml, pub_file, stringparams, "html-theme-name")
+    try:
+        theme = core.get_publisher_variable(
+            xml, pub_file, stringparams, "html-theme-name"
+        )
+    except Exception as e:
+        log.debug("Could not get html-theme-name from publisher file.")
+        log.debug(e, exc_info=True)
+        return
     if "-legacy" in theme or theme == "default-modern":
         log.debug("Using prebuilt theme, no need for sass build.")
         return
@@ -483,7 +490,7 @@ def ensure_css(xml, pub_file, stringparams) -> None:
         resources.resource_base_path() / "core" / "script" / "cssbuilder"
     ):
         # Check if node_modules is already present:
-        if "node_modules".exists():
+        if Path("node_modules").exists():
             log.debug("Node modules already installed.")
             return
         # If not, try to install them:
