@@ -554,6 +554,31 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             )
             shutil.rmtree(self.output_dir_abspath())
 
+    def build_theme(self) -> None:
+        """
+        Builds or copies the theme for an HTML-formatted target.
+        """
+        # if the format of target is not HTML, do nothing with a warning.
+        if self.format != Format.HTML:
+            log.warning(
+                f"Theme building is only supported for HTML targets, not {self.format}."
+            )
+            return
+        # Call the core function to build and/or copy the theme to the output folder
+        log.info(f"Building theme for target '{self.name}'")
+        utils.ensure_css(
+            xml=self.source_abspath(),
+            pub_file=self.publication_abspath().as_posix(),
+            stringparams=self.stringparams,
+        )
+        core.build_or_copy_theme(
+            xml=self.source_abspath(),
+            pub_file=self.publication_abspath().as_posix(),
+            stringparams=self.stringparams,
+            tmp_dir=self.output_dir_abspath().as_posix(),
+        )
+        log.info(f"Theme built for target '{self.name}'")
+
     def build(
         self,
         clean: bool = False,
@@ -634,6 +659,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         log.warning(
                             "The platform host in the publication file is not set to runestone. Since the requested target has @platform='runestone', we will override the publication file's platform host."
                         )
+                utils.ensure_css(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                )
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -681,7 +711,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     generated_abs=self.generated_dir_abspath(),
                 )
             elif self.format == Format.EPUB:
-                utils.npm_install()
+                utils.mjsre_npm_install()
                 core.epub(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -691,7 +721,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     stringparams=stringparams_copy,
                 )
             elif self.format == Format.KINDLE:
-                utils.npm_install()
+                utils.mjsre_npm_install()
                 core.epub(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -715,7 +745,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.warning(
                     "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
                 )
-                utils.npm_install()
+                utils.mjsre_npm_install()
                 core.braille(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),

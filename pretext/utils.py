@@ -99,8 +99,8 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
         dirpath = Path()  # current directory
     pp = project_path(dirpath)
     if pp is None:
-        with resources.resource_base_path() / "templates" / "project.ptx" as project_manifest:
-            return ET.parse(project_manifest)
+        project_manifest = resources.resource_base_path() / "templates" / "project.ptx"
+        return ET.parse(project_manifest)
     else:
         project_manifest = pp / "project.ptx"
         return ET.parse(project_manifest)
@@ -458,7 +458,7 @@ def show_target_hints(
         )
 
 
-def npm_install() -> None:
+def mjsre_npm_install() -> None:
     with working_directory(
         resources.resource_base_path() / "core" / "script" / "mjsre"
     ):
@@ -468,6 +468,40 @@ def npm_install() -> None:
         except Exception as e:
             log.critical(
                 "Unable to install required npm packages.  Please see the documentation."
+            )
+            log.critical(e)
+            log.debug("", exc_info=True)
+
+
+def ensure_css(xml: Path, pub_file: str, stringparams: t.Dict[str, str]) -> None:
+    try:
+        theme = core.get_publisher_variable(
+            xml, pub_file, stringparams, "html-theme-name"
+        )
+    except Exception as e:
+        log.debug("Could not get html-theme-name from publisher file.")
+        log.debug(e, exc_info=True)
+        return
+    if "-legacy" in theme or theme == "default-modern":
+        log.debug("Using prebuilt theme, no need for sass build.")
+        return
+    # Otherwise we look for node_modules and install if we can.
+    with working_directory(
+        resources.resource_base_path() / "core" / "script" / "cssbuilder"
+    ):
+        # Check if node_modules is already present:
+        if Path("node_modules").exists():
+            log.debug("Node modules already installed.")
+            return
+        # If not, try to install them:
+        log.debug(
+            "Attempting to install/update required node packages to generate css from sass."
+        )
+        try:
+            subprocess.run("npm install", shell=True)
+        except Exception as e:
+            log.critical(
+                "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed."
             )
             log.critical(e)
             log.debug("", exc_info=True)
