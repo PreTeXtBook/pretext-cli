@@ -99,8 +99,8 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
         dirpath = Path()  # current directory
     pp = project_path(dirpath)
     if pp is None:
-        with resources.resource_base_path() / "templates" / "project.ptx" as project_manifest:
-            return ET.parse(project_manifest)
+        project_manifest = resources.resource_base_path() / "templates" / "project.ptx"
+        return ET.parse(project_manifest)
     else:
         project_manifest = pp / "project.ptx"
         return ET.parse(project_manifest)
@@ -473,7 +473,7 @@ def mjsre_npm_install() -> None:
             log.debug("", exc_info=True)
 
 
-def ensure_css(xml, pub_file, stringparams) -> None:
+def ensure_css(xml: Path, pub_file: str, stringparams: t.Dict[str, str]) -> None:
     try:
         theme = core.get_publisher_variable(
             xml, pub_file, stringparams, "html-theme-name"
