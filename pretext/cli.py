@@ -527,7 +527,7 @@ def build(
         for t in targets:
             t.source = Path(source_file).resolve()
             log.warning(f"Overriding source file for target with: {t.source}")
-            log.warning(t)
+            log.debug(t)
 
     # Call generate if flag is set
     if generate and not no_generate:

@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Current Release]` for additions, fixes, c
 
 ## [Current Release]
 
+### Added
+
+- Support for building stand-alone documents without adding the source to the manifest.
+- Support for upcoming html themes, including `pretext build --theme` to refresh theme without rebuilding entire project.
+
 ## [2.9.2] - 2024-11-22
 
 ### Fixed
