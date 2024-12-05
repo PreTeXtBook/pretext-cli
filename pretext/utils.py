@@ -117,10 +117,9 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
     pp = project_path(dirpath)
     if pp is None:
         project_manifest = resources.resource_base_path() / "templates" / "project.ptx"
-        return ET.parse(project_manifest)
     else:
-        with open(pp / "project.ptx", "r") as project_manifest:
-            return ET.parse(project_manifest)
+        project_manifest = pp / "project.ptx"
+    return ET.parse(project_manifest)
 
 
 def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
