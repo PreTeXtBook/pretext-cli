@@ -2037,13 +2037,13 @@ reference = "pypi-public"
 
 [[package]]
 name = "prefig"
-version = "0.2.9"
+version = "0.2.8"
 description = "An authoring system for mathematical diagrams"
 optional = true
 python-versions = ">=3.8.5,<4.0.0"
 files = [
-    {file = "prefig-0.2.9-py3-none-any.whl", hash = "sha256:b40aa4f63979db88c15796915c9b622a8b05df7bac22611c4b1c022402d721ab"},
-    {file = "prefig-0.2.9.tar.gz", hash = "sha256:ca0b35a1d385e176c2e056ab62d13ec949dfec7bce967035523609b7e814a75a"},
+    {file = "prefig-0.2.8-py3-none-any.whl", hash = "sha256:6ef63cab0e9f6eb49dc52dcdaa78c9728dd7fc22edd1fa75a4b1c7328decd68e"},
+    {file = "prefig-0.2.8.tar.gz", hash = "sha256:3afc8509b975c9062776ca08bf652d448b8c48f25ca8fd404f4d3b9c81db77d1"},
 ]
 
 [package.dependencies]
@@ -2056,6 +2056,7 @@ numpy = [
     {version = ">=1.26,<2.0", markers = "python_version >= \"3.9\" and python_version < \"3.13\""},
     {version = ">=2.1.0,<3.0.0", markers = "python_version == \"3.13\""},
 ]
+psutil = ">=6.0.0,<7.0.0"
 pycairo = {version = ">=1.20,<2.0", optional = true, markers = "extra == \"pycairo\""}
 scipy = [
     {version = ">=1.5,<=1.7", markers = "python_version == \"3.8\""},
@@ -3618,4 +3619,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.5"
-content-hash = "ac90882b233279a101fc959d14f9e5f03c1402b719ac49c39ecc5bbe5ab5f26c"
+content-hash = "74c09ab5d6a30aafb5f6fabcc00b5d3c5c44d02d268efccbe6e991009a662de5"
