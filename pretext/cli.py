@@ -139,6 +139,7 @@ def main(ctx: click.Context, targets: bool) -> None:
                 print(target)
             return
         # create file handler which logs even debug messages
+        # TODO: this will likely be moved out of this if to allow manifest-free builds
         logdir = pp / "logs"
         logdir.mkdir(exist_ok=True)
         logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
@@ -180,7 +181,14 @@ def main(ctx: click.Context, targets: bool) -> None:
             )
     else:
         log.info(f"PreTeXt-CLI version: {VERSION}\n")
-        log.info("No existing PreTeXt project found.")
+        utils.ensure_default_project_manifest()
+        default_project_path = resources.resource_base_path().parent / "project.ptx"
+        project = Project.parse(default_project_path, global_manifest=True)
+        log.warning(
+            "No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/project.ptx'."
+        )
+    # Add project to context so it can be used in subcommands
+    ctx.obj = {"project": project}
     if ctx.invoked_subcommand is None:
         log.info("Run `pretext --help` for help.")
 
@@ -420,9 +428,18 @@ def init(refresh: bool, files: List[str]) -> None:
     is_flag=True,
     help="Build all targets configured to be deployed.",
 )
+@click.option(
+    "-i",
+    "--input",
+    "source_file",
+    type=click.Path(),
+    help="Override the source file from the manifest by providing a path to the input.",
+)
+@click.pass_context
 @nice_errors
 def build(
-    target_name: str,
+    ctx: click.Context,
+    target_name: Optional[str],
     clean: bool,
     generate: bool,
     no_generate: bool,
@@ -430,9 +447,10 @@ def build(
     xmlid: Optional[str],
     no_knowls: bool,
     deploys: bool,
+    source_file: Optional[str],
 ) -> None:
     """
-    Build [TARGET] according to settings specified by project.ptx.
+    Build [TARGET], which can be the name of a target specified by project.ptx or the name of a pretext file.
 
     If using elements that require separate generation of assets (e.g., webwork, latex-image, etc.) then these will be generated automatically if their source has changed since the last build.  You can suppress this with the `--no-generate` flag, or force a regeneration with the `--generate` flag.
 
@@ -445,17 +463,48 @@ def build(
     # Set up project and target based on command line arguments and project.ptx
 
     # Supply help if not in project subfolder
-    if utils.cannot_find_project(task="build"):
-        return
+    # NOTE: we no longer need the following since we have added support for building without a manifest.
+    # if utils.cannot_find_project(task="build"):
+    #    return
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
-    project = Project.parse()
+    # Use the project discovered in the main command.
+    project = ctx.obj["project"]
+
+    # Check to see whether target_name is a path to a file:
+    if target_name and Path(target_name).is_file():
+        log.debug(
+            f"target is a source file {Path(target_name).resolve()}.  Using this to override input."
+        )
+        log.warning(
+            "Building standalone documents is an experimental feature and the interface may change."
+        )
+        # set the source_file to that target_name and reset target_name to None
+        source_file = target_name
+        target_name = None
+
     # Now create the target if the target_name is not missing.
     try:
+        # deploys flag asks to build multiple targets: all that have deploy set.
         if deploys and len(project.deploy_targets()) > 0:
             targets = project.deploy_targets()
+        elif target_name is None and source_file is not None:
+            # We are in the case where we are building a standalone document, so we build a default target if there are no standalone targets or find the first target with standalone="yes".
+            if len(project.standalone_targets()) > 0:
+                targets = [project.standalone_targets()[0]]
+            else:
+                target = project.new_target(
+                    name="standalone",
+                    format="pdf",
+                    standalone="yes",
+                    output_dir=Path(source_file).resolve().parent,
+                )
+                targets = [target]
+                log.debug(f"Building standalone document with target {target.name}")
+                log.debug(target)
         else:
             targets = [project.get_target(name=target_name)]
     except AssertionError as e:
+        log.warning("Assertion error in getting target.")
         utils.show_target_hints(target_name, project, task="build")
         log.critical("Exiting without completing build.")
         log.debug(e, exc_info=True)
@@ -472,6 +521,13 @@ def build(
         finally:
             # Theme flag means to only build the theme, so we...
             return
+
+    # If input/source_file is given, override the source file for the target
+    if source_file is not None:
+        for t in targets:
+            t.source = Path(source_file).resolve()
+            log.warning(f"Overriding source file for target with: {t.source}")
+            log.debug(t)
 
     # Call generate if flag is set
     if generate and not no_generate:
@@ -557,8 +613,10 @@ def build(
     default=False,
     help="Used to revert to non-pymupdf (legacy) method for generating svg and png.",
 )
+@click.pass_context
 @nice_errors
 def generate(
+    ctx: click.Context,
     assets: List[str],
     target_name: Optional[str],
     all_formats: bool,
@@ -584,7 +642,7 @@ def generate(
     if utils.cannot_find_project(task="generate assets for"):
         return
 
-    project = Project.parse()
+    project = ctx.obj["project"]
     # Now create the target if the target_name is not missing.
     try:
         target = project.get_target(name=target_name)
@@ -700,8 +758,10 @@ def generate(
     default=False,
     help="Use the standard python server, even if in a codespace (for debugging)",
 )
+@click.pass_context
 @nice_errors
 def view(
+    ctx: click.Context,
     target_name: str,
     access: Literal["public", "private"],
     port: int,
@@ -869,7 +929,7 @@ def deploy(
     """
     if utils.cannot_find_project(task="deploy"):
         return
-    project = Project.parse()
+    project = ctx.obj["project"]
     project.stage_deployment()
     if stage_only:
         return

@@ -59,10 +59,10 @@ jobs:
 
       - name: Install apt packages (Linux with python 3.12 only)
         if: runner.os == 'Linux' && matrix.python-version == '3.12'
-
         run: |
           sudo apt update
           sudo apt install -y --no-install-recommends texlive texlive-science texlive-xetex ghostscript pdf2svg texlive-fonts-extra sagemath
+
 
       - name: Install poetry ${{ matrix.poetry-version }}
         run: |

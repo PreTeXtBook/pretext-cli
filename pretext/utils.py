@@ -94,16 +94,32 @@ def project_path_found(dirpath: Optional[Path] = None) -> Path:
     return pp
 
 
+# Install's a default project.ptx manifest in the ~/.ptx/{version} directory if missing
+def ensure_default_project_manifest() -> None:
+    # Get the path to the default project.ptx manifest
+    template_manifest = resources.resource_base_path() / "templates" / "project.ptx"
+    # Get the path to the user's default project.ptx manifest
+    user_project_manifest = resources.resource_base_path().parent / "project.ptx"
+    # If the user's default project.ptx manifest is missing, copy the default project.ptx manifest to the user's default project.ptx manifest
+    log.debug(
+        f"Checking for user's default project.ptx manifest at {user_project_manifest}"
+    )
+    if not user_project_manifest.exists():
+        shutil.copy(template_manifest, user_project_manifest)
+        log.debug(
+            "Copied default project.ptx manifest to user's default project.ptx manifest."
+        )
+
+
 def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
     if dirpath is None:
         dirpath = Path()  # current directory
     pp = project_path(dirpath)
     if pp is None:
         project_manifest = resources.resource_base_path() / "templates" / "project.ptx"
-        return ET.parse(project_manifest)
     else:
         project_manifest = pp / "project.ptx"
-        return ET.parse(project_manifest)
+    return ET.parse(project_manifest)
 
 
 def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
@@ -435,6 +451,11 @@ def show_target_hints(
     if project.has_target(name=target_format):
         return
     # Otherwise continue with hints:
+    if target_format is None:
+        log.critical(
+            f"No viable targets found in project.ptx.  The available targets are named: {project.target_names()}."
+        )
+        return
     log.critical(
         f'There is not a target named "{target_format}" for this project.ptx manifest.'
     )

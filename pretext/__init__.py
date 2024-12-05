@@ -21,7 +21,7 @@ log = logging.getLogger("ptxlogger")
 
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
-CORE_COMMIT = "e84b24bdb7acc46d3814618bd9b16ff5bd081ae2"
+CORE_COMMIT = "dafa002301ab1be5c1e092e7ba60837464253347"
 
 
 def activate() -> None:

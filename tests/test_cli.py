@@ -117,6 +117,41 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert mapping == DEMO_MAPPING
 
 
+def test_build_no_manifest(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "new", "-d", "."], cwd=tmp_path
+    ).success
+    os.remove(tmp_path / "project.ptx")
+    assert (tmp_path / "project.ptx").exists() is False
+    assert script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=tmp_path).success
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+def test_override_source(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "new", "-d", "."], cwd=tmp_path
+    ).success
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-i", "source/main.ptx"], cwd=tmp_path
+    ).success
+    assert (
+        script_runner.run([PTX_CMD, "build", "-i", "main.ptx"], cwd=tmp_path).success
+        is False
+    )
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "source/main.ptx"], cwd=tmp_path
+    ).success
+    assert (
+        script_runner.run(
+            [PTX_CMD, "-v", "debug", "build", "main.ptx"], cwd=tmp_path
+        ).success
+        is False
+    )
+
+
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
     for resource in constants.PROJECT_RESOURCES:
