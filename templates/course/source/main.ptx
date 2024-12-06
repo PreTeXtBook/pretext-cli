@@ -13,6 +13,8 @@
     <!-- Include chapters -->
     <xi:include href="./syllabus.ptx" />
 
+    <xi:include href="./course-notes.ptx" />
+
     <!-- Include Activities -->
     <xi:include href="./activities.ptx" />
 
