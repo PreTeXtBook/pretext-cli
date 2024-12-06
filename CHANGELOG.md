@@ -9,6 +9,8 @@ Instructions: Add a subsection under `[Current Release]` for additions, fixes, c
 
 ## [Current Release]
 
+## [2.10.0] - 2024-12-06
+
 ### Added
 
 - Support for building stand-alone documents without adding the source to the manifest.
