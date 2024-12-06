@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This file, the project manifest, provides the overall configuration for your PreTeXt project. To edit the content of your document, open `source/main.ptx`. See https://pretextbook.org/doc/guide/html/processing-CLI.html#cli-project-manifest. -->
+<project ptx-version="2">
+  <targets>
+    <target name="web" format="html" />
+    <target name="print" format="pdf" />
+  </targets>
+</project>
+
+
+<!-- SAMPLE MANIFEST illustrating all options. Defaults are given (mostly).              -->
+
+<!-- <project
+        ptx-version="2"
+        source="source"
+        publication="publication"
+        output-dir="output"
+        site="site"
+        stage="output/stage"
+        xsl="xsl"
+        asy-method="server"
+     >
+       <targets>
+          <target
+            name="web"
+            format="html"
+            source="main.ptx"
+            publication="publication.ptx"
+            output-dir="web"
+            deploy-dir="interactive"
+            xsl="custom-html.xsl"
+            asy-method="server"
+          />
+          <target
+            name="web-zipped"
+            format="html"
+            source="main.ptx"
+            publication="publication.ptx"
+            output-dir="web"
+            compression="zip"
+            asy-method="server"
+          />
+          <target
+            name="runestone"
+            format="html"
+            platform="runestone"
+          />
+          <target
+            name="print"
+            format="pdf"
+            source="main.ptx"
+            publication="publication.ptx"
+            output-dir="print"
+            output-filename="mybook.pdf"
+            latex-engine="pdflatex"
+            deploy-dir="pdf"
+          />
+          <target
+            name="latex"
+            format="latex"
+          />
+          <target
+            name="braille"
+            format="braille"
+            braille-mode="emboss"
+          />
+        </targets>
+</project>
+-->
