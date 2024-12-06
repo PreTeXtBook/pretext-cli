@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<pretext>
+    <article xml:id="worksheet">
+
+    <!-- When creating a new activity, make a copy of this file with appropriate name -->
+        <worksheet margin="1in" bottom="1.25cm" xml:id="Activity-title">
+            <title>Activity Title</title>
+
+            <introduction>
+                <p>
+                    This is the introduction to the activity.
+                </p>
+            </introduction>
+
+            <exercise workspace="2in">
+                <statement>
+                    <p>
+                        This is the first exercise.
+                    </p>
+                </statement>
+            </exercise>
+        </worksheet>
+    </article>
+</pretext>

@@ -1,7 +1,7 @@
 import typing as t
 from pathlib import Path
 
-NEW_TEMPLATES = ["book", "article", "demo", "hello", "slideshow"]
+NEW_TEMPLATES = ["book", "article", "course", "demo", "hello", "slideshow"]
 
 FORMATS = [
     "html",

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<pretext>
+    <article xml:id="worksheet">
+        <worksheet xmlns:xi="http://www.w3.org/2001/XInclude" margin="1in" bottom="1.25cm" xml:id="Activity-magic-beans">
+            <title>Magic Beans</title>
+            <introduction>
+                <p>
+                    You have traded your cow for 5 magic chocolate covered espresso beans.
+                    Each night at midnight, each bean splits into three beans.
+                    To take advantage of this, you eat 8 beans each morning for breakfast.
+                    You wonder how many beans you will have <em>after</em> breakfast 30 days after you traded your cow.
+                </p>
+        
+                <p>
+                    Let <m>(b_n)_{n\ge 0}</m> be the sequence of number of beans you have <m>n</m> days after trading your cow, (after breakfast, before midnight; take <m>b_0 = 5</m>).
+                </p>
+            </introduction>
+        
+        
+            <page>
+                <exercise workspace="1.5in">
+                    <statement>
+                        <p>
+                            Write out the first few terms of the sequence.
+                            Then give a recursive definition for the sequence and explain how you know it is correct.
+                        </p>
+                    </statement>
+                </exercise>
+        
+                <exercise workspace="4in">
+                    <statement>
+                        <p>
+                            What do you notice about all elements of the sequence?  Will they all be ...?  Prove your conjecture by mathematical induction.
+                        </p>
+                    </statement>
+                </exercise>
+            </page>
+        
+        
+            <page>
+                <exercise workspace="2in">
+                    <statement>
+                        <p>
+                            Find a closed formula for <m>b_n</m> and prove it is correct using induction.
+                        </p>
+                    </statement>
+                </exercise>
+            </page>
+        </worksheet>
+        
+
+    </article>
+</pretext>
