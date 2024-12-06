@@ -16,10 +16,10 @@ and then view it with
 pretext view
 ```
 
-If you want to build just a single activity, say the "Four Proofs" activity, run:
+If you want to build just a single activity, say the "Magic Beans" activity, run:
 
 ```bash
-pretext build ./source/activities/four-proofs.ptx
+pretext build ./source/activities/magic-beans.ptx
 ```
 
 This will create a pdf inside the `source/activities` directory.
@@ -34,7 +34,7 @@ Note that there is a `web` target in `project.ptx` but it builds from `main.ptx`
 
 ### How this is done
 
-Look at the source files, in particular `source/acitivies.ptx` and `source/activities/four_proofs.ptx` to see how the activities are included in the main document and can also build on their own.  
+Look at the source files, in particular `source/acitivies.ptx` and `source/activities/magic-beans.ptx` to see how the activities are included in the main document and can also build on their own.
 
-The use of `xpointer="/1/1/1"` is a little mysterious; we could have also used `xpoint="Activity-four-proofs"` to refer to the activity by its `xml:id`, although this would require us changing that for each included activity.
+The use of `xpointer="/1/1/1"` is a little mysterious; we could have also used `xpoint="Activity-magic-beans"` to refer to the activity by its `xml:id`, although this would require us changing that for each included activity.
 
