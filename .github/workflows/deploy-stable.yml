@@ -73,6 +73,10 @@ jobs:
           poetry config pypi-token.pypi $PYPI_TOKEN
           poetry publish --build
 
+      - name: update changelog
+        run: |
+          poetry run python scripts/update_changelog.py
+
       - name: Update version for next dev release
         run: poetry version patch
 
@@ -81,10 +85,6 @@ jobs:
           # setup the username and email.
           git config user.name "${{ github.actor }} via GitHub Actions"
           git config user.email "${{ github.actor }}@github_actions.no_reply"
-
-      - name: update changelog
-        run: |
-          poetry run python scripts/update_changelog.py
 
       - name: commit version bump via pr
         run: |
@@ -96,7 +96,6 @@ jobs:
           git push -f --set-upstream origin ${{ env.VERSION }}-deploy
           gh pr create --fill
           gh pr merge -s -d -t "Update changelog and bump version to next patch level for nightly releases"
-          git branch -D ${{ env.VERSION }}-deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
