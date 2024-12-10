@@ -1,6 +1,4 @@
 from datetime import date
-from pathlib import Path
-
 
 from pretext import CORE_COMMIT
 from pretext import VERSION
