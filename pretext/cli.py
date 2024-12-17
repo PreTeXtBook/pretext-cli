@@ -870,7 +870,7 @@ def view(
         log.info("  personal computer.)")
         log.info("")
 
-        def callback(actual_port: int):
+        def callback(actual_port: int) -> None:
             url_base = utils.url_for_access(access=access, port=actual_port)
             url = url_base + url_path
             log.info(f"Server will soon be available at {url_base}")

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from http.server import SimpleHTTPRequestHandler
 import logging
@@ -22,7 +23,8 @@ class RunningServerInfo:
     port: int
     binding: str
 
-    def fromFileLine(line: str):
+    @staticmethod
+    def fromFileLine(line: str) -> RunningServerInfo:
         (pathHash, pid, port, binding) = line.split()
         return RunningServerInfo(
             pathHash=pathHash, pid=int(pid), port=int(port), binding=binding
@@ -31,7 +33,7 @@ class RunningServerInfo:
     def toFileLine(self) -> str:
         return f"{self.pathHash} {self.pid} {self.port} {self.binding}"
 
-    def isActiveServer(self) -> str:
+    def isActiveServer(self) -> bool:
         """Returns whether the server represented by this object is active on the provided port"""
         p = psutil.Process(self.pid)
         if not p.is_running():
@@ -49,7 +51,7 @@ class RunningServerInfo:
         )
         return False
 
-    def terminate(self):
+    def terminate(self) -> None:
         """Attempt to terminate the process described by this info."""
         try:
             log.info(f"Terminating {self.pid}")
@@ -58,7 +60,7 @@ class RunningServerInfo:
             log.info(f"Terminate failed for {self.pid}.")
             log.exception(e, exc_info=True)
 
-    def url(self):
+    def url(self) -> str:
         return f"{self.binding}:{self.port}"
 
 
@@ -81,7 +83,7 @@ def get_running_servers() -> t.List[RunningServerInfo]:
         return []
 
 
-def save_running_servers(runningServers: t.Iterator[RunningServerInfo]) -> None:
+def save_running_servers(runningServers: t.List[RunningServerInfo]) -> None:
     """
     Overwrites the ~/.ptx/running_servers file to store
     the new list of running servers.
@@ -97,7 +99,7 @@ def save_running_servers(runningServers: t.Iterator[RunningServerInfo]) -> None:
         log.exception(e, exc_info=True)
 
 
-def add_server_entry(pathHash: str, pid: id, port: int, binding: str) -> None:
+def add_server_entry(pathHash: str, pid: int, port: int, binding: str) -> None:
     """Add a new server entry to ~/.ptx/running_servers.
 
     This function does not attempt to ensure that an active server doesn't already exist.
@@ -108,12 +110,12 @@ def add_server_entry(pathHash: str, pid: id, port: int, binding: str) -> None:
     runningServers.append(newEntry)
     if len(runningServers) >= PURGE_LIMIT:
         log.info(f"There are {PURGE_LIMIT} or more servers on file. Cleaning up ...")
-        runningServers = stop_inactive_servers(runningServers)
+        runningServers = list(stop_inactive_servers(runningServers))
     save_running_servers(runningServers)
     log.info(f"Added server entry {newEntry.toFileLine()}")
 
 
-def remove_server_entry(pathHash: str):
+def remove_server_entry(pathHash: str) -> None:
     remainingServers = [
         info for info in get_running_servers() if info.pathHash != pathHash
     ]
@@ -150,8 +152,8 @@ def start_server(
     base_dir: Path,
     access: t.Literal["public", "private"] = "private",
     port: int = 8128,
-    callback: t.Callable[[int], None] = None,
-) -> RunningServerInfo:
+    callback: t.Callable[[int], None] | None = None,
+) -> None:
     log.info("setting up ...")
     pathHash = hash_path(base_dir)
     pid = os.getpid()
@@ -162,7 +164,6 @@ def start_server(
     # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
     # 2024-04-05: try using this again to let Firefox work
     class RequestHandler(SimpleHTTPRequestHandler):
-
         def __init__(self, *args: t.Any, **kwargs: t.Any):
             super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
 
@@ -186,8 +187,8 @@ def start_server(
                 log.info("adding server entry")
                 add_server_entry(pathHash, pid, port, binding)
                 log.info("Starting the server")
-                if callable is not None:
-                    callable(port)
+                if callback is not None:
+                    callback(port)
                 httpd.serve_forever()
         except OSError:
             log.warning(f"Port {port} could not be used.")
