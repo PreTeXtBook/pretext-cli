@@ -93,7 +93,8 @@ def save_running_servers(runningServers: t.List[RunningServerInfo]) -> None:
     try:
         runningServersFile = home_path() / "running_servers"
         with open(runningServersFile, "w") as f:
-            f.writelines([info.toFileLine() for info in runningServers])
+            # Write each server info to a new line
+            f.writelines([f"{info.toFileLine()}\n" for info in runningServers])
     except IOError as e:
         log.info("Unable to write running servers file.")
         log.exception(e, exc_info=True)
