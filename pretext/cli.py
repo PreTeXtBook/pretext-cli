@@ -20,7 +20,6 @@ from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
 from functools import update_wrapper
 
-
 from . import (
     utils,
     resources,
@@ -31,7 +30,6 @@ from . import (
     VERSION,
     CORE_COMMIT,
 )
-
 
 from .project import Project
 
@@ -58,6 +56,7 @@ log.addHandler(error_flush_handler)
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
 def nice_errors(f: Callable[..., None]) -> Any:
+
     @click.pass_context
     def try_except(ctx: click.Context, *args: Any, **kwargs: Any) -> Any:
         try:
@@ -790,8 +789,8 @@ def view(
 
     if stop_server:
         try:
-            projectHash = utils.hash_path(project.abspath())
-            current_server = server.active_server_for_path_hash(projectHash)
+            project_hash = utils.hash_path(project.abspath())
+            current_server = server.active_server_for_path_hash(project_hash)
             log.info("\nStopping server.")
             if current_server:
                 current_server.terminate()
@@ -854,8 +853,8 @@ def view(
             webbrowser.open(url)
         return
     # Start server if there isn't one running already:
-    projectHash = utils.hash_path(project.abspath())
-    current_server = server.active_server_for_path_hash(projectHash)
+    project_hash = utils.hash_path(project.abspath())
+    current_server = server.active_server_for_path_hash(project_hash)
     if restart_server and current_server is not None:
         log.info(
             f"Terminating existing server {current_server.pid} on port {current_server.port}"
@@ -863,7 +862,7 @@ def view(
         current_server.terminate()
         current_server = None
     # Double check that the current server really is active:
-    if current_server is not None and current_server.isActiveServer():
+    if current_server is not None and current_server.is_active_server():
         url_base = utils.url_for_access(access=access, port=current_server.port)
         url = url_base + url_path
         log.info(f"Server is already available at {url_base}")
