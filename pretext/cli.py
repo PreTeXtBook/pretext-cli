@@ -255,9 +255,8 @@ def devscript(args: List[str]) -> None:
     """
     Aliases the core pretext script.
     """
-    PY_CMD = sys.executable
     subprocess.run(
-        [PY_CMD, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
+        [sys.executable, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
         + list(args)
     )
 
@@ -790,8 +789,8 @@ def view(
 
     if stop_server:
         try:
-            projectHash = utils.hash_path(project.abspath())
-            current_server = server.active_server_for_path_hash(projectHash)
+            project_hash = utils.hash_path(project.abspath())
+            current_server = server.active_server_for_path_hash(project_hash)
             log.info("\nStopping server.")
             if current_server:
                 current_server.terminate()
@@ -848,14 +847,14 @@ def view(
         if no_launch:
             log.info(f"The {target_name} will be available at {url}")
         else:
-            SECONDS = 2
-            log.info(f"Opening browser for {target_name} at {url} in {SECONDS} seconds")
-            time.sleep(SECONDS)
+            seconds = 2
+            log.info(f"Opening browser for {target_name} at {url} in {seconds} seconds")
+            time.sleep(seconds)
             webbrowser.open(url)
         return
     # Start server if there isn't one running already:
-    projectHash = utils.hash_path(project.abspath())
-    current_server = server.active_server_for_path_hash(projectHash)
+    project_hash = utils.hash_path(project.abspath())
+    current_server = server.active_server_for_path_hash(project_hash)
     if restart_server and current_server is not None:
         log.info(
             f"Terminating existing server {current_server.pid} on port {current_server.port}"
@@ -893,9 +892,7 @@ def view(
             if no_launch:
                 log.info(f"The {target_name} will be available at {url}")
             else:
-                # SECONDS = 2
                 log.info(f"Opening browser for {target_name} at {url}")
-                # time.sleep(SECONDS)
                 webbrowser.open(url)
 
         log.info("starting server ...")
