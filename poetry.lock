@@ -1850,6 +1850,25 @@ url = "https://pypi.org/simple"
 reference = "pypi-public"
 
 [[package]]
+name = "pep8-naming"
+version = "0.14.1"
+description = "Check PEP-8 naming conventions, plugin for flake8"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "pep8-naming-0.14.1.tar.gz", hash = "sha256:1ef228ae80875557eb6c1549deafed4dabbf3261cfcafa12f773fe0db9be8a36"},
+    {file = "pep8_naming-0.14.1-py3-none-any.whl", hash = "sha256:63f514fc777d715f935faf185dedd679ab99526a7f2f503abb61587877f7b1c5"},
+]
+
+[package.dependencies]
+flake8 = ">=5.0.0"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "pypi-public"
+
+[[package]]
 name = "pillow"
 version = "10.4.0"
 description = "Python Imaging Library (Fork)"
@@ -3673,4 +3692,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.5"
-content-hash = "48fff45f6ea88dd07c22a53b1511b902cc6210c8ef8b522ad89b4dae836cece3"
+content-hash = "416adea3cbd5237abf57db2c909dfddc7d0a21cc9d854b7a931ff87c4f42af24"
