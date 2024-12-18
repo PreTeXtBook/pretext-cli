@@ -43,7 +43,7 @@ class RunningServerInfo:
             log.info(f"Found zombie process {p.pid}")
             return False
         for _, _, _, laddr, _, _ in p.net_connections("all"):
-            if laddr == (self.binding, self.port):
+            if laddr.port == self.port:
                 log.info(f"Found server at {self.url()}")
                 return True
         log.info(
@@ -56,6 +56,7 @@ class RunningServerInfo:
         try:
             log.info(f"Terminating {self.pid}")
             psutil.Process(self.pid).terminate()
+            remove_server_entry(self.pathHash)
         except Exception as e:
             log.info(f"Terminate failed for {self.pid}.")
             log.exception(e, exc_info=True)

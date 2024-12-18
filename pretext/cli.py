@@ -784,18 +784,22 @@ def view(
     """
 
     # pretext view -s should immediately stop the server and do nothing else.
+    if utils.cannot_find_project(task="view the output for"):
+        return
+    project = Project.parse()
+
     if stop_server:
         try:
+            projectHash = utils.hash_path(project.abspath())
+            current_server = server.active_server_for_path_hash(projectHash)
             log.info("\nStopping server.")
-            utils.stop_server()
+            current_server.terminate()
         except Exception as e:
             log.warning("Failed to stop server.")
             log.debug(e, exc_info=True)
         finally:
             return
-    if utils.cannot_find_project(task="view the output for"):
-        return
-    project = Project.parse()
+
     try:
         target = project.get_target(name=target_name, log_info_for_none=not stage)
     except AssertionError as e:
@@ -850,14 +854,25 @@ def view(
         return
     # Start server if there isn't one running already:
     projectHash = utils.hash_path(project.abspath())
-    current_server = server.active_server_for_path_hash(projectHash)
+    current_server = server.active_server_for_path_hash(projectHash) 
     if restart_server and current_server is not None:
         log.info(
             f"Terminating existing server {current_server.pid} on port {current_server.port}"
         )
         current_server.terminate()
         current_server = None
-    if current_server is None:
+    # Double check that the current server really is active:
+    if current_server is not None and current_server.isActiveServer():
+        url_base = utils.url_for_access(access=access, port=current_server.port)
+        url = url_base + url_path
+        log.info(f"Server is already available at {url_base}")
+        if no_launch:
+            log.info(f"The {target_name} is available at {url}")
+        else:
+            log.info(f"Now opening browser for {target_name} at {url}")
+            webbrowser.open(url)
+    # otherwise, start a server
+    else:
         log.info(
             f"Now preparing local server to preview your project directory `{project.abspath()}`."
         )
@@ -884,16 +899,6 @@ def view(
 
         log.info("starting server ...")
         server.start_server(project.abspath(), access, port, callback)
-
-    else:
-        url_base = utils.url_for_access(access=access, port=current_server.port)
-        url = url_base + url_path
-        log.info(f"Server is already available at {url_base}")
-        if no_launch:
-            log.info(f"The {target_name} is available at {url}")
-        else:
-            log.info(f"Now opening browser for {target_name} at {url}")
-            webbrowser.open(url)
 
 
 # pretext deploy
