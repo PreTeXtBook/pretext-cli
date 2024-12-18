@@ -15,7 +15,7 @@ import logging.handlers
 import psutil
 import typing as t
 from . import types as pt  # PreTeXt types
-from lxml import etree as ET
+from lxml import etree as ET  # noqa: N812
 from lxml.etree import _ElementTree, _Element
 
 try:
