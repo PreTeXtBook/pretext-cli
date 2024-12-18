@@ -854,7 +854,7 @@ def view(
         return
     # Start server if there isn't one running already:
     projectHash = utils.hash_path(project.abspath())
-    current_server = server.active_server_for_path_hash(projectHash) 
+    current_server = server.active_server_for_path_hash(projectHash)
     if restart_server and current_server is not None:
         log.info(
             f"Terminating existing server {current_server.pid} on port {current_server.port}"
