@@ -112,7 +112,9 @@ def add_server_entry(path_hash: str, pid: int, port: int, binding: str) -> None:
     This function does not attempt to ensure that an active server doesn't already exist.
     """
     running_servers = get_running_servers()
-    new_entry = RunningServerInfo(path_hash=path_hash, pid=pid, port=port, binding=binding)
+    new_entry = RunningServerInfo(
+        path_hash=path_hash, pid=pid, port=port, binding=binding
+    )
     running_servers.append(new_entry)
     if len(running_servers) >= PURGE_LIMIT:
         log.info(f"There are {PURGE_LIMIT} or more servers on file. Cleaning up ...")
