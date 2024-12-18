@@ -13,27 +13,32 @@ from pretext.utils import hash_path, home_path
 # Get access to logger
 log = logging.getLogger("ptxlogger")
 
+# Limit for how many entries to allow in the server file
+# before attempting to clean up non-running entries.
+# Note: This is not a limit to the number of concurrent servers.
+PURGE_LIMIT = 10
+
 
 @dataclass
 class RunningServerInfo:
     """A simple dataclass to hold the information in the running servers file."""
 
-    pathHash: str
+    path_hash: str
     pid: int
     port: int
     binding: str
 
     @staticmethod
-    def fromFileLine(line: str) -> RunningServerInfo:
-        (pathHash, pid, port, binding) = line.split()
+    def from_file_line(line: str) -> RunningServerInfo:
+        (path_hash, pid, port, binding) = line.split()
         return RunningServerInfo(
-            pathHash=pathHash, pid=int(pid), port=int(port), binding=binding
+            path_hash=path_hash, pid=int(pid), port=int(port), binding=binding
         )
 
-    def toFileLine(self) -> str:
-        return f"{self.pathHash} {self.pid} {self.port} {self.binding}\n"
+    def to_file_line(self) -> str:
+        return f"{self.path_hash} {self.pid} {self.port} {self.binding}\n"
 
-    def isActiveServer(self) -> bool:
+    def is_active_server(self) -> bool:
         """Returns whether the server represented by this object is active on the provided port"""
         p = psutil.Process(self.pid)
         if not p.is_running():
@@ -56,7 +61,7 @@ class RunningServerInfo:
         try:
             log.info(f"Terminating {self.pid}")
             psutil.Process(self.pid).terminate()
-            remove_server_entry(self.pathHash)
+            remove_server_entry(self.path_hash)
         except Exception as e:
             log.info(f"Terminate failed for {self.pid}.")
             log.exception(e, exc_info=True)
@@ -73,18 +78,18 @@ def get_running_servers() -> t.List[RunningServerInfo]:
     if not home_path().exists():
         return []
     try:
-        runningServersFile = home_path() / "running_servers"
-        if not runningServersFile.is_file():
+        running_servers_file = home_path() / "running_servers"
+        if not running_servers_file.is_file():
             return []
-        with open(runningServersFile, "r") as f:
-            return [RunningServerInfo.fromFileLine(line) for line in f.readlines()]
+        with open(running_servers_file, "r") as f:
+            return [RunningServerInfo.from_file_line(line) for line in f.readlines()]
     except IOError as e:
         log.info("Unable to open running servers file.")
         log.exception(e, exc_info=True)
         return []
 
 
-def save_running_servers(runningServers: t.List[RunningServerInfo]) -> None:
+def save_running_servers(running_servers: t.List[RunningServerInfo]) -> None:
     """
     Overwrites the ~/.ptx/running_servers file to store
     the new list of running servers.
@@ -92,36 +97,35 @@ def save_running_servers(runningServers: t.List[RunningServerInfo]) -> None:
     # Ensure home path exists
     os.makedirs(home_path(), exist_ok=True)
     try:
-        runningServersFile = home_path() / "running_servers"
-        with open(runningServersFile, "w") as f:
+        running_servers_file = home_path() / "running_servers"
+        with open(running_servers_file, "w") as f:
             # Write each server info to a new line
-            f.writelines([info.toFileLine() for info in runningServers])
+            f.writelines([info.to_file_line() for info in running_servers])
     except IOError as e:
         log.info("Unable to write running servers file.")
         log.exception(e, exc_info=True)
 
 
-def add_server_entry(pathHash: str, pid: int, port: int, binding: str) -> None:
+def add_server_entry(path_hash: str, pid: int, port: int, binding: str) -> None:
     """Add a new server entry to ~/.ptx/running_servers.
 
     This function does not attempt to ensure that an active server doesn't already exist.
     """
-    PURGE_LIMIT = 10  # If more servers active, try to clean up
-    runningServers = get_running_servers()
-    newEntry = RunningServerInfo(pathHash=pathHash, pid=pid, port=port, binding=binding)
-    runningServers.append(newEntry)
-    if len(runningServers) >= PURGE_LIMIT:
+    running_servers = get_running_servers()
+    new_entry = RunningServerInfo(path_hash=path_hash, pid=pid, port=port, binding=binding)
+    running_servers.append(new_entry)
+    if len(running_servers) >= PURGE_LIMIT:
         log.info(f"There are {PURGE_LIMIT} or more servers on file. Cleaning up ...")
-        runningServers = list(stop_inactive_servers(runningServers))
-    save_running_servers(runningServers)
-    log.info(f"Added server entry {newEntry.toFileLine()}")
+        running_servers = list(stop_inactive_servers(running_servers))
+    save_running_servers(running_servers)
+    log.info(f"Added server entry {new_entry.to_file_line()}")
 
 
-def remove_server_entry(pathHash: str) -> None:
-    remainingServers = [
-        info for info in get_running_servers() if info.pathHash != pathHash
+def remove_server_entry(path_hash: str) -> None:
+    remaining_servers = [
+        info for info in get_running_servers() if info.path_hash != path_hash
     ]
-    save_running_servers(remainingServers)
+    save_running_servers(remaining_servers)
 
 
 def stop_inactive_servers(
@@ -129,15 +133,15 @@ def stop_inactive_servers(
 ) -> t.Iterator[RunningServerInfo]:
     """Stops any inactive servers and yields the active ones."""
     for server in servers:
-        if server.isActiveServer():
+        if server.is_active_server():
             yield server
         else:
             server.terminate()
 
 
-def active_server_for_path_hash(pathHash: str) -> t.Optional[RunningServerInfo]:
+def active_server_for_path_hash(path_hash: str) -> t.Optional[RunningServerInfo]:
     return next(
-        (info for info in get_running_servers() if info.pathHash == pathHash),
+        (info for info in get_running_servers() if info.path_hash == path_hash),
         None,
     )
 
@@ -157,7 +161,7 @@ def start_server(
     callback: t.Callable[[int], None] | None = None,
 ) -> None:
     log.info("setting up ...")
-    pathHash = hash_path(base_dir)
+    path_hash = hash_path(base_dir)
     pid = os.getpid()
     binding = binding_for_access(access)
     log.info("values set...")
@@ -186,7 +190,7 @@ def start_server(
         try:
             with TCPServer((binding, port), RequestHandler) as httpd:
                 log.info("adding server entry")
-                add_server_entry(pathHash, pid, port, binding)
+                add_server_entry(path_hash, pid, port, binding)
                 log.info("Starting the server")
                 if callback is not None:
                     callback(port)
@@ -197,5 +201,5 @@ def start_server(
             log.warning(f"Trying port {port} instead.\n")
         except KeyboardInterrupt:
             log.info("Stopping server.")
-            remove_server_entry(pathHash)
+            remove_server_entry(path_hash)
             return

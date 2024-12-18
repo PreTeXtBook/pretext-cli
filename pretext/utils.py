@@ -150,8 +150,8 @@ def home_path() -> Path:
     return Path.home() / ".ptx"
 
 
-def hash_path(projectPath: Path) -> str:
-    return sha256(str(projectPath).encode("utf-8")).hexdigest()[:10]
+def hash_path(project_path: Path) -> str:
+    return sha256(str(project_path).encode("utf-8")).hexdigest()[:10]
 
 
 # TODO: is this ever called?
@@ -766,7 +766,7 @@ def active_server_port() -> t.Optional[int]:
     for proc in psutil.process_iter():
         if proc is None:
             continue
-        if isPretextProc(proc):  # type: ignore
+        if is_pretext_proc(proc):  # type: ignore
             log.debug(f"Found pretext server running with pid {proc.pid}")
             # Sometimes the process stops but doesn't get removed from the process list.  We check if the process is still running by checking its status.
             if proc.status() not in [psutil.STATUS_RUNNING, psutil.STATUS_SLEEPING]:
@@ -804,7 +804,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
     else:
         # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
         for proc in psutil.process_iter():
-            if isPretextProc(proc):
+            if is_pretext_proc(proc):
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
 
@@ -847,7 +847,7 @@ def latest_version() -> t.Optional[str]:
         return None
 
 
-def isPretextProc(proc: psutil.Process) -> bool:
+def is_pretext_proc(proc: psutil.Process) -> bool:
     if proc.name() == "pretext":
         return False
     parent = proc.parent()

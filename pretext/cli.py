@@ -865,7 +865,7 @@ def view(
         current_server.terminate()
         current_server = None
     # Double check that the current server really is active:
-    if current_server is not None and current_server.isActiveServer():
+    if current_server is not None and current_server.is_active_server():
         url_base = utils.url_for_access(access=access, port=current_server.port)
         url = url_base + url_path
         log.info(f"Server is already available at {url_base}")
