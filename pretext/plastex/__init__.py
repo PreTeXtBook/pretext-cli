@@ -10,9 +10,9 @@ log = logging.getLogger("ptxlogger")
 class Pretext(_Renderer):
     """Renderer for the PreTeXt XML format"""
 
-    fileExtension = ".ptx"
+    fileExtension = ".ptx"  # noqa: N815
 
-    def processFileContent(self, document: str, s: str) -> str:
+    def processFileContent(self, document: str, s: str) -> str:  # noqa: N802
         s = _Renderer.processFileContent(self, document, s)
 
         # Remove empty paragraphs
@@ -36,7 +36,7 @@ def convert(input_file: Path, output: Path) -> None:
 
     input_file_dir = input_file.parent
 
-    def getLines(input_file: Path) -> str:
+    def getLines(input_file: Path) -> str:  # noqa: N802
         with open(input_file, "r") as f:
             lines = str()
             line = f.readline()
