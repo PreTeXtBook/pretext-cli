@@ -256,7 +256,10 @@ def devscript(args: List[str]) -> None:
     Aliases the core pretext script.
     """
     subprocess.run(
-        [sys.executable, str(resources.resource_base_path() / "core" / "pretext" / "pretext")]
+        [
+            sys.executable,
+            str(resources.resource_base_path() / "core" / "pretext" / "pretext"),
+        ]
         + list(args)
     )
 
