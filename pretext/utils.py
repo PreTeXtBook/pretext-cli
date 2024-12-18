@@ -1,3 +1,4 @@
+from hashlib import sha256
 import os
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -22,7 +23,6 @@ try:
 except ImportError:
     pass
 from typing import Any, cast, List, Optional
-
 
 from . import core, constants, resources
 
@@ -145,6 +145,15 @@ def project_xml_string(dirpath: Optional[Path] = None) -> str:
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
 
+# Returns the pretext directory under home.
+def home_path() -> Path:
+    return Path.home() / ".ptx"
+
+
+def hash_path(projectPath: Path) -> str:
+    return sha256(str(projectPath).encode("utf-8")).hexdigest()[:10]
+
+
 # TODO: is this ever called?
 def target_xml(
     alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
@@ -252,6 +261,7 @@ def serve_forever(
     # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
     # 2024-04-05: try using this again to let Firefox work
     class RequestHandler(SimpleHTTPRequestHandler):
+
         def __init__(self, *args: Any, **kwargs: Any):
             super().__init__(*args, directory=base_dir.as_posix(), **kwargs)
 
@@ -754,7 +764,9 @@ def active_server_port() -> t.Optional[int]:
     """
     # We look at all currently running processes and check if any are a pretext process that is a child of a pretext process.  This would only happen if we have run a `pretext view` command to start the server, so we can assume that this is the server we are looking for.
     for proc in psutil.process_iter():
-        if proc.name() == "pretext" and proc.parent().name() == "pretext":  # type: ignore
+        if proc is None:
+            continue
+        if isPretextProc(proc):  # type: ignore
             log.debug(f"Found pretext server running with pid {proc.pid}")
             # Sometimes the process stops but doesn't get removed from the process list.  We check if the process is still running by checking its status.
             if proc.status() not in [psutil.STATUS_RUNNING, psutil.STATUS_SLEEPING]:
@@ -792,7 +804,7 @@ def stop_server(port: t.Optional[int] = None) -> None:
     else:
         # As before, we look for a pretext process that is a child of a pretext process.  This time we terminate that process.
         for proc in psutil.process_iter():
-            if proc.name() == "pretext" and proc.parent().name() == "pretext":  # type: ignore
+            if isPretextProc(proc):
                 log.debug(f"Terminating process with PID {proc.pid}")
                 proc.terminate()
 
@@ -833,3 +845,10 @@ def latest_version() -> t.Optional[str]:
         log.debug("Could not determine latest version of pretext.")
         log.debug(e, exc_info=True)
         return None
+
+
+def isPretextProc(proc: psutil.Process) -> bool:
+    if proc.name() == "pretext":
+        return False
+    parent = proc.parent()
+    return parent is not None and parent.name() == "pretext"
