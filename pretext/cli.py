@@ -793,7 +793,8 @@ def view(
             projectHash = utils.hash_path(project.abspath())
             current_server = server.active_server_for_path_hash(projectHash)
             log.info("\nStopping server.")
-            current_server.terminate()
+            if current_server:
+                current_server.terminate()
         except Exception as e:
             log.warning("Failed to stop server.")
             log.debug(e, exc_info=True)
