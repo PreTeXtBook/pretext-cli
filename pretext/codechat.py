@@ -22,7 +22,7 @@ import urllib.request  # pathname2url
 # Third-party imports
 # -------------------
 # We assume a previous call to ``xsltproc`` has already verified that lxml is installed.
-import lxml.etree as ET
+import lxml.etree as ET  # noqa: N812
 import lxml.ElementInclude
 
 # Local application imports

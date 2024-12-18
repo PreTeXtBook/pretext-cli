@@ -9,7 +9,7 @@ import tempfile
 import pickle
 from pathlib import Path
 
-from lxml import etree as ET
+from lxml import etree as ET  # noqa: N812
 
 try:
     import pelican  # type: ignore
