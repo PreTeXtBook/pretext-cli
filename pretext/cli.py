@@ -24,7 +24,6 @@ from functools import update_wrapper
 from . import (
     utils,
     resources,
-    core,
     constants,
     plastex,
     server,
@@ -221,9 +220,11 @@ def support() -> None:
     log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{VERSION}/")
     log.info(f"PreTeXt core resources commit: {CORE_COMMIT}")
     # Temporarily removing; this is handled by core differently now.
-    #log.info(f"Runestone Services version: {core.get_runestone_services_version()}")
+    # log.info(f"Runestone Services version: {core.get_runestone_services_version()}")
     log.info(f"OS: {platform.platform()}")
-    log.info(f"Python version: {platform.python_version()}, running from {sys.executable}")
+    log.info(
+        f"Python version: {platform.python_version()}, running from {sys.executable}"
+    )
     log.info(f"Current working directory: {Path().resolve()}")
     if utils.project_path() is not None:
         log.info(f"PreTeXt project path: {utils.project_path()}")
@@ -258,7 +259,6 @@ def upgrade() -> None:
     log.info("Upgrading PreTeXt-CLI...")
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
     log.info("Upgrade complete.")
-
 
 
 # pretext devscript
