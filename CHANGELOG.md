@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- New and improved css style options.  See PreTeXt documentation.
+- `pretext upgrade` command will run `pip install --upgrade pretext` using the same python you are running pretext from, for smoother upgrades.
+
 ### Changed
 
 - `pretext view` now reuses the current local server correctly, and starts different local servers for different projects.  This allows you to correctly view multiple projects at the same time.
