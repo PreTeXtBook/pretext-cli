@@ -24,7 +24,6 @@ from functools import update_wrapper
 from . import (
     utils,
     resources,
-    core,
     constants,
     plastex,
     server,
@@ -153,7 +152,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         latest_version = utils.latest_version()
         if latest_version and latest_version != VERSION:
             log.info(
-                f"Using PreTeXt-CLI version {VERSION}.  The latest stable version available is {latest_version}. Run `pip install pretext --upgrade` to update.\n"
+                f"Using PreTeXt-CLI version {VERSION}.  The latest stable version available is {latest_version}. Run `pretext upgrade` to update.\n"
             )
         else:
             log.info(
@@ -220,9 +219,12 @@ def support() -> None:
     log.info(f"PreTeXt-CLI version: {VERSION}")
     log.info(f"    PyPI link: https://pypi.org/project/pretextbook/{VERSION}/")
     log.info(f"PreTeXt core resources commit: {CORE_COMMIT}")
-    log.info(f"Runestone Services version: {core.get_runestone_services_version()}")
+    # Temporarily removing; this is handled by core differently now.
+    # log.info(f"Runestone Services version: {core.get_runestone_services_version()}")
     log.info(f"OS: {platform.platform()}")
-    log.info(f"Python version: {platform.python_version()}")
+    log.info(
+        f"Python version: {platform.python_version()}, running from {sys.executable}"
+    )
     log.info(f"Current working directory: {Path().resolve()}")
     if utils.project_path() is not None:
         log.info(f"PreTeXt project path: {utils.project_path()}")
@@ -243,6 +245,20 @@ def support() -> None:
                 )
     else:
         log.info("No project.ptx found.")
+
+
+# pretext upgrade
+@main.command(
+    short_help="Upgrade PreTeXt-CLI to the latest version using pip.",
+    context_settings=CONTEXT_SETTINGS,
+)
+def upgrade() -> None:
+    """
+    Upgrade PreTeXt-CLI to the latest version using pip.
+    """
+    log.info("Upgrading PreTeXt-CLI...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
+    log.info("Upgrade complete.")
 
 
 # pretext devscript
