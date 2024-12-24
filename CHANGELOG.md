@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.11.0] - 2024-12-24
+
+Includes updates to core through commit: [e4edfd0](https://github.com/PreTeXtBook/pretext/commit/e4edfd0fe052d9dd91404667a42ff1c0932d114b)
+
 ### Added
 
 - New and improved css style options.  See PreTeXt documentation.
