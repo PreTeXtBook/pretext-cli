@@ -40,7 +40,11 @@ class RunningServerInfo:
 
     def is_active_server(self) -> bool:
         """Returns whether the server represented by this object is active on the provided port"""
-        p = psutil.Process(self.pid)
+        print("here!")
+        try:
+            p = psutil.Process(self.pid)
+        except psutil.NoSuchProcess:
+            return False
         if not p.is_running():
             log.info(f"Found entry no longer running {p.pid}")
             return False
