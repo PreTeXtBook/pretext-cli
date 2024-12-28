@@ -9,9 +9,18 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Improved codespace view command (now respects already running servers).
+- CSS fixes for logo and references from core.
+
 ## [2.11.1] - 2024-12-25
 
 Includes updates to core through commit: [e4edfd0](https://github.com/PreTeXtBook/pretext/commit/e4edfd0fe052d9dd91404667a42ff1c0932d114b)
+
+### Fixed
+
+- `pretext view` bug where a process is terminated abnormally
 
 ## [2.11.0] - 2024-12-24
 

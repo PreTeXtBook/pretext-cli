@@ -5,6 +5,8 @@ import logging
 import os
 from pathlib import Path
 import socketserver
+import subprocess
+import sys
 import typing as t
 import psutil
 
@@ -71,6 +73,13 @@ class RunningServerInfo:
 
     def url(self) -> str:
         return f"{self.binding}:{self.port}"
+
+
+def is_port_in_use(port: int) -> bool:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("localhost", port)) == 0
 
 
 def get_running_servers() -> t.List[RunningServerInfo]:
@@ -208,3 +217,29 @@ def start_server(
             log.info("Stopping server.")
             remove_server_entry(path_hash)
             return
+
+
+def start_codespace_server(
+    base_dir: Path,
+    access: t.Literal["public", "private"] = "private",
+    port: int = 8128,
+    callback: t.Callable[[int], None] | None = None,
+) -> None:
+    while is_port_in_use(port):
+        log.debug(f"Port {port} is in use.")
+        port = port + 1
+        log.debug(f"Trying port {port} instead.")
+    path_hash = hash_path(base_dir)
+    binding = binding_for_access(access)
+    log.debug(f"values set: {path_hash}, {binding}, {port}")
+
+    log.info("Starting the server")
+    server_process = subprocess.Popen(
+        [sys.executable, "-m", "http.server", str(port)], cwd=base_dir
+    )
+    log.debug(f"Server process pid: {server_process.pid}")
+    log.debug("adding server entry")
+    add_server_entry(path_hash, server_process.pid, port, binding)
+    if callback is not None:
+        callback(port)
+    return

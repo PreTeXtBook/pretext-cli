@@ -1,8 +1,6 @@
 import logging
 import logging.handlers
-import random
 import sys
-import time
 import click
 import click_log
 import shutil
@@ -805,11 +803,10 @@ def view(
     if utils.cannot_find_project(task="view the output for"):
         return
     project = Project.parse()
-
+    project_hash = utils.hash_path(project.abspath())
+    current_server = server.active_server_for_path_hash(project_hash)
     if stop_server:
         try:
-            project_hash = utils.hash_path(project.abspath())
-            current_server = server.active_server_for_path_hash(project_hash)
             log.info("\nStopping server.")
             if current_server:
                 current_server.terminate()
@@ -852,28 +849,8 @@ def view(
 
     in_codespace = os.environ.get("CODESPACES")
 
-    if in_codespace and not default_server:
-        log.info(
-            "Running in a codespace, so using the codespace server instead of the standard python server."
-        )
-        if port == 8128:
-            port = random.randint(8129, 8999)
-        # set the url
-        url_base = utils.url_for_access(access=access, port=port)
-        url = url_base + url_path
-        log.info(f"Server will soon be available at {url_base}")
-        utils.start_codespace_server(port=port, access=access)
-        if no_launch:
-            log.info(f"The {target_name} will be available at {url}")
-        else:
-            seconds = 2
-            log.info(f"Opening browser for {target_name} at {url} in {seconds} seconds")
-            time.sleep(seconds)
-            webbrowser.open(url)
-        return
     # Start server if there isn't one running already:
-    project_hash = utils.hash_path(project.abspath())
-    current_server = server.active_server_for_path_hash(project_hash)
+
     if restart_server and current_server is not None:
         log.info(
             f"Terminating existing server {current_server.pid} on port {current_server.port}"
@@ -915,7 +892,11 @@ def view(
                 webbrowser.open(url)
 
         log.info("starting server ...")
-        server.start_server(project.abspath(), access, port, callback)
+        if in_codespace and not default_server:
+            log.info("Running in a codespace, so using a subprocess server.")
+            server.start_codespace_server(project.abspath(), access, port, callback)
+        else:
+            server.start_server(project.abspath(), access, port, callback)
 
 
 # pretext deploy
