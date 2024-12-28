@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.11.2] - 2024-12-28
+
+Includes updates to core through commit: [3c662c9](https://github.com/PreTeXtBook/pretext/commit/3c662c9fc70c6fa49c031c44ffaebcfbf61ce2f1)
+
 ### Fixed
 
 - Improved codespace view command (now respects already running servers).
