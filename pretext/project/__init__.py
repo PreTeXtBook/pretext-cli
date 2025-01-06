@@ -687,7 +687,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                    #rs_query_methods=None,
+                    # rs_query_methods=None,
                 )
                 try:
                     codechat.map_path_to_xml_id(
