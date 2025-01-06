@@ -687,6 +687,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
+                    # rs_query_methods=None,
                 )
                 try:
                     codechat.map_path_to_xml_id(
@@ -808,7 +809,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         all_formats: bool = False,
         only_changed: bool = True,
         xmlid: t.Optional[str] = None,
-        non_pymupdf: bool = False,
     ) -> None:
         """
         Generates assets for the current target.  Options:
@@ -816,7 +816,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - all_formats: boolean to decide whether the output format of the assets will be just those that the target format uses (default/False) or all possible output formats for that asset (True).
            - only_changed: boolean.  When True (default), function will only generate assets that have changed since last generation.  When False, all assets will be built (hash table will be ignored).
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
-           - non_pymupdf: temporary boolean to revert to legacy alternative image generation without pymupdf (and use old external programs).
         """
         # Two "ensure" functions call generate to get just a single asset.  Every generation step other than webwork must have webwork generated, so unless we are "ensuring" webwork, we will need to call ensure webwork.  Note if this function was called with just webwork, then we would move down and actually build webwork.
         if requested_asset_types != ["webwork"]:
@@ -1008,7 +1007,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
-                            pyMuPDF=not (non_pymupdf),
+                            ext_converter=None,
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
@@ -1026,6 +1025,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
                             method=self.asy_method,
+                            ext_converter=None,
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
@@ -1042,6 +1042,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
+                            ext_converter=None,
                         )
                     successful_assets.append(("sageplot", id))
                 except Exception as e:

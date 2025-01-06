@@ -624,12 +624,6 @@ def build(
     default=False,
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
-@click.option(
-    "--non-pymupdf",
-    is_flag=True,
-    default=False,
-    help="Used to revert to non-pymupdf (legacy) method for generating svg and png.",
-)
 @click.pass_context
 @nice_errors
 def generate(
@@ -639,7 +633,6 @@ def generate(
     all_formats: bool,
     only_changed: bool,
     xmlid: Optional[str],
-    non_pymupdf: bool,
 ) -> None:
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
@@ -676,7 +669,6 @@ def generate(
             all_formats=all_formats,
             only_changed=only_changed,  # Unless requested, generate all assets, so don't check the cache.
             xmlid=xmlid,
-            non_pymupdf=non_pymupdf,
         )
         log.info("Finished generating assets.\n")
     except ValidationError as e:
