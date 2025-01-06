@@ -13,13 +13,13 @@ class Executables(pxml.BaseXmlModel, tag="executables"):
     latex: str = pxml.attr(default="latex")
     pdflatex: str = pxml.attr(default="pdflatex")
     xelatex: str = pxml.attr(default="xelatex")
-    pdfsvg: str = pxml.attr(default="pdf2svg")
+    pdfsvg: t.Optional[str] = pxml.attr(default="pdf2svg")
     # If not specified, use a local executable if it exists; if it doesn't exist, choose `None`, which allows the generation logic to use the server instead.
     asy: t.Optional[str] = pxml.attr(default=shutil.which("asy"))
     # The same applies to Sage.
     sage: t.Optional[str] = pxml.attr(default=shutil.which("sage"))
     mermaid: str = pxml.attr(default="mmdc")
-    pdfpng: str = pxml.attr(default="convert")
+    pdfpng: t.Optional[str] = pxml.attr(default="convert")
     pdfeps: str = pxml.attr(default="pdftops")
     node: str = pxml.attr(default="node")
     liblouis: str = pxml.attr(default="file2brl")
