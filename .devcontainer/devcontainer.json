@@ -22,6 +22,7 @@
 				"editor.snippetSuggestions": "top",
 				"editor.formatOnSave": true,
 				"pretext-tools.installPretext": false,
+			        "redhat.telemetry.enabled": false,
 				"xml.validation.enabled": true,
 				"[python]": {
 					"editor.defaultFormatter": "ms-python.python"
