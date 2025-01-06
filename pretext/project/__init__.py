@@ -687,6 +687,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
+                    #rs_query_methods=None,
                 )
                 try:
                     codechat.map_path_to_xml_id(
@@ -1009,6 +1010,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             outformat=outformat,
                             method=self.latex_engine,
                             pyMuPDF=not (non_pymupdf),
+                            ext_converter=None,
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
@@ -1026,6 +1028,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
                             method=self.asy_method,
+                            ext_converter=None,
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
@@ -1042,6 +1045,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
+                            ext_converter=None,
                         )
                     successful_assets.append(("sageplot", id))
                 except Exception as e:
