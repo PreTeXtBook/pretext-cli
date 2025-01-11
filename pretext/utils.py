@@ -729,16 +729,16 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         )
         log.info("")
         log.info(
-            "If you haven't already, configure SSH with GitHub by following instructions at:"
+            "Make sure you have set up authentication for GitHub.  For more information, visit:"
         )
+        log.info("    https://docs.github.com/en/authentication")
         log.info(
-            "    https://docs.github.com/en/authentication/connecting-to-github-with-ssh"
+            "Make sure you can push changes, either from the command line or in VS Code.  Then try to deploy again."
         )
-        log.info("Then try to deploy again.")
         log.info("")
-        log.info(f"If `{origin.url}` doesn't match your GitHub repository,")
+        log.info(f"(If `{origin.url}` doesn't match your GitHub repository,")
         log.info(
-            "use `git remote remove origin` on the command line then try to deploy again."
+            "use `git remote remove origin` on the command line then try to deploy again.)"
         )
         log.info("")
         log.error("Deploy was unsuccessful.")
