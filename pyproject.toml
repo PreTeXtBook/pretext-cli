@@ -40,7 +40,7 @@ single-version = "^1"
 playwright = "^1"
 pydantic-xml = ">=2"
 qrcode = "^7"
-psutil = "^6"
+psutil = "^6.1"
 plastex = "^3"
 jinja2 = "^3"
 pelican = { extras = ["markdown"], version = "^4.10", optional = true }
