@@ -839,7 +839,7 @@ def latest_version() -> t.Optional[str]:
 
     url = "https://pypi.org/pypi/pretext/json"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=1) # 1 second timeout; not critical.
         return response.json()["info"]["version"]
     except Exception as e:
         log.debug("Could not determine latest version of pretext.")
