@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Improved help when deploy fails.
+
 ## [2.11.4] - 2025-01-11
 
 Includes updates to core through commit: [42236bf](https://github.com/PreTeXtBook/pretext/commit/42236bf454d9e3f98bc25f0bb5186029710f17f7)
