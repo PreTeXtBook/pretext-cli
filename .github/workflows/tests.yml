@@ -75,7 +75,7 @@ jobs:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         poetry-version: ["1.8.4"]
-        os: [ubuntu-22.04, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         exclude:
           - os: windows-latest
             python-version: "3.8"
@@ -85,7 +85,7 @@ jobs:
             python-version: "3.10"
           - os: windows-latest
             python-version: "3.11"
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             python-version: "3.12"
 
     runs-on: ${{ matrix.os }}
@@ -110,6 +110,7 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
+          sudo apt-get -y install libcairo2-dev pkg-config python3-dev
           python -m poetry install --all-extras
           python -m poetry run python scripts/fetch_core.py
 
@@ -123,7 +124,7 @@ jobs:
         run: |
           python -m poetry run pytest -v --cov
 
-          
+
   schema:
     runs-on: ubuntu-latest
     steps:
