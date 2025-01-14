@@ -33,7 +33,7 @@ jobs:
 
   deep-test:
     needs: format-and-types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: oscarlevin/pretext:full
 
     steps:
