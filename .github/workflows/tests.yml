@@ -45,11 +45,10 @@ jobs:
       - name: Install apt packages (Linux with python 3.12 only)
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends texlive texlive-science texlive-xetex ghostscript pdf2svg texlive-fonts-extra sagemath
+          sudo apt-get install -y --no-install-recommends texlive texlive-science texlive-xetex ghostscript pdf2svg texlive-fonts-extra sagemath python3-pip
 
       - name: Install poetry 1.8.4
         run: |
-          python -m ensurepip
           python -m pip install --upgrade pip
           python -m pip install poetry==1.8.4
 
