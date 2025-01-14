@@ -107,10 +107,13 @@ jobs:
       - name: View poetry --help
         run: poetry --help
 
+      - name: Install build dependencies if on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get -y install libcairo2-dev pkg-config python3-dev
+
       - name: Install dependencies
         shell: bash
         run: |
-          sudo apt-get -y install libcairo2-dev pkg-config python3-dev
           python -m poetry install --all-extras
           python -m poetry run python scripts/fetch_core.py
 
