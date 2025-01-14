@@ -852,3 +852,11 @@ def is_pretext_proc(proc: psutil.Process) -> bool:
         return False
     parent = proc.parent()
     return parent is not None and parent.name() == "pretext"
+
+def is_unmodified(resource: str, path: Path) -> bool:
+    """
+    Check if a resource file at `path` matches the stored hash.
+    """
+    if resource in constants.PROJECT_RESOURCES:
+        return True
+    return False

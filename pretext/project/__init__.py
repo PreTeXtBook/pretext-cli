@@ -1668,6 +1668,40 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         if not stage_only:
             utils.publish_to_ghpages(self.stage_abspath(), update_source)
 
+    def is_git_managed(self) -> bool:
+        return (self.abspath() / ".git").exists()
+
+    def update_boilerplate(self) -> None:
+        """
+        Checks each of the managed files in a project.  If the file matches the
+        hash of the default file for the provided version, the file will be updated
+        to the newest version.  If it does not match, this means the user modified it.
+        In that case, we warn, add a note to the top of the file, and continue.
+
+        The managed files are stored in constants.PROJECT_RESOURCES:
+        - project.ptx
+        - requirements.txt
+        - .gitignore
+        - .devcontainer.json
+        - .github/workflows/pretext-cli.yml
+        - codechat_config.yaml
+        """
+        # Get hash of default files:
+        with open(resource_base_path() / "templates/project.ptx", "rb") as f:
+        for resource in constants.PROJECT_RESOURCES:
+            project_resource_path = (
+                self.abspath() / constants.PROJECT_RESOURCES[resource]
+            ).resolve()
+            if not project_resource_path.exists() and self.is_git_managed() and resource in constants.GIT_RESOURCES:
+                log.warning(
+                    f"Resource {resource} is missing and will be generated."
+                )
+                self.generate_boilerplate(resources=[resource])
+                continue
+            
+        pass
+
+
     def generate_boilerplate(
         self,
         skip_unmanaged: bool = True,
