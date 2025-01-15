@@ -129,15 +129,31 @@ def main(ctx: click.Context, targets: bool) -> None:
     Use the `--help` option on any CLI command to learn more, for example,
     `pretext build --help`.
     """
-    if (pp := utils.project_path()) is not None:
-        project = Project.parse(pp)
-        project.generate_boilerplate()
-        if targets:
+    # the targets option just lists targets in the current project
+    if targets:
+        if (pp := utils.project_path()) is not None:
+            project = Project.parse(pp)
             for target in project.target_names():
                 print(target)
-            return
+        else:
+            log.warning("Not inside a project, cannot list targets")
+        return
+    # Check for updates
+    utils.check_for_updates()
+    # If no subcommand is given, just hint for --help.
+    if ctx.invoked_subcommand is None:
+        log.info("Run `pretext --help` for help.")
+        return
+    # If the subcommand is "upgrade", we don't need to load a project.
+    if ctx.invoked_subcommand == "upgrade":
+        log.warning("Updating project now")
+        return
+    # In all other cases we need to know whether we are in a directory for a project.
+    if (pp := utils.project_path()) is not None:
+        project = Project.parse(pp)
+        log.info(f"PreTeXt project found in `{utils.project_path()}`.")
+
         # create file handler which logs even debug messages
-        # TODO: this will likely be moved out of this if to allow manifest-free builds
         logdir = pp / "logs"
         logdir.mkdir(exist_ok=True)
         logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
@@ -146,17 +162,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         file_log_format = logging.Formatter("{levelname:<8}: {message}", style="{")
         fh.setFormatter(file_log_format)
         log.addHandler(fh)
-        # output info
-        latest_version = utils.latest_version()
-        if latest_version and latest_version != VERSION:
-            log.info(
-                f"Using PreTeXt-CLI version {VERSION}.  The latest stable version available is {latest_version}. Run `pretext upgrade` to update.\n"
-            )
-        else:
-            log.info(
-                f"Using PreTeXt-CLI version: {VERSION}.  This is the latest available version.\n"
-            )
-        log.info(f"PreTeXt project found in `{utils.project_path()}`.")
+
         # permanently change working directory for rest of process
         os.chdir(pp)
         if utils.requirements_version() is None:
@@ -177,7 +183,12 @@ def main(ctx: click.Context, targets: bool) -> None:
             log.debug(
                 f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}."
             )
+
     else:
+        if ctx.invoked_subcommand == "new":
+            # Creating a new command, so don't need default build
+            return
+        # Otherwise we are not in a project and not creating a project, so we should use the default manifest for building etc.
         log.info(f"PreTeXt-CLI version: {VERSION}\n")
         utils.ensure_default_project_manifest()
         default_project_path = resources.resource_base_path().parent / "project.ptx"
@@ -187,14 +198,42 @@ def main(ctx: click.Context, targets: bool) -> None:
         )
     # Add project to context so it can be used in subcommands
     ctx.obj = {"project": project}
-    if ctx.invoked_subcommand is None:
-        log.info("Run `pretext --help` for help.")
 
 
 @main.result_callback()
 def exit(*_, **__):  # type: ignore
     # Exit gracefully:
     utils.exit_command(error_flush_handler)
+
+
+# pretext upgrade
+@main.command(
+    short_help="Upgrade PreTeXt-CLI to the latest version using pip.",
+    context_settings=CONTEXT_SETTINGS,
+)
+def upgrade() -> None:
+    """
+    Upgrade PreTeXt-CLI to the latest version using pip.
+    """
+    log.info("Upgrading PreTeXt-CLI...")
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
+    log.info("Upgrade complete.")
+
+
+# pretext update
+@main.command(
+    short_help="Update the current project to match the installed version of PreTeXt.  Note: to upgrade the installed version of pretext, use `pretext upgrade`.",
+    context_settings=CONTEXT_SETTINGS,
+)
+def update() -> None:
+    """
+    Update the current project to match the installed version of PreTeXt.
+    """
+    if utils.cannot_find_project(task="update"):
+        return
+    project = Project.parse()
+    project.update_boilerplate()
+    log.info("Project updated successfully.")
 
 
 # pretext support
@@ -243,20 +282,6 @@ def support() -> None:
                 )
     else:
         log.info("No project.ptx found.")
-
-
-# pretext upgrade
-@main.command(
-    short_help="Upgrade PreTeXt-CLI to the latest version using pip.",
-    context_settings=CONTEXT_SETTINGS,
-)
-def upgrade() -> None:
-    """
-    Upgrade PreTeXt-CLI to the latest version using pip.
-    """
-    log.info("Upgrading PreTeXt-CLI...")
-    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
-    log.info("Upgrade complete.")
 
 
 # pretext devscript
