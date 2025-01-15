@@ -56,9 +56,21 @@ def test_new(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # ensure sufficient permissions (n.b. 0oABC expresses integers in octal)
     assert (tmp_path / "new-pretext-project").stat().st_mode % 0o1000 >= 0o755
     for resource in constants.PROJECT_RESOURCES:
-        assert (
-            tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]
-        ).exists()
+        if resource in constants.GIT_RESOURCES:
+            assert not (
+                tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]
+            ).exists()
+        else:
+            assert (
+                tmp_path / "new-pretext-project" / constants.PROJECT_RESOURCES[resource]
+            ).exists()
+
+
+def test_new_with_git(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    assert script_runner.run([PTX_CMD, "-v", "debug", "new"], cwd=tmp_path).success
+    # run git init in the new project directory
+    script_runner.run(["git", "init"], cwd=tmp_path / "new-pretext-project")
+    assert (tmp_path / "new-pretext-project" / ".git").exists()
 
 
 def test_devscript(script_runner: ScriptRunner) -> None:
@@ -154,6 +166,15 @@ def test_override_source(tmp_path: Path, script_runner: ScriptRunner) -> None:
 
 def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
+    for resource in constants.PROJECT_RESOURCES:
+        if resource in constants.GIT_RESOURCES:
+            assert not (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
+        else:
+            assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
+
+def text_init_with_git(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    script_runner.run(["git", "init"], cwd=tmp_path)
+    script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path)
     for resource in constants.PROJECT_RESOURCES:
         assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
 

@@ -917,7 +917,9 @@ def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> b
     lines = contents.decode().splitlines()
     # Old style of keeping track of whether a resource file was managed: a comment at the top of the file hasn't been removed.
     if "<!-- Managed automatically by PreTeXt authoring tools -->" in contents.decode():
-        log.debug(f"Resource file {resource} is managed by PreTeXt using magic comment.")
+        log.debug(
+            f"Resource file {resource} is managed by PreTeXt using magic comment."
+        )
         return True
     # Look in the first two lines for the version number.  This is always in the first or second line if it exists.
     for i in range(2):
@@ -928,11 +930,10 @@ def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> b
                 # Hash file and compare to hash in resource_hash_table
                 hash = hashlib.sha256()
                 hash.update(contents)
-                if (
-                    hash.hexdigest()
-                    == resource_hash_table[version[0]][resource]
-                ):
-                    log.debug(f"Resource file {resource} is unmodified, compared to hash.")
+                if hash.hexdigest() == resource_hash_table[version[0]][resource]:
+                    log.debug(
+                        f"Resource file {resource} is unmodified, compared to hash."
+                    )
                     return True
             break
     log.debug(f"Resource file {resource} appears to have been modified.")

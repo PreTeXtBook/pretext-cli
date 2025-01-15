@@ -217,7 +217,9 @@ def upgrade() -> None:
     """
     log.info("Upgrading PreTeXt-CLI...")
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
-    log.info("Upgrade complete.")
+    log.info(
+        "Upgrade complete.  Individual projects can be updated to use the latest version of the CLI with `pretext update`."
+    )
 
 
 # pretext update
@@ -225,14 +227,18 @@ def upgrade() -> None:
     short_help="Update the current project to match the installed version of PreTeXt.  Note: to upgrade the installed version of pretext, use `pretext upgrade`.",
     context_settings=CONTEXT_SETTINGS,
 )
-def update() -> None:
+@click.option(
+    "-b", "--backup", is_flag=True, help="Backup project files before updating."
+)
+@click.option("-f", "--force", is_flag=True, help="Force update of project files.")
+def update(backup: bool, force: bool) -> None:
     """
     Update the current project to match the installed version of PreTeXt.
     """
     if utils.cannot_find_project(task="update"):
         return
     project = Project.parse()
-    project.update_boilerplate()
+    project.update_boilerplate(backup=backup, force=force)
     log.info("Project updated successfully.")
 
 
@@ -336,7 +342,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     directory_fullpath = Path(directory).resolve()
     if utils.project_path(directory_fullpath) is not None:
         log.error(
-            f"A project already exists in `{utils.project_path(directory_fullpath)}`."
+            f"A project already exists in `{utils.project_path(directory_fullpath)}` (it contains the file `project.ptx`)."
         )
         log.error("No new project will be generated.")
         return
@@ -363,7 +369,8 @@ def new(template: str, directory: Path, url_template: str) -> None:
                 project = Project()
             else:
                 project = Project.parse(project_path)
-            project.generate_boilerplate(update_requirements=True)
+            # Ensure that all boilerplate is included.
+            project.update_boilerplate()
 
 
 # pretext init
@@ -392,9 +399,9 @@ def init(refresh: bool, files: List[str]) -> None:
     This feature is mainly intended for updating existing PreTeXt projects to use this CLI,
     or to update project files generated from earlier CLI versions.
 
-    If --refresh is used, files will be generated even if the project has already been initialized.
-    Existing files won't be overwritten; a copy of the fresh initialized file will be created
-    with a timestamp in its filename for comparison.
+    If --refresh or --file is used, files will be generated even if the project has already been initialized.
+    Existing files will be backed-up (as `*.bak`); the fresh initialized file will be created
+    at the original path.
     """
     project_path = utils.project_path()
     if project_path is None:
@@ -410,9 +417,14 @@ def init(refresh: bool, files: List[str]) -> None:
             log.warning("or `pretext init --file FILENAME` to refresh a specific file.")
             return
 
-    project.generate_boilerplate(
-        skip_unmanaged=False, update_requirements=True, resources=files
-    )
+    if len(files) > 0:
+        for file in files:
+            if file.lower() in constants.PROJECT_RESOURCES:
+                project.add_boilerplate(file.lower(), backup=True)
+            else:
+                log.error(f"File {file} is not a valid project resource.")
+        return
+    project.update_boilerplate(backup=True, force=True)
 
     if project_path is None:
         log.info("Success! Open project.ptx to edit your project manifest.")
