@@ -172,6 +172,7 @@ def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
         else:
             assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
 
+
 def text_init_with_git(tmp_path: Path, script_runner: ScriptRunner) -> None:
     script_runner.run(["git", "init"], cwd=tmp_path)
     script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path)

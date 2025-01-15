@@ -1,6 +1,5 @@
 import importlib
 import importlib.resources
-import re
 import typing as t
 from enum import Enum
 import hashlib
