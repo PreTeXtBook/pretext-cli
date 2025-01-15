@@ -9,9 +9,21 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- `pretext update` command will update managed files and the `requirements.txt` file to match current installed version of PreTeXt.
+
 ### Changed
 
 - Improved help when deploy fails.
+- Managed files (`project.ptx`, `requirements.txt`, etc) are now managed by comparing to stock versions, not by a magic comment at top.
+- Only manage git-related files (`.gitignore`, `.devcontainer.json`, `.github/workflows/pretext-cli.yml`) when project is tracked by git.
+- Only updates managed files when `pretext update` is run, instead on every run.
+- Only check for new pretext version once a day.
+
+### Fixed
+
+- Removed unneeded warnings about pretext projects existing or not when running `pretext upgrade` and `pretext new`.
 
 ## [2.11.4] - 2025-01-11
 

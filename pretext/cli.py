@@ -176,9 +176,9 @@ def main(ctx: click.Context, targets: bool) -> None:
                 f"is configured to use {utils.requirements_version()}. Consider either installing"
             )
             log.warning(
-                f"CLI version {utils.requirements_version()} or running `pretext init --refresh`"
+                f"CLI version {utils.requirements_version()} or running `pretext update`"
             )
-            log.warning(f"to update `requirements.txt` to match {VERSION}.")
+            log.warning(f"to update `requirements.txt` and other managed files to match {VERSION}.")
         else:
             log.debug(
                 f"CLI version {VERSION} matches requirements.txt {utils.requirements_version()}."
