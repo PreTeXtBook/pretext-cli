@@ -220,7 +220,7 @@ def upgrade() -> None:
     log.info("Upgrading PreTeXt-CLI...")
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
     log.info(
-        "Upgrade complete.  Individual projects can be updated to use the latest version of the CLI with `pretext update`."
+        "Upgrade complete.  Individual projects can be updated to align with the latest version of the CLI with `pretext update` from their project folder."
     )
 
 
@@ -238,6 +238,9 @@ def update(backup: bool, force: bool) -> None:
     Update the current project to match the installed version of PreTeXt.
     """
     if utils.cannot_find_project(task="update"):
+        log.info(
+            "Did you mean to run `pretext upgrade` to upgrade to the latest installed version of PreTeXt, or are you trying to update a particular project?"
+        )
         return
     project = Project.parse()
     project.update_boilerplate(backup=backup, force=force)
@@ -384,7 +387,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     "-r",
     "--refresh",
     is_flag=True,
-    help="Refresh initialization of project even if project.ptx exists.",
+    help=" Refresh initialization of project even if project.ptx exists. [This will be deprecated in the future; use `pretext update -f` instead.] ",
 )
 @click.option(
     "-f",
@@ -404,6 +407,8 @@ def init(refresh: bool, files: List[str]) -> None:
     If --refresh or --file is used, files will be generated even if the project has already been initialized.
     Existing files will be backed-up (as `*.bak`); the fresh initialized file will be created
     at the original path.
+
+    Note: `pretext init -r` is does the same thing as `pretext update -f`.
     """
     project_path = utils.project_path()
     if project_path is None:
@@ -411,10 +416,14 @@ def init(refresh: bool, files: List[str]) -> None:
     else:
         if refresh or len(files) > 0:
             project = Project.parse(project_path)
+            if refresh:
+                log.warning(
+                    "The `pretext init --refresh` command will be deprecated in a future version.  You can use `pretext update --force` instead."
+                )
         else:
             log.warning(f"A project already exists in `{project_path}`.")
             log.warning(
-                "Use `pretext init --refresh` to refresh initialization of an existing project"
+                "Use `pretext update --force` to refresh initialization of an existing project"
             )
             log.warning("or `pretext init --file FILENAME` to refresh a specific file.")
             return

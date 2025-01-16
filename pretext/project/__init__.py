@@ -1,5 +1,3 @@
-import importlib
-import importlib.resources
 import typing as t
 from enum import Enum
 import hashlib
@@ -37,7 +35,7 @@ from .. import core
 from .. import codechat
 from .. import utils
 from .. import types as pt  # PreTeXt types
-from ..resources import resource_base_path
+from .. import resources
 from .. import VERSION
 
 
@@ -311,7 +309,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             if not self.publication_abspath().exists():
                 # ... then use the CLI's built-in template file.
                 self.publication = (
-                    resource_base_path() / "templates" / "publication.ptx"
+                    resources.resource_base_path() / "templates" / "publication.ptx"
                 )
                 # I didn't understand the todo below, but the above seems to fix it.
                 # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
@@ -1689,10 +1687,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         - codechat_config.yaml
         """
         # Get hash of default files:
-        with importlib.resources.open_text(
-            "pretext.resources", "resource_hash_table.json"
-        ) as f:
-            resource_hash_table = json.load(f)
+        resource_hash_table = resources.get_resource_hash_table()
         for resource in constants.PROJECT_RESOURCES:
             if resource in constants.GIT_RESOURCES and not self.is_git_managed():
                 # We don't want git specific files if not in a git repo, so move on.
@@ -1757,7 +1752,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             )
         # All resources except requirements.txt are copied from templates.  We assume this should be done.
         if resource != "requirements.txt":
-            resource_path = resource_base_path() / "templates" / resource
+            resource_path = resources.resource_base_path() / "templates" / resource
             project_resource_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(resource_path, project_resource_path)
             log.debug(f"Generated `{project_resource_path}`\n")
