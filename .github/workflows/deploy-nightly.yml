@@ -27,11 +27,13 @@ jobs:
           python-version: 3.8
 
       # Setup poetry
-      - name: Install poetry 1.5.1
+      - name: Install poetry 1.8.4
         run: |
-          python -m ensurepip
           python -m pip install --upgrade pip
-          python -m pip install poetry==1.5.1
+          python -m pip install poetry==1.8.4
+
+      - name: Install build dependencies
+        run: sudo apt-get -y install libcairo2-dev pkg-config python3-dev
 
       - name: Install dependencies
         shell: bash
