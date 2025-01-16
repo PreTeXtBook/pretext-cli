@@ -529,7 +529,7 @@ def ensure_css(xml: Path, pub_file: str, stringparams: t.Dict[str, str]) -> None
             "Attempting to install/update required node packages to generate css from sass."
         )
         try:
-            subprocess.run("npm install", shell=True)
+            subprocess.run("npm install --engine-strict=true", shell=True)
         except Exception as e:
             log.critical(
                 "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed."
