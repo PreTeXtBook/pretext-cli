@@ -1,6 +1,6 @@
-# <!-- Managed automatically by PreTeXt authoring tools -->
-# (delete the above line to manage this file manually)
-
+# This file was automatically generated with PreTeXt 2.11.5.
+# If you modify this file, PreTeXt will no longer automatically update it.
+#
 # Boilerplate list of files in a PreTeXt project for git to ignore
 # ensure this file is tracked
 !.gitignore

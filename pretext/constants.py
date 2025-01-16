@@ -232,3 +232,9 @@ DEPRECATED_PROJECT_RESOURCES = {
     "deploy.yml": Path(".github", "workflows", "deploy.yml"),
     "test-build.yml": Path(".github", "workflows", "test-build.yml"),
 }
+
+GIT_RESOURCES = [
+    ".gitignore",
+    "pretext-cli.yml",
+    ".devcontainer.json",
+]

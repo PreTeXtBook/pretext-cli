@@ -1,4 +1,6 @@
+import datetime
 from hashlib import sha256
+import hashlib
 import os
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -24,7 +26,7 @@ except ImportError:
     pass
 from typing import Any, cast, List, Optional
 
-from . import core, constants, resources
+from . import core, constants, resources, VERSION
 
 # Get access to logger
 log = logging.getLogger("ptxlogger")
@@ -847,8 +849,92 @@ def latest_version() -> t.Optional[str]:
         return None
 
 
+def is_earlier_version(v1: str, v2: str) -> bool:
+    """
+    Check if version v1 is earlier than version v2.
+    """
+    v1_parts = v1.split(".")
+    v2_parts = v2.split(".")
+    for i in range(min(len(v1_parts), len(v2_parts))):
+        if int(v1_parts[i]) < int(v2_parts[i]):
+            return True
+        if int(v1_parts[i]) > int(v2_parts[i]):
+            return False
+    # The only way the first three digits would be equal but the strings would not be equal is if the longer was
+    # a pre-release, such as 2.11.5.dev... vs 2.11.5.  In this case, the shorter is the later version.
+    if len(v1_parts) < len(v2_parts):
+        return True
+    # If the lengths are equal, then the versions are equal.
+    return False
+
+
+def check_for_updates() -> None:
+    """
+    Check if the installed version of pretext is the latest version.
+    This is done at most once per day.
+    """
+    # check whether we have looked for updates today
+    last_check = resources.resource_base_path() / "last_update_check.txt"
+    if last_check.exists():
+        with open(last_check, "r") as f:
+            last_date = f.read()
+        if last_date == str(datetime.date.today()):
+            log.debug("Already checked for updates today.")
+            return
+    # Check for updates
+    current_version = VERSION
+    latest = latest_version()
+    if latest is None:
+        log.debug("Could not check for updates.")
+        return
+    if is_earlier_version(current_version, latest):
+        log.info(
+            f"Version {latest} of pretext is available.  You are currently using version {current_version}.\n"
+        )
+        log.info("To upgrade, run `pretext upgrade`.")
+    elif "dev" in current_version:
+        log.warning(
+            f"You are using a nightly release, {current_version}.  The latest stable release is {latest}.\n"
+        )
+    else:
+        log.info(f"You are using the latest version of pretext, {current_version}.\n")
+    # update the last check date
+    with open(last_check, "w") as f:
+        f.write(str(datetime.date.today()))
+
+
 def is_pretext_proc(proc: psutil.Process) -> bool:
     if proc.name() == "pretext":
         return False
     parent = proc.parent()
     return parent is not None and parent.name() == "pretext"
+
+
+def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> bool:
+    """
+    Check if a resource file with `contents` has been modified compared to the hash in `resource_hash_table`.  If the file contains a magic comment, it is considered unmodified.
+    """
+    lines = contents.decode().splitlines()
+    # Old style of keeping track of whether a resource file was managed: a comment at the top of the file hasn't been removed.
+    if "<!-- Managed automatically by PreTeXt authoring tools -->" in contents.decode():
+        log.debug(
+            f"Resource file {resource} is managed by PreTeXt using magic comment."
+        )
+        return True
+    # Look in the first two lines for the version number.  This is always in the first or second line if it exists.
+    for i in range(2):
+        if "automatically generated with PreTeXt" in lines[i]:
+            # use regex to get version number:
+            version = re.search(r"\d+\.\d+\.\d+", lines[i])
+            if version and version[0] in resource_hash_table:
+                # Hash file and compare to hash in resource_hash_table
+                hash = hashlib.sha256()
+                hash.update(contents)
+                if hash.hexdigest() == resource_hash_table[version[0]][resource]:
+                    log.debug(
+                        f"Resource file {resource} is unmodified, compared to hash."
+                    )
+                    return True
+            break
+    log.debug(f"Resource file {resource} appears to have been modified.")
+    return False

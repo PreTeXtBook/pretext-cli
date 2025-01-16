@@ -1,4 +1,5 @@
 import importlib.resources
+import json
 import logging
 from pathlib import Path
 import shutil
@@ -47,3 +48,10 @@ def resource_base_path() -> Path:
         log.info(f"Installing resources to {_RESOURCE_BASE_PATH}")
         install()
     return _RESOURCE_BASE_PATH
+
+
+def get_resource_hash_table() -> dict:
+    with importlib.resources.path(
+        "pretext.resources", "resource_hash_table.json"
+    ) as hash_table:
+        return json.load(hash_table.open())
