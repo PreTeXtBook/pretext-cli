@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: awalsh128/cache-apt-pkgs-action@latest
+    - uses: awalsh128/cache-apt-pkgs-action@v1.4.3
       with:
         packages: jing trang
         version: 1.0
