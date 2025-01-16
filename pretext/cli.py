@@ -146,7 +146,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         return
     # If the subcommand is "upgrade", we don't need to load a project.
     if ctx.invoked_subcommand == "upgrade":
-        log.warning("Updating project now")
+        log.debug("Upgrading project now")
         return
     # In all other cases we need to know whether we are in a directory for a project.
     if (pp := utils.project_path()) is not None:
