@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.12.0] - 2025-01-16
+
+Includes updates to core through commit: [3ce0b18](https://github.com/PreTeXtBook/pretext/commit/3ce0b18284473f5adf52cea46374688299b6d643)
+
 ### Added
 
 - `pretext update` command will update managed files and the `requirements.txt` file to match current installed version of PreTeXt.
