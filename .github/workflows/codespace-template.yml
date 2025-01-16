@@ -19,7 +19,7 @@ jobs:
           python-version: "3.11"
 
       - name: Checkout codespace
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: PreTeXtBook/pretext-codespace
           token: ${{ secrets.PUSH_CODESPACES }}

@@ -13,7 +13,7 @@ jobs:
   format-and-types:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: report python version
         run: python --version
       - name: Install linters and formatters
@@ -37,7 +37,7 @@ jobs:
     #container: oscarlevin/pretext:full
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Report Python version
         run: python --version
@@ -95,7 +95,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -135,7 +135,7 @@ jobs:
   schema:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: awalsh128/cache-apt-pkgs-action@latest
       with:
         packages: jing trang
