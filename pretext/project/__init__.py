@@ -30,6 +30,7 @@ from pydantic import (
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
 from .xml import Executables, LegacyProject, LatexEngine
+from . import generate
 from .. import constants
 from .. import core
 from .. import codechat
@@ -1007,7 +1008,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
-                            ext_converter=None,
+                            ext_converter=generate.individual_latex_image,
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
@@ -1025,7 +1026,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
                             method=self.asy_method,
-                            ext_converter=None,
+                            ext_converter=generate.individual_asymptote,
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
@@ -1042,7 +1043,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
-                            ext_converter=None,
+                            ext_converter=generate.individual_sage,
                         )
                     successful_assets.append(("sageplot", id))
                 except Exception as e:
