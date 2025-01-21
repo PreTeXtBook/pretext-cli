@@ -1022,6 +1022,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                                 generate.individual_latex_image,
                                 cache_dir=self.generated_cache_abspath(),
                             ),
+                            # Note: partial(...) is from functools and allows us to pass the extra argument cache_dir and still pass the resulting function object to core's conversion function.
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
