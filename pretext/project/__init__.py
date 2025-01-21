@@ -551,6 +551,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             )
             shutil.rmtree(self.output_dir_abspath())
 
+    def clean_assets(self) -> None:
+        for asset_dir in [self.generated_dir_abspath(), self.generated_cache_abspath()]:
+            # refuse to clean if generated is not a subdirectory of the project
+            if self._project.abspath() not in asset_dir.parents:
+                log.warning(
+                    "Refusing to clean generated directory that isn't a proper subdirectory of the project."
+                )
+            # handle request to clean directory that does not exist
+            elif not asset_dir.exists():
+                log.warning(
+                    f"Directory {asset_dir} already does not exist, nothing to clean."
+                )
+            # destroy the generated directory
+            else:
+                log.warning(
+                    f"Destroying directory {asset_dir} to clean previously built assets."
+                )
+                shutil.rmtree(asset_dir)
+
     def build_theme(self) -> None:
         """
         Builds or copies the theme for an HTML-formatted target.
@@ -792,6 +811,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         all_formats: bool = False,
         only_changed: bool = True,
         xmlid: t.Optional[str] = None,
+        clean: bool = False,
+        skip_cache: bool = False,
     ) -> None:
         """
         Generates assets for the current target.  Options:
@@ -801,6 +822,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
         """
         log.info("Generating any needed assets.")
+
+        # clear out the generated assets and cache if requested
+        if clean:
+            self.clean_assets()
+
         # Ensure that the generated_cache directory exists:
         if not self.generated_cache_abspath().exists():
             self.generated_cache_abspath().mkdir(parents=True, exist_ok=True)
@@ -924,8 +950,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         ext_converter=partial(
                             generate.individual_latex_image,
                             cache_dir=self.generated_cache_abspath(),
+                            skip_cache=skip_cache,
                         ),
-                        # Note: partial(...) is from functools and allows us to pass the extra argument cache_dir and still pass the resulting function object to core's conversion function.
+                        # Note: partial(...) is from functools and allows us to pass the extra arguments cache_dir and skip_cache and still pass the resulting function object to core's conversion function.
                     )
                 successful_assets.append("latex-image")
             except Exception as e:
@@ -945,6 +972,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         ext_converter=partial(
                             generate.individual_asymptote,
                             cache_dir=self.generated_cache_abspath(),
+                            skip_cache=skip_cache,
                         ),
                     )
                 successful_assets.append("asymptote")
@@ -964,6 +992,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         ext_converter=partial(
                             generate.individual_sage,
                             cache_dir=self.generated_cache_abspath(),
+                            skip_cache=skip_cache,
                         ),
                     )
                 successful_assets.append("sageplot")
@@ -981,7 +1010,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         dest_dir=self.generated_dir_abspath() / "prefigure",
                         outformat=outformat,
                     )
-                successful_assets.append(("prefigure", id))
+                successful_assets.append("prefigure")
             except Exception as e:
                 log.error(f"Unable to generate some prefigure images:\n {e}")
                 log.debug(e, exc_info=True)
@@ -1095,8 +1124,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         log.debug(f"Updated these assets successfully: {successful_assets}")
         if len(successful_assets) > 0:
             for asset_type in successful_assets:
-                if asset_type not in saved_asset_table:
-                    saved_asset_table[asset_type] = {}
                 saved_asset_table[asset_type] = source_asset_table[asset_type]
             # Save the asset table to disk:
             self.save_asset_table(saved_asset_table)
@@ -1137,7 +1164,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))
     # A path, relative to the project directory, for storing cached generated assets
-    generated_cache: Path = pxml.attr(default=Path(".generated-cache"))
+    generated_cache: Path = pxml.attr(default=Path(".cache"))
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
     )

@@ -22,6 +22,7 @@
         stage="output/stage"
         xsl="xsl"
         asy-method="server"
+        generated-cache=".cache"
      >
        <targets>
           <target

@@ -1,3 +1,4 @@
+import typing as t
 import logging
 import hashlib
 from pathlib import Path
@@ -12,8 +13,16 @@ log = logging.getLogger("ptxlogger")
 
 
 def individual_asymptote(
-    asydiagram, outformat, method, asy_cli, asyversion, alberta, dest_dir, cache_dir
-):
+    asydiagram: str,
+    outformat: str,
+    method: str,
+    asy_cli: t.List[str],
+    asyversion: str,
+    alberta: str,
+    dest_dir: Path,
+    cache_dir: Path,
+    skip_cache: bool = False,
+) -> None:
     """
     Checks whether a cached version of the diagram in the correct outformat exists.  If it does, copies it to the dest_dir and returns.  If it does not, calls the core.individual_asymptote_conversion function to generate the diagram in the correct outformat and then copies it to the dest_dir.  In the latter case, also makes a copy to the cached version in the cache_dir.
     - outformat will be a file extension.
@@ -22,7 +31,7 @@ def individual_asymptote(
     asset_file = Path(asydiagram).resolve()
     cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
-    if cache_file.exists():
+    if cache_file.exists() and not skip_cache:
         log.debug(f"Copying cached asymptote diagram {cache_file} to {output_file}")
         shutil.copy2(cache_file, output_file)
     else:
@@ -37,7 +46,14 @@ def individual_asymptote(
     log.debug("Finished individual_asymptote function")
 
 
-def individual_sage(sageplot, outformat, dest_dir, sage_executable_cmd, cache_dir):
+def individual_sage(
+    sageplot: str,
+    outformat: str,
+    dest_dir: Path,
+    sage_executable_cmd: t.List[str],
+    cache_dir: Path,
+    skip_cache: bool = False,
+) -> None:
     """
     Checks whether a cached version of the diagram in the correct outformat exists.  If it does, copies it to the dest_dir and returns.  If it does not, calls the core.individual_asymptote_conversion function to generate the diagram in the correct outformat and then copies it to the dest_dir.  In the latter case, also makes a copy to the cached version in the cache_dir.
     - outformat will be a file extension.
@@ -47,7 +63,7 @@ def individual_sage(sageplot, outformat, dest_dir, sage_executable_cmd, cache_di
     asset_file = Path(sageplot).resolve()
     cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
-    if cache_file.exists():
+    if cache_file.exists() and not skip_cache:
         log.debug(f"Copying cached sageplot diagram {cache_file} to {output_file}")
         shutil.copy2(cache_file, output_file)
     else:
@@ -62,7 +78,14 @@ def individual_sage(sageplot, outformat, dest_dir, sage_executable_cmd, cache_di
     log.debug("Finished individual_sage function")
 
 
-def individual_latex_image(latex_image, outformat, dest_dir, method, cache_dir):
+def individual_latex_image(
+    latex_image: str,
+    outformat: str,
+    dest_dir: Path,
+    method: str,
+    cache_dir: Path,
+    skip_cache: bool = False,
+) -> None:
     """
     Checks whether a cached version of the diagram in the correct outformat exists.  If it does, copies it to the dest_dir and returns.  If it does not, calls the core.individual_latex_image_conversion function to generate the diagram in the correct outformat and then copies it to the dest_dir.  In the latter case, also makes a copy to the cached version in the cache_dir.
     - outformat will be 'all' or a file extension.
@@ -82,7 +105,7 @@ def individual_latex_image(latex_image, outformat, dest_dir, method, cache_dir):
         if not cache_files[ext].exists():
             all_cached = False
             break
-    if all_cached:
+    if all_cached and not skip_cache:
         for ext in outformats:
             log.debug(
                 f"Copying cached latex-image {cache_files[ext]} to {output_files[ext]}"
