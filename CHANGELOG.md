@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Asset generation of asymptote, latex-image, and sageplot now utilize a *generated-cache* of images (stored in `.generated-cache` in the root of a project, but customizable in `project.ptx`).  This should speed up building and generating assets.
+
 ## [2.12.0] - 2025-01-16
 
 Includes updates to core through commit: [3ce0b18](https://github.com/PreTeXtBook/pretext/commit/3ce0b18284473f5adf52cea46374688299b6d643)

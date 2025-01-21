@@ -1,4 +1,3 @@
-import pickle
 import typing as t
 from enum import Enum
 import hashlib
@@ -473,7 +472,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Saves the asset_table to a json file in the generated assets directory
         based on the target name.
         """
-        with open(self.generated_cache_abspath() / f".{self.name}_assets.json", "w") as f:
+        with open(
+            self.generated_cache_abspath() / f".{self.name}_assets.json", "w"
+        ) as f:
             json.dump(asset_table, f)
 
     def ensure_myopenmath_xml(self) -> None:
@@ -1136,7 +1137,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))
     # A path, relative to the project directory, for storing cached generated assets
-    generated_cache: Path = pxml.attr(default=Path(".generated_cache"))
+    generated_cache: Path = pxml.attr(default=Path(".generated-cache"))
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
     )
