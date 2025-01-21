@@ -8,6 +8,7 @@ import shutil
 import tempfile
 import pickle
 from pathlib import Path
+from functools import partial
 
 from lxml import etree as ET  # noqa: N812
 
@@ -390,6 +391,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if self.xsl is None:
             return None
         return self._project.xsl_abspath() / self.xsl
+
+    def generated_cache_abspath(self) -> Path:
+        return self._project.generated_cache_abspath()
 
     def _read_publication_file_subset(self) -> PublicationSubset:
         p_bytes = self.publication_abspath().read_bytes()
@@ -818,6 +822,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - only_changed: boolean.  When True (default), function will only generate assets that have changed since last generation.  When False, all assets will be built (hash table will be ignored).
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
         """
+        # Ensure that the generated_cache directory exists:
+        if not self.generated_cache_abspath().exists():
+            self.generated_cache_abspath().mkdir(parents=True, exist_ok=True)
+        log.debug(
+            f"Using cached assets in {self.generated_cache_abspath()} where possible."
+        )
         # Two "ensure" functions call generate to get just a single asset.  Every generation step other than webwork must have webwork generated, so unless we are "ensuring" webwork, we will need to call ensure webwork.  Note if this function was called with just webwork, then we would move down and actually build webwork.
         if requested_asset_types != ["webwork"]:
             log.debug("Ensuring webwork representations file is present.")
@@ -1008,7 +1018,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "latex-image",
                             outformat=outformat,
                             method=self.latex_engine,
-                            ext_converter=generate.individual_latex_image,
+                            ext_converter=partial(
+                                generate.individual_latex_image,
+                                cache_dir=self.generated_cache_abspath(),
+                            ),
                         )
                     successful_assets.append(("latex-image", id))
                 except Exception as e:
@@ -1026,7 +1039,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             dest_dir=self.generated_dir_abspath() / "asymptote",
                             outformat=outformat,
                             method=self.asy_method,
-                            ext_converter=generate.individual_asymptote,
+                            ext_converter=partial(
+                                generate.individual_asymptote,
+                                cache_dir=self.generated_cache_abspath(),
+                            ),
                         )
                     successful_assets.append(("asymptote", id))
                 except Exception as e:
@@ -1043,7 +1059,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             xmlid_root=id,
                             dest_dir=self.generated_dir_abspath() / "sageplot",
                             outformat=outformat,
-                            ext_converter=generate.individual_sage,
+                            ext_converter=partial(
+                                generate.individual_sage,
+                                cache_dir=self.generated_cache_abspath(),
+                            ),
                         )
                     successful_assets.append(("sageplot", id))
                 except Exception as e:
@@ -1236,6 +1255,8 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     stage: Path = pxml.attr(default=Path("output/stage"))
     # A path, relative to the project directory, prepended to any target's `xsl`.
     xsl: Path = pxml.attr(default=Path("xsl"))
+    # A path, relative to the project directory, for storing cached generated assets
+    generated_cache: Path = pxml.attr(default=Path(".generated_cache"))
     targets: t.List[Target] = pxml.wrapped(
         "targets", pxml.element(tag="target", default=[])
     )
@@ -1477,6 +1498,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     def publication_abspath(self) -> Path:
         return self.abspath() / self.publication
+
+    def generated_cache_abspath(self) -> Path:
+        return self.abspath() / self.generated_cache
 
     def output_dir_abspath(self) -> Path:
         return self.abspath() / self.output_dir
