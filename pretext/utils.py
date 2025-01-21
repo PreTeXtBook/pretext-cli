@@ -421,17 +421,17 @@ def clean_asset_table(
     """
     Removes any assets from the dirty_table that are not in the clean_table.
     """
-    # First purge any asset types that are no longer in the clean table:
+    # Purge any asset types that are no longer in the clean table:
     dirty_table = {
         asset: dirty_table[asset] for asset in dirty_table if asset in clean_table
     }
     # Then purge ids of assets that no longer exist in the clean table:
-    for asset in dirty_table:
-        dirty_table[asset] = {
-            id: dirty_table[asset][id]
-            for id in dirty_table[asset]
-            if id in clean_table[asset]
-        }
+    # for asset in dirty_table:
+    #    dirty_table[asset] = {
+    #        id: dirty_table[asset][id]
+    #        for id in dirty_table[asset]
+    #        if id in clean_table[asset]
+    #    }
     return dirty_table
 
 

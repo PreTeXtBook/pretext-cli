@@ -20,19 +20,19 @@ def individual_asymptote(
     """
     log.debug(f"Using the CLI's individual_asymptote function")
     asset_file = Path(asydiagram).resolve()
-    cache_file = cache_asset_filename(
-        asset_file, outformat, cache_dir
-    )
+    cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
     if cache_file.exists():
         log.debug(f"Copying cached asymptote diagram {cache_file} to {dest_dir}")
         shutil.copy2(cache_file, output_file)
     else:
         core.individual_asymptote_conversion(
-        asydiagram, outformat, method, asy_cli, asyversion, alberta, dest_dir
+            asydiagram, outformat, method, asy_cli, asyversion, alberta, dest_dir
         )
         if output_file.exists():
-            log.debug(f"Created asymptote diagram {output_file}; saving a copy to cache as {cache_file}")
+            log.debug(
+                f"Created asymptote diagram {output_file}; saving a copy to cache as {cache_file}"
+            )
             shutil.copy2(output_file, cache_file)
     log.debug(f"Finished individual_asymptote function")
 
@@ -45,20 +45,21 @@ def individual_sage(sageplot, outformat, dest_dir, sage_executable_cmd, cache_di
 
     log.debug(f"Using the CLI's individual_sage function")
     asset_file = Path(sageplot).resolve()
-    cache_file = cache_asset_filename(
-        asset_file, outformat, cache_dir
-    )
+    cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
     if cache_file.exists():
         log.debug(f"Copying cached sageplot diagram {cache_file} to {dest_dir}")
         shutil.copy2(cache_file, output_file)
     else:
-        core.individual_sage_conversion(sageplot, outformat, dest_dir, sage_executable_cmd)
+        core.individual_sage_conversion(
+            sageplot, outformat, dest_dir, sage_executable_cmd
+        )
         if output_file.exists():
-            log.debug(f"Created sageplot diagram {output_file}; saving a copy to cache as {cache_file}")
+            log.debug(
+                f"Created sageplot diagram {output_file}; saving a copy to cache as {cache_file}"
+            )
             shutil.copy2(output_file, cache_file)
     log.debug(f"Finished individual_sage function")
-
 
 
 def individual_latex_image(latex_image, outformat, dest_dir, method, cache_dir):
@@ -89,14 +90,16 @@ def individual_latex_image(latex_image, outformat, dest_dir, method, cache_dir):
         core.individual_latex_image_conversion(latex_image, outformat, dest_dir, method)
         for ext in outformats:
             if output_files[ext].exists():
-                log.debug(f"Created latex-image {output_files[ext]}; saving a copy to cache as {cache_files[ext]}")
+                log.debug(
+                    f"Created latex-image {output_files[ext]}; saving a copy to cache as {cache_files[ext]}"
+                )
                 shutil.copy2(output_files[ext], cache_files[ext])
     log.debug(f"Finished individual_latex function")
 
 
-
-def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> str:
+def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> Path:
+    asset_content = asset_file.read_bytes()
     # hash the asset file
-    asset_hash = hashlib.md5(asset_file.read_bytes()).hexdigest()
+    asset_hash = hashlib.md5(asset_content).hexdigest()
     # create the cache file name
     return cache_dir / f"{asset_hash}.{extension}"

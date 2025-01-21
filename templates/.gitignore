@@ -11,6 +11,7 @@ published
 
 # don't track assets generated from source
 generated-assets
+.generated-cache
 
 # don't track the executables.ptx file
 executables.ptx
