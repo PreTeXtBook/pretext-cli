@@ -29,7 +29,7 @@ def individual_asymptote(
     """
     log.debug("Using the CLI's individual_asymptote function")
     asset_file = Path(asydiagram).resolve()
-    cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
+    cache_file = cache_asset_filename(asset_file, outformat, "asymptote", cache_dir)
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
     if cache_file.exists() and not skip_cache:
         log.debug(f"Copying cached asymptote diagram {cache_file} to {output_file}")
@@ -61,7 +61,7 @@ def individual_sage(
 
     log.debug("Using the CLI's individual_sage function")
     asset_file = Path(sageplot).resolve()
-    cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
+    cache_file = cache_asset_filename(asset_file, outformat, "sageplot", cache_dir, )
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
     if cache_file.exists() and not skip_cache:
         log.debug(f"Copying cached sageplot diagram {cache_file} to {output_file}")
@@ -94,7 +94,7 @@ def individual_latex_image(
     asset_file = Path(latex_image).resolve()
     outformats = ["png", "pdf", "svg", "eps"] if outformat == "all" else [outformat]
     cache_files = {
-        ext: cache_asset_filename(asset_file, ext, cache_dir) for ext in outformats
+        ext: cache_asset_filename(asset_file, ext, "latex_image", cache_dir) for ext in outformats
     }
     output_files = {
         ext: dest_dir / asset_file.with_suffix(f".{ext}").name for ext in outformats
@@ -122,9 +122,13 @@ def individual_latex_image(
     log.debug("Finished individual_latex function")
 
 
-def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> Path:
+def cache_asset_filename(asset_file: Path, extension: str, asset_type: str, cache_dir: Path) -> Path:
     asset_content = asset_file.read_bytes()
+    hash = hashlib.md5()
     # hash the asset file
-    asset_hash = hashlib.md5(asset_content).hexdigest()
+    hash.update(asset_content)
+    # include the asset_type in hash
+    hash.update(asset_type.encode())
+    asset_hash = hash.hexdigest()
     # create the cache file name
     return cache_dir / f"{asset_hash}.{extension}"
