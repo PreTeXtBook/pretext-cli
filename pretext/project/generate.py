@@ -99,7 +99,7 @@ def individual_latex_image(
     asset_file = Path(latex_image).resolve()
     outformats = ["png", "pdf", "svg", "eps"] if outformat == "all" else [outformat]
     cache_files = {
-        ext: cache_asset_filename(asset_file, ext, "latex_image", cache_dir)
+        ext: cache_asset_filename(asset_file, ext, "latex-image", cache_dir)
         for ext in outformats
     }
     output_files = {

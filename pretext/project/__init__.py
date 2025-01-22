@@ -827,9 +827,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if clean:
             self.clean_assets()
 
-        # Ensure that the generated_cache directory exists:
-        if not self.generated_cache_abspath().exists():
-            self.generated_cache_abspath().mkdir(parents=True, exist_ok=True)
+        # Ensure that the generated_cache directories exist:
+        for subdir in ["latex-image", "asymptote", "sageplot"]:
+            if not (self.generated_cache_abspath() / subdir).exists():
+                (self.generated_cache_abspath() / subdir).mkdir(
+                    parents=True, exist_ok=True
+                )
         log.debug(
             f"Using cached assets in {self.generated_cache_abspath()} where possible."
         )
