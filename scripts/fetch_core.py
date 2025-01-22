@@ -38,7 +38,7 @@ def main() -> None:
             script_dir = (
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "script" / "cssbuilder"
             )
-            process_install = subprocess.Popen(
+            process_install = subprocess.run(
                 ["npm", "install"],
                 cwd=script_dir,
                 stdout=subprocess.PIPE,
@@ -47,7 +47,7 @@ def main() -> None:
             output, error = process_install.communicate()
             if process_install.returncode != 0:
                 print(f"Error installing npm packages: {output, error}")
-            process_build = subprocess.Popen(
+            process_build = subprocess.run(
                 ["npm", "run", "build"],
                 cwd=script_dir,
                 stdout=subprocess.PIPE,
