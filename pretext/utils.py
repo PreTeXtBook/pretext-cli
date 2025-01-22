@@ -506,22 +506,22 @@ def mjsre_npm_install() -> None:
             log.debug("", exc_info=True)
 
 
-def ensure_css(xml: Path, pub_file: str, stringparams: t.Dict[str, str]) -> None:
-    try:
-        theme = core.get_publisher_variable(
-            xml, pub_file, stringparams, "html-theme-name"
-        )
-    except Exception as e:
-        log.debug("Could not get html-theme-name from publisher file.")
-        log.debug(e, exc_info=True)
-        return
-    if "-legacy" in theme or theme == "default-modern":
-        log.debug("Using prebuilt theme, no need for sass build.")
-        return
-    # Otherwise we look for node_modules and install if we can.
+def ensure_css_node_modules() -> None:
+    # Look for node_modules and install if we can.
     with working_directory(
         resources.resource_base_path() / "core" / "script" / "cssbuilder"
     ):
+        # Make sure node version is at least 18:
+        try:
+            node_version = subprocess.run("node -v", shell=True, capture_output=True)
+            if int(node_version.stdout.decode().split(".")[0][1:]) < 18:
+                log.warning(
+                    "Node version must be at least 18 to build CSS files.  Please update node.js and npm.\n Will try to use prebuilt CSS files instead."
+                )
+                return
+        except Exception as e:
+            log.debug(e)
+            log.debug("", exc_info=True)
         # Check if node_modules is already present:
         if Path("node_modules").exists():
             log.debug("Node modules already installed.")
