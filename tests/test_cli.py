@@ -108,12 +108,22 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image", "-q"],
         cwd=project_path,
     ).success
-    assert not (project_path / "generated-assets" / "latex-image").exists()
+    assert not (
+        project_path
+        / "generated-assets"
+        / "latex-image"
+        / "fig_tikz-example-diagram.svg"
+    ).exists()
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image"],
         cwd=project_path,
     ).success
-    assert (project_path / "generated-assets" / "latex-image").exists()
+    assert (
+        project_path
+        / "generated-assets"
+        / "latex-image"
+        / "fig_tikz-example-diagram.svg"
+    ).exists()
 
     # Do a full build.
     assert script_runner.run(

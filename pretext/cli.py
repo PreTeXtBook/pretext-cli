@@ -599,7 +599,7 @@ def build(
         try:
             for t in targets:
                 log.info(f"Generating assets for {t.name}")
-                t.generate_assets(only_changed=False, xmlid=xmlid)
+                t.generate_assets(only_changed=False, xmlid=xmlid, clean=clean)
             no_generate = True
         except Exception as e:
             log.error(f"Failed to generate assets: {e} \n")
@@ -672,6 +672,18 @@ def build(
     default=False,
     help="Generate all possible asset formats rather than just the defaults for the specified target.",
 )
+@click.option(
+    "--clean",
+    is_flag=True,
+    default=False,
+    help="Remove all generated assets, including the cache, before generating new ones.",
+)
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Force generation of assets; do not rely on assets in the cache.",
+)
 @click.pass_context
 @nice_errors
 def generate(
@@ -681,6 +693,8 @@ def generate(
     all_formats: bool,
     only_changed: bool,
     xmlid: Optional[str],
+    clean: bool,
+    force: bool,
 ) -> None:
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
@@ -717,6 +731,8 @@ def generate(
             all_formats=all_formats,
             only_changed=only_changed,  # Unless requested, generate all assets, so don't check the cache.
             xmlid=xmlid,
+            clean=clean,
+            skip_cache=force,
         )
         log.info("Finished generating assets.\n")
     except ValidationError as e:
