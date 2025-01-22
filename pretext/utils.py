@@ -42,7 +42,7 @@ def working_directory(path: Path) -> Generator:
         do_things()   # working in the given path
     do_other_things() # back to original path
     """
-    current_directory = Path()
+    current_directory = Path.cwd()
     os.chdir(path)
     log.debug(f"Now working in directory {path}")
     try:
@@ -115,7 +115,7 @@ def ensure_default_project_manifest() -> None:
 
 def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     pp = project_path(dirpath)
     if pp is None:
         project_manifest = resources.resource_base_path() / "templates" / "project.ptx"
@@ -126,7 +126,7 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
 
 def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     pp = project_path(dirpath)
     if pp is None:
         return None
@@ -143,7 +143,7 @@ def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
 
 def project_xml_string(dirpath: Optional[Path] = None) -> str:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
 
@@ -161,7 +161,7 @@ def target_xml(
     alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
 ) -> Optional[_Element]:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     if alias is None:
         return project_xml().find("targets/target")  # first target
     xpath = f'targets/target[@name="{alias}"]'
