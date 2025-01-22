@@ -514,6 +514,11 @@ def ensure_css_node_modules() -> None:
         # Make sure node version is at least 18:
         try:
             node_cmd = shutil.which("node")
+            if node_cmd is None:
+                log.warning(
+                    "Node.js must be installed to build CSS files.  Please install node.js and npm.\n Will try to use prebuilt CSS files instead."
+                )
+                raise FileNotFoundError
             node_version = subprocess.run([node_cmd, "-v"], capture_output=True)
             log.debug(f"Node version: {node_version.stdout.decode()}")
             if int(node_version.stdout.decode().split(".")[0][1:]) < 18:
@@ -534,6 +539,11 @@ def ensure_css_node_modules() -> None:
         )
         try:
             npm_cmd = shutil.which("npm")
+            if npm_cmd is None:
+                log.warning(
+                    "Cannot find npm.  Will try to use prebuilt CSS files instead."
+                )
+                raise FileNotFoundError
             subprocess.run([npm_cmd, "install", "--engine-strict=true"])
         except Exception as e:
             log.critical(
