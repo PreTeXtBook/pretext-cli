@@ -7,7 +7,7 @@ from pretext import VERSION
 from pretext.constants import PROJECT_RESOURCES
 
 
-def main() -> None:
+def resource_hashes() -> None:
     # Load current hash table
     if (Path("pretext") / "resources" / "resource_hash_table.json").exists():
         with open(Path("pretext") / "resources" / "resource_hash_table.json", "r") as f:
@@ -51,6 +51,11 @@ def main() -> None:
     print(
         f"Hash table saved to {Path('pretext') / 'resources' / 'resource_hash_table.json'}"
     )
+
+
+def main() -> None:
+    # Take care of boilerplate files and their hashes
+    resource_hashes()
 
     # Zip the templates and pelican resources
     shutil.make_archive(

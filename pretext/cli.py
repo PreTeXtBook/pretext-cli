@@ -273,7 +273,7 @@ def support() -> None:
     log.info(
         f"Python version: {platform.python_version()}, running from {sys.executable}"
     )
-    log.info(f"Current working directory: {Path().resolve()}")
+    log.info(f"Current working directory: {Path.cwd()}")
     if utils.project_path() is not None:
         log.info(f"PreTeXt project path: {utils.project_path()}")
         log.info("")

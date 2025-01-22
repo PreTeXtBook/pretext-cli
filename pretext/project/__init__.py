@@ -582,11 +582,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             return
         # Call the core function to build and/or copy the theme to the output folder
         log.info(f"Building theme for target '{self.name}'")
-        utils.ensure_css(
-            xml=self.source_abspath(),
-            pub_file=self.publication_abspath().as_posix(),
-            stringparams=self.stringparams,
-        )
+        utils.ensure_css_node_modules()
         core.build_or_copy_theme(
             xml=self.source_abspath(),
             pub_file=self.publication_abspath().as_posix(),
@@ -675,11 +671,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         log.warning(
                             "The platform host in the publication file is not set to runestone. Since the requested target has @platform='runestone', we will override the publication file's platform host."
                         )
-                utils.ensure_css(
-                    xml=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                )
+                utils.ensure_css_node_modules()
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),

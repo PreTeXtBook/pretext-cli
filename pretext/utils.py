@@ -42,7 +42,7 @@ def working_directory(path: Path) -> Generator:
         do_things()   # working in the given path
     do_other_things() # back to original path
     """
-    current_directory = Path()
+    current_directory = Path.cwd()
     os.chdir(path)
     log.debug(f"Now working in directory {path}")
     try:
@@ -115,7 +115,7 @@ def ensure_default_project_manifest() -> None:
 
 def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     pp = project_path(dirpath)
     if pp is None:
         project_manifest = resources.resource_base_path() / "templates" / "project.ptx"
@@ -126,7 +126,7 @@ def project_xml(dirpath: t.Optional[Path] = None) -> _ElementTree:
 
 def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     pp = project_path(dirpath)
     if pp is None:
         return None
@@ -143,7 +143,7 @@ def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
 
 def project_xml_string(dirpath: Optional[Path] = None) -> str:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     return ET.tostring(project_xml(dirpath), encoding="unicode")
 
 
@@ -161,7 +161,7 @@ def target_xml(
     alias: t.Optional[str] = None, dirpath: t.Optional[Path] = None
 ) -> Optional[_Element]:
     if dirpath is None:
-        dirpath = Path()  # current directory
+        dirpath = Path.cwd()  # current directory
     if alias is None:
         return project_xml().find("targets/target")  # first target
     xpath = f'targets/target[@name="{alias}"]'
@@ -506,22 +506,29 @@ def mjsre_npm_install() -> None:
             log.debug("", exc_info=True)
 
 
-def ensure_css(xml: Path, pub_file: str, stringparams: t.Dict[str, str]) -> None:
-    try:
-        theme = core.get_publisher_variable(
-            xml, pub_file, stringparams, "html-theme-name"
-        )
-    except Exception as e:
-        log.debug("Could not get html-theme-name from publisher file.")
-        log.debug(e, exc_info=True)
-        return
-    if "-legacy" in theme or theme == "default-modern":
-        log.debug("Using prebuilt theme, no need for sass build.")
-        return
-    # Otherwise we look for node_modules and install if we can.
+def ensure_css_node_modules() -> None:
+    # Look for node_modules and install if we can.
     with working_directory(
         resources.resource_base_path() / "core" / "script" / "cssbuilder"
     ):
+        # Make sure node version is at least 18:
+        try:
+            node_cmd = shutil.which("node")
+            if node_cmd is None:
+                log.warning(
+                    "Node.js must be installed to build CSS files.  Please install node.js and npm.\n Will try to use prebuilt CSS files instead."
+                )
+                raise FileNotFoundError
+            node_version = subprocess.run([node_cmd, "-v"], capture_output=True)
+            log.debug(f"Node version: {node_version.stdout.decode()}")
+            if int(node_version.stdout.decode().split(".")[0][1:]) < 18:
+                log.warning(
+                    "Node version must be at least 18 to build CSS files.  Please update node.js and npm.\n Will try to use prebuilt CSS files instead."
+                )
+                return
+        except Exception as e:
+            log.debug(e)
+            log.debug("", exc_info=True)
         # Check if node_modules is already present:
         if Path("node_modules").exists():
             log.debug("Node modules already installed.")
@@ -531,7 +538,13 @@ def ensure_css(xml: Path, pub_file: str, stringparams: t.Dict[str, str]) -> None
             "Attempting to install/update required node packages to generate css from sass."
         )
         try:
-            subprocess.run("npm install --engine-strict=true", shell=True)
+            npm_cmd = shutil.which("npm")
+            if npm_cmd is None:
+                log.warning(
+                    "Cannot find npm.  Will try to use prebuilt CSS files instead."
+                )
+                raise FileNotFoundError
+            subprocess.run([npm_cmd, "install", "--engine-strict=true"])
         except Exception as e:
             log.critical(
                 "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed."
