@@ -135,8 +135,6 @@ def cache_asset_filename(
     hash = hashlib.md5()
     # hash the asset file
     hash.update(asset_content)
-    # include the asset_type in hash
-    hash.update(asset_type.encode())
     asset_hash = hash.hexdigest()
     # create the cache file name
-    return cache_dir / f"{asset_hash}.{extension}"
+    return cache_dir / asset_type / f"{asset_hash}.{extension}"
