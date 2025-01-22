@@ -1122,7 +1122,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             log.debug(e, exc_info=True)
         # After all assets are generated, update the asset cache (but we shouldn't do this if we didn't generate any assets successfully)
         log.debug(f"Updated these assets successfully: {successful_assets}")
-        if len(successful_assets) > 0:
+        if len(successful_assets) > 0 and not xmlid:
+            # If the build limited by xmlid, then we don't know that all assets of that type were build correctly, so we only do this if not generating a subset.
             for asset_type in successful_assets:
                 saved_asset_table[asset_type] = source_asset_table[asset_type]
             # Save the asset table to disk:
