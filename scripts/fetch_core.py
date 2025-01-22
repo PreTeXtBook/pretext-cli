@@ -38,24 +38,20 @@ def main() -> None:
             script_dir = (
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "script" / "cssbuilder"
             )
-            process_install = subprocess.run(
-                ["npm", "install"],
+            npm_command = shutil.which("npm")
+            print(f"npm command: {npm_command}")
+            subprocess.run(
+                [npm_command, "install"],
                 cwd=script_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            output, error = process_install.communicate()
-            if process_install.returncode != 0:
-                print(f"Error installing npm packages: {output, error}")
-            process_build = subprocess.run(
-                ["npm", "run", "build"],
+            subprocess.run(
+                [npm_command, "run", "build"],
                 cwd=script_dir,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            output, error = process_build.communicate()
-            if process_build.returncode != 0:
-                print(f"Error building CSS: {output, error}")
             # remove all the node_modules we used to build; we don't need anything in cssbuilder.
             shutil.rmtree(script_dir / "node_modules")
             print("Successfully built CSS.")

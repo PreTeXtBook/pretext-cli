@@ -513,7 +513,9 @@ def ensure_css_node_modules() -> None:
     ):
         # Make sure node version is at least 18:
         try:
-            node_version = subprocess.run("node -v", shell=True, capture_output=True)
+            node_cmd = shutil.which("node")
+            node_version = subprocess.run([node_cmd, "-v"], capture_output=True)
+            log.debug(f"Node version: {node_version.stdout.decode()}")
             if int(node_version.stdout.decode().split(".")[0][1:]) < 18:
                 log.warning(
                     "Node version must be at least 18 to build CSS files.  Please update node.js and npm.\n Will try to use prebuilt CSS files instead."
@@ -531,7 +533,8 @@ def ensure_css_node_modules() -> None:
             "Attempting to install/update required node packages to generate css from sass."
         )
         try:
-            subprocess.run("npm install --engine-strict=true", shell=True)
+            npm_cmd = shutil.which("npm")
+            subprocess.run([npm_cmd, "install", "--engine-strict=true"])
         except Exception as e:
             log.critical(
                 "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed."
