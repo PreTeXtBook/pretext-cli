@@ -859,7 +859,7 @@ def latest_version() -> t.Optional[str]:
 
     url = "https://pypi.org/pypi/pretext/json"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=1)  # 1 second timeout; not critical.
         return response.json()["info"]["version"]
     except Exception as e:
         log.debug("Could not determine latest version of pretext.")
@@ -962,3 +962,66 @@ def is_unmodified(
             break
     log.debug(f"Resource file {resource} appears to have been modified.")
     return False
+
+
+def rs_methods(
+    url: str = "", out_path: str = "", format: str = "xml"
+) -> t.Optional[str]:
+    """
+    Attempts to run core methods to get rs services files, and provides backup if no internet connection.
+    """
+    cache_dir = resources.resource_base_path() / "rs_cache"
+    if not cache_dir.exists():
+        cache_dir.mkdir()
+    # Two cases: format is tgz or xml.  If tgz, then we are trying to download the full tgz file.  If xml, then we are trying to download the xml file.
+    if format == "xml":
+        assert url != "", "URL must be provided to download xml file."
+        assert out_path == "", "Output path must not be provided to download xml file."
+        try:
+            log.info(f"Downloading rs services file from {url}.")
+            services_xml = core.query_runestone_services(url)
+            # Write file to cache directory.
+            with open(cache_dir / "rs_services.xml", "w") as f:
+                f.write(services_xml)
+        except Exception as e:
+            log.warning(
+                f"Could not download rs services file from {url}.  Using cached version instead."
+            )
+            log.debug(e)
+            with open(cache_dir / "rs_services.xml", "r") as f:
+                services_xml = f.read()
+        finally:
+            return services_xml
+
+    elif format == "tgz":
+        assert url != "", "URL must be provided to download tgz file."
+        assert out_path != "", "Output path must be provided to download tgz file."
+
+        # Split the url into parts to get the filename.
+        log.critical(f"debug: url is {url}; out_path is {out_path}")
+        services_filename = url.split("/")[-1]
+        services_cache_path = cache_dir / services_filename
+        if not services_cache_path.exists():
+            try:
+                log.debug(
+                    f"Downloading rs services file from {url} to {services_cache_path}."
+                )
+                core.download_file(url, services_cache_path)
+            except Exception as e:
+                log.warning(
+                    f"Could not download rs services file from {url} and no cached version found."
+                )
+                raise e
+        # get the parent directory of out_path and make sure it exists.
+        out_dir = Path(out_path).parent
+        if not out_dir.exists():
+            out_dir.mkdir(parents=True)
+        log.debug(f"Extracting rs services file to {out_dir}.")
+        # Copy the file to the output path.
+        shutil.copyfile(services_cache_path, out_path)
+
+    else:
+        log.error(
+            f"PTX-BUG: Format {format} not recognized for running ext_rs_methods.  Something is wrong with the pretext script."
+        )
+    return None

@@ -141,6 +141,9 @@ pretext/core/pretext.py
 tests/examples/core
 #zipped resources
 pretext/resources/*.zip
+#xml resources (rs_file)
+pretext/resources/*.xml
+pretext/resources/*.tgz
 
 #default new pretext project
 new-pretext-project

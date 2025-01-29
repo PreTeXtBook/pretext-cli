@@ -708,7 +708,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                    # rs_query_methods=None,
+                    ext_rs_methods=utils.rs_methods,
                 )
                 try:
                     codechat.map_path_to_xml_id(
@@ -1087,6 +1087,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     stringparams=stringparams_copy,
                     xmlid_root=xmlid,
                     dest_dir=self.generated_dir_abspath() / "dynamic_subs",
+                    ext_rs_methods=utils.rs_methods,
                 )
                 successful_assets.append("dynamic-subs")
             except Exception as e:
