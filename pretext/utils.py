@@ -998,7 +998,6 @@ def rs_methods(
         assert out_path != "", "Output path must be provided to download tgz file."
 
         # Split the url into parts to get the filename.
-        log.critical(f"debug: url is {url}; out_path is {out_path}")
         services_filename = url.split("/")[-1]
         services_cache_path = cache_dir / services_filename
         if not services_cache_path.exists():
