@@ -40,6 +40,11 @@ from .. import resources
 from .. import VERSION
 
 
+# If we want to always spit out log messages to stdout even when this module is imported as a library, we could do so with the following two lines:
+# from .. import logger
+# log = logger.log
+
+# Otherwise, we just set up the logger here to be used by the CLI.
 log = logging.getLogger("ptxlogger")
 
 

@@ -23,34 +23,16 @@ from . import (
     utils,
     resources,
     constants,
+    logger,
     plastex,
     server,
     VERSION,
     CORE_COMMIT,
 )
 
-
 from .project import Project
 
 log = logging.getLogger("ptxlogger")
-
-# click_handler logs all messages to stdout as the CLI runs
-click_handler = logging.StreamHandler(sys.stdout)
-click_handler.setFormatter(click_log.ColorFormatter())
-log.addHandler(click_handler)
-
-# error_flush_handler captures error/critical logs for flushing to stderr at the end of a CLI run
-sh = logging.StreamHandler(sys.stderr)
-sh.setFormatter(click_log.ColorFormatter())
-sh.setLevel(logging.ERROR)
-error_flush_handler = logging.handlers.MemoryHandler(
-    capacity=1024 * 100,
-    flushLevel=100,
-    target=sh,
-    flushOnClose=False,
-)
-error_flush_handler.setLevel(logging.ERROR)
-log.addHandler(error_flush_handler)
 
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
@@ -205,7 +187,7 @@ def main(ctx: click.Context, targets: bool) -> None:
 @main.result_callback()
 def exit(*_, **__):  # type: ignore
     # Exit gracefully:
-    utils.exit_command(error_flush_handler)
+    utils.exit_command(logger.error_flush_handler)
 
 
 # pretext upgrade
