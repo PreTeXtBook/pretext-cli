@@ -29,9 +29,7 @@ def main(args=None) -> None:
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
     print(f"Requesting core {repo_name} commit {CORE_COMMIT} from GitHub.")
     core_zip_path = Path("pretext").resolve() / "resources" / "core.zip"
-    r = requests.get(
-        f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip"
-    )
+    r = requests.get(f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip")
     # remove current core/pretext.py file in case it is a link
     utils.remove_path(Path("pretext").resolve() / "core" / "pretext.py")
 
