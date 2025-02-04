@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 import subprocess
 import requests
@@ -18,13 +19,18 @@ def update_css(ptx_dir) -> None:
         print(f"current working directory: {os.getcwd()}")
 
 
-def main() -> None:
+def main(args=None) -> None:
+    print(args)
+    if args:
+        print(f"Arguments: {args}")
+        repo_name = args[0]
+    else:
+        repo_name = "PreTeXtBook/pretext"
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
-
-    print(f"Requesting core PreTeXtBook/pretext commit {CORE_COMMIT} from GitHub.")
+    print(f"Requesting core {repo_name} commit {CORE_COMMIT} from GitHub.")
     core_zip_path = Path("pretext").resolve() / "resources" / "core.zip"
     r = requests.get(
-        f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip"
+        f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip"
     )
     # remove current core/pretext.py file in case it is a link
     utils.remove_path(Path("pretext").resolve() / "core" / "pretext.py")
@@ -95,4 +101,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

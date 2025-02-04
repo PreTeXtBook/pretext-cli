@@ -22,6 +22,15 @@ on:
         options:
           - "main"
           - "legacy-support"
+      core-repo:
+        description: "The repository to use for the core commit."
+        required: false
+        type: choice
+        default: "PreTeXtbook/pretext"
+        options:
+          - "PreTeXtbook/pretext"
+          - "oscarlevin/pretext"
+
 
 jobs:
   tests:
@@ -62,7 +71,7 @@ jobs:
         run: poetry version ${{ inputs.level }}
 
       - name: Build package
-        run: poetry run python scripts/build_package.py
+        run: poetry run python scripts/build_package.py ${{ inputs.core-repo }}
 
       - name: Discover current version
         run: |
