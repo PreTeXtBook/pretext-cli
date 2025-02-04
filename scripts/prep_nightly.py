@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 from urllib.request import urlopen
 import json
 from datetime import datetime
@@ -31,7 +32,7 @@ def should_release(coredate: datetime, clidate: datetime) -> bool:
         return False
 
 
-def main() -> None:
+def main(args) -> None:
     last_core_commit = commit_data("pretext")
     last_cli_commit = commit_data("pretext-cli")
 
@@ -69,9 +70,9 @@ def main() -> None:
     # Need to wait to import build_package until now so it gets the updated version CORE_COMMIT and version.
     import build_package
 
-    build_package.main()
+    build_package.main(args)
     print("Ready to deploy")
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

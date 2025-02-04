@@ -1,11 +1,20 @@
 name: deploy-nightly
 
 on:
-  #schedule:
-  #  # * is a special character in YAML so you have to quote this string.
-  #  - cron: "00 6 * * *"
+#  schedule:
+#    # * is a special character in YAML so you have to quote this string.
+#    - cron: "00 6 * * *"
   # Allows you to run this workflow manually from the Actions tab.
   workflow_dispatch:
+    inputs:
+        core-repo:
+            description: "The repository to use for the core commit."
+            required: false
+            type: choice
+            default: "PreTeXtbook/pretext"
+            options:
+            - "PreTeXtbook/pretext"
+            - "oscarlevin/pretext"
 
 jobs:
   tests:
@@ -43,7 +52,7 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           echo "Updating core commit and version; building"
-          output=$(poetry run python scripts/prep_nightly.py)
+          output=$(poetry run python scripts/prep_nightly.py ${{ inputs.core-repo }})
           echo "Finished steps to prep nightly deployment"
           if [[ $output == *"Ready to deploy"* ]]; then
             poetry config pypi-token.pypi $PYPI_TOKEN
