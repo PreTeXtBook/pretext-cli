@@ -601,7 +601,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     ) -> None:
         # Temporary fix for Runestone that runs the CLI as a library in a worker
         # Reload the core module on each call to build to ensure fresh publisher variables
-        core = reload(core)
+        reload(core)
 
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):
