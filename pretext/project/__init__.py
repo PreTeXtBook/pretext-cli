@@ -8,7 +8,6 @@ import shutil
 import tempfile
 from pathlib import Path
 from functools import partial
-from importlib import reload
 
 from lxml import etree as ET  # noqa: N812
 
@@ -600,8 +599,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         no_knowls: bool = False,
     ) -> None:
         # Temporary fix for Runestone that runs the CLI as a library in a worker
-        # Reload the core module on each call to build to ensure fresh publisher variables
-        reload(core)
+        # remove the variables attr at the start of each build.
+        if hasattr(core.get_publisher_variable, "variables"):
+            delattr(core.get_publisher_variable, "variables")
 
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):
