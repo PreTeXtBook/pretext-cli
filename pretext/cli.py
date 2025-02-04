@@ -4,7 +4,6 @@ import sys
 import click
 import click_log
 import shutil
-import datetime
 import os
 import zipfile
 import requests
@@ -35,6 +34,7 @@ from .project import Project
 log = logging.getLogger("ptxlogger")
 logger.add_log_stream_handler()
 error_flush_handler = logger.get_log_error_flush_handler()
+
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
 def nice_errors(f: Callable[..., None]) -> Any:
