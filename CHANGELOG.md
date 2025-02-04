@@ -9,9 +9,13 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Logging is now available when the CLI is used programmatically (as a library).  See [docs/api.md](docs/api.md).
+
 ### Changed
 
-- Asset generation of asymptote, latex-image, and sageplot now utilize a *generated-cache* of images (stored in `.generated-cache` in the root of a project, but customizable in `project.ptx`).  This should speed up building and generating assets.
+- Asset generation of asymptote, latex-image, and sageplot now utilize a *generated-cache* of images (stored in `.cache` in the root of a project, but customizable in `project.ptx`).  This should speed up building and generating assets.
 
 ## [2.12.0] - 2025-01-16
 

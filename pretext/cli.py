@@ -33,7 +33,8 @@ from . import (
 from .project import Project
 
 log = logging.getLogger("ptxlogger")
-
+logger.add_log_stream_handler()
+error_flush_handler = logger.get_log_error_flush_handler()
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
 def nice_errors(f: Callable[..., None]) -> Any:
@@ -135,15 +136,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         project = Project.parse(pp)
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
 
-        # create file handler which logs even debug messages
-        logdir = pp / "logs"
-        logdir.mkdir(exist_ok=True)
-        logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
-        fh = logging.FileHandler(logfile, mode="w")
-        fh.setLevel(logging.DEBUG)
-        file_log_format = logging.Formatter("{levelname:<8}: {message}", style="{")
-        fh.setFormatter(file_log_format)
-        log.addHandler(fh)
+        logger.add_log_file_handler(pp / "logs")
 
         # permanently change working directory for rest of process
         os.chdir(pp)
@@ -187,7 +180,7 @@ def main(ctx: click.Context, targets: bool) -> None:
 @main.result_callback()
 def exit(*_, **__):  # type: ignore
     # Exit gracefully:
-    utils.exit_command(logger.error_flush_handler)
+    utils.exit_command(error_flush_handler)
 
 
 # pretext upgrade
@@ -547,7 +540,6 @@ def build(
                 )
                 targets = [target]
                 log.debug(f"Building standalone document with target {target.name}")
-                log.debug(target)
         else:
             targets = [project.get_target(name=target_name)]
     except AssertionError as e:
@@ -574,7 +566,6 @@ def build(
         for t in targets:
             t.source = Path(source_file).resolve()
             log.warning(f"Overriding source file for target with: {t.source}")
-            log.debug(t)
 
     # Call generate if flag is set
     if generate and not no_generate:
