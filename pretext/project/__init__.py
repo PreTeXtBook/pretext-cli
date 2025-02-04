@@ -8,6 +8,7 @@ import shutil
 import tempfile
 from pathlib import Path
 from functools import partial
+from importlib import reload
 
 from lxml import etree as ET  # noqa: N812
 
@@ -598,6 +599,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         xmlid: t.Optional[str] = None,
         no_knowls: bool = False,
     ) -> None:
+        # Temporary fix for Runestone that runs the CLI as a library in a worker
+        # Reload the core module on each call to build to ensure fresh publisher variables
+        core = reload(core)
+
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):
             raise RuntimeError("XML syntax for source file is invalid")
