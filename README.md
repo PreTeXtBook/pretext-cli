@@ -130,6 +130,11 @@ Similarly, `entities.ent` may be used:
 _Note: previously this was achieved with a `pretext-href` attribute - this is now deprecated and will be removed in a future release._
 
 ---
+## Using this package as a library/API
+
+We have started documenting how you can use this CLI programmatically in [docs/api.md](docs/api.md).
+
+---
 
 ## Development
 
@@ -212,7 +217,7 @@ poetry shell
 pretext --version # returns version being developed
 ```
 
-When inside a `poetry shell` you can navegate to other folders and run pretext commands.  Doing so will use the current development environment version of pretext.
+When inside a `poetry shell` you can navigate to other folders and run pretext commands.  Doing so will use the current development environment version of pretext.
 
 
 ### Updating dependencies

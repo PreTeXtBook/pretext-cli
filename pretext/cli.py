@@ -4,7 +4,6 @@ import sys
 import click
 import click_log
 import shutil
-import datetime
 import os
 import zipfile
 import requests
@@ -23,34 +22,18 @@ from . import (
     utils,
     resources,
     constants,
+    logger,
     plastex,
     server,
     VERSION,
     CORE_COMMIT,
 )
 
-
 from .project import Project
 
 log = logging.getLogger("ptxlogger")
-
-# click_handler logs all messages to stdout as the CLI runs
-click_handler = logging.StreamHandler(sys.stdout)
-click_handler.setFormatter(click_log.ColorFormatter())
-log.addHandler(click_handler)
-
-# error_flush_handler captures error/critical logs for flushing to stderr at the end of a CLI run
-sh = logging.StreamHandler(sys.stderr)
-sh.setFormatter(click_log.ColorFormatter())
-sh.setLevel(logging.ERROR)
-error_flush_handler = logging.handlers.MemoryHandler(
-    capacity=1024 * 100,
-    flushLevel=100,
-    target=sh,
-    flushOnClose=False,
-)
-error_flush_handler.setLevel(logging.ERROR)
-log.addHandler(error_flush_handler)
+logger.add_log_stream_handler()
+error_flush_handler = logger.get_log_error_flush_handler()
 
 
 # Add a decorator to provide nice exception handling for validation errors for all commands. It avoids printing a confusing traceback, and also nicely formats validation errors.
@@ -153,15 +136,7 @@ def main(ctx: click.Context, targets: bool) -> None:
         project = Project.parse(pp)
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
 
-        # create file handler which logs even debug messages
-        logdir = pp / "logs"
-        logdir.mkdir(exist_ok=True)
-        logfile = logdir / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
-        fh = logging.FileHandler(logfile, mode="w")
-        fh.setLevel(logging.DEBUG)
-        file_log_format = logging.Formatter("{levelname:<8}: {message}", style="{")
-        fh.setFormatter(file_log_format)
-        log.addHandler(fh)
+        logger.add_log_file_handler(pp / "logs")
 
         # permanently change working directory for rest of process
         os.chdir(pp)
@@ -565,7 +540,6 @@ def build(
                 )
                 targets = [target]
                 log.debug(f"Building standalone document with target {target.name}")
-                log.debug(target)
         else:
             targets = [project.get_target(name=target_name)]
     except AssertionError as e:
@@ -592,7 +566,6 @@ def build(
         for t in targets:
             t.source = Path(source_file).resolve()
             log.warning(f"Overriding source file for target with: {t.source}")
-            log.debug(t)
 
     # Call generate if flag is set
     if generate and not no_generate:
