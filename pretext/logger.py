@@ -7,18 +7,12 @@ import click_log
 log = logging.getLogger("ptxlogger")
 
 
-def add_log_stream_handler(level: any = None) -> None:
+def add_log_stream_handler() -> None:
     # Set up logging:
     # click_handler logs all messages to stdout as the CLI runs
     click_handler = logging.StreamHandler(sys.stdout)
     click_handler.setFormatter(click_log.ColorFormatter())
     log.addHandler(click_handler)
-    # if level:
-    #    sh = logging.StreamHandler(sys.stdout)
-    #    sh.setFormatter(click_log.ColorFormatter())
-    #    sh.setLevel(level)
-    #    log.debug(f"Adding log stream handler with level {level}")
-    #    log.addHandler(sh)
 
 
 def get_log_error_flush_handler() -> logging.handlers.MemoryHandler:
