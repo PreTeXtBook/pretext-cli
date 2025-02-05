@@ -547,7 +547,7 @@ def ensure_css_node_modules() -> None:
             subprocess.run([npm_cmd, "install", "--engine-strict=true"])
         except Exception as e:
             log.critical(
-                "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed."
+                "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed. https://pretextbook.org/doc/guide/html/node-and-npm.html"
             )
             log.critical(e)
             log.debug("", exc_info=True)
