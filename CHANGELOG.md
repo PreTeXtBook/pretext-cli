@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.13.0] - 2025-02-05
+
+Includes updates to core through commit: [2f6bfae](https://github.com/PreTeXtBook/pretext/commit/2f6bfaedec237e0024772dd1a7486b5559ec53df)
+
 ### Added
 
 - Logging is now available when the CLI is used programmatically (as a library).  See [docs/api.md](docs/api.md).
