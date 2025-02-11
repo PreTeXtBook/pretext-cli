@@ -677,7 +677,9 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
             repo.git.commit(message="Update to PreTeXt project source.")
             # Should we push this commit?
         else:
-            log.warning("Don't forget to either add and commit the changes to your source with git, or run `pretext deploy -u` to have these changes updated automatically.")
+            log.warning(
+                "Don't forget to either add and commit the changes to your source with git, or run `pretext deploy -u` to have these changes updated automatically."
+            )
             log.warning(
                 "Just deploying your built project will not save changes to your source on GitHub.`"
             )
