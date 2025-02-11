@@ -645,10 +645,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 "https://runestone.academy/cdn/runestone/latest/webpack_static_imports.xml",
                 timeout=5,
             )
+            log.debug(f"Internet access test: {test_services.status_code}")
         except requests.exceptions.RequestException as e:
             log.warning(
                 "No internet access detected; turning off Runestone features.  Your output might not work correctly until you rebuild with internet access."
             )
+            log.debug(f"Error: {e}")
             self.stringparams["debug.rs.dev"] = "yes"
         # End temporary code
 
