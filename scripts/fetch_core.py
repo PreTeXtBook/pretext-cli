@@ -13,10 +13,25 @@ import utils
 import bundle_resources
 
 
-def update_css(ptx_dir) -> None:
-    print(f"current working directory: {os.getcwd()}")
-    with utils.working_directory(ptx_dir / "script" / "cssbuilder"):
-        print(f"current working directory: {os.getcwd()}")
+def update_css(tmpdirname) -> None:
+    script_dir = Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "script" / "cssbuilder"
+    npm_command = shutil.which("npm")
+    print(f"npm command: {npm_command}")
+    subprocess.run(
+        [npm_command, "install"],
+        cwd=script_dir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    subprocess.run(
+        [npm_command, "run", "build"],
+        cwd=script_dir,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    # remove all the node_modules we used to build; we don't need anything in cssbuilder.
+    shutil.rmtree(script_dir / "node_modules")
+    print("Successfully built CSS.")
 
 
 def main(args=None) -> None:
@@ -39,26 +54,8 @@ def main(args=None) -> None:
         with zipfile.ZipFile(core_zip_path) as archive:
             archive.extractall(tmpdirname)
             # Run the cssbuilder script:
-            script_dir = (
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "script" / "cssbuilder"
-            )
-            npm_command = shutil.which("npm")
-            print(f"npm command: {npm_command}")
-            subprocess.run(
-                [npm_command, "install"],
-                cwd=script_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            subprocess.run(
-                [npm_command, "run", "build"],
-                cwd=script_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            # remove all the node_modules we used to build; we don't need anything in cssbuilder.
-            shutil.rmtree(script_dir / "node_modules")
-            print("Successfully built CSS.")
+            # update_css(tmpdirname)
+
             shutil.copyfile(
                 Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "pretext" / "pretext.py",
                 Path("pretext").resolve() / "core" / "pretext.py",

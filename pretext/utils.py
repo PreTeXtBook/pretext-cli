@@ -939,7 +939,9 @@ def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> b
         if "automatically generated with PreTeXt" in lines[i]:
             # use regex to get version number:
             version = re.search(r"\d+\.\d+\.\d+", lines[i])
-            if version and version[0] in resource_hash_table:
+            if resource == "requirements.txt" and version:
+                return True
+            elif version and version[0] in resource_hash_table:
                 # Hash file and compare to hash in resource_hash_table
                 hash = hashlib.sha256()
                 hash.update(contents)
