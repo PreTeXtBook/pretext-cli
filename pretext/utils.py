@@ -675,12 +675,13 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
             log.info("")
             repo.git.add(all=True)
             repo.git.commit(message="Update to PreTeXt project source.")
+            # Should we push this commit?
         else:
-            log.error("Either add and commit these changes with Git, or run")
-            log.error(
-                "`pretext deploy -u` to have these changes updated automatically."
+            log.warning("Don't forget to either add and commit the changes to your source with git, or run `pretext deploy -u` to have these changes updated automatically.")
+            log.warning(
+                "Just deploying your built project will not save changes to your source on GitHub.`"
             )
-            return
+            # Note, we no longer return here; continue with deployment even though repo isn't clean.
 
     try:
         origin = repo.remotes.origin
@@ -715,6 +716,8 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         origin = repo.remotes.origin
     log.info("Committing your latest build to the `gh-pages` branch.")
     log.info("")
+    # Should we let ghp_import do the push for us?
+    # Should we remove the history?
     ghp_import.ghp_import(
         directory,
         mesg="Latest build deployed.",
