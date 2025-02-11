@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.13.2] - 2025-02-11
+
+Includes updates to core through commit: [2f6bfae](https://github.com/PreTeXtBook/pretext/commit/2f6bfaedec237e0024772dd1a7486b5559ec53df)
+
 ### Changed
 
 - Added a temporary hack to avoid build failures when not connected to the internet.  This will be reverted in 2.14 in favor of a more robust solution.
