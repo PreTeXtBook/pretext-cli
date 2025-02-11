@@ -546,10 +546,10 @@ def ensure_css_node_modules() -> None:
                 raise FileNotFoundError
             subprocess.run([npm_cmd, "install", "--engine-strict=true"])
         except Exception as e:
-            log.critical(
-                "Unable to install required npm packages to build css files.  To use your selected HTML theme, you must have node.js and npm installed. https://pretextbook.org/doc/guide/html/node-and-npm.html"
+            log.warning(
+                "Unable to install npm packages to build css files.  Non-default CSS themes require node.js and npm to be installed.  See https://pretextbook.org/doc/guide/html/node-and-npm.html"
             )
-            log.critical(e)
+            log.warning(e)
             log.debug("", exc_info=True)
 
 
