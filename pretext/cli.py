@@ -131,6 +131,9 @@ def main(ctx: click.Context, targets: bool) -> None:
     if ctx.invoked_subcommand == "upgrade":
         log.debug("Upgrading project now")
         return
+    if ctx.invoked_subcommand == "update":
+        log.debug("Updating project now")
+        return
     # In all other cases we need to know whether we are in a directory for a project.
     if (pp := utils.project_path()) is not None:
         project = Project.parse(pp)
