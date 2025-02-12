@@ -17,6 +17,7 @@ import logging.handlers
 import psutil
 import typing as t
 from . import types as pt  # PreTeXt types
+from . import resources
 from lxml import etree as ET  # noqa: N812
 from lxml.etree import _ElementTree, _Element
 
@@ -928,7 +929,7 @@ def is_pretext_proc(proc: psutil.Process) -> bool:
     return parent is not None and parent.name() == "pretext"
 
 
-def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> bool:
+def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any = resources.get_resource_hash_table()) -> bool:
     """
     Check if a resource file with `contents` has been modified compared to the hash in `resource_hash_table`.  If the file contains a magic comment, it is considered unmodified.
     """
