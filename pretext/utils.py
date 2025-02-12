@@ -941,7 +941,7 @@ def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> b
         return True
     # Look in the first two lines for the version number.  This is always in the first or second line if it exists.
     for i in range(2):
-        if "automatically generated with PreTeXt" in lines[i]:
+        if i < len(lines) and "automatically generated with PreTeXt" in lines[i]:
             # use regex to get version number:
             version = re.search(r"\d+\.\d+\.\d+", lines[i])
             if resource == "requirements.txt" and version:
