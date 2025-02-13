@@ -36,6 +36,9 @@ def test_parse_git_remote() -> None:
         assert utils.parse_git_remote(string)[0] == "PreTeXtBook"
         assert utils.parse_git_remote(string)[1] == "pretext-cli"
 
+
 def test_is_unmodified() -> None:
-    magic_comment = b"foo\n<!-- Managed automatically by PreTeXt authoring tools -->\nbar"
+    magic_comment = (
+        b"foo\n<!-- Managed automatically by PreTeXt authoring tools -->\nbar"
+    )
     assert utils.is_unmodified("foo", magic_comment)
