@@ -928,7 +928,11 @@ def is_pretext_proc(proc: psutil.Process) -> bool:
     return parent is not None and parent.name() == "pretext"
 
 
-def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> bool:
+def is_unmodified(
+    resource: str,
+    contents: bytes,
+    resource_hash_table: Any = resources.get_resource_hash_table(),
+) -> bool:
     """
     Check if a resource file with `contents` has been modified compared to the hash in `resource_hash_table`.  If the file contains a magic comment, it is considered unmodified.
     """
@@ -940,7 +944,7 @@ def is_unmodified(resource: str, contents: bytes, resource_hash_table: Any) -> b
         )
         return True
     # Look in the first two lines for the version number.  This is always in the first or second line if it exists.
-    for i in range(2):
+    for i in range(min(2, len(lines))):
         if "automatically generated with PreTeXt" in lines[i]:
             # use regex to get version number:
             version = re.search(r"\d+\.\d+\.\d+", lines[i])

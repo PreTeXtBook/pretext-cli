@@ -174,8 +174,18 @@ def test_override_source(tmp_path: Path, script_runner: ScriptRunner) -> None:
     )
 
 
-def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
+def test_init_and_update(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path).success
+    for resource in constants.PROJECT_RESOURCES:
+        if resource in constants.GIT_RESOURCES:
+            assert not (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
+        else:
+            assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
+    assert script_runner.run([PTX_CMD, "-v", "debug", "update"], cwd=tmp_path).success
+    for resource in ["requirements.txt", "codechat_config.yaml"]:
+        resource_path = tmp_path / constants.PROJECT_RESOURCES[resource]
+        resource_path.unlink(missing_ok=True)
+    assert script_runner.run([PTX_CMD, "-v", "debug", "update"], cwd=tmp_path).success
     for resource in constants.PROJECT_RESOURCES:
         if resource in constants.GIT_RESOURCES:
             assert not (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
@@ -183,11 +193,38 @@ def test_init(tmp_path: Path, script_runner: ScriptRunner) -> None:
             assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
 
 
-def text_init_with_git(tmp_path: Path, script_runner: ScriptRunner) -> None:
+def test_init_and_update_with_git(tmp_path: Path, script_runner: ScriptRunner) -> None:
     script_runner.run(["git", "init"], cwd=tmp_path)
     script_runner.run([PTX_CMD, "-v", "debug", "init"], cwd=tmp_path)
     for resource in constants.PROJECT_RESOURCES:
         assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
+    assert script_runner.run([PTX_CMD, "-v", "debug", "update"], cwd=tmp_path).success
+    # Remove resources
+    for resource in ["requirements.txt", "codechat_config.yaml", ".gitignore"]:
+        resource_path = tmp_path / constants.PROJECT_RESOURCES[resource]
+        resource_path.unlink(missing_ok=True)
+    assert script_runner.run([PTX_CMD, "-v", "debug", "update"], cwd=tmp_path).success
+    for resource in constants.PROJECT_RESOURCES:
+        assert (tmp_path / constants.PROJECT_RESOURCES[resource]).exists()
+    # Ensure modified files don't get updated.
+    with open(tmp_path / ".gitignore", "a") as f:
+        f.write("\n# Added by test\n")
+    assert script_runner.run([PTX_CMD, "-v", "debug", "update"], cwd=tmp_path).success
+    assert "Added by test" in (tmp_path / ".gitignore").read_text()
+    # Ensure older version of requirements does get updated.
+    requirements_path = tmp_path / "requirements.txt"
+    with open(requirements_path, "r") as file:
+        lines = file.readlines()
+    with open(requirements_path, "w") as file:
+        for line in lines:
+            if "pretext" in line:
+                file.write("pretext == 1.0.0\n")
+            else:
+                file.write(line)
+    assert script_runner.run([PTX_CMD, "-v", "debug", "update"], cwd=tmp_path).success
+    with open(requirements_path, "r") as file:
+        lines = file.readlines()
+        assert f"pretext == {pretext.VERSION}\n" in lines[1]
 
 
 def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
