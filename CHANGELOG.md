@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Allow deployment even if there are un-committed changes to the project folder; issue warning.
+
+### Fixed
+
+- Addressed another bug causing errors on `pretext update`.
+
 ## [2.13.2] - 2025-02-11
 
 Includes updates to core through commit: [2f6bfae](https://github.com/PreTeXtBook/pretext/commit/2f6bfaedec237e0024772dd1a7486b5559ec53df)
