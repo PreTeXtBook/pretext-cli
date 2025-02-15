@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.13.4] - 2025-02-15
+
+Includes updates to core through commit: [2f6bfae](https://github.com/PreTeXtBook/pretext/commit/2f6bfaedec237e0024772dd1a7486b5559ec53df)
+
 ### Fixed
 
 - Update psutil requirement to 7.0 for consistent server checking with `pretext view`.
