@@ -45,6 +45,7 @@ class RunningServerInfo:
         try:
             p = psutil.Process(self.pid)
         except psutil.NoSuchProcess:
+            log.info(f"Found entry no longer exists {self.pid}")
             return False
         if not p.is_running():
             log.info(f"Found entry no longer running {p.pid}")
@@ -53,9 +54,11 @@ class RunningServerInfo:
             log.info(f"Found zombie process {p.pid}")
             return False
         for _, _, _, laddr, _, _ in p.net_connections("all"):
-            if laddr.port == self.port:
+            if isinstance(laddr.port, int) and laddr.port == self.port:
                 log.info(f"Found server at {self.url()}")
                 return True
+            else:
+                log.debug(f"Found process {self.pid} with laddr {laddr}")
         log.info(
             f"Found process {self.pid} no longer listening on specified port {self.port}"
         )
