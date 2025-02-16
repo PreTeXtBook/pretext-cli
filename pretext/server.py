@@ -54,7 +54,12 @@ class RunningServerInfo:
             log.info(f"Found zombie process {p.pid}")
             return False
         for _, _, _, laddr, _, _ in p.net_connections("all"):
-            if isinstance(laddr.port, int) and laddr.port == self.port:
+            if isinstance(laddr, str):
+                log.error(
+                    f"View encountered an error.  Please report this: process {self.pid} with laddr {laddr}"
+                )
+                continue
+            elif isinstance(laddr.port, int) and laddr.port == self.port:
                 log.info(f"Found server at {self.url()}")
                 return True
             else:
