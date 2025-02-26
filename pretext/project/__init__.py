@@ -8,7 +8,6 @@ import shutil
 import tempfile
 from pathlib import Path
 from functools import partial
-import requests
 
 from lxml import etree as ET  # noqa: N812
 
@@ -638,22 +637,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if no_knowls:
             self.stringparams["debug.skip-knowls"] = "yes"
 
-        # if no internet access, turn off runestone features
-        # Note: this is temporary code that will be removed once the runestone methods are merged into core pretext.
-        try:
-            test_services = requests.get(
-                "https://runestone.academy/cdn/runestone/latest/webpack_static_imports.xml",
-                timeout=5,
-            )
-            log.debug(f"Internet access test: {test_services.status_code}")
-        except requests.exceptions.RequestException as e:
-            log.warning(
-                "No internet access detected; turning off Runestone features.  Your output might not work correctly until you rebuild with internet access."
-            )
-            log.debug(f"Error: {e}")
-            self.stringparams["debug.rs.dev"] = "yes"
-        # End temporary code
-
         # Proceed with the build
         with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmp_xsl_str:
             # Put the custom xsl in a "cli_xsl" directory inside the temporary directory, so we can create a symlink to core from the temporary directory itself.
@@ -708,7 +691,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                    # rs_query_methods=None,
+                    ext_rs_methods=utils.rs_methods,
                 )
                 try:
                     codechat.map_path_to_xml_id(
@@ -1087,6 +1070,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     stringparams=stringparams_copy,
                     xmlid_root=xmlid,
                     dest_dir=self.generated_dir_abspath() / "dynamic_subs",
+                    ext_rs_methods=utils.rs_methods,
                 )
                 successful_assets.append("dynamic-subs")
             except Exception as e:

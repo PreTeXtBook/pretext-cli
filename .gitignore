@@ -138,9 +138,13 @@ cython_debug/
 
 #pretext-core
 pretext/core/pretext.py
+pretext/core/braille_format.py
 tests/examples/core
 #zipped resources
 pretext/resources/*.zip
+#xml resources (rs_file)
+pretext/resources/*.xml
+pretext/resources/*.tgz
 
 #default new pretext project
 new-pretext-project
