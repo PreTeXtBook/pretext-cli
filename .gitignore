@@ -138,6 +138,7 @@ cython_debug/
 
 #pretext-core
 pretext/core/pretext.py
+pretext/core/braille_format.py
 tests/examples/core
 #zipped resources
 pretext/resources/*.zip
