@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.14.0] - 2025-02-26
+
+Includes updates to core through commit: [8f8858c](https://github.com/PreTeXtBook/pretext/commit/8f8858c9deaeeb1057c365aeaca52652abb496bd)
+
 ### Changed
 
 - We now package the latest runestone services with the CLI and use the packaged versions in case there is no internet access to download them directly.  This allows builds to go through even if offline.
