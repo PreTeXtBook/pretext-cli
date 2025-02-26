@@ -51,25 +51,6 @@ def get_runestone_services() -> None:
             zip_ref.write(rs_services_tgz_path, arcname=services_file_name)
 
 
-def main() -> None:
-    # grab copy of necessary PreTeXtBook/pretext files from specified commit
-
-    print(f"Requesting core PreTeXtBook/pretext commit {CORE_COMMIT} from GitHub.")
-    core_zip_path = Path("pretext").resolve() / "resources" / "core.zip"
-    core_zip = requests.get(
-        f"https://github.com/PreTeXtBook/pretext/archive/{CORE_COMMIT}.zip", timeout=20
-    )
-    subprocess.run(
-        [npm_command, "run", "build"],
-        cwd=script_dir,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    # remove all the node_modules we used to build; we don't need anything in cssbuilder.
-    shutil.rmtree(script_dir / "node_modules")
-    print("Successfully built CSS.")
-
-
 def main(args=None) -> None:
     print(args)
     if args:
@@ -77,10 +58,11 @@ def main(args=None) -> None:
         repo_name = args[0]
     else:
         repo_name = "PreTeXtBook/pretext"
+
     # grab copy of necessary PreTeXtBook/pretext files from specified commit
     print(f"Requesting core {repo_name} commit {CORE_COMMIT} from GitHub.")
     core_zip_path = Path("pretext").resolve() / "resources" / "core.zip"
-    r = requests.get(f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip")
+    core_zip = requests.get(f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip")
     # remove current core/pretext.py file in case it is a link
     utils.remove_path(Path("pretext").resolve() / "core" / "pretext.py")
 

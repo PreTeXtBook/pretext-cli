@@ -8,7 +8,6 @@ import shutil
 import tempfile
 from pathlib import Path
 from functools import partial
-import requests
 
 from lxml import etree as ET  # noqa: N812
 
@@ -637,22 +636,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Modify stringparams for no_knowls
         if no_knowls:
             self.stringparams["debug.skip-knowls"] = "yes"
-
-        # if no internet access, turn off runestone features
-        # Note: this is temporary code that will be removed once the runestone methods are merged into core pretext.
-        try:
-            test_services = requests.get(
-                "https://runestone.academy/cdn/runestone/latest/webpack_static_imports.xml",
-                timeout=5,
-            )
-            log.debug(f"Internet access test: {test_services.status_code}")
-        except requests.exceptions.RequestException as e:
-            log.warning(
-                "No internet access detected; turning off Runestone features.  Your output might not work correctly until you rebuild with internet access."
-            )
-            log.debug(f"Error: {e}")
-            self.stringparams["debug.rs.dev"] = "yes"
-        # End temporary code
 
         # Proceed with the build
         with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmp_xsl_str:
