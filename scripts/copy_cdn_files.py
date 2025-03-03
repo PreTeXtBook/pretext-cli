@@ -33,7 +33,7 @@ def main(args=None) -> None:
             Path("pretext").resolve() / "resources" / "rs_cache.zip", "r"
         ) as zip_ref:
             zip_ref.extractall(tmpdirname)
-        #expand core.zip
+        # expand core.zip
         with zipfile.ZipFile(
             Path("pretext").resolve() / "resources" / "core.zip", "r"
         ) as zip_ref:
@@ -46,14 +46,14 @@ def main(args=None) -> None:
         if len(rs_cache_files) == 0:
             raise FileNotFoundError("No dist-* file found in rs_cache directory.")
         elif len(rs_cache_files) > 1:
-            raise FileNotFoundError("Multiple dist-* files found in rs_cache directory.")
+            raise FileNotFoundError(
+                "Multiple dist-* files found in rs_cache directory."
+            )
         rs_cache_file = rs_cache_files[0]
 
         # expand tarfile and place in _static directory
-        with tarfile.open(
-            Path(tmpdirname) / rs_cache_file, "r"
-        ) as tgz_ref:
-            tgz_ref.extractall(static_dir, filter='fully_trusted')
+        with tarfile.open(Path(tmpdirname) / rs_cache_file, "r") as tgz_ref:
+            tgz_ref.extractall(static_dir, filter="fully_trusted")
         shutil.copy2(
             Path(tmpdirname) / "runestone_services.xml",
             static_dir / "runestone_services.xml",
@@ -75,7 +75,6 @@ def main(args=None) -> None:
             static_dir / "pretext" / "js" / "lib",
             dirs_exist_ok=True,
         )
-
 
 
 if __name__ == "__main__":
