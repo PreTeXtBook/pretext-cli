@@ -7,7 +7,6 @@ import tempfile
 import zipfile
 
 from pretext import CORE_COMMIT
-import lxml.etree as ET  # noqa: N812
 
 import fetch_core
 
