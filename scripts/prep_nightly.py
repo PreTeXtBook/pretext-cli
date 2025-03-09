@@ -32,7 +32,7 @@ def should_release(coredate: datetime, clidate: datetime) -> bool:
         return False
 
 
-def main(args) -> None:
+def main(args: string = None) -> None:
     last_core_commit = commit_data("pretext")
     last_cli_commit = commit_data("pretext-cli")
 
@@ -70,7 +70,7 @@ def main(args) -> None:
     # Need to wait to import build_package until now so it gets the updated version CORE_COMMIT and version.
     import build_package
 
-    build_package.main(args)
+    build_package.main()
     print("Ready to deploy")
 
 
