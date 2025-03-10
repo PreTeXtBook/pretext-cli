@@ -124,11 +124,17 @@ jobs:
           draft: false
           prerelease: false
 
-
+  dispatch:
+    needs: deploy
+    strategy:
+      matrix:
+        repo: ['oscarlevin/pretext-docker', 'pretextbook/html-static']
+    runs-on: ubuntu-latest
+    steps:
       - name: Repository Dispatch
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
-          repository: oscarlevin/pretext-docker
+          repository: ${{ matrix.repo }}
           event-type: pretext-publish
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
