@@ -32,7 +32,7 @@ def should_release(coredate: datetime, clidate: datetime) -> bool:
         return False
 
 
-def main(args: string = None) -> None:
+def main(args: str = None) -> None:
     last_core_commit = commit_data("pretext")
     last_cli_commit = commit_data("pretext-cli")
 
