@@ -944,6 +944,23 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.error("Unable to generate MyOpenMath static files.")
                 log.warning(e)
                 log.debug(e, exc_info=True)
+        # The dynamic-subs asset output is required for the subsequent asset generation, so needs to be near the top.
+        if "dynamic-subs" in assets_to_generate:
+            try:
+                core.dynamic_substitutions(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "dynamic_subs",
+                    ext_rs_methods=utils.rs_methods,
+                )
+                successful_assets.append("dynamic-subs")
+            except Exception as e:
+                log.error(
+                    f"Unable to extract some dynamic exercise substitutions: \n{e}"
+                )
+                log.debug(e, exc_info=True)
         if "latex-image" in assets_to_generate:
             try:
                 for outformat in asset_formats["latex-image"]:
@@ -1064,22 +1081,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 successful_assets.append("mermaid")
             except Exception as e:
                 log.error(f"Unable to generate some mermaid images: \n{e}")
-                log.debug(e, exc_info=True)
-        if "dynamic-subs" in assets_to_generate:
-            try:
-                core.dynamic_substitutions(
-                    xml_source=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                    xmlid_root=xmlid,
-                    dest_dir=self.generated_dir_abspath() / "dynamic_subs",
-                    ext_rs_methods=utils.rs_methods,
-                )
-                successful_assets.append("dynamic-subs")
-            except Exception as e:
-                log.error(
-                    f"Unable to extract some dynamic exercise substitutions: \n{e}"
-                )
                 log.debug(e, exc_info=True)
         if "codelens" in assets_to_generate:
             try:
