@@ -610,7 +610,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
-        log.debug(f"Set cli.version to {self.stringparams["cli.version"]}")
 
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):

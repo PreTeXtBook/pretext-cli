@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Portable html: setting `/publication/html/platform/@portable="yes"` will create html output that doesn't rely on local css or js.  Useful when chunking level is set to 0 to get a single html file to upload to an LMS.
+- Improved support for journals in the latex conversion.
+
 ## [2.14.0] - 2025-02-26
 
 Includes updates to core through commit: [8f8858c](https://github.com/PreTeXtBook/pretext/commit/8f8858c9deaeeb1057c365aeaca52652abb496bd)
