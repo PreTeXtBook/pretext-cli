@@ -608,8 +608,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if hasattr(core.get_publisher_variable, "variables"):
             delattr(core.get_publisher_variable, "variables")
 
-        # Add cli.version to stringparams
-        self.stringparams["cli.version"] = VERSION
+        # Add cli.version to stringparams.  Use only the major and minor version numbers.
+        self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):
