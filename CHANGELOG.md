@@ -18,6 +18,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 - Dynamic substitution xml file was not generated on html build correctly; it is now.
 
+### Changed
+
+- Improved success feedback message.
+
 ## [2.14.0] - 2025-02-26
 
 Includes updates to core through commit: [8f8858c](https://github.com/PreTeXtBook/pretext/commit/8f8858c9deaeeb1057c365aeaca52652abb496bd)

@@ -597,7 +597,9 @@ def build(
                 clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
             )
             if t.format == "html":
-                log.info(f"\nSuccess! Run `pretext view {t.name}` to see the results.\n")
+                log.info(
+                    f"\nSuccess! Run `pretext view {t.name}` to see the results.\n"
+                )
             else:
                 log.info(f"\nSuccess! The output is in {t.output_dir_abspath()}.\n")
     except ValidationError as e:
