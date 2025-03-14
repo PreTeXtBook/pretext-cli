@@ -47,7 +47,7 @@ def resource_hashes() -> None:
     # Finally update the hash table and save it
     saved_hash_table[VERSION] = resource_hash_table
     with open(Path("pretext") / "resources" / "resource_hash_table.json", "w") as f:
-        json.dump(saved_hash_table, f)
+        json.dump(saved_hash_table, f, indent=2)
     print(
         f"Hash table saved to {Path('pretext') / 'resources' / 'resource_hash_table.json'}"
     )
