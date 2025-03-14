@@ -556,6 +556,8 @@ def build(
     if theme:
         try:
             for t in targets:
+                t.ensure_webwork_reps()
+                t.ensure_myopenmath_xml()
                 t.build_theme()
         except Exception as e:
             log.error(f"Failed to build theme: {e}")

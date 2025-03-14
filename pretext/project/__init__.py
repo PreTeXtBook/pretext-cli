@@ -588,10 +588,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Call the core function to build and/or copy the theme to the output folder
         log.info(f"Building theme for target '{self.name}'")
         utils.ensure_css_node_modules()
+        pub_vars = core.get_publisher_variable_report(
+            self.source_abspath(),
+            self.publication_abspath().as_posix(),
+            self.stringparams,
+        )
         core.build_or_copy_theme(
             xml=self.source_abspath(),
-            pub_file=self.publication_abspath().as_posix(),
-            stringparams=self.stringparams,
+            pub_var_dict=pub_vars,
             tmp_dir=self.output_dir_abspath().as_posix(),
         )
         log.info(f"Theme built for target '{self.name}'")
