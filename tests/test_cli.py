@@ -148,6 +148,15 @@ def test_build_no_manifest(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=tmp_path).success
 
 
+def test_build_theme(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "new", "-d", "."], cwd=tmp_path
+    ).success
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "--theme"], cwd=tmp_path
+    ).success
+
+
 @pytest.mark.skipif(
     not HAS_XELATEX,
     reason="Skipped since xelatex isn't found.",
