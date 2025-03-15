@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.15.0] - 2025-03-15
+
+Includes updates to core through commit: [bd0998c](https://github.com/PreTeXtBook/pretext/commit/bd0998c5663b25a9d2272ebc0e97bea80b66dc05)
+
 ### Added
 
 - Portable html: setting `/publication/html/platform/@portable="yes"` will create html output that doesn't rely on local css or js.  Useful when chunking level is set to 0 to get a single html file to upload to an LMS.
