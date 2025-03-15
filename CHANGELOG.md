@@ -17,6 +17,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Fixed
 
 - Dynamic substitution xml file was not generated on html build correctly; it is now.
+- Bug where permalinks sometimes fail to be added if there is a webwork problem on the page.
+- Miscellaneous HTML theme improvements.
 
 ### Changed
 
