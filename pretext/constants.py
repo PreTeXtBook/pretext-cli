@@ -205,7 +205,7 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "asymptote": ["html"],
         "latex-image": ["svg"],
         "sageplot": ["html", "svg"],
-        "prefigure": ["svg"]
+        "prefigure": ["svg"],
     },
     "webwork": {
         "asymptote": [],
