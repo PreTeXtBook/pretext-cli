@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Portable html builds now embed SVGs directly into the html (so you no longer need to upload them separately).
+- Coloraide package added as a dependency (for building custom themes).
+
 ## [2.15.0] - 2025-03-15
 
 Includes updates to core through commit: [bd0998c](https://github.com/PreTeXtBook/pretext/commit/bd0998c5663b25a9d2272ebc0e97bea80b66dc05)

@@ -68,5 +68,12 @@
     ".gitignore": "0e69b1765da2f482d737d7732b9b94b441fe29d4e88d110c6d59225ca4855f41",
     ".devcontainer.json": "670d3dc8d5bf1e825b93215961c64960defce193a4d8dcd266cb3dd8aa4c4a3f",
     "pretext-cli.yml": "f57f6ecd335bfbedf6d76e401aa48d0b9716e0f0aede050804600dcc11369cba"
+  },
+  "2.15.1": {
+    "project.ptx": "cf0cc772c3c0827bc586217ea71f3b6557660bc399d4be3f902bce6f746123b3",
+    "codechat_config.yaml": "73b46fafa848fee0e0b0aca32917bbe04804f56b4ab3e0c3b44e553110fbddd5",
+    ".gitignore": "8de226e98eacec4eb6d6897b35dc1304e4d758374566ed5759dc445542ad7bab",
+    ".devcontainer.json": "da0f949a050103fb7d7c97bd165573081c162bc82c6e868f545c26120692daef",
+    "pretext-cli.yml": "b8292fab364f1e9576d7f3f2fff9ed8f3891cecae182f568a9e7a091639b6078"
   }
 }
