@@ -16,8 +16,8 @@ class Executables(pxml.BaseXmlModel, tag="executables"):
     pdfsvg: t.Optional[str] = pxml.attr(default="pdf2svg")
     # If not specified, use a local executable if it exists; if it doesn't exist, choose `None`, which allows the generation logic to use the server instead.
     asy: t.Optional[str] = pxml.attr(default=shutil.which("asy"))
-    # The same applies to Sage.
-    sage: t.Optional[str] = pxml.attr(default=shutil.which("sage"))
+    # No sage server, so we don't do the same for sage.
+    sage: t.Optional[str] = pxml.attr(default="sage")
     mermaid: str = pxml.attr(default="mmdc")
     pdfpng: t.Optional[str] = pxml.attr(default="convert")
     pdfeps: str = pxml.attr(default="pdftops")
