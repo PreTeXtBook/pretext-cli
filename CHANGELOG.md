@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.15.1] - 2025-03-24
+
+Includes updates to core through commit: [7017d8f](https://github.com/PreTeXtBook/pretext/commit/7017d8fcc7005984ffc7fad81d0a37062a529a9d)
+
 ### Added
 
 - Portable html builds now embed SVGs directly into the html (so you no longer need to upload them separately).
