@@ -1,12 +1,13 @@
 name: deploy-codespace-template
+# We have turned off this workflow from updated the codespace template since we do not plan to include the latest pretext new generated files.  (2025-04-04)
 
 on:
   # Runs on completion of the deploy-stable workflow
-  workflow_run:
-    workflows: ["deploy-stable"]
-    branches: ["main"]
-    types:
-      - completed
+  #workflow_run:
+  #  workflows: ["deploy-stable"]
+  #  branches: ["main"]
+  #  types:
+  #    - completed
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
