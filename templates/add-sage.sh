@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# This file was automatically generated with PreTeXt 2.15.2.
+# If you modify this file, PreTeXt will no longer automatically update it.
+
 wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 
 bash Miniforge3.sh -b -p "/conda"
@@ -23,3 +26,5 @@ conda activate sage
 pip install pretext[homepage,prefigure] --only-binary {greenlet}
 
 pip install -r requirements.txt
+
+echo "All done."

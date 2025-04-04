@@ -230,6 +230,7 @@ PROJECT_RESOURCES = {
     "requirements.txt": Path("requirements.txt"),
     "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
     "add-sage.sh": Path(".github", "scirpts", "add-sage.sh"),
+    "add-latex.sh": Path(".github", "scirpts", "add-latex.sh"),
 }
 
 DEPRECATED_PROJECT_RESOURCES = {
@@ -242,4 +243,5 @@ GIT_RESOURCES = [
     "pretext-cli.yml",
     ".devcontainer.json",
     "add-sage.sh",
+    "add-latex.sh",
 ]
