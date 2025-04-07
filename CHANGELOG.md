@@ -14,6 +14,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 - The default devcontainer no longer includes a full LaTeX install.  If you run into trouble generating latex-images or building pdfs, see the README.md file for assistance.
 - The default devcontainer no longer includes sagemath.  If you want to build sageplot assets, see the README.md file for assistance.
 
+
 ## [2.15.2] - 2025-03-31
 
 Includes updates to core through commit: [7017d8f](https://github.com/PreTeXtBook/pretext/commit/7017d8fcc7005984ffc7fad81d0a37062a529a9d)
@@ -21,6 +22,7 @@ Includes updates to core through commit: [7017d8f](https://github.com/PreTeXtBoo
 ### Fixed
 
 - Bug preventing github actions from completing deploy (internal).
+
 
 ## [2.15.1] - 2025-03-24
 
