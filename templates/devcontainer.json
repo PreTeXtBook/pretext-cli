@@ -13,34 +13,17 @@
 //
 ///////////////////////////////////////////////////////////////
 {
-  "name": "PreTeXt-Codespaces",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {},
 
-  // The default docker image has just pretext and prefigure installed.  No LaTeX and no SageMath.  Those can be installed using scripts or by switching to one of the larger images below.:
-   "image": "oscarlevin/pretext:lite",
-
-  // This Docker image includes some LaTeX support, but is still not to large.  Note that if you keep your codespace running, it will use up your GitHub free storage quota.  
-  // "image": "oscarlevin/pretext:small",
-
-   // If you need to generate sageplots, comment out the above line and uncomment the following line.
-  //"image": "oscarlevin/pretext:full",
-
-
-  // Add gh cli as a feature (to support codechat)
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
-  },
-
-  // Respect the project's designated dependencies
-  "postCreateCommand": "git config --global --add safe.directory $(pwd) && pip install -r requirements.txt",
-
-  // If you need LaTeX support (to build pdfs or to generate latex-images), you can uncomment the next line (and comment out the "postCreateCommand" above.)
-  // "postCreateCommand": "git config --global --add safe.directory $(pwd) && bash ./.github/scripts/add-latex.sh",
-
-  // If you need sageplot support, instead of installing the pretext:full image above, you can uncomment the line below and comment out the line above.
-  // "postCreateCommand": "git config --global --add safe.directory $(pwd) && bash ./.github/scripts/add-sage.sh",
-
-  // For both LaTeX and sageplot support, use this "postCreateCommand":
-  // "postCreateCommand": "git config --global --add safe.directory $(pwd) && bash ./.github/scripts/add-latex.sh && bash ./.github/scripts/add-sage.sh",
+  // Comment or uncomment lines below if you don't or do need that feature.
+  "postCreateCommand": {
+    "install pretext": "bash ./.devcontainer/installPretext.sh",
+    "install pandoc": "bash ./.devcontainer/installPandoc.sh",
+    "install latex": "bash ./.devcontainer/installLatex.sh",
+    // "install sagemath": "bash ./.devcontainer/installSage.sh",
+    "working": "echo 'installing additional software into codespace.'"
+    },
 
 
   // Port forwarding
@@ -74,6 +57,7 @@
     }
   },
 
+  
   // Configure tool-specific properties.
   "customizations": {
     "codespaces": {
@@ -89,13 +73,9 @@
         "CodeChat.CodeChatServer.Command": "CodeChat_Server"
       },
       "extensions": [
-        "ms-vscode.live-server",
         "oscarlevin.pretext-tools",
         "CodeChat.codechat"
       ]
     }
   }
-
-  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-  // "remoteUser": "root"
 }

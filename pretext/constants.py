@@ -226,22 +226,27 @@ PROJECT_RESOURCES = {
     "project.ptx": Path("project.ptx"),
     "codechat_config.yaml": Path("codechat_config.yaml"),
     ".gitignore": Path(".gitignore"),
-    ".devcontainer.json": Path(".devcontainer.json"),
+    "devcontainer.json": Path(".devcontainer/devcontainer.json"),
     "requirements.txt": Path("requirements.txt"),
     "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
-    "add-sage.sh": Path(".github", "scirpts", "add-sage.sh"),
-    "add-latex.sh": Path(".github", "scirpts", "add-latex.sh"),
+    "installPretext.sh": Path(".devcontainer", "instalPretext.sh"),
+    "installPandoc.sh": Path(".devcontainer", "instalPandoc.sh"),
+    "installLatex.sh": Path(".devcontainer", "instalLatex.sh"),
+    "installSage.sh": Path(".devcontainer", "installSage.sh"),
 }
 
 DEPRECATED_PROJECT_RESOURCES = {
     "deploy.yml": Path(".github", "workflows", "deploy.yml"),
     "test-build.yml": Path(".github", "workflows", "test-build.yml"),
+    ".devcontainer.json": Path(".devcontainer.json"),
 }
 
 GIT_RESOURCES = [
     ".gitignore",
     "pretext-cli.yml",
-    ".devcontainer.json",
-    "add-sage.sh",
-    "add-latex.sh",
+    "devcontainer.json",
+    "installPretext.sh",
+    "installPandoc.sh",
+    "installLatex.sh",
+    "installSage.sh",
 ]
