@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.16.0] - 2025-04-07
+
+Includes updates to core through commit: [7017d8f](https://github.com/PreTeXtBook/pretext/commit/7017d8fcc7005984ffc7fad81d0a37062a529a9d)
+
 ### Addded
 
 - New option for `pretext deploy`.  If you pass `--no-push` then deploy will commit your output to the `gh-pages` branch but not push.  This can be useful for CI/CD workflows or in case deploy encounters an authentication error.
