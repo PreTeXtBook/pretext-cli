@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This file was automatically generated with PreTeXt 2.15.2.
+# This file was automatically generated with PreTeXt 2.15.3.
 # If you modify this file, PreTeXt will no longer automatically update it.
 
 while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
