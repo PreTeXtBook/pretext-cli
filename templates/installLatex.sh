@@ -3,33 +3,27 @@
 # This file was automatically generated with PreTeXt 2.15.3.
 # If you modify this file, PreTeXt will no longer automatically update it.
 
-while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "Waiting for apt-get to be free..."
-    sleep 15
-done
-sudo apt-get update 
-sudo apt-get install -y --no-install-recommends \
-                    python3-louis \
-                    libcairo2-dev \
-                    librsvg2-bin
+# We use TinyTeX (https://yihui.org/tinytex/)
+wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
 
-pip install --upgrade pip --break-system-packages
+tlmgr install adjustbox amscdx bold-extra braket bussproofs cancel carlisle cases chessfss circuitikz colortbl enumitem extpfeil fontawesome5 fontaxes gensymb imakeidx kastrup lambda-lists listings listingsutf8 marvosym mathalpha mathtools menukeys mhchem microtype musicography newpx newtx nicematrix pdfcol pdfpages pdflscape pgfplots phaistos physics polyglossia pstricks realscripts relsize siunitx skak skaknew smartdiagram snapshot stmaryrd tcolorbox tikzfill titlesec txfonts ulem upquote was xfrac xltxtra xpatch xstring 
 
-pip install pretext[homepage,prefigure] --only-binary {greenlet}  --break-system-packages
+tlmgr path add
 
-pip install codechat-server --break-system-packages
+#  Ensure fonts provided by TinyTeX are available, as suggested in the pretext guide
+fontconfig="<?xml version=\"1.0\"?>
+<!DOCTYPE fontconfig SYSTEM \"fonts.dtd\">
+<fontconfig>
+  <dir>~/.TinyTeX/texmf-dist/fonts</dir>
+  <dir>~/.TinyTeX/texmf-local/fonts</dir>
+</fontconfig>"
 
-while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "Waiting for apt-get to be free..."
-    sleep 15
-done
-playwright install-deps
-
-playwright install
-
-# Install mermaid for diagrams
-npm install -g @mermaid-js/mermaid-cli
-
-# echo '/usr/lib/python3/dist-packages' > /usr/local/lib/python3.8/dist-packages/louis.pth
-
-prefig init
+fontconfig_path="/etc/fonts/conf.d/09-texlive-fonts.conf"
+if [ ! -f "$fontconfig_path" ]; then
+    echo "Creating fontconfig file at $fontconfig_path"
+    echo "$fontconfig" | sudo tee "$fontconfig_path" > /dev/null
+else
+    echo "Fontconfig file already exists at $fontconfig_path"
+fi
+# Update font cache
+fc-cache -f -v
