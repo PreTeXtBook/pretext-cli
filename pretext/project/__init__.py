@@ -607,11 +607,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         xmlid: t.Optional[str] = None,
         no_knowls: bool = False,
     ) -> None:
-        # Temporary fix for Runestone that runs the CLI as a library in a worker
-        # remove the variables attr at the start of each build.
-        if hasattr(core.get_publisher_variable, "variables"):
-            delattr(core.get_publisher_variable, "variables")
-
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 

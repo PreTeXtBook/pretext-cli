@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Addded
+
+- New option for `pretext deploy`.  If you pass `--no-push` then deploy will commit your output to the `gh-pages` branch but not push.  This can be useful for CI/CD workflows or in case deploy encounters an authentication error.
+
 ### Changed
 
 - The default devcontainer no longer includes a full LaTeX install.  If you run into trouble generating latex-images or building pdfs, see the README.md file for assistance.
