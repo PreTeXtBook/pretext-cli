@@ -945,12 +945,39 @@ def view(
 )
 @nice_errors
 @click.pass_context
-@click.option("-u", "--update-source", is_flag=True, required=False, help="Commit and push changes tot he source files at the same time as deploying output.")
-@click.option("-s", "--stage-only", is_flag=True, required=False, help="Create a staged deployment, but do not deploy.")
-@click.option("-p", "--preview", is_flag=True, required=False, help="Preview the staged deployment, but do not actually deploy.")
-@click.option("--no-push", is_flag=True, required=False, help="Do not push to remote.  Useful for CI/CD workflows or in case of authentication errors.")
+@click.option(
+    "-u",
+    "--update-source",
+    is_flag=True,
+    required=False,
+    help="Commit and push changes tot he source files at the same time as deploying output.",
+)
+@click.option(
+    "-s",
+    "--stage-only",
+    is_flag=True,
+    required=False,
+    help="Create a staged deployment, but do not deploy.",
+)
+@click.option(
+    "-p",
+    "--preview",
+    is_flag=True,
+    required=False,
+    help="Preview the staged deployment, but do not actually deploy.",
+)
+@click.option(
+    "--no-push",
+    is_flag=True,
+    required=False,
+    help="Do not push to remote.  Useful for CI/CD workflows or in case of authentication errors.",
+)
 def deploy(
-    ctx: click.Context, update_source: bool, stage_only: bool, preview: bool, no_push: bool
+    ctx: click.Context,
+    update_source: bool,
+    stage_only: bool,
+    preview: bool,
+    no_push: bool,
 ) -> None:
     """
     Automatically deploys project to GitHub Pages,

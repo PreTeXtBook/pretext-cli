@@ -1615,7 +1615,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         if not skip_staging:
             self.stage_deployment()
         if not stage_only:
-            utils.publish_to_ghpages(self.stage_abspath(), update_source, no_push=no_push)
+            utils.publish_to_ghpages(
+                self.stage_abspath(), update_source, no_push=no_push
+            )
 
     def is_git_managed(self) -> bool:
         return (self.abspath() / ".git").exists()

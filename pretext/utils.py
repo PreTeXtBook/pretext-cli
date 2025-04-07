@@ -630,7 +630,9 @@ def parse_git_remote(string: str) -> t.List[str]:
     return repo_info[-2:]
 
 
-def publish_to_ghpages(directory: Path, update_source: bool, no_push: bool = False) -> None:
+def publish_to_ghpages(
+    directory: Path, update_source: bool, no_push: bool = False
+) -> None:
     """
     Publish the current project to GitHub pages.
     """
@@ -666,7 +668,9 @@ def publish_to_ghpages(directory: Path, update_source: bool, no_push: bool = Fal
         repo.active_branch.rename("main")
         log.info("Successfully initialized new Git repository!")
         log.info("")
-    log.info(f"Preparing to deploy from active `{repo.active_branch.name}` git branch.\n")
+    log.info(
+        f"Preparing to deploy from active `{repo.active_branch.name}` git branch.\n"
+    )
     if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
         log.info("Changes to project source since last commit detected.")
         if update_source:
@@ -762,7 +766,9 @@ def publish_to_ghpages(directory: Path, update_source: bool, no_push: bool = Fal
         log.info(
             "Make sure you can push changes, either from the command line or in VS Code.  Then try to deploy again.\n"
         )
-        log.info("You can also try to run `pretext deploy --no-push` to skip this step, then switch to the `gh-pages` branch (using `git checkout gh-pages`) and push manually.")
+        log.info(
+            "You can also try to run `pretext deploy --no-push` to skip this step, then switch to the `gh-pages` branch (using `git checkout gh-pages`) and push manually."
+        )
         log.info("")
         log.info(f"(If `{origin.url}` doesn't match your GitHub repository,")
         log.info(
