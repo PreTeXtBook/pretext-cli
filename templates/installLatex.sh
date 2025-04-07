@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This file was automatically generated with PreTeXt 2.15.3.
+# This file was automatically generated with PreTeXt 2.16.1.
 # If you modify this file, PreTeXt will no longer automatically update it.
 
 # We use TinyTeX (https://yihui.org/tinytex/)

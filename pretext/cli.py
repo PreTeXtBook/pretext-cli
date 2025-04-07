@@ -970,7 +970,7 @@ def view(
     "--no-push",
     is_flag=True,
     required=False,
-    help="Do not push to remote.  Useful for CI/CD workflows or in case of authentication errors.",
+    help="Commit output to gh-pages branch but do not push to GitHub.  Useful in case of authentication errors.",
 )
 def deploy(
     ctx: click.Context,
