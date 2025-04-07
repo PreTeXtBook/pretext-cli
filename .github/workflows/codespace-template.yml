@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Checkout codespace
         uses: actions/checkout@v4
@@ -30,11 +30,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade pretext[all]
 
-      - name: pretext new book
+      - name: pretext new hello
         shell: bash
         run: |
           rm -rf *
-          python -m pretext new book -d .
+          python -m pretext new hello -d .
 
       - name: setup git config
         run: |
@@ -45,12 +45,12 @@ jobs:
       - name: restore previous files
         run: |
           git restore README.md
-          git restore GenerateAssetsHelp.md
           git restore LICENSE
 
-      - name: commit
+      - name: commit (only .devcontainer and .gitignore files)
         run: |
           # Stage the file, commit and push
-          git add .
-          git commit -m "update to latest `pretext new book`" || echo "No new commit needed"
+          git add .devcontainer/*
+          git add .gitignore
+          git commit -m "update to latest `devcontainer files`" || echo "No new commit needed"
           git push origin main || echo "All done"
