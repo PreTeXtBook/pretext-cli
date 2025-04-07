@@ -630,7 +630,7 @@ def parse_git_remote(string: str) -> t.List[str]:
     return repo_info[-2:]
 
 
-def publish_to_ghpages(directory: Path, update_source: bool) -> None:
+def publish_to_ghpages(directory: Path, update_source: bool, no_push: bool = False) -> None:
     """
     Publish the current project to GitHub pages.
     """
@@ -666,13 +666,11 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         repo.active_branch.rename("main")
         log.info("Successfully initialized new Git repository!")
         log.info("")
-    log.info(f"Preparing to deploy from active `{repo.active_branch.name}` git branch.")
-    log.info("")
+    log.info(f"Preparing to deploy from active `{repo.active_branch.name}` git branch.\n")
     if repo.bare or repo.is_dirty() or len(repo.untracked_files) > 0:
         log.info("Changes to project source since last commit detected.")
         if update_source:
-            log.info("Add/committing these changes to local Git repository.")
-            log.info("")
+            log.info("Committing these changes to local Git repository.\n")
             repo.git.add(all=True)
             repo.git.commit(message="Update to PreTeXt project source.")
             # Should we push this commit?
@@ -684,12 +682,10 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
                 "Just deploying your built project will not save changes to your source on GitHub.`"
             )
             # Note, we no longer return here; continue with deployment even though repo isn't clean.
-
     try:
         origin = repo.remotes.origin
     except AttributeError:
-        log.warning("Remote GitHub repository is not yet configured.")
-        log.info("")
+        log.warning("Remote GitHub repository is not yet configured.\n")
         log.info(
             "And if you haven't already, create a remote GitHub repository for this project at:"
         )
@@ -724,6 +720,7 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
         directory,
         mesg="Latest build deployed.",
         nojekyll=True,
+        no_history=True,
     )
     log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
     # log.info("(Your SSH password may be required.)")
@@ -736,25 +733,36 @@ def publish_to_ghpages(directory: Path, update_source: bool) -> None:
             pages_url = f"https://{repo_name}"
         else:
             pages_url = f"https://{repo_user}.github.io/{repo_name}/"
-    except Exception:
+    except Exception as e:
         log.error(f"Unable to parse GitHub URL from {origin.url}")
         log.error("Deploy unsuccessful")
+        log.debug(e, exc_info=True)
         return
+    # Stop here if we are not pushing to GitHub.
+    if no_push:
+        log.info(
+            "Skipping push to GitHub.  You can push manually with `git push origin gh-pages`."
+        )
+        log.info("")
+        log.info("Output committed to the `gh-pages` branch.")
+        return
+    # Otherwise we try to push to GitHub.
     try:
         origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
         origin.push(refspec="gh-pages:gh-pages")
-    except git.exc.GitCommandError:  # type: ignore
+    except git.exc.GitCommandError as e:  # type: ignore
         log.warning(
-            f"There was an issue connecting to GitHub repository located at {repo_url}"
+            f"There was an issue connecting to GitHub repository located at {repo_url}\n"
         )
-        log.info("")
+        log.debug(e, exc_info=True)
         log.info(
             "Make sure you have set up authentication for GitHub.  For more information, visit:"
         )
         log.info("    https://docs.github.com/en/authentication")
         log.info(
-            "Make sure you can push changes, either from the command line or in VS Code.  Then try to deploy again."
+            "Make sure you can push changes, either from the command line or in VS Code.  Then try to deploy again.\n"
         )
+        log.info("You can also try to run `pretext deploy --no-push` to skip this step, then switch to the `gh-pages` branch (using `git checkout gh-pages`) and push manually.")
         log.info("")
         log.info(f"(If `{origin.url}` doesn't match your GitHub repository,")
         log.info(
