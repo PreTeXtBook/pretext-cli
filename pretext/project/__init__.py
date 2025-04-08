@@ -374,7 +374,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         print("Type of source_doc: ", type(source_doc))
         return source_doc.getroot()
 
-    def source_element(self) -> ET._XSLTResultTree:
+    def source_element(self) -> ET._Element:
         """
         Returns the root element for the assembled source, after processing with the "version-only" assembly.
         """
