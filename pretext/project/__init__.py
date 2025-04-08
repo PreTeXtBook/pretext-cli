@@ -346,12 +346,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     raise ValueError(
                         "Only one <document-id> is allowed in a PreTeXt document."
                     )
-                d = d_list[0]
-                assert isinstance(d, str)
-                # Use the correct number of `../` to undo the project's `output-dir`, so the output from the build is located in the correct directory of `published/document-id`.
-                self.output_dir = Path(
-                    f"{'../'*len(self._project.output_dir.parents)}published/{d}"
-                )
+                # NB as of 2025-04-08, we are no longer setting the output directory automatically for
+                # Runestone targets.  This must be managed by the project.ptx file or by a client script.
+                # The commented code below is how we used to do this.
+
+                # d = d_list[0]
+                # assert isinstance(d, str)
+                # # Use the correct number of `../` to undo the project's `output-dir`, so the output from the build is located in the correct directory of `published/document-id`.
+                # self.output_dir = Path(
+                #    f"{'../'*len(self._project.output_dir.parents)}published/{d}"
+                # )
             else:
                 raise ValueError(
                     "The <document-id> must be defined for the Runestone format."
@@ -360,11 +364,27 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def source_abspath(self) -> Path:
         return self._project.source_abspath() / self.source
 
-    def source_element(self) -> ET._Element:
+    def original_source_element(self) -> ET._Element:
+        """
+        Returns the root element of the original source document without running through pretext assembly.
+        """
         source_doc = ET.parse(self.source_abspath())
         for _ in range(25):
             source_doc.xinclude()
+        print("Type of source_doc: ", type(source_doc))
         return source_doc.getroot()
+
+    def source_element(self) -> ET._XSLTResultTree:
+        """
+        Returns the root element for the assembled source, after processing with the "version-only" assembly.
+        """
+        assembled = core.assembly_internal(
+            xml=self.source_abspath(),
+            pub_file=self.publication_abspath().as_posix(),
+            stringparams=self.stringparams.copy(),
+            method="version",
+        )
+        return assembled.getroot()
 
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
@@ -446,7 +466,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     def generate_asset_table(self) -> pt.AssetTable:
         """
-        Returns a hash table (dictionary) with keys the asset types present in the current target's source, each with value a hash of all the assets of that type.
+        Returns a hash table (dictionary) with keys the asset types present in the current target's *assembled* source, each with value a hash of all the assets of that type.
         ex: {latex-image: <hash>, asymptote: <hash>}.
 
         NOTE: This is a change in behavior starting in 2.13; previously the keys were dictionaries mapping xml:id's to hashes of individual assets.
@@ -455,7 +475,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         ns = {"pf": "https://prefigure.org"}
         for asset in constants.ASSET_TO_XPATH.keys():
             # everything else can be updated individually.
-            # get all the nodes for the asset attribute
+            # get all the nodes for the asset attribute (using assembled source)
             source_assets = self.source_element().xpath(
                 constants.ASSET_TO_XPATH[asset], namespaces=ns
             )
