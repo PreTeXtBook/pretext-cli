@@ -18,11 +18,10 @@
 
   // Comment or uncomment lines below if you don't or do need that feature.
   "postCreateCommand": {
-    "install pretext": "bash ./.devcontainer/installPretext.sh",
+    // "install sagemath": "bash ./.devcontainer/installSage.sh",
     "install pandoc": "bash ./.devcontainer/installPandoc.sh",
     "install latex": "bash ./.devcontainer/installLatex.sh",
-    // "install sagemath": "bash ./.devcontainer/installSage.sh",
-    "working": "echo 'installing additional software into codespace.'"
+    "install pretext": "bash ./.devcontainer/installPretext.sh"
     },
 
 

@@ -3,10 +3,6 @@
 # This file was automatically generated with PreTeXt 2.16.1.
 # If you modify this file, PreTeXt will no longer automatically update it.
 
-while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "Waiting for apt-get to be free..."
-    sleep 15
-done
 sudo apt-get update 
 sudo apt-get install -y --no-install-recommends \
                     python3-louis \
@@ -19,10 +15,6 @@ pip install pretext[homepage,prefigure] --only-binary {greenlet}  --break-system
 
 pip install codechat-server --break-system-packages
 
-while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "Waiting for apt-get to be free..."
-    sleep 15
-done
 playwright install-deps
 
 playwright install
