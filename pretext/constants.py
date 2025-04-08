@@ -229,6 +229,7 @@ PROJECT_RESOURCES = {
     "devcontainer.json": Path(".devcontainer/devcontainer.json"),
     "requirements.txt": Path("requirements.txt"),
     "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
+    "deploy.yml": Path(".github", "workflows", "deploy.yml"),
     "installPretext.sh": Path(".devcontainer", "installPretext.sh"),
     "installPandoc.sh": Path(".devcontainer", "installPandoc.sh"),
     "installLatex.sh": Path(".devcontainer", "installLatex.sh"),
@@ -244,6 +245,7 @@ DEPRECATED_PROJECT_RESOURCES = {
 GIT_RESOURCES = [
     ".gitignore",
     "pretext-cli.yml",
+    "deploy.yml",
     "devcontainer.json",
     "installPretext.sh",
     "installPandoc.sh",

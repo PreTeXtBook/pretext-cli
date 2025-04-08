@@ -1,14 +1,20 @@
 # This file was automatically generated with PreTeXt 2.16.1.
 # If you modify this file, PreTeXt will no longer automatically update it.
 #
+# This workflow file can be used to automatically build a project and create
+# an artifact for deployment.  It can also be used to deploy the project to
+# GitHub Pages or Cloudflare Pages.
+#
+# The workflow is triggered on pull requests or can be run manually.  You can uncomment
+# the `push` event to have it run on pushes to the main branch as well.
 name: PreTeXt-CLI Actions
 on:
     # Runs on pull requests
     pull_request:
         branches: ["*"]
-    # Runs on pushes to main
-    push:
-        branches: ["main"]
+    ## Runs on pushes to main
+    #push:
+    #    branches: ["main"]
     # Runs on demand
     workflow_dispatch:
 
