@@ -35,6 +35,8 @@ jobs:
         shell: bash
         run: |
           rm -rf *
+          rm -rf .devcontainer
+          rm -rf .gitignore
           python -m pretext new hello -d .
 
       - name: setup git config
