@@ -111,7 +111,7 @@
     ".gitignore": "7df710ee93f2d5b67d3b90292f195b35c2053915eec3a4265a440585a2c94816",
     "devcontainer.json": "4d8a29737ff080e9312bad1646262cdf40f54e7e017298d0f59a1cab7fde6955",
     "pretext-cli.yml": "2436f740b3d9aa1b1c64ff5da9a2ef281c12087267225d3c9870ccf0c6d87b16",
-    "deploy.yml": "2f02ebfe0ae2a54edf8e66561e906567424cec5b5467db7d6dd891b56e23ca7b",
+    "pretext-deploy.yml": "2f02ebfe0ae2a54edf8e66561e906567424cec5b5467db7d6dd891b56e23ca7b",
     "installPretext.sh": "8b4ffc06b5bfd75b63ea2f06406ba72e88c6a1f70ddd365e3eed3d4099bf3a92",
     "installPandoc.sh": "0dfd2cf2455efeff82293ba2b3724bc94e20620ed9f87c4cd3ee967d0dedd076",
     "installLatex.sh": "89fc36da1ac5bf3c79e70990d760f288b94afb71dac03f0651424efbf55663aa",
