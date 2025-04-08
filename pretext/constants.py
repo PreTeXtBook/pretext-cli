@@ -229,9 +229,9 @@ PROJECT_RESOURCES = {
     "devcontainer.json": Path(".devcontainer/devcontainer.json"),
     "requirements.txt": Path("requirements.txt"),
     "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
-    "installPretext.sh": Path(".devcontainer", "instalPretext.sh"),
-    "installPandoc.sh": Path(".devcontainer", "instalPandoc.sh"),
-    "installLatex.sh": Path(".devcontainer", "instalLatex.sh"),
+    "installPretext.sh": Path(".devcontainer", "installPretext.sh"),
+    "installPandoc.sh": Path(".devcontainer", "installPandoc.sh"),
+    "installLatex.sh": Path(".devcontainer", "installLatex.sh"),
     "installSage.sh": Path(".devcontainer", "installSage.sh"),
 }
 
