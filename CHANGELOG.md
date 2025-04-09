@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- The CLI now uses your assembled source in case you use "versions" for checking for some source errors and deciding whether assets must be regenerated.  For example, if you change an asset in a component that is not part of a version, it will not trigger rebuilding all assets.
+
+### Fixed
+
+- Fixed a bug with the denver theme that displayed some tasks with their headings not inline.
+
 ## [2.16.1] - 2025-04-08
 
 Includes updates to core through commit: [7017d8f](https://github.com/PreTeXtBook/pretext/commit/7017d8fcc7005984ffc7fad81d0a37062a529a9d)
