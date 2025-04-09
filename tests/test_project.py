@@ -102,7 +102,7 @@ def test_manifest_simple(tmp_path: Path) -> None:
         assert t_rune.platform == "runestone"
         assert t_rune.output_dir_abspath().resolve().relative_to(
             project.abspath()
-        ) == Path("published/runestone-document-id")
+        ) == Path("output/rs")
 
         assert not project.has_target("foo")
 
@@ -120,12 +120,8 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
         project.get_target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
         project.get_target("rs").build()
-        assert (
-            prj_path / "published" / "runestone-document-id" / "index.html"
-        ).exists()
-        assert (
-            prj_path / "published" / "runestone-document-id" / "runestone-manifest.xml"
-        ).exists()
+        assert (prj_path / "output" / "rs" / "index.html").exists()
+        assert (prj_path / "output" / "rs" / "runestone-manifest.xml").exists()
         if HAS_XELATEX:
             project.get_target("print").build()
             assert (prj_path / "output" / "print" / "main.pdf").exists()

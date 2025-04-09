@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This file was automatically generated with PreTeXt 2.16.1.
+# This file was automatically generated with PreTeXt 2.16.2.
 # If you modify this file, PreTeXt will no longer automatically update it.
 
 sudo apt-get update 
