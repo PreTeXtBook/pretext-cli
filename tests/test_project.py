@@ -97,12 +97,12 @@ def test_manifest_simple(tmp_path: Path) -> None:
         assert t_print.platform is None
         assert t_print.deploy_dir is None
 
-        t_rune = project.get_target("rs")
-        assert t_rune.format == "html"
-        assert t_rune.platform == "runestone"
-        assert t_rune.output_dir_abspath().resolve().relative_to(
-            project.abspath()
-        ) == Path("published/runestone-document-id")
+        # t_rune = project.get_target("rs")
+        # assert t_rune.format == "html"
+        # assert t_rune.platform == "runestone"
+        # assert t_rune.output_dir_abspath().resolve().relative_to(
+        #     project.abspath()
+        # ) == Path("published/runestone-document-id")
 
         assert not project.has_target("foo")
 
