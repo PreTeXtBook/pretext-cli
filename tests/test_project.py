@@ -120,12 +120,8 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
         project.get_target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
         project.get_target("rs").build()
-        assert (
-            prj_path / "output" / "rs" / "index.html"
-        ).exists()
-        assert (
-            prj_path / "output" / "rs" / "runestone-manifest.xml"
-        ).exists()
+        assert (prj_path / "output" / "rs" / "index.html").exists()
+        assert (prj_path / "output" / "rs" / "runestone-manifest.xml").exists()
         if HAS_XELATEX:
             project.get_target("print").build()
             assert (prj_path / "output" / "print" / "main.pdf").exists()
