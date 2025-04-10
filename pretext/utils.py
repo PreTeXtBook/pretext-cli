@@ -720,11 +720,7 @@ def publish_to_ghpages(
     log.info("")
     # Should we let ghp_import do the push for us?
     # Should we remove the history?
-    ghp_import.ghp_import(
-        directory,
-        mesg="Latest build deployed.",
-        nojekyll=True
-    )
+    ghp_import.ghp_import(directory, mesg="Latest build deployed.", nojekyll=True)
     log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
     # log.info("(Your SSH password may be required.)")
     log.info("")
