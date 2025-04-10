@@ -21,7 +21,8 @@
     // "install sagemath": "bash ./.devcontainer/installSage.sh",
     "install pandoc": "bash ./.devcontainer/installPandoc.sh",
     "install latex": "bash ./.devcontainer/installLatex.sh",
-    "install pretext": "bash ./.devcontainer/installPretext.sh"
+    "install pretext": "bash ./.devcontainer/installPretext.sh",
+    "mark repo as safe": "git config --global --add safe.directory $(pwd)"
     },
 
 

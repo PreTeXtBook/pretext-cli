@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug preventing some repositories from using `pretext deploy`.
+
 ## [2.17.0] - 2025-04-09
 
 Includes updates to core through commit: [2c3fda7](https://github.com/PreTeXtBook/pretext/commit/2c3fda724738cabba04c28378f91a64a72a0e7c2)

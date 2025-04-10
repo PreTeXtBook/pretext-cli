@@ -720,12 +720,7 @@ def publish_to_ghpages(
     log.info("")
     # Should we let ghp_import do the push for us?
     # Should we remove the history?
-    ghp_import.ghp_import(
-        directory,
-        mesg="Latest build deployed.",
-        nojekyll=True,
-        no_history=True,
-    )
+    ghp_import.ghp_import(directory, mesg="Latest build deployed.", nojekyll=True)
     log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
     # log.info("(Your SSH password may be required.)")
     log.info("")
@@ -778,16 +773,14 @@ def publish_to_ghpages(
         log.error("Deploy was unsuccessful.")
         return
     log.info("")
-    log.info("Latest build successfully pushed to GitHub!")
+    log.info("Latest build successfully pushed to GitHub!\n")
     log.info("")
     log.info("To enable GitHub Pages, visit")
     log.info(f"    {repo_url}settings/pages")
-    log.info("selecting the `gh-pages` branch with the `/ (root)` folder.")
-    log.info("")
+    log.info("selecting the `gh-pages` branch with the `/ (root)` folder.\n")
     log.info("Visit")
     log.info(f"    {repo_url}actions/")
-    log.info("to check on the status of your GitHub Pages deployment.")
-    log.info("")
+    log.info("to check on the status of your GitHub Pages deployment.\n")
     log.info("Your built project will soon be available to the public at:")
     log.info(f"    {pages_url}")
 
