@@ -70,6 +70,7 @@
         },
         "editor.snippetSuggestions": "top",
         "xml.validation.enabled": false,
+        "redhat.telemetry.enabled": false,
         "CodeChat.CodeChatServer.Command": "CodeChat_Server"
       },
       "extensions": [
