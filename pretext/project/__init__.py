@@ -75,6 +75,7 @@ class BrailleMode(str, Enum):
 
 class Compression(str, Enum):
     ZIP = "zip"
+    SCORM = "scorm"
 
 
 # This class defines the possibilities of the `Target.platform`` attribute.
