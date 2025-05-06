@@ -1,4 +1,3 @@
-
 import sys
 import os
 import re
@@ -26,7 +25,9 @@ def main(project_path) -> None:
                     print(f"Error reading file {file_path}: {e}")
 
     # Print the tag counts
-    for tag, count in sorted(tag_counts.items(), key=lambda item: item[1], reverse=True):
+    for tag, count in sorted(
+        tag_counts.items(), key=lambda item: item[1], reverse=True
+    ):
         print(f"{tag}: {count}")
 
 
