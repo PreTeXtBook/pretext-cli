@@ -9,6 +9,21 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Support for more journals.
+- HTML build can now create a SCORM archive for uploading to an LMS.
+- Further improvements for portable html builds (fewer auxilary files created).
+- New "boulder" theme for minimal single-page HTML builds.
+- Optional embed button (for getting `<iframe>` code to put in an LMS).
+- Improvements to `program` element.
+
+## Changed
+
+- Improvements to wide elements in CSS themes
+- Deprecated "matches" in exercises in favor of "cardsort"
+- `Listing`s now use `title`s instead of `caption`s
+
 ## [2.17.1] - 2025-04-10
 
 Includes updates to core through commit: [7936f3f](https://github.com/PreTeXtBook/pretext/commit/7936f3fd1595439fe86adc44ea9a4f8045372801)
