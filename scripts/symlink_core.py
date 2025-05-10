@@ -17,7 +17,7 @@ def main(core_path: Path = Path("../pretext")) -> None:
 
     # Remove the current pretext/core/pretext.py file
     script_link_path = Path("pretext").resolve() / "core" / "pretext.py"
-    script_core_path = core_path / "pretext"  / "lib" / "pretext.py"
+    script_core_path = core_path / "pretext" / "lib" / "pretext.py"
     utils.remove_path(script_link_path)
     # Link to the local core python script
     script_link_path.symlink_to(script_core_path)

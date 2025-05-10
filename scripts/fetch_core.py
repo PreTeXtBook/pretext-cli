@@ -77,7 +77,11 @@ def main(args=None) -> None:
             # update_css(tmpdirname)
 
             shutil.copyfile(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "pretext" / "lib" / "pretext.py",
+                Path(tmpdirname)
+                / f"pretext-{CORE_COMMIT}"
+                / "pretext"
+                / "lib"
+                / "pretext.py",
                 Path("pretext").resolve() / "core" / "pretext.py",
             )
             shutil.copyfile(
