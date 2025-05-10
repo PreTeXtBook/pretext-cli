@@ -1054,6 +1054,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         xmlid_root=xmlid,
                         dest_dir=self.generated_dir_abspath() / "prefigure",
                         outformat=outformat,
+                        ext_converter=partial(
+                            generate.individual_prefigure,
+                            cache_dir=self.generated_cache_abspath(),
+                            skip_cache=skip_cache,
+                        ),
                     )
                 successful_assets.append("prefigure")
             except Exception as e:
