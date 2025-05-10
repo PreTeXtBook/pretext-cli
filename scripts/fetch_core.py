@@ -65,6 +65,7 @@ def main(args=None) -> None:
     core_zip = requests.get(f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip")
     # remove current core/pretext.py file in case it is a link
     utils.remove_path(Path("pretext").resolve() / "core" / "pretext.py")
+    utils.remove_path(Path("pretext").resolve() / "core" / "braille_format.py")
 
     with open(core_zip_path, "wb") as f:
         f.write(core_zip.content)
@@ -76,13 +77,14 @@ def main(args=None) -> None:
             # update_css(tmpdirname)
 
             shutil.copyfile(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "pretext" / "pretext.py",
+                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "pretext" / "lib" / "pretext.py",
                 Path("pretext").resolve() / "core" / "pretext.py",
             )
             shutil.copyfile(
                 Path(tmpdirname)
                 / f"pretext-{CORE_COMMIT}"
                 / "pretext"
+                / "lib"
                 / "braille_format.py",
                 Path("pretext").resolve() / "core" / "braille_format.py",
             )
