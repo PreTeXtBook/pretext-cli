@@ -11,12 +11,12 @@ log = logging.getLogger("ptxlogger")
 
 # The individual asset type generation functions
 def individual_prefigure(
-    pfdiagram,
-    outformat,
-    tmp_dir,
+    pfdiagram: str,
+    outformat: str,
+    tmp_dir: str,
     cache_dir: Path,
     skip_cache: bool = False,
-):
+) -> None:
     """
     Checks whether a cached version of the diagram in the correct outformat exists.  If it does, copies it to the tmp_dir and returns.  If it does not, calls the core.individual_prefigure_conversion function to generate the diagram in the correct outformat and then copies it to the tmp_dir.  In the latter case, also makes a copy to the cached version in the cache_dir.
     - outformat will be a file extension.
