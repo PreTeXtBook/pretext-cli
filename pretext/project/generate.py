@@ -10,26 +10,35 @@ log = logging.getLogger("ptxlogger")
 
 
 # The individual asset type generation functions
-def individual_prefigure(pfdiagram, outformat, tmp_dir, cache_dir: Path,
-    skip_cache: bool = False,):
+def individual_prefigure(
+    pfdiagram,
+    outformat,
+    tmp_dir,
+    cache_dir: Path,
+    skip_cache: bool = False,
+):
     """
     Checks whether a cached version of the diagram in the correct outformat exists.  If it does, copies it to the tmp_dir and returns.  If it does not, calls the core.individual_prefigure_conversion function to generate the diagram in the correct outformat and then copies it to the tmp_dir.  In the latter case, also makes a copy to the cached version in the cache_dir.
     - outformat will be a file extension.
     """
     log.debug("Using the CLI's individual_prefigure function")
     asset_file = Path(pfdiagram).resolve()
+    # Set output directory and create it if it doesn't exist
+    output_dir = Path(tmp_dir).resolve() / "output"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    # Set cache directory
+    cache_dir = cache_dir / "prefigure"
     outformats = ["pdf", "svg", "png", "tactile"] if outformat == "all" else [outformat]
+    if "tactile" in outformats:
+        (cache_dir / "tactile").mkdir(parents=True, exist_ok=True)
     for format in outformats:
         if format == "tactile":
-            cache_file = cache_asset_filename(
-                asset_file, "pdf", "prefigure" / "tactile", cache_dir
-            )
-            output_file = tmp_dir / "tactile" / asset_file.with_suffix("pdf").name
+            tactile_cache_dir = cache_dir / "tactile"
+            cache_file = cache_asset_filename(asset_file, "pdf", tactile_cache_dir)
+            output_file = output_dir / "tactile" / asset_file.with_suffix(".pdf").name
         else:
-            cache_file = cache_asset_filename(
-                asset_file, format, "prefigure", cache_dir
-            )
-            output_file = tmp_dir / asset_file.with_suffix(f".{format}").name
+            cache_file = cache_asset_filename(asset_file, format, cache_dir)
+            output_file = output_dir / asset_file.with_suffix(f".{format}").name
         if cache_file.exists() and not skip_cache:
             log.debug(f"Copying cached prefigure diagram {cache_file} to {output_file}")
             shutil.copy2(cache_file, output_file)
@@ -60,7 +69,8 @@ def individual_asymptote(
     """
     log.debug("Using the CLI's individual_asymptote function")
     asset_file = Path(asydiagram).resolve()
-    cache_file = cache_asset_filename(asset_file, outformat, "asymptote", cache_dir)
+    cache_dir = cache_dir / "asymptote"
+    cache_file = cache_asset_filename(asset_file, outformat, cache_dir)
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
     if cache_file.exists() and not skip_cache:
         log.debug(f"Copying cached asymptote diagram {cache_file} to {output_file}")
@@ -92,10 +102,10 @@ def individual_sage(
 
     log.debug("Using the CLI's individual_sage function")
     asset_file = Path(sageplot).resolve()
+    cache_dir = cache_dir / "sageplot"
     cache_file = cache_asset_filename(
         asset_file,
         outformat,
-        "sageplot",
         cache_dir,
     )
     output_file = dest_dir / asset_file.with_suffix(f".{outformat}").name
@@ -129,9 +139,9 @@ def individual_latex_image(
     log.debug("Using the CLI's individual_latex function")
     asset_file = Path(latex_image).resolve()
     outformats = ["png", "pdf", "svg", "eps"] if outformat == "all" else [outformat]
+    cache_dir = cache_dir / "latex-image"
     cache_files = {
-        ext: cache_asset_filename(asset_file, ext, "latex-image", cache_dir)
-        for ext in outformats
+        ext: cache_asset_filename(asset_file, ext, cache_dir) for ext in outformats
     }
     output_files = {
         ext: dest_dir / asset_file.with_suffix(f".{ext}").name for ext in outformats
@@ -159,13 +169,11 @@ def individual_latex_image(
     log.debug("Finished individual_latex function")
 
 
-def cache_asset_filename(
-    asset_file: Path, extension: str, sub_dir: Path, cache_dir: Path
-) -> Path:
+def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> Path:
     asset_content = asset_file.read_bytes()
     hash = hashlib.md5()
     # hash the asset file
     hash.update(asset_content)
     asset_hash = hash.hexdigest()
     # create the cache file name
-    return cache_dir / sub_dir / f"{asset_hash}.{extension}"
+    return cache_dir / f"{asset_hash}.{extension}"
