@@ -28,10 +28,11 @@ def individual_prefigure(
     output_dir.mkdir(parents=True, exist_ok=True)
     # Set cache directory
     cache_dir = cache_dir / "prefigure"
-    outformats = ["pdf", "svg", "png", "tactile"] if outformat == "all" else [outformat]
+    outformats = ["tactile", "pdf", "png", "svg"] if outformat == "all" else [outformat]
     if "tactile" in outformats:
         (cache_dir / "tactile").mkdir(parents=True, exist_ok=True)
     for format in outformats:
+        log.debug(f"Generating prefigure diagram in {format} format")
         if format == "tactile":
             tactile_cache_dir = cache_dir / "tactile"
             cache_file = cache_asset_filename(asset_file, "pdf", tactile_cache_dir)
@@ -39,9 +40,28 @@ def individual_prefigure(
         else:
             cache_file = cache_asset_filename(asset_file, format, cache_dir)
             output_file = output_dir / asset_file.with_suffix(f".{format}").name
+            log.debug(
+                f"cache_file: {cache_file} and output_file: {output_file}; asset_file: {asset_file}"
+            )
+        if format == "svg":
+            # look for file with -annotations suffix
+            annotations_cache_file = cache_file.with_suffix("").with_name(
+                cache_file.stem + "-annotations.xml"
+            )
+            annotations_output_file = output_file.with_suffix("").with_name(
+                output_file.stem + "-annotations.xml"
+            )
+            log.debug(
+                f"cache_file: {cache_file} and annotations_cache_file: {annotations_cache_file}; asset_file: {asset_file}"
+            )
         if cache_file.exists() and not skip_cache:
             log.debug(f"Copying cached prefigure diagram {cache_file} to {output_file}")
             shutil.copy2(cache_file, output_file)
+            if format == "svg" and annotations_cache_file.exists():
+                log.debug(
+                    f"Copying cached prefigure diagram {annotations_cache_file} to {output_file}"
+                )
+                shutil.copy2(annotations_cache_file, annotations_output_file)
         else:
             core.individual_prefigure_conversion(pfdiagram, format)
             if output_file.exists():
@@ -49,6 +69,11 @@ def individual_prefigure(
                     f"Created prefigure diagram {output_file}; saving a copy to cache as {cache_file}"
                 )
                 shutil.copy2(output_file, cache_file)
+                if format == "svg" and annotations_output_file.exists():
+                    log.debug(
+                        f"Created prefigure diagram {annotations_output_file}; saving a copy to cache as {annotations_cache_file}"
+                    )
+                    shutil.copy2(annotations_output_file, annotations_cache_file)
     log.debug("Finished individual_prefigure function")
 
 
