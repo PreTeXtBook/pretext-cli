@@ -853,7 +853,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             self.clean_assets()
 
         # Ensure that the generated_cache directories exist:
-        for subdir in ["latex-image", "asymptote", "sageplot"]:
+        for subdir in ["latex-image", "asymptote", "sageplot", "prefigure"]:
             if not (self.generated_cache_abspath() / subdir).exists():
                 (self.generated_cache_abspath() / subdir).mkdir(
                     parents=True, exist_ok=True
@@ -1054,6 +1054,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         xmlid_root=xmlid,
                         dest_dir=self.generated_dir_abspath() / "prefigure",
                         outformat=outformat,
+                        ext_converter=partial(
+                            generate.individual_prefigure,
+                            cache_dir=self.generated_cache_abspath(),
+                            skip_cache=skip_cache,
+                        ),
                     )
                 successful_assets.append("prefigure")
             except Exception as e:
