@@ -178,15 +178,15 @@
     "installSage.sh": "e348661cec4f3435a024447441c56e5649acf6df85151cb1b3b768af5649ed4e"
   },
   "2.18.1": {
-    "project.ptx": "21483fd81335231c6ceab1ca6ed99c549d41c0f54962a8b74ddb4155782cbad6",
-    "codechat_config.yaml": "f048345f9bee125c13f849adf63f325f61fa187690d60041f1d541c2a2cf2a86",
-    ".gitignore": "066a42307b2c091924aba1f85d83865f5f318a635d6b82b2de03756a6cd50fbc",
-    "devcontainer.json": "e9a8bc90f4f021eb3e98b01a45713b4b5e1a03382c90ef1d029a3490a6887ff1",
-    "pretext-cli.yml": "30aa1b158017b69a5370122c34d272742920f2530015b13c924770cc9c94f928",
-    "pretext-deploy.yml": "70e538e4b151d0e4a2b629c821c33274110ff08e63bb433c9772f8e6b0f4e6e2",
-    "installPretext.sh": "f91d636f0f1144eac0682c6791d81b37a937aa3330698fee5387438720cad701",
-    "installPandoc.sh": "8add34045dc9c64473557b7c7d4413f7fed8ee54d8a1edbdc249c8434682ff1c",
-    "installLatex.sh": "fdb0f2e252fd6a907959e0c96c1c489b18e0595a5a6cc544e717c3728eb99e51",
-    "installSage.sh": "fcfd143753199d1b5650fc7bc9aa0ba9e51af9a4df100882e29d9bcf1a4a7cb1"
+    "project.ptx": "f3f3e16b50e0381f290001609016da425c537048af7fe19538634e96977f617a",
+    "codechat_config.yaml": "786ab3526a91a5064c74db5f8fc12b10420b985693878058682b39b38af9f137",
+    ".gitignore": "475cb8be1cd6c448783eb28fdf02d7d76640a9755369d0749843a00bc56bd4bc",
+    "devcontainer.json": "2d6897fb791be0bc96819adc6829717ca0a318f46d78a22de2cf0b91a40b5f30",
+    "pretext-cli.yml": "6b74ed2f87fb35a1187d77c6af34c21fc654e8b9376cd4d33629dcb1ec5ab825",
+    "pretext-deploy.yml": "8557f03e859eea27fa8c41d503372fc9690260aaa85c50f50df2388ad337fb7f",
+    "installPretext.sh": "3c6b809166962cfc31b9e97c52375ec126677d0144119baf9dac72dc1e1b666a",
+    "installPandoc.sh": "c6ead0e7e6e64c00820c2bde4dcba23197023c9db77d4956171f9014ffa17b20",
+    "installLatex.sh": "204e49c5253fc3de6bd4f4b94e2aeb073e2aef238cda12de13d574a7d897453d",
+    "installSage.sh": "4a6b07c3da5ce88213d8eb297dae28336eef066becfa3e49919f4c73fa03c064"
   }
 }
