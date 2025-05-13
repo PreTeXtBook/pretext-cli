@@ -19,11 +19,11 @@ playwright install-deps
 
 playwright install
 
-# Install mermaid for diagrams
-npm install -g @mermaid-js/mermaid-cli
 
 # echo '/usr/lib/python3/dist-packages' > /usr/local/lib/python3.8/dist-packages/louis.pth
-
 prefig init
+
+# Install mermaid for diagrams
+npm install -g @mermaid-js/mermaid-cli
 
 echo "PreTeXt installation complete."
