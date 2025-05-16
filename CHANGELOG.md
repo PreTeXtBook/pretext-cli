@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.18.2] - 2025-05-16
+
+Includes updates to core through commit: [11011fb](https://github.com/PreTeXtBook/pretext/commit/11011fbbd7e35d3e66063bc421cc86386ff6d748)
+
 ## Changed
 
 - Update devcontainer for codespaces with more custom settings and suggested extensions.
