@@ -120,6 +120,14 @@ These parameters are rarely used by content authors.</a:documentation>
         </choice>
       </attribute>
     </optional>
+    <optional>
+      <attribute name="standalone">
+        <choice>
+          <value>yes</value>
+          <value>no</value>
+        </choice>
+      </attribute>
+    </optional>
   </define>
   <define name="HtmlAttributes">
     <attribute name="format">
@@ -133,7 +141,10 @@ These parameters are rarely used by content authors.</a:documentation>
       </optional>
       <optional>
         <attribute name="compression">
-          <value>zip</value>
+          <choice>
+            <value>zip</value>
+            <value>scorm</value>
+          </choice>
         </attribute>
       </optional>
     </choice>
