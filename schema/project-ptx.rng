@@ -120,6 +120,14 @@ These parameters are rarely used by content authors.</a:documentation>
         </choice>
       </attribute>
     </optional>
+    <optional>
+      <attribute name="standalone">
+        <choice>
+          <value>yes</value>
+          <value>no</value>
+        </choice>
+      </attribute>
+    </optional>
   </define>
   <define name="HtmlAttributes">
     <attribute name="format">
@@ -131,11 +139,19 @@ These parameters are rarely used by content authors.</a:documentation>
           <value>runestone</value>
         </attribute>
       </optional>
-      <optional>
-        <attribute name="compression">
-          <value>zip</value>
-        </attribute>
-      </optional>
+      <group>
+        <optional>
+          <attribute name="compression">
+            <choice>
+              <value>zip</value>
+              <value>scorm</value>
+            </choice>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="output-filename"/>
+        </optional>
+      </group>
     </choice>
   </define>
   <define name="PdfAttributes">

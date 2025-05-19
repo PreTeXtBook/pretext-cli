@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Contributed by Mitch Keller -->
+<worksheet>
+  <title>Equivalence Relations and Counting</title>
+  <page>
+
+    <exercise workspace="0.5in">
+      <statement>
+        <p>
+          Let <m>A = \{a, b, c, d, e\}</m>. Suppose <m>R</m> is an equivalence relation on <m>A</m>. Suppose <m>R</m> has two equivalence classes. Also <m>aRd</m>, <m>bR c</m>, and <m>eRd</m>. Write out <m>R</m> as a set.
+        </p>
+      </statement>
+
+      <solution component="w2s">
+        <p>
+          Since <m>R</m> is an equivalence relation, the relation is reflexive, so every element is related to itself. Since we are told <m>aRd</m>, this means by symmetry that <m>d R a</m>. Similarly, <m>cRb</m> because <m>bRc</m> and <m>dRe</m> because <m>eRd</m>. By transitivity, we have that <m>aRe</m> and <m>e R a</m>. To make writing the elements of <m>R</m> easier to see, here is the equivalence relation as a diagram:
+        </p>
+        <image width="50%">
+          <shortdescription>An equivalence relation as a digraph</shortdescription>
+          <prefigure xmlns="https://prefigure.org" label="2025-Worksheet-12-Ex-7">
+            <diagram dimensions="(200,200)" margins="5">
+              <definition>N=5</definition>
+              <definition>f(t)=(cos(2*pi*t/N), sin(2*pi*t/N))</definition>
+              <coordinates bbox="(-1.75,-1.75,1.75,1.75)">
+                <network directed="yes" scale="0.8"
+                node-fill="#ffffff" node-stroke="black"
+                seed="1" labels="yes" loop-scale="(0.5,0.5)"
+                tactile-node-size="40" node-size="10" >
+                <node at="1" p="f(0)" edges="[1,4,5]" loop-orientation="0"><m>a</m></node>
+                <node at="2" p="f(1)" edges="[2,3]" loop-orientation="0"><m>b</m></node>
+                <node at="3" p="f(2)" edges="[3,2]"><m>c</m></node>
+                <node at="4" p="f(3)" edges="[1,4,5]"><m>d</m></node>
+                <node at="5" p="f(4)" edges="[1,4,5]" loop-orientation="270"><m>e</m></node>
+              </network>
+            </coordinates>
+          </diagram>
+        </prefigure>
+      </image>
+      <p>
+        From this, we can more readily see that the relation will be
+        <md>
+          <mrow>R = \{ \amp(a,a), (d,d), (e,e), (a,d), (d,a), (a,e), (e,a) , </mrow>
+            <mrow>\amp (d,e), (e,d), (b,b), (c,c), (b,c), (c,b) \}</mrow>
+          </md>.
+        </p>
+      </solution>
+    </exercise>
+
+    <exercise>
+      <introduction>
+        <p>
+          Prove the relations below are equivalence relations, and describe the relation's equivalence classes.
+        </p>
+      </introduction>
+
+      <task workspace="1in">
+        <statement>
+          <p>
+            The relation <m>R</m> on <m>\Z</m>, where <m>xR y </m> if and only if <m>3x -5y </m> is even.
+          </p>
+        </statement>
+        <solution component="w2s">
+          <p>
+            We need to show that this relation is reflexive, symmetric, and transitive.
+          </p>
+
+          <p>
+            For any <m>x \in \Z</m>, <m>3x-5x = -2x</m> so this is clearly even. Hence, <m>xRx</m>, so <m>R</m> is reflexive.
+          </p>
+
+          <p>
+            Suppose that <m>x,y \in \Z</m> with <m>x R y</m>, so <m>3x-5y</m> is even. This means that <m>3x-5y=2k</m> for some integer <m>k</m>. Then,
+            <md>
+              <mrow>
+                3y-5x \amp= 3y + 2y -2y -5x + 2x -2x
+              </mrow>
+              <mrow>
+                \amp= 5y - 2y - 3x - 2x
+              </mrow>
+              <mrow>
+                \amp= (5y-3x)-2x-2y
+              </mrow>
+              <mrow>
+                \amp= -(3x-5y)-2x-2y
+              </mrow>
+              <mrow>
+                \amp= -2k - 2x - 2y
+              </mrow>
+              <mrow>
+                \amp= 2(-k-x-y)
+              </mrow>
+            </md>,
+            which is even because <m>k,x,y \in \Z</m>. Therefore, <m>y R x</m> as well. Thus, <m>R</m> is symmetric.
+          </p>
+
+          <p>
+            Now, assume that <m>x,y,z \in \Z</m> with <m>xRy</m> and <m>yRz</m>. Therefore, <m>3x-5y</m> and <m>3y - 5z</m> are both even, meaning that there exist integers <m>a</m> and <m>b</m> so that <m>3x-5y= 2a</m> and <m>3y-5z=2b</m>. We thus have
+            <md>
+              <mrow>
+                3x-5z \amp= 3x -5y + 5y -5z
+              </mrow>
+              <mrow>
+                \amp= (3x-5y) + 2y + (3y-5z)
+              </mrow>
+              <mrow>
+                \amp= 2a + 2y + 2b
+              </mrow>
+              <mrow>
+                \amp= 2(a+y+b)
+              </mrow>
+            </md>,
+            which is even because <m>a,y,b \in \Z</m>. Therefore, <m>x R z</m>, so <m>R</m> is transitive. We conclude that <m>R</m> is an equivalence relation.
+          </p>
+
+          <p>
+            To determine the equivalence classes, note that
+            <md>
+              <mrow>
+                [0] \amp= \{ x \in \Z : x R 0 \}
+              </mrow>
+              <mrow>
+                \amp= \{ x \in \Z : 3x-5\cdot 0 \text{ is even} \}
+              </mrow>
+              <mrow> \amp= \{ x \in \Z : 3x \text{ is even} \}
+              </mrow>
+              <mrow> \amp= \{ x \in \Z : x \text{ is even} \}
+              </mrow>
+            </md>
+            where the last equality follows because <m>3x</m> is even if and only if <m>x</m> is even. (Further justification is left as an exercise for the reader :).) Similarly, note that
+            <me>
+              [1] = \{ x \in \Z : x R 1 \} = \{ x \in \Z : 3x-5\cdot 1 \text{ is even} \} = \{ x \in \Z : x \text{ is odd} \}
+            </me>
+            where we used the fact that <m>3x-5</m> is even if and only if <m>x</m> is odd (Also left as an exercise for the reader :).) Since the sets of even and odd integers partition the set of all integers, these are the equivalence classes.
+          </p>
+        </solution>
+      </task>
+
+      <task workspace="1in">
+        <statement>
+          <p>
+            The relation <m>R</m> on <m>\Z</m> as <m>xR y </m> if and only if <m>x^2 + y^2</m> is even.
+          </p>
+        </statement>
+        
+        <solution component="w2s">
+          <p>
+            We will show that <m>R</m> is reflexive, symmetric, and transitive. Note that if <m>x \in \Z</m>, then <m>x^2 + x^2 = 2x^2</m> which is clearly even, so <m>x R x</m>. Thus, <m>R</m> is reflexive. Clearly <m>R</m> is symmetric: if <m>x,y\in\Z</m> with <m>xRy</m>, then <m>x^2+y^2</m> is even. Addition is commutative so <m>y^2+x^2=x^2+y^2</m> is also even, meaning that <m>yRx.</m> Finally, let <m>x,y,z \in \Z</m> with <m>xRy</m> and <m>yRz</m>. Thus, <m>x^2 +y^2</m> and <m>y^2 + z^2</m> are both even, so there exist integers <m>a</m> and <m>b</m> where <m>x^2+y^2 = 2a</m> and <m>y^2+z^2 = 2b</m>. Solving for <m>x^2</m> and <m>z^2</m>, we get that <m>x^2 = 2a-y^2</m> and <m>z^2 = 2b-y^2</m>. Hence,
+            <me>
+              x^2 + z^2 = 2a-y^2 + 2b-y^2 = 2a+2b-2y^2 = 2(a+b-y^2),
+            </me>
+            which implies that <m>x^2+z^2</m> is even because <m>a,b,y \in \Z</m>. Thus, <m>x R z</m>, so the relation is transitive.
+          </p>
+
+          <p>
+            The equivalence classes are
+            <me>
+              [0] = \{ x \in \Z : x R 0 \} = \{ x \in \Z : x^2 \text{ is even}\} = \{ x \in \Z : x \text{ is even} \}
+            </me>
+            where we use the fact that <m>x^2</m> is even if and only if <m>x</m> is even (left as an exercise:) ), and
+            <me>
+              [1] = \{ x \in \Z : x R 1 \} = \{ x \in \Z : x^2 + 1 \text{ is even} \} = \{ x \in \Z : x \text{ is odd} \}
+            </me>
+            where we use the fact that <m>x^2+1</m> is even if and only if <m>x</m> is odd (left as an exercise:) ). The sets of even and odd integers partition <m>\Z</m>, so these are the equivalence classes.
+          </p>
+        </solution>
+      </task>
+    </exercise>
+
+    <exercise workspace="0.5in">
+      <statement>
+        <p>
+          Describe the partition of <m>\Z</m> resulting from the equivalence relation <m>\equiv \pmod{4}</m>.
+        </p>
+      </statement>
+      <solution component="w2s">
+        <p>
+          The way congruence modulo <m>4</m> partitions <m>\Z</m> is based on the remainder after division. So, there are four equivalence classes:
+          <md>
+            <mrow>
+              [0] \amp = \{ x \in \Z : x \equiv 0 \pmod 4\} = \{ \ldots,-8,  -4, 0, 4, 8, 12, \ldots \},
+            </mrow>
+            <mrow>
+              [1] \amp = \{ x \in \Z : x \equiv 1 \pmod 4\} = \{ \ldots,-7,  -3, 1,5, 9, 13, \ldots \},
+            </mrow>
+            <mrow>
+              [2] \amp = \{ x \in \Z : x \equiv 2 \pmod 4\} = \{ \ldots,-6,-2,2,6,10,14 \ldots \},
+            </mrow>
+            <intertext>and</intertext>
+            <mrow>
+              [3] \amp = \{ x \in \Z : x \equiv 3 \pmod 4\} = \{ \ldots,-5,-1,3,7,11,15, \ldots \}.
+            </mrow>
+          </md>
+        </p>
+      </solution>
+    </exercise>
+    <exercise workspace="0.25in">
+      <introduction>
+        <p>
+          Consider the following definitions for characters: the digits are the integers between 0 and 9 (inclusive), the letters are the lowercase letters (<m>a</m> through <m>z</m>), and the special characters are <m>\{*, ?, \$, \# \}</m>. Compute the number of passwords that satisfy the given constraints.
+        </p>
+      </introduction>
+
+      <task>
+        <statement>
+          <p>
+            Strings of length <m>6</m>, where characters can be special characters, digits, or letters.
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            The sets of special characters, digits, and letters are all mutually disjoint, which means that by the sum rule the total number of characters will be <m>10 + 26 + 4 = 40</m>. Then, each of the six characters in the string can be any of the <m>40</m> characters, so there are a total of <m>40^6</m> possible passwords.
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            Strings of length <m>7,8,</m> or <m>9</m>. Characters can be special characters, digits, or letters.
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            The strings of length <m>7</m>, <m>8</m>, and <m>9</m> are mutually disjoint, so by the sum rule we have that there are <m>40^7 + 40^8 + 40^9</m> possible passwords.
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            Strings of length <m>7,8</m>, or <m>9</m>. Characters can be special characters, digits, or letters. The first character cannot be a letter.
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            When choosing a string of length <m>j</m> where the first character is not a letter, there are <m>10+4 = 14</m> available choices for the first character between digits and special characters, and <m>40</m> choices remaining for the remaining <m>j-1</m> elements of the string. Hence, for a string of length <m>j</m> subject to these constraints, there are <m>14 \cdot 40^{j-1}</m> choices. The sets of strings of lengths <m>7</m>, <m>8</m>, and <m>9</m> are mutually disjoint, so by the sum rule, the total number of strings subject to the given constraints will be
+            <me>
+              14 \cdot 40^{7-1} + 14\cdot 40^{8-1} + 14\cdot 40^{9-1} = 14 ( 40^6 + 40^7 + 40^8).
+            </me>
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            The password must be a string of length <m>6</m>. Characters can be special characters, digits, or letters, with no repeated characters.
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            Since there are a total of <m>40</m> characters, and characters are not repeated, there is <m>40</m> choices for the first character, <m>39</m> choices for the second character, <m>38</m> choices for the third, etc. Hence, the total number of strings of length <m>6</m> without character repetitions is <m>40 \cdot 39 \cdot 38 \cdot 37 \cdot 36 \cdot 35</m>.
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            The password must be a string of length <m>6</m>. Characters can be special characters, digits, or letters, with no repeated characters. The first character cannot be a special character.
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            Since the first character cannot be a special character, there are <m>10 + 26 = 36</m> choices for the first character. Once the first character has been chosen, then there are <m>39</m> choices for the second character because we do not allow for repeated characters. For the third character, there will be <m>38</m> choices, etc. Hence, the total number of strings of length <m>6</m> with no repetitions in which the first character is not a special character will be <m>36 \cdot 39 \cdot 38 \cdot 37 \cdot 36 \cdot 35</m>.
+          </p>
+        </solution>
+      </task>
+    </exercise>
+  </page>
+
+  <page>
+    <exercise workspace="0.65in">
+      <statement>
+        <p>
+          Find a function from the set <m>\{1,2,\ldots,30\}</m> to <m>\{1,2,\ldots,10\}</m> that is a <m>3</m>-to-<m>1</m> correspondence. (The division, ceiling, or floor operations may be useful here.)
+        </p>
+      </statement>
+
+      <solution component="w2s">
+        <p>
+          One possibility is <m>f(x) = \lceil \frac{x}{3} \rceil</m>. This is a <m>3</m>-to-<m>1</m> correspondence because for <m>j \in \{1, 2, \ldots, 10\}</m>, the numbers that will get mapped to <m>j</m> under <m>f</m> will be <m>3j</m>, <m>3j-1</m>, and <m>3j-2</m> (which are all elements of <m>\{1,2,\cdots,30\}</m>).
+        </p>
+      </solution>
+    </exercise>
+
+    <exercise workspace="0.65in">
+      <statement>
+        <p>
+          How many strings are there over the set <m>\{a,b,c\}</m> that have length <m>10</m> in which no two consecutive characters are the same? For example, the string <q>abcbcbabcb</q> counts, and the strings <q>abbbcbabcb</q> and <q>aacbcbabcb</q> do not count.
+        </p>
+      </statement>
+
+      <solution component="w2s">
+        <p>
+          There are <m>3</m> choices for the first character in the string, and <m>2</m> choices for the second character. For the third, since we cannot have two consecutive characters be the same, we therefore have <m>2</m> choices. Similarly, there are <m>2</m> choices for the fourth, etc. Hence, there are <m>3 \cdot 2^9</m> strings of length <m>10</m> in which no two consecutive characters are the same.
+        </p>
+      </solution>
+    </exercise>
+
+
+
+
+    <exercise workspace="0.65in">
+      <statement>
+        <p>
+          A girl scout troop with ten girl scouts and two leaders goes on a hike. When the path narrows, the troop must walk in single file with a leader at the front and a leader at the back. How many ways are there for the entire troop (including the girl scouts and the leaders) to line up?
+        </p>
+      </statement>
+
+      <solution component="w2s">
+        <p>
+          There are <m>2</m> choices for the leader at the front. Then, there are <m>10!</m> choices made for the ten girl scouts in the middle. Finally, there is one choice for the leader at the back of the line. Hence there are <m>2 \cdot 10!</m> ways to line up the entire troop.
+        </p>
+      </solution>
+    </exercise>
+
+    <exercise workspace="0.75in">
+      <introduction>
+        <p>
+          Suppose a network has 40 computers of which five fail.
+        </p>
+      </introduction>
+
+      <task>
+        <statement>
+          <p>
+            How many possibilities are there for the five that fail?
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            Note that this is the same as selecting a subset of five computers from a set of <m>40</m> computers. There are <m>\binom{40}{5}</m> ways to do this.
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            Suppose that three of the computers in the network have a copy of a particular file. How many sets of failures wipe out all the copies of the file? That is, how many <m>5</m>-subsets contain the three computers that have the file?
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            In this context, any such <m>5</m>-subset of computers that fail must contain the three computers that have the file. The two remaining computers in the subset must then be selected from the <m>37</m> computers that did not contain the file. Thus, the number of such <m>5</m>-subsets in which the three computers with the file fail is the number of ways to select two computers from the <m>37</m> computers without the file, which is <m>\binom{37}{2}</m>.
+          </p>
+        </solution>
+      </task>
+    </exercise>
+
+    <exercise workspace="0.65in">
+      <introduction>
+        <p>
+          A search committee is formed to find a new software engineer to hire.
+        </p>
+      </introduction>
+
+      <task>
+        <statement>
+          <p>
+            If <m>100</m> applicants apply for the job, how many hays are there to select a subset of <m>9</m> applicants for a short list?
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            There are <m>\binom{100}{9}</m> ways to select <m>9</m> applicants out of <m>100</m>.
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            If <m>6</m> of the <m>9</m> are selected for an interview, how many ways are there to pick the set of applicants who are interviewed? (Assume that the short list is already decided.)
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            There are <m>\binom{9}{6}</m> ways to pick the set of applicants who are interviewed.
+          </p>
+        </solution>
+      </task>
+
+      <task>
+        <statement>
+          <p>
+            Based on the interview, the committee will rank the top <m>3</m> applicants and submit the list to the boss who will make the final decision. (Assume that the interviewees are already decided.) How many ways are there to select the list from the <m>6</m> applicants?
+          </p>
+        </statement>
+
+        <solution component="w2s">
+          <p>
+            Since the applicants will be ranked, they are ordered. Therefore, there are <m>P(6,3) = \frac{6!}{2!}</m> ways to select an ordered list of <m>3</m> people without repetitions from a set of <m>6</m> applicants.
+          </p>
+        </solution>
+      </task>
+    </exercise>
+
+
+
+  </page>
+</worksheet>

@@ -12,10 +12,10 @@
 <publication>
   <common>
     <!-- Level at which are html files generated (chapter/section/etc): -->
-      <chunking level="1" />
+      <chunking level="0" />
 
     <!-- Depth for table of contents.  0 means no TOC -->
-      <!--<tableofcontents level="1" />-->
+    <tableofcontents level="0" />
 
     <!-- Visibility of exercise components where they first appear.          -->
     <!-- There are four components (statement/hint/answer/solution) for each -->
@@ -52,7 +52,7 @@
     <!-- Set which marked elements are included in this version: -->
     <!-- See
     https://pretextbook.org/doc/guide/html/publication-file-source.html#publication-file-source-version -->
-      <version include="w1s"/>
+    <version include="online"/>
 
   </source>
 
@@ -66,15 +66,15 @@
     <!-- numbering should appear.                                     -->
     <!-- For use with a book organized by part, you can set the -->
     <!--  @part-structure to "decorative" or "structural" -->
-      <divisions level="0"/>
+    <divisions level="0"/>
 
     <!-- The next elements say how the levels deep to break up the    -->
     <!-- numbering of the respective elements. Can't be more than the -->
     <!-- @level on divisions above.                                   -->
-      <blocks level="0" />
-      <projects level="0" />
-      <equations level="0" />
-      <footnotes level="0" />
+    <blocks level="0" />
+    <projects level="0" />
+    <equations level="0" />
+    <footnotes level="0" />
   </numbering>
 
   <!-- LaTeX specific options: set @print="yes" to get pdf set up   -->
@@ -108,7 +108,7 @@
       <!--<worksheets formatted="yes" />-->
   </latex>
 
-  <html embed-button="yes">
+  <html>
     <!-- A possible attribute for the html tag above is @short-answer-responses, with values either "always" or "graded".  As in: -->
     <!--<html short-answer-responses="always">-->
 
@@ -138,12 +138,13 @@
         exercise-readingquestion="no"
       />-->
 
-    <!-- Specify the theme for the html by giving names to     -->
-    <!-- override defaults.  Ex:<css theme="denver"/>          -->
+    <!-- Specify the style of the html by giving names to      -->
+    <!-- override defaults.  Ex: to use "style_oscarlevin.css" -->
+    <!-- put <css style="oscarlevin"/>                         -->
     <!-- See also                                              -->
     <!-- https://pretextbook.org/doc/guide/html/publication-file-online.html#online-style-options -->
     <css
-        theme="greeley"
+        theme="denver"
         primary-color="#386F94"
         primary-color-dark="#5192BD"
     />
@@ -154,7 +155,7 @@
 
     <!-- Table of Contents: focused="yes" enables expand/collapse functionality. -->
     <!-- @preexpanded-levels controls how deep to expend toc initially.          -->
-      <!--<toc focused="yes" preexpanded-levels="1" />-->
+    <toc focused="yes" preexpanded-levels="0" />
 
     <!-- Navigation options: linear or tree, and whether there is an "up" button -->
       <!--<navigation logic="tree" upbutton="no" />-->

@@ -5,7 +5,7 @@
 <!-- settings. -->
 <docinfo xmlns:xi="http://www.w3.org/2001/XInclude">
   <!-- A unique name for the book in a catalog; for example, see https://pretextbook.org/catalog.html and https://runestone.academy/ns/books/index. It contains a simple lowercase string with no dashes or other special characters. See https://pretextbook.org/doc/guide/html/sec-publishing-to-runestone-academy.html for more information. -->
-  <document-id>MATH12345-Spring2037</document-id>
+  <!--<document-id>MATH12345-Spring2037</document-id>-->
 
 
   <!-- The next three lines are likely for mature projects only: -->

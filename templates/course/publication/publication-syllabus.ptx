@@ -12,10 +12,10 @@
 <publication>
   <common>
     <!-- Level at which are html files generated (chapter/section/etc): -->
-      <chunking level="1" />
+      <chunking level="0" />
 
     <!-- Depth for table of contents.  0 means no TOC -->
-      <!--<tableofcontents level="1" />-->
+      <tableofcontents level="0" />
 
     <!-- Visibility of exercise components where they first appear.          -->
     <!-- There are four components (statement/hint/answer/solution) for each -->
@@ -52,7 +52,7 @@
     <!-- Set which marked elements are included in this version: -->
     <!-- See
     https://pretextbook.org/doc/guide/html/publication-file-source.html#publication-file-source-version -->
-      <version include="w1s"/>
+      <!-- <version include="videos labs"/> -->
 
   </source>
 
@@ -143,7 +143,7 @@
     <!-- See also                                              -->
     <!-- https://pretextbook.org/doc/guide/html/publication-file-online.html#online-style-options -->
     <css
-        theme="greeley"
+        theme="boulder"
         primary-color="#386F94"
         primary-color-dark="#5192BD"
     />

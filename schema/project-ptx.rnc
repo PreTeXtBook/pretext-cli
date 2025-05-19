@@ -68,13 +68,15 @@ CommonAttributes = (
 	attribute deploy-dir { text }?,
 	attribute site {text}?,
 	attribute xsl { text }?,
-	attribute asy-method { "server" | "local" }?
+	attribute asy-method { "server" | "local" }?,
+	attribute standalone { "yes" | "no" }?
 )
 
 HtmlAttributes = (
 	attribute format { "html" },
 	(attribute platform { "runestone" }?
-	| attribute compression { "zip" }?)
+	| (attribute compression { "zip" | "scorm" }?,
+	attribute output-filename { text }?))
 )
 
 PdfAttributes = (
