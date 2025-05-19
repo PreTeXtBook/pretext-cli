@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<pretext xmlns:xi="http://www.w3.org/2001/XInclude">
+  <xi:include href="./docinfo.ptx" />
+  <article xml:id="sec-section-name" >
+    <title>In-Class Activities</title>
+    <xi:include href="./frontmatter.ptx" />
 
-<chapter xml:id="sec-section-name" xmlns:xi="http://www.w3.org/2001/XInclude">
-  <title>In-Class Activities</title>
+    <introduction>
+      <p>
+        These activities are designed to be used in class to help students understand the material. They are not graded, but students are encouraged to work on them in groups and ask the instructor for help when needed.
+      </p>
+    </introduction>
+    <xi:include href="./activities/wkst-relns-digramphs.ptx"/>
+    <xi:include href="./activities/wkst-eqrel-counting.ptx"/>
+    
+    <!-- The xpointer="activity-magic-beans" says to only include the element with id "activity-magic-beans".  This is how we can have a standalone file and also include it here -->
+    <xi:include href="./activities/magic-beans.ptx" xpointer="activity-magic-beans" />
 
-  <introduction>
-    <p>
-      These activities are designed to be used in class to help students understand the material. They are not graded, but students are encouraged to work on them in groups and ask the instructor for help when needed.
-    </p>
-  </introduction>
-  <!-- The xpointer="worksheet/1" says to only include the first element of the element with id "worksheet", which should be the xml:id on the enclosing article of the included file -->
-  <xi:include href="./activities/magic-beans.ptx" xpointer="worksheet/1" />
-
-  <!-- Add more xi:include files here to include them in the main course -->
-</chapter>
+    <!-- Add more xi:include files here to include them in the main course -->
+  </article>
+</pretext>

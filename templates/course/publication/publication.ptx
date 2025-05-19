@@ -12,7 +12,7 @@
 <publication>
   <common>
     <!-- Level at which are html files generated (chapter/section/etc): -->
-      <!--<chunking level="1" />-->
+      <chunking level="1" />
 
     <!-- Depth for table of contents.  0 means no TOC -->
       <!--<tableofcontents level="1" />-->
@@ -34,7 +34,7 @@
       <!-- <watermark scale="0.5">DRAFT</watermark> -->
 
     <!-- Mermaid diagram themes -->
-      <!-- <mermaid theme="default" /> -->  
+      <!-- <mermaid theme="default" /> -->
 
     <!-- QR code image: set path to an image to put in center of QR codes -->
       <!-- <qrcode image="image.png" /> -->
@@ -52,7 +52,7 @@
     <!-- Set which marked elements are included in this version: -->
     <!-- See
     https://pretextbook.org/doc/guide/html/publication-file-source.html#publication-file-source-version -->
-      <!-- <version include="videos labs"/> -->
+      <version include="w1s"/>
 
   </source>
 
@@ -66,15 +66,15 @@
     <!-- numbering should appear.                                     -->
     <!-- For use with a book organized by part, you can set the -->
     <!--  @part-structure to "decorative" or "structural" -->
-      <!--<divisions part-structure="decorative" chapter-start="0" level="2"/>-->
+      <divisions level="0"/>
 
     <!-- The next elements say how the levels deep to break up the    -->
     <!-- numbering of the respective elements. Can't be more than the -->
     <!-- @level on divisions above.                                   -->
-      <!--<blocks level="2" />-->
-      <!--<projects level="2" />-->
-      <!--<equations level="2" />-->
-      <!--<footnotes level="2" />-->
+      <blocks level="0" />
+      <projects level="0" />
+      <equations level="0" />
+      <footnotes level="0" />
   </numbering>
 
   <!-- LaTeX specific options: set @print="yes" to get pdf set up   -->
@@ -108,7 +108,7 @@
       <!--<worksheets formatted="yes" />-->
   </latex>
 
-  <html>
+  <html embed-button="yes">
     <!-- A possible attribute for the html tag above is @short-answer-responses, with values either "always" or "graded".  As in: -->
     <!--<html short-answer-responses="always">-->
 
@@ -142,7 +142,11 @@
     <!-- override defaults.  Ex:<css theme="denver"/>          -->
     <!-- See also                                              -->
     <!-- https://pretextbook.org/doc/guide/html/publication-file-online.html#online-style-options -->
-      <!--<css theme="denver"/>-->
+    <css
+        theme="greeley"
+        primary-color="#386F94"
+        primary-color-dark="#5192BD"
+    />
 
     <!-- Search can be default or none, or you can use a Google-cx number to use google's search
     feature (but then variant should be set to none to avoid conflict) -->

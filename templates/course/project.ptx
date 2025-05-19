@@ -2,18 +2,31 @@
 <!-- This file, the project manifest, provides the overall configuration for your PreTeXt project. To edit the content of your document, open `source/main.ptx`. See https://pretextbook.org/doc/guide/html/processing-CLI.html#cli-project-manifest. -->
 <project ptx-version="2">
   <targets>
-    <target name="syllabus-web" source="syllabus/syllabus.ptx" format="html"
-            publication="publication_syllabus.ptx"
-            deploy-dir="syllabus" />
-    <target name="syllabus-canvas" source="syllabus/syllabus.ptx" format="html"
+    <target name="syllabus-web" source="syllabus.ptx" format="html"
+            publication="publication-syllabus.ptx" deploy-dir="syllabus" />
+    <target name="syllabus-canvas" source="syllabus.ptx" format="html"
             compression="scorm" publication="publication_scorm_syllabus.ptx"
             output-filename="syllabus.zip" />
-    <target name="syllabus-print" source="syllabus/syllabus.ptx" format="pdf" output-filename="syllabus.pdf"
-            publication="publication_latex_syllabus.ptx" />
-    <target name="worksheets-web" format="html" source="worksheets/main.ptx"
-            publication="publication_worksheets.ptx" deploy-dir="worksheets" />
-    <target name="worksheets-print" format="pdf" source="worksheets/main.ptx"
-            output-filename="worksheets.pdf" publication="publication_worksheets.ptx" />
+    <target name="syllabus-print" source="syllabus.ptx" format="pdf"
+            output-filename="syllabus.pdf" publication="publication-syllabus.ptx" />
+
+    <target name="activities-web" format="html" source="activities.ptx"
+            publication="publication.ptx" deploy-dir="worksheets" />
+    <target name="activities-print" format="pdf" source="activities.ptx"
+            output-filename="activities.pdf" publication="publication.ptx" />
+
+    <target name="notes-web" format="html" source="notes.ptx"
+            publication="publication.ptx" deploy-dir="notes" />
+    <target name="notes-print" format="pdf" source="notes.ptx"
+            publication="publication.ptx" output-filename="notes.pdf"/>
+
+  <!-- The following targets are used to create stand-alone documents, -->
+  <!-- either scorm archives or pdfs. Run with `pretext build scorm -i source/[filename.ptx]`-->
+    <target name="scorm" standalone="yes" format="html" compression="scorm"
+            output-dir="scorms" publication="publication_standalone.ptx"
+            />
+    <target name="pdf" standalone="yes" format="pdf"
+            output-dir="pdfs" publication="publication_standalone.ptx" />
   </targets>
 </project>
 
@@ -29,8 +42,8 @@
         stage="output/stage"
         xsl="xsl"
         asy-method="server"
-     >
-       <targets>
+    >
+      <targets>
           <target
             name="web"
             format="html"
