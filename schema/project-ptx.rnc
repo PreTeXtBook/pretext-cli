@@ -75,7 +75,8 @@ CommonAttributes = (
 HtmlAttributes = (
 	attribute format { "html" },
 	(attribute platform { "runestone" }?
-	| attribute compression { "zip" | "scorm" }?)
+	| (attribute compression { "zip" | "scorm" }?,
+	attribute output-filename { text }?))
 )
 
 PdfAttributes = (
