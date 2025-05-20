@@ -168,7 +168,7 @@
       <!--<calculator model="geogebra-classic" activecode="python" />-->
 
     <!-- Set the base URL of where the online version is hosted to have links in other formats -->
-      <!-- <baseurl href="changetomywebsite.org"/> -->
+      <!-- <baseurl href="https://changetomywebsite.org"/> -->
 
     <!-- Control behavior of online WeBWorK, per type: -->
       <!--<webwork
