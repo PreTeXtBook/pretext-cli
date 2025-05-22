@@ -209,7 +209,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return v
 
     # A path to the output directory for this target, relative to the project's `output` path.
-    output_dir: Path = pxml.attr(
+    output_dir: t.Optional[Path] = pxml.attr(
         name="output-dir",
         default=None,
         # Make the default value for output be `self.name`. Specifying a `default_factory` won't work, since it's a `@classmethod`. So, use a validator (which has access to the object), replacing `None` with `self.name`.
@@ -222,7 +222,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         mode="before",
     )
     @classmethod
-    def output_dir_validator(cls, v: t.Optional[Path], info: ValidationInfo) -> Path:
+    def output_dir_validator(
+        cls, v: t.Optional[Path], info: ValidationInfo
+    ) -> t.Optional[Path]:
         # When the format is Runestone, this is overwritten in `post_validate`. Make sure it's not specified.
         if (
             info.data.get("format") == Format.HTML
@@ -230,6 +232,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             and v is not None
         ):
             raise ValueError("The Runestone format's output-dir must not be specified.")
+        if (
+            v is None
+            and info.data.get("standalone") is not None
+            and info.data.get("standalone") != "no"
+        ):
+            # If we have a standalone target with no output-dir specified, leave it as None.
+            return None
         return (
             # If the `name` isn't set, then we can't build a valid `output_dir`. However, we want to avoid issuing two validation errors in this case, so supply a dummy name instead, since this name will never be used (this Target won't validate).
             Path(v)
@@ -315,9 +324,15 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # If this publication file doesn't exist, ...
             if not self.publication_abspath().exists():
                 # ... then use the CLI's built-in template file.
-                self.publication = (
-                    resources.resource_base_path() / "templates" / "publication.ptx"
-                )
+                if self.is_standalone():
+                    # If the project is standalone, use the publication file for standalone projects.
+                    self.publication = (
+                        resources.resource_base_path() / "publication.ptx"
+                    )
+                else:
+                    self.publication = (
+                        resources.resource_base_path() / "templates" / "publication.ptx"
+                    )
                 # I didn't understand the todo below, but the above seems to fix it.
                 # TODO: this is wrong, since the returned path is only valid inside the context manager. Instead, need to enter the context here, then exit it when this class is deleted (also problematic).
                 # with resource_base_path() / "templates" / "publication.ptx" as self.publication:
@@ -391,9 +406,21 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return self._project.publication_abspath() / self.publication
 
     def output_dir_abspath(self) -> Path:
+        if self.is_standalone() and self.output_dir is None:
+            if self.format == Format.PDF or self.compression == Compression.SCORM:
+                # When the output is a single file, use the source abspath() as the output directory.
+                return self.source_abspath().parent
+            # Otherwise use "filename_targetname" as the output directory.
+            return (
+                self.source_abspath().parent
+                / f"{self.source_abspath().stem}_{self.name}"
+            )
+        assert self.output_dir is not None
         return self._project.output_dir_abspath() / self.output_dir
 
     def output_dir_relpath(self) -> Path:
+        if self.output_dir is None:
+            return self.output_dir_abspath()
         return self._project.output_dir / self.output_dir
 
     def deploy_dir_path(self) -> Path:

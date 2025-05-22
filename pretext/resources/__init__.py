@@ -35,6 +35,14 @@ def install(reinstall: bool = False) -> None:
     with importlib.resources.path("pretext.resources", "templates.zip") as static_zip:
         with zipfile.ZipFile(static_zip, "r") as zip:
             zip.extractall(path=_RESOURCE_BASE_PATH / "templates")
+    shutil.copy2(
+        _RESOURCE_BASE_PATH / "templates" / "standalone-project.ptx",
+        _RESOURCE_BASE_PATH / "project.ptx",
+    )
+    shutil.copy2(
+        _RESOURCE_BASE_PATH / "templates" / "standalone-publication.ptx",
+        _RESOURCE_BASE_PATH / "publication.ptx",
+    )
 
     log.info("Installing rs_cache files")
     (_RESOURCE_BASE_PATH / "rs_cache").mkdir()
