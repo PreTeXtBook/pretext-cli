@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.19.0] - 2025-05-23
+
+Includes updates to core through commit: [2a9f32a](https://github.com/PreTeXtBook/pretext/commit/2a9f32ab41c6329d09961f0b9cd5e05424e61155)
+
 ## Added
 
 - You can now build standalone targets as PDF, HTML, or a SCORM archive using `pretext build html -i path/to/ptx/file`.  Output will be placed adjacent to source.
