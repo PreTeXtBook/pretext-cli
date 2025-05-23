@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This standalone project manifest will be used to build documents that are not part of a project with their own project.ptx file.
+This allows a user to build a pretext file outside of a project and get sensible defaults for output in the standard formats where this is reasonable.
+All targets are standalone, so the output will be placed adjacent to the source file.  For html, this will be in a folder so as to not pollute the source directory.
+-->
+<project ptx-version="2">
+  <targets>
+    <target name="html" format="html" standalone="yes"/>
+    <target name="pdf" format="pdf" standalone="yes" />
+    <target name="scorm" format="html" compression="scorm" standalone="yes" />
+  </targets>
+</project>
+
+

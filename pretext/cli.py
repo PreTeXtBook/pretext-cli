@@ -171,10 +171,10 @@ def main(ctx: click.Context, targets: bool) -> None:
         # Otherwise we are not in a project and not creating a project, so we should use the default manifest for building etc.
         log.info(f"PreTeXt-CLI version: {VERSION}\n")
         utils.ensure_default_project_manifest()
-        default_project_path = resources.resource_base_path().parent / "project.ptx"
+        default_project_path = resources.resource_base_path() / "project.ptx"
         project = Project.parse(default_project_path, global_manifest=True)
         log.warning(
-            "No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/project.ptx'."
+            f"No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/{VERSION}/project.ptx'."
         )
     # Add project to context so it can be used in subcommands
     ctx.obj = {"project": project}
@@ -531,10 +531,12 @@ def build(
         if deploys and len(project.deploy_targets()) > 0:
             targets = project.deploy_targets()
         elif target_name is None and source_file is not None:
-            # We are in the case where we are building a standalone document, so we build a default target if there are no standalone targets or find the first target with standalone="yes".
+            # We are in the case where we are building a standalone document but no target_name was provided. We build a default html target if there are no standalone targets or find the first target with standalone="yes".
             if len(project.standalone_targets()) > 0:
                 targets = [project.standalone_targets()[0]]
+                log.debug(f"Building standalone document with target {targets[0].name}")
             else:
+                log.debug("Did not find a standalone project manifest.")
                 target = project.new_target(
                     name="standalone",
                     format="pdf",

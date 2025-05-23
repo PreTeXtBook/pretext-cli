@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+This is a publication file for standalone documents.  It should only exist in `~/.ptx/{version}/` and be used for building documents that are not part of a larger project.
+-->
+<publication>
+    <!-- directories are relative to the main source PreTeXt file -->
+    <source>
+        <directories external="./assets" generated="./generated-assets"/>
+    </source>
+
+    <html>
+        <platform portable="yes" />
+    </html>
+</publication>
