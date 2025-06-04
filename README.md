@@ -298,6 +298,10 @@ poetry run python scripts/release_stable.py minor # +0.+1.0
 poetry run python scripts/release_stable.py major # +1.0.0
 ```
 
+### Asset generation
+
+Generating assets is complicated.  See [docs/asset-generation.md](docs/asset-generation.md)
+
 ---
 
 ## About
