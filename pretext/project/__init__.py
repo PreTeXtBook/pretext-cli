@@ -654,7 +654,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         generate: bool = True,
         xmlid: t.Optional[str] = None,
         no_knowls: bool = False,
-        save_tex: bool = True,
     ) -> None:
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
@@ -765,7 +764,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.latex_engine,
-                    save_tex=save_tex,
                 )
             elif self.format == Format.LATEX:
                 core.latex(
