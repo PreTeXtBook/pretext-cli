@@ -218,7 +218,14 @@ pretext --version # returns version being developed
 ```
 
 When inside a `poetry shell` you can navigate to other folders and run pretext commands.  Doing so will use the current development environment version of pretext.
+In newer versions of `poetry`, the `shell` command is not avaiable anymore and is a [plugin](https://github.com/python-poetry/poetry-plugin-shell) instead. Alternatively, the command `poetry env activate` will print a line that you can then run to activate the virtual environment:
 
+```
+pretext --version # returns system version
+poetry env activate # returns something like `source ./venv/bin/activate`, which you should now run
+source .venv/bin/activate
+pretext --version # returns version being developed
+```
 
 ### Updating dependencies
 <details>
