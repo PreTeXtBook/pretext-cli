@@ -50,7 +50,7 @@ jobs:
       # Sets up python3
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: 3.12
 
       # Setup poetry
       - name: Install poetry 1.8.4
@@ -60,7 +60,9 @@ jobs:
           python -m pip install poetry==1.8.4
 
       - name: Install build dependencies
-        run: sudo apt-get -y install libcairo2-dev pkg-config python3-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install python3-louis librsvg2-bin libcairo2-dev
 
       - name: Install dependencies
         shell: bash
