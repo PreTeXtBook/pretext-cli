@@ -375,8 +375,14 @@ def new(template: str, directory: Path, url_template: str) -> None:
     multiple=True,
     type=click.Choice([r for r in constants.PROJECT_RESOURCES], case_sensitive=False),
 )
+@click.option(
+    "-s",
+    "--system",
+    is_flag=True,
+    help="Reinstall's the system's pretext resources, including the core pretext script, templates, and other resources (including npm installs).  Useful if something is broken or after initial installation or upgrade.",
+)
 @nice_errors
-def init(refresh: bool, files: List[str]) -> None:
+def init(refresh: bool, files: List[str], system: bool) -> None:
     """
     Generates/updates CLI-specific files for the current version of PreTeXt-CLI.
     This feature is mainly intended for updating existing PreTeXt projects to use this CLI,
@@ -388,6 +394,11 @@ def init(refresh: bool, files: List[str]) -> None:
 
     Note: `pretext init -r` is does the same thing as `pretext update -f`.
     """
+    if system:
+        log.info("Reinstalling system resources...")
+        resources.install(reinstall=True, npm_install=True)
+        log.info("System resources reinstalled successfully.")
+        return
     project_path = utils.project_path()
     if project_path is None:
         project = Project()

@@ -497,7 +497,13 @@ def mjsre_npm_install() -> None:
     ):
         log.info("Attempting to install/update required node packages.")
         try:
-            subprocess.run("npm install", shell=True)
+            npm_cmd = shutil.which("npm")
+            if npm_cmd is None:
+                log.warning(
+                    "Cannot find npm.  Will try to use prebuilt CSS files instead."
+                )
+                raise FileNotFoundError
+            subprocess.run([npm_cmd, "install", "--engine-strict=true"])
         except Exception as e:
             log.critical(
                 "Unable to install required npm packages.  Please see the documentation."

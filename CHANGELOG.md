@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Sometimes something goes wrong with the pretext resources in `~/.ptx`.  You can now run `pretext init --system` to reinstall these resources for the current version.  This will also try to run `npm install` for the css themes.
+
 ## [2.19.3] - 2025-06-14
 
 Includes updates to core through commit: [1b65b63](https://github.com/PreTeXtBook/pretext/commit/1b65b63c3a83292c22b46cf1e12795c4dd519cc0)
