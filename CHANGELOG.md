@@ -9,9 +9,15 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+
+### Changed
+
+- Default devcontainer setup now uses a simplified `pretext:full` docker image.
+
 ### Added
 
 - Sometimes something goes wrong with the pretext resources in `~/.ptx`.  You can now run `pretext init --system` to reinstall these resources for the current version.  This will also try to run `npm install` for the css themes.
+
 
 ## [2.19.3] - 2025-06-14
 
