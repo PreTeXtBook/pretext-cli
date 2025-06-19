@@ -26,7 +26,6 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "myopenmath",
-        "dynamic-subs",
     ],
     "pdf": [
         "webwork",
@@ -102,7 +101,6 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "myopenmath",
-        "dynamic-subs",
     ],
     "webwork": [
         "webwork",
