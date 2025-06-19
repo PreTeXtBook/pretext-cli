@@ -28,7 +28,7 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    container: oscarlevin/pretext:small
+    container: oscarlevin/pretext:full
 
     steps:
       - name: Checkout source
