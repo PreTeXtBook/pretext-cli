@@ -497,7 +497,8 @@ def mjsre_npm_install() -> None:
     ):
         log.info("Attempting to install/update required node packages.")
         try:
-            subprocess.run("npm install", shell=True)
+            node_cmd = shutil.which("npm")
+            subprocess.run([node_cmd, "install"], shell=True)
         except Exception as e:
             log.critical(
                 "Unable to install required npm packages.  Please see the documentation."
