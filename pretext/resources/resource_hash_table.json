@@ -274,13 +274,13 @@
     "installSage.sh": "d167efbf07ea099aba56864e21eeb7c13462203d0a38cafbbef15e34379732de"
   },
   "2.19.4": {
-    "project.ptx": "2dc2900025b5cd39b0f7c8890c1debc2cf2102875bed5b3634aa0e9b151b1711",
-    "codechat_config.yaml": "89dc598ea7db1c91ec8882e2737aff9d683d7123187c288e16f1617a39f9d9e3",
-    ".gitignore": "721a3a2c412782db41cb72441eaef2b9bffdb6d927fde87f67ada1f44a78af90",
-    "devcontainer.json": "aa7cc1f6df414fee1031de939161f11b1657c717c83c4ec4efcccff670d772e1",
-    "pretext-cli.yml": "e2d6d3a23cd2a955c998ec5cb4005d4cd67cc3d3a2cafc6af618bf5ce0b64009",
-    "pretext-deploy.yml": "2904ecc4cfa99d61f6c42960bdaa2548fece61f18907899d954e9e550095db68",
-    "installPandoc.sh": "67f9a2418ca80b79fa796d31c77b6f230dba4a496021c6fcf39b67ddba35f013",
-    "installSage.sh": "1c4b41cba70577b78552884755674fcc91cb2a039aafa63915fc6e7b7165345f"
+    "project.ptx": "9b85a183aec4e47d18ccf02f96da22243398e70a431d0c9ea161f4366b63f838",
+    "codechat_config.yaml": "5ddce213cc31a32747455c07c750b3909779f7877884921eb51e1f4568cab4b7",
+    ".gitignore": "227d5cda5d8b21cf6f92adf3a0b186ecd106e7595c280b30378e98caf87c3116",
+    "devcontainer.json": "17e819d3753a69b8462011c46431ade2fc12e3d56c338ec6236426be0f9fae5e",
+    "pretext-cli.yml": "cad032873daa6663b46224234876664f70482903a3f8165a56be098521aff239",
+    "pretext-deploy.yml": "25857a8fff8bdc7a77db07a1d5745faffe1e1954f32037fe658431f3d30aa9e7",
+    "installPandoc.sh": "dad9b628ac453a8ae45ce78f5228cf2ea6413f12e33194abe249ea2f69f60d35",
+    "installSage.sh": "75e746217f7459f62d140a82a20bbf7e7be094e0d68aeabfaed9fca6efa95476"
   }
 }
