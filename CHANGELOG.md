@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+
+### Changed
+
+- Default devcontainer setup now uses a simplified, versioned `pretext-full` docker image.
+
 ### Fixed
 
 - Fill-in-the-blank questions do not need dynamic-subs assets for HTML-format builds; now they will no longer be generated.
@@ -16,6 +21,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Added
 
 - Sometimes something goes wrong with the pretext resources in `~/.ptx`.  You can now run `pretext init --system` to reinstall these resources for the current version.  This will also try to run `npm install` for the css themes.
+
 
 ## [2.19.3] - 2025-06-14
 

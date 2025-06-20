@@ -51,10 +51,8 @@ def get_runestone_services() -> None:
             zip_ref.write(rs_services_tgz_path, arcname=services_file_name)
 
 
-def main(args=None) -> None:
-    print(args)
+def main(args: any = None, update_templates: bool = False) -> None:
     if args:
-        print(f"Arguments: {args}")
         repo_name = args[0]
     else:
         repo_name = "PreTeXtBook/pretext"
@@ -127,7 +125,7 @@ def main(args=None) -> None:
     # Get Runestone services file
     get_runestone_services()
 
-    bundle_resources.main()
+    bundle_resources.main(update_templates=update_templates)
     print("Successfully bundled core PreTeXtBook/pretext resources.")
 
 
