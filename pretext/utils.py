@@ -185,7 +185,7 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
         log.debug("XML syntax appears well formed.")
         if source_xml.getroot().tag != root_tag:
             log.error(
-                f'The file {xmlfile} does not have `{root_tag}` element as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx).'
+                f"The file {xmlfile} does not have `{root_tag}` element as its root element.  Did you use a subfile as your source?  Check the project manifest (project.ptx)."
             )
             return False
     # check for file IO error
