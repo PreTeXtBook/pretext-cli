@@ -360,7 +360,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             if isinstance(d_list, list):
                 if len(d_list) != 1:
                     raise ValueError(
-                        "Only one <document-id> is allowed in a PreTeXt document."
+                        "Only one `document-id` tag is allowed in a PreTeXt document."
                     )
                 # NB as of 2025-04-08, we are no longer setting the output directory automatically for
                 # Runestone targets.  This must be managed by the project.ptx file or by a client script.
@@ -374,7 +374,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 # )
             else:
                 raise ValueError(
-                    "The <document-id> must be defined for the Runestone format."
+                    "The `document-id` tag must be defined for the Runestone format."
                 )
 
     def source_abspath(self) -> Path:
@@ -704,7 +704,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.warning(
                     "You specified a publication file via a stringparam. "
                     + "This is ignored in favor of the publication file given by the "
-                    + "<publication> element in the project manifest."
+                    + "`publication` element in the project manifest."
                 )
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
@@ -1611,7 +1611,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
                         "Configurations are subject to change from version-to-version without notice."
                     )
                     log.warning(
-                        "Discussion: <https://github.com/PreTeXtBook/pretext-cli/discussions/766>"
+                        "Discussion: https://github.com/PreTeXtBook/pretext-cli/discussions/766"
                     )
                 with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmp_dir_str:
                     log.info(f"Staging generated site at `{self.stage_abspath()}`.")

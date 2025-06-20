@@ -267,7 +267,7 @@ def support() -> None:
         for exec_name in project.get_executables().model_dump():
             if utils.check_executable(exec_name) is None:
                 log.warning(
-                    f"Unable to locate the command for <{exec_name}> on your system."
+                    f"Unable to locate the command for `{exec_name}` on your system."
                 )
     else:
         log.info("No project.ptx found.")
@@ -429,7 +429,7 @@ def init(refresh: bool, files: List[str], system: bool) -> None:
     if project_path is None:
         log.info("Success! Open project.ptx to edit your project manifest.")
         log.info(
-            "Edit your <target/>s to point to the location of your PreTeXt source files."
+            "Edit your `target` elements to point to the location of your PreTeXt source files."
         )
     else:
         log.info(
