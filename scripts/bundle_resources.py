@@ -39,7 +39,7 @@ def resource_hashes() -> None:
                     new_line = re.sub(
                         r'("image": "oscarlevin/pretext(-full)?):latest"',
                         rf'\1:{VERSION}"',
-                        line
+                        line,
                     )
                     f.write(new_line)
                 else:
@@ -66,9 +66,7 @@ def main(update_templates: bool = False) -> None:
     if update_templates:
         resource_hashes()
     else:
-        print(
-            "Skipping resource hash generation."
-        )
+        print("Skipping resource hash generation.")
 
     # Zip the templates and pelican resources
     shutil.make_archive(
