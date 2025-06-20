@@ -45,26 +45,29 @@ class RunningServerInfo:
         try:
             p = psutil.Process(self.pid)
         except psutil.NoSuchProcess:
-            log.info(f"Found entry no longer exists {self.pid}")
+            log.debug(f"Found entry no longer exists {self.pid}; removing entry.")
+            remove_server_entry(self.path_hash)
             return False
         if not p.is_running():
-            log.info(f"Found entry no longer running {p.pid}")
+            log.debug(f"Found entry no longer running {p.pid}; removing entry.")
+            remove_server_entry(self.path_hash)
             return False
         if p.status == psutil.STATUS_ZOMBIE:
-            log.info(f"Found zombie process {p.pid}")
+            log.debug(f"Found zombie process {p.pid}; removing entry.")
+            remove_server_entry(self.path_hash)
             return False
         for _, _, _, laddr, _, _ in p.net_connections("all"):
             if isinstance(laddr, str):
                 log.error(
-                    f"View encountered an error.  Please report this: process {self.pid} with laddr {laddr}"
+                    f"BUG: the `pretext view` command encountered an error.  Please report this: process {self.pid} with laddr {laddr}"
                 )
                 continue
             elif isinstance(laddr.port, int) and laddr.port == self.port:
-                log.info(f"Found server at {self.url()}")
+                log.info(f"Found PreTeXt web server at {self.url()}")
                 return True
             else:
                 log.debug(f"Found process {self.pid} with laddr {laddr}")
-        log.info(
+        log.debug(
             f"Found process {self.pid} no longer listening on specified port {self.port}"
         )
         return False
@@ -72,12 +75,14 @@ class RunningServerInfo:
     def terminate(self) -> None:
         """Attempt to terminate the process described by this info."""
         try:
-            log.info(f"Terminating {self.pid}")
-            psutil.Process(self.pid).terminate()
+            log.debug(f"Terminating {self.pid}")
             remove_server_entry(self.path_hash)
+            psutil.Process(self.pid).terminate()
         except Exception as e:
-            log.info(f"Terminate failed for {self.pid}.")
-            log.exception(e, exc_info=True)
+            log.error(
+                f"Attempt to terminate PreTeXt web server failed for process {self.pid} on port {self.port}."
+            )
+            log.debug(e, exc_info=True)
 
     def url(self) -> str:
         return f"{self.binding}:{self.port}"
@@ -104,8 +109,10 @@ def get_running_servers() -> t.List[RunningServerInfo]:
         with open(running_servers_file, "r") as f:
             return [RunningServerInfo.from_file_line(line) for line in f.readlines()]
     except IOError as e:
-        log.info("Unable to open running servers file.")
-        log.exception(e, exc_info=True)
+        log.error(
+            f"Unable to open list of running PreTeXt web servers expected at ({running_servers_file})."
+        )
+        log.debug(e, exc_info=True)
         return []
 
 
@@ -122,8 +129,8 @@ def save_running_servers(running_servers: t.List[RunningServerInfo]) -> None:
             # Write each server info to a new line
             f.writelines([info.to_file_line() for info in running_servers])
     except IOError as e:
-        log.info("Unable to write running servers file.")
-        log.exception(e, exc_info=True)
+        log.error("Unable to write running servers file.")
+        log.debug(e, exc_info=True)
 
 
 def add_server_entry(path_hash: str, pid: int, port: int, binding: str) -> None:
@@ -140,7 +147,7 @@ def add_server_entry(path_hash: str, pid: int, port: int, binding: str) -> None:
         log.info(f"There are {PURGE_LIMIT} or more servers on file. Cleaning up ...")
         running_servers = list(stop_inactive_servers(running_servers))
     save_running_servers(running_servers)
-    log.info(f"Added server entry {new_entry.to_file_line()}")
+    log.info(f"Added pretext web server entry {new_entry.to_file_line()}")
 
 
 def remove_server_entry(path_hash: str) -> None:
@@ -182,11 +189,11 @@ def start_server(
     port: int = 8128,
     callback: t.Callable[[int], None] | None = None,
 ) -> None:
-    log.info("setting up ...")
+    log.info("setting up PreTeXt web server ...")
     path_hash = hash_path(base_dir)
     pid = os.getpid()
     binding = binding_for_access(access)
-    log.info("values set...")
+    log.debug("values set: %s, %s, %s", path_hash, binding, port)
 
     # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
     # 2024-04-05: try using this again to let Firefox work
@@ -211,9 +218,9 @@ def start_server(
     while True:
         try:
             with TCPServer((binding, port), RequestHandler) as httpd:
-                log.info("adding server entry")
+                log.debug("adding PreTeXt web server entry")
                 add_server_entry(path_hash, pid, port, binding)
-                log.info("Starting the server")
+                log.debug("Starting the PreTeXt web server")
                 if callback is not None:
                     callback(port)
                 httpd.serve_forever()
@@ -222,7 +229,7 @@ def start_server(
             port += 1
             log.warning(f"Trying port {port} instead.\n")
         except KeyboardInterrupt:
-            log.info("Stopping server.")
+            log.info("Stopping PreTeXt web server.")
             remove_server_entry(path_hash)
             return
 
@@ -241,7 +248,7 @@ def start_codespace_server(
     binding = binding_for_access(access)
     log.debug(f"values set: {path_hash}, {binding}, {port}")
 
-    log.info("Starting the server")
+    log.info("Starting PreTeXt web server")
     server_process = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(port)], cwd=base_dir
     )
