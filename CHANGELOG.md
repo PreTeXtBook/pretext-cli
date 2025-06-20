@@ -17,6 +17,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Fixed
 
 - Fill-in-the-blank questions do not need dynamic-subs assets for HTML-format builds; now they will no longer be generated.
+- Sometimes the `pretext view` command did not work in Codespaces.  Now inactive server instances are removed immediately which should fix this issue.
 
 ### Added
 
