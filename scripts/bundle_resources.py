@@ -3,7 +3,6 @@ import shutil
 import re
 import json
 from pathlib import Path
-import sys
 from pretext import VERSION
 from pretext.constants import PROJECT_RESOURCES
 
