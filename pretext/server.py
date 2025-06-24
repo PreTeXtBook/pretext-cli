@@ -32,7 +32,12 @@ class RunningServerInfo:
 
     @staticmethod
     def from_file_line(line: str) -> RunningServerInfo:
-        (path_hash, pid, port, binding) = line.split()
+        try:
+            (path_hash, pid, port, binding) = line.split()
+        except ValueError:
+            # We only call this function when line.strip() is true, so line is not empty
+            log.debug(f"Invalid line in running servers file: {line}")
+            raise
         return RunningServerInfo(
             path_hash=path_hash, pid=int(pid), port=int(port), binding=binding
         )
@@ -107,7 +112,11 @@ def get_running_servers() -> t.List[RunningServerInfo]:
         if not running_servers_file.is_file():
             return []
         with open(running_servers_file, "r") as f:
-            return [RunningServerInfo.from_file_line(line) for line in f.readlines()]
+            return [
+                RunningServerInfo.from_file_line(line)
+                for line in f.readlines()
+                if line.strip()
+            ]
     except IOError as e:
         log.error(
             f"Unable to open list of running PreTeXt web servers expected at ({running_servers_file})."
