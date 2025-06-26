@@ -15,6 +15,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Fixed
 
+- Bug that caused MyOpenMath problems to be downloaded on every build, regardless of whether they were needed.
 - Bug which caused error in `pretext view` when the `running_servers` file contained a blank line.
 
 ## [2.20.0] - 2025-06-20
