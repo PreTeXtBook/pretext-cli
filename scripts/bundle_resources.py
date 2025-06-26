@@ -34,7 +34,7 @@ def resource_hashes() -> None:
                         r"PreTeXt \d+\.\d+\.\d+", f"PreTeXt {VERSION}", line
                     )
                     f.write(new_line)
-                #elif '"image": "oscarlevin/pretext' in line:
+                # elif '"image": "oscarlevin/pretext' in line:
                 #    new_line = re.sub(
                 #        r'("image": "oscarlevin/pretext(-full)?):latest"',
                 #        rf'\1:{VERSION}"',
