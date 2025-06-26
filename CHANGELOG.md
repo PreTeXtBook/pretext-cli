@@ -15,7 +15,6 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Fixed
 
-- Bug which prevented playwright from installing headless browser when pretext is installed in a virtual environment or using pipx.
 - Bug which caused error in `pretext view` when the `running_servers` file contained a blank line.
 
 ## [2.20.0] - 2025-06-20

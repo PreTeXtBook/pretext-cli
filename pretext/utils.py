@@ -567,9 +567,7 @@ def playwright_install() -> None:
     try:
         log.info("Checking for update for required playwright chromium browser.")
         # subprocess.run("playwright install-deps", shell=True)
-        subprocess.run(
-            ["playwright", "install", "chromium"], shell=True
-        )
+        subprocess.run(["playwright", "install", "chromium"], shell=True)
         log.debug("Installed dependencies to capture interactive previews")
     except Exception as e:
         log.critical(
