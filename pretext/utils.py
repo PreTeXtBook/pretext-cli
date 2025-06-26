@@ -14,7 +14,6 @@ import socket
 import subprocess
 import logging
 import logging.handlers
-import sys
 import psutil
 import typing as t
 from . import types as pt  # PreTeXt types
