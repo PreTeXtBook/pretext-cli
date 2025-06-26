@@ -14,6 +14,7 @@ import socket
 import subprocess
 import logging
 import logging.handlers
+import sys
 import psutil
 import typing as t
 from . import types as pt  # PreTeXt types
@@ -566,7 +567,9 @@ def playwright_install() -> None:
     try:
         log.info("Checking for update for required playwright chromium browser.")
         # subprocess.run("playwright install-deps", shell=True)
-        subprocess.run("playwright install chromium", shell=True)
+        subprocess.run(
+            [sys.executable, "-m", "playwright", "install", "chromium"], shell=True
+        )
         log.debug("Installed dependencies to capture interactive previews")
     except Exception as e:
         log.critical(
