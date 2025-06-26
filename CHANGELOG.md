@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Python version 3.10 or higher is now required (removed support for python 3.8 and 3.9).
+
 ### Fixed
 
 - Bug which caused error in `pretext view` when the `running_servers` file contained a blank line.

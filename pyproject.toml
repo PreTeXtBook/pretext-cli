@@ -71,7 +71,7 @@ pep8-naming = "^0.14.1"
 [tool.poetry.extras]
 homepage = ["pelican"]
 prefigure = ["prefig"]
-all = ["pretext[homepage,prefigure]"]
+all = ["pelican","prefig"]
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'
