@@ -1977,15 +1977,15 @@ reference = "pypi-public"
 
 [[package]]
 name = "prefig"
-version = "0.2.11"
+version = "0.3.2"
 description = "An authoring system for mathematical diagrams"
 optional = true
 python-versions = ">=3.8.5,<4.0.0"
 groups = ["main"]
 markers = "extra == \"prefigure\" or extra == \"all\""
 files = [
-    {file = "prefig-0.2.11-py3-none-any.whl", hash = "sha256:c368a236d09822bcc88c6658c0f7df4301c15a4ff06b127a62e89e3d7343cfd3"},
-    {file = "prefig-0.2.11.tar.gz", hash = "sha256:d0a6e9c1b347913697973e529a173d5ea370d41fd29a2487ca3a170d498109ac"},
+    {file = "prefig-0.3.2-py3-none-any.whl", hash = "sha256:2d499cc68bef8904b45812d92d480ba4ed5964e331c692363267ad7908cc1abd"},
+    {file = "prefig-0.3.2.tar.gz", hash = "sha256:afbc5e823f26e0cc45347872311280ec85e61d776eedcd0e3d92184f33554ae6"},
 ]
 
 [package.dependencies]
@@ -1997,12 +1997,15 @@ numpy = [
     {version = ">=1.26,<2.0", markers = "python_version >= \"3.9\" and python_version < \"3.13\""},
     {version = ">=2.1.0,<3.0.0", markers = "python_version == \"3.13\""},
 ]
-pycairo = {version = ">=1.20,<2.0", markers = "python_version >= \"3.9\""}
+pycairo = {version = ">=1.20,<2.0", optional = true, markers = "python_version >= \"3.9\" and extra == \"text\""}
 scipy = [
     {version = ">=1.8,<2.0", markers = "python_version >= \"3.9\" and python_version < \"3.13\""},
     {version = ">=1.14.1,<2.0.0", markers = "python_version == \"3.13\""},
 ]
 shapely = ">=2.0.6,<3.0.0"
+
+[package.extras]
+text = ["pycairo (>=1.20,<2.0) ; python_version >= \"3.9\"", "pycairo (>=1.20,<=1.26) ; python_version == \"3.8\""]
 
 [package.source]
 type = "legacy"
@@ -3503,4 +3506,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "5404275df4d3392688797ca7f312786c5c1ab985c8512b004dabed009277c8c8"
+content-hash = "526a41512f9c57b9c7826acdd09b8bebf7f3ec5ec163f887a9d8b9c76a1a958a"
