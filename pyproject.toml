@@ -26,7 +26,7 @@ include = ["pretext/core/pretext.py", "pretext/resources/*.zip", "pretext/resour
 # Dependencies
 # ------------
 [tool.poetry.dependencies]
-python = "^3.8.5"
+python = "^3.10"
 lxml = "^5.3"
 requests = "^2"
 GitPython = "^3"
@@ -45,13 +45,13 @@ plastex = "^3"
 jinja2 = "^3"
 coloraide = "^4"
 pelican = { extras = ["markdown"], version = "^4.10", optional = true }
-prefig = { extras = ["pycairo"], version = "^0.2.10", optional = true }
+prefig = { extras = ["text"], version = "^0.3.2", optional = true }
 
 
 # Development dependencies
 # ------------------------
 [tool.poetry.group.dev.dependencies]
-black = [{version = "^23", python = "3.8"}, {version = "^24.10", python = ">=3.9"}]
+black = "^24.10"
 codechat-server = "^0"
 flake8 = "^6"
 lxml-stubs = "^0"
@@ -71,6 +71,7 @@ pep8-naming = "^0.14.1"
 [tool.poetry.extras]
 homepage = ["pelican"]
 prefigure = ["prefig"]
+all = ["pelican","prefig"]
 
 [tool.poetry.scripts]
 pretext = 'pretext.cli:main'

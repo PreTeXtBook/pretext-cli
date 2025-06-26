@@ -34,13 +34,13 @@ def resource_hashes() -> None:
                         r"PreTeXt \d+\.\d+\.\d+", f"PreTeXt {VERSION}", line
                     )
                     f.write(new_line)
-                elif '"image": "oscarlevin/pretext' in line:
-                    new_line = re.sub(
-                        r'("image": "oscarlevin/pretext(-full)?):latest"',
-                        rf'\1:{VERSION}"',
-                        line,
-                    )
-                    f.write(new_line)
+                # elif '"image": "oscarlevin/pretext' in line:
+                #    new_line = re.sub(
+                #        r'("image": "oscarlevin/pretext(-full)?):latest"',
+                #        rf'\1:{VERSION}"',
+                #        line,
+                #    )
+                #    f.write(new_line)
                 else:
                     f.write(line)
         # Now hash the updated file to add to a hash-table for this version
