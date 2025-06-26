@@ -10,7 +10,6 @@ on:
 jobs:
   format-and-types:
     runs-on: ubuntu-latest
-    container: oscarlevin/pretext-full
 
     steps:
       - uses: actions/checkout@v4
