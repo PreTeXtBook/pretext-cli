@@ -10,6 +10,8 @@ on:
 jobs:
   format-and-types:
     runs-on: ubuntu-latest
+    container: oscarlevin/pretext-full
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,7 +40,7 @@ jobs:
   deep-test:
     needs: format-and-types
     runs-on: ubuntu-22.04
-    #container: oscarlevin/pretext:full
+    container: oscarlevin/pretext-full
 
     steps:
       - uses: actions/checkout@v4
@@ -53,11 +55,6 @@ jobs:
 
       - name: Report Python version
         run: python --version
-
-      - name: Install apt packages (Linux with python 3.12 only)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends texlive texlive-science texlive-xetex ghostscript pdf2svg texlive-fonts-extra sagemath python3-pip
 
       - name: Install poetry 1.8.4
         run: |
