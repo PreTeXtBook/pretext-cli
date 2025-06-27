@@ -547,8 +547,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
             for prob_num in mom_prob_nums:
                 assert isinstance(prob_num, str)
+                log.debug(f"Checking for MyOpenMath problem {prob_num}")
                 if not (
-                    self.generated_dir_abspath() / "problems" / f"{prob_num}.xml"
+                    self.generated_dir_abspath() / "problems" / f"mom-{prob_num}.xml"
                 ).exists():
                     log.debug(
                         f"MyOpenMath problem {prob_num} does not exist, generating"
@@ -556,8 +557,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     self.generate_assets(
                         requested_asset_types=["myopenmath"], only_changed=False
                     )
-                # Only need to generate once a single missing file is discovered.
-                break
+                    # Only need to generate once a single missing file is discovered.
+                    break
         else:
             log.debug("Source does not contain myopenmath problems")
 
