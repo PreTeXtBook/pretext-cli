@@ -16,7 +16,7 @@
   "image": "oscarlevin/pretext-full",
   // If you don't need sagemath, you can use a smaller base image.  Comment out the line above and uncomment the line below to use a smaller image.
   // "image": "oscarlevin/pretext",
-  "features": {},
+  "features": {"ghcr.io/devcontainers/features/github-cli": {}},
 
   // The pretext-full image above includes pretext, prefigure, and enough parts of latex and sagemath for most cases.  If there are errors with sage, you can install the full sagemath package through Conda by running ./.devcontainer/installSage.sh, or uncommenting that line and rebuilding the container.
   "postCreateCommand": {
