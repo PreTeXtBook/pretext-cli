@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.21.0] - 2025-06-27
+
+Includes updates to core through commit: [2bcef90](https://github.com/PreTeXtBook/pretext/commit/2bcef902b5938d357cb72c34a0999fdf922f46d2)
+
 ### Changed
 
 - Python version 3.10 or higher is now required (removed support for python 3.8 and 3.9).
