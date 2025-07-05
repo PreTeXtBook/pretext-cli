@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Printing worksheets from HTML should work a lot better now.  The "Print preview" page now matches the printed output, and you can toggle between letter and a4.  Worksheets can be authored with or without `<page>` elements and still get good results.
+
 ### Fixed
 
 - Publication file in templates had incorrect element for latex cover setting.
