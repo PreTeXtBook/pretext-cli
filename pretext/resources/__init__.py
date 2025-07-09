@@ -85,7 +85,9 @@ def install(reinstall: bool = False, npm_install: bool = False) -> None:
                 raise FileNotFoundError
             subprocess.run([npm_cmd, "install"])
         except Exception as e:
-            log.warning(f"Unable to install npm packages for dynamic substitutions: {e}")
+            log.warning(
+                f"Unable to install npm packages for dynamic substitutions: {e}"
+            )
             log.debug(e, exc_info=True)
             return
 

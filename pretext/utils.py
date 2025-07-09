@@ -596,9 +596,7 @@ def ensure_dynsub_node_modules() -> None:
         try:
             npm_cmd = shutil.which("npm")
             if npm_cmd is None:
-                log.warning(
-                    "Cannot find npm. Install npm and try again."
-                )
+                log.warning("Cannot find npm. Install npm and try again.")
                 raise FileNotFoundError
             subprocess.run([npm_cmd, "install"])
         except Exception as e:
