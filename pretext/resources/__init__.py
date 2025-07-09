@@ -74,6 +74,22 @@ def install(reinstall: bool = False, npm_install: bool = False) -> None:
             log.warning(f"Unable to install npm packages for theme building: {e}")
             log.debug(e, exc_info=True)
             return
+        # Dynamic substitution script requires node versions > 22.10
+        os.chdir(_RESOURCE_BASE_PATH / "core" / "script" / "dynsub")
+        try:
+            npm_cmd = shutil.which("npm")
+            if npm_cmd is None:
+                log.warning(
+                    "Cannot find npm. Will not be able to extract dynamic substitutions."
+                )
+                raise FileNotFoundError
+            subprocess.run([npm_cmd, "install"])
+        except Exception as e:
+            log.warning(
+                f"Unable to install npm packages for dynamic substitutions: {e}"
+            )
+            log.debug(e, exc_info=True)
+            return
 
 
 def resource_base_path() -> Path:

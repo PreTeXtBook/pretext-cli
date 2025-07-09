@@ -995,6 +995,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # The dynamic-subs asset output is required for the subsequent asset generation, so needs to be near the top.
         if "dynamic-subs" in assets_to_generate:
             try:
+                utils.ensure_dynsub_node_modules()
                 core.dynamic_substitutions(
                     xml_source=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),

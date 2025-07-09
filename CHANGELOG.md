@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Generating dynamic substitutions now uses node instead of playwright.  Node 22.10 or greater is required.
+
 ## [2.22.0] - 2025-07-05
 
 Includes updates to core through commit: [e6f9288](https://github.com/PreTeXtBook/pretext/commit/e6f92889e1e4978f71d7417be410ca379d6e9eff)
