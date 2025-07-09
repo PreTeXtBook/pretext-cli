@@ -569,7 +569,7 @@ def ensure_dynsub_node_modules() -> None:
             node_cmd = shutil.which("node")
             if node_cmd is None:
                 log.warning(
-                    "Node.js must be installed to extract dynamic substitutions.  Please install node.js and npm.\n Will try to use prebuilt CSS files instead."
+                    "Node.js must be installed to extract dynamic substitutions.  Please install node.js and npm."
                 )
                 raise FileNotFoundError
             node_version = subprocess.run([node_cmd, "-v"], capture_output=True)
