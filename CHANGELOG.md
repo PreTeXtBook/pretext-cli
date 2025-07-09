@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Print preview for worksheets now has option to highlight workspace and compare the rendered workspace to the authored height.
+- WeBWorK exercises can be generated using a local copy of PG (with the proper setup).
+
 ### Changed
 
 - Generating dynamic substitutions now uses node instead of playwright.  Node 22.10 or greater is required.
