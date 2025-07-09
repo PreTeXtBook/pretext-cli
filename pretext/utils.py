@@ -559,6 +559,56 @@ def ensure_css_node_modules() -> None:
             log.debug("", exc_info=True)
 
 
+def ensure_dynsub_node_modules() -> None:
+    # Look for node_modules and install if we can.
+    with working_directory(
+        resources.resource_base_path() / "core" / "script" / "dynsub"
+    ):
+        # Make sure node version is at least 22.10:
+        try:
+            node_cmd = shutil.which("node")
+            if node_cmd is None:
+                log.warning(
+                    "Node.js must be installed to extract dynamic substitutions.  Please install node.js and npm.\n Will try to use prebuilt CSS files instead."
+                )
+                raise FileNotFoundError
+            node_version = subprocess.run([node_cmd, "-v"], capture_output=True)
+            log.debug(f"Node version: {node_version.stdout.decode()}")
+            node_version_decode = node_version.stdout.decode().split(".")
+            main_version = int(node_version_decode[0][1:])
+            sub_version = int(node_version_decode[1])
+            if main_version < 22 | (main_version == 22 and sub_version < 10):
+                log.warning(
+                    "Node version must be at least 22.10 to extract dynamic substitutions.  Please update node.js and npm."
+                )
+                return
+        except Exception as e:
+            log.debug(e)
+            log.debug("", exc_info=True)
+        # Check if node_modules is already present:
+        if Path("node_modules").exists():
+            log.debug("Node modules already installed.")
+            return
+        # If not, try to install them:
+        log.debug(
+            "Attempting to install/update required node packages extract dynamic susbstitutions."
+        )
+        try:
+            npm_cmd = shutil.which("npm")
+            if npm_cmd is None:
+                log.warning(
+                    "Cannot find npm. Install npm and try again."
+                )
+                raise FileNotFoundError
+            subprocess.run([npm_cmd, "install"])
+        except Exception as e:
+            log.warning(
+                "Unable to install npm packages. Unable to extract dynamic substitutions."
+            )
+            log.warning(e)
+            log.debug("", exc_info=True)
+
+
 def playwright_install() -> None:
     """
     Run `playwright install` to ensure that its required browsers and tools are available to it.
