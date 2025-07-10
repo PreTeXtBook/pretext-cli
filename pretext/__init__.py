@@ -22,7 +22,6 @@ VERSION = get_version("pretext", Path(__file__).parent.parent)
 CORE_COMMIT = "fb0b3365f6f14b2f0002a2fbb874a27d25454bd7"
 
 
-
 def activate() -> None:
     """
     This function was provided by the original `pretext` package
