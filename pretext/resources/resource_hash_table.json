@@ -312,5 +312,15 @@
     "pretext-deploy.yml": "522de4fdd3abac688aca008d7fc452d9921b767dc047957cdaceb1109a0f70bb",
     "installPandoc.sh": "3882abdb8709b241796e030db622cae4bdd616b40fc580c1706a1a9c976e603c",
     "installSage.sh": "9a4ed5e41a901adcde5fcd812a8567e8c9086052f2ea4ca419e381882156b4ce"
+  },
+  "2.23.0": {
+    "project.ptx": "12c65b6da21b818659e0bcbc68b59c320402c741c9952d84180f25794d94bd72",
+    "codechat_config.yaml": "9b86ea061f2e29ff23403bbee99637eb629835fc8706be94824a3b5a690cc762",
+    ".gitignore": "c2a0e8ccdabd0538c0edba4474b64b3f958d3dd2fea2836807e60ac66bd17c9c",
+    "devcontainer.json": "7688856a8ad5fe77104e5c39d21530af39da14909c5f8daeb9595876a3a60722",
+    "pretext-cli.yml": "3b10d23e7668f1e8fc0fbd744cd3bc5f55c2c3e7fbc71ec3bcbe4b02d7c42131",
+    "pretext-deploy.yml": "0d346a3b5d96059e5c5dce6b566d125a7b6ac25c4b8d68e1a445cca32712c453",
+    "installPandoc.sh": "e165f40e3f065e80c068e33c4666066c1f1f36936770b2d6f8c6fab2fc9b56f9",
+    "installSage.sh": "0fd082e41d271697cc62bc1913bc0d05acd36c4608c7c19f25d095c4af6dd6a5"
   }
 }
