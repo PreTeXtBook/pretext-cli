@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.23.0] - 2025-07-11
+
+Includes updates to core through commit: [899648f](https://github.com/PreTeXtBook/pretext/commit/899648f16a2f78760b5d309c98c623d9c63f09e3)
+
 ### Added
 
 - Print preview for worksheets now has option to highlight workspace and compare the rendered workspace to the authored height.
