@@ -39,21 +39,13 @@ jobs:
   deep-test:
     needs: format-and-types
     runs-on: ubuntu-22.04
-    #container: oscarlevin/pretext-full
+    container: oscarlevin/pretext-full
 
     steps:
       - uses: actions/checkout@v4
 
-      #- name: Report Python version
-      #  run: python --version
-
-      #- name: Ensure node is installed
-      #  run: nvm install node
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.12'
+      - name: Report Python version
+        run: python --version
 
       - name: set up node
         uses: actions/setup-node@v4
