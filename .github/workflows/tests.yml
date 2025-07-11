@@ -47,6 +47,11 @@ jobs:
       - name: Report Python version
         run: python --version
 
+      - name: set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install poetry
         run: |
           pip install --upgrade pip
@@ -83,13 +88,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
         os: [ubuntu-latest, windows-latest]
         exclude:
-          - os: windows-latest
-            python-version: "3.8"
-          - os: windows-latest
-            python-version: "3.9"
           - os: windows-latest
             python-version: "3.10"
           - os: windows-latest
