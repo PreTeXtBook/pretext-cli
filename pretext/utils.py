@@ -577,14 +577,14 @@ def ensure_dynsub_node_modules() -> None:
             node_version_decode = node_version.stdout.decode().split(".")
             main_version = int(node_version_decode[0][1:])
             sub_version = int(node_version_decode[1])
-            if main_version < 22 | (main_version == 22 and sub_version < 10):
+            if main_version < 22 or (main_version == 22 and sub_version < 10):
                 log.warning(
                     "Node version must be at least 22.10 to extract dynamic substitutions.  Please update node.js and npm."
                 )
-                return
+                raise FileNotFoundError
         except Exception as e:
             log.debug(e)
-            log.debug("", exc_info=True)
+            raise e
         # Check if node_modules is already present:
         if Path("node_modules").exists():
             log.debug("Node modules already installed.")
@@ -604,7 +604,7 @@ def ensure_dynsub_node_modules() -> None:
                 "Unable to install npm packages. Unable to extract dynamic substitutions."
             )
             log.warning(e)
-            log.debug("", exc_info=True)
+            raise e
 
 
 def playwright_install() -> None:
