@@ -613,16 +613,23 @@ def build(
             )
             if t.format == "html" and t.compression is None:
                 log.info(
-                    f"\nSuccess! Run `pretext view {t.name}` to see the results.\n"
+                    f"\nFinished build for target {t.name}. Run `pretext view {t.name}` to see the results.\n"
                 )
             else:
-                log.info(f"\nSuccess! The output is in {t.output_dir_abspath()}.\n")
+                log.info(
+                    f"\nFinished build for target {t.name}. The output is in {t.output_dir_abspath()}.\n"
+                )
+        # Check if there are errors reported by the build by looking at the error_flush_handler.
+        if utils.has_errors(error_flush_handler):
+            raise Exception("There were errors during the build.  See above.")
+        # Otherwise, we can report success.
+        log.info("\nSuccess!  Built requested target(s) without errors.\n")
     except ValidationError as e:
         # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
         log.critical(
             "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
         )
-        log.critical("Failed to build.  Exiting...")
+        log.critical("Failed to build without errors.  Exiting...")
         log.debug(e)
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
@@ -633,7 +640,7 @@ def build(
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
-        log.critical("Failed to build.  Exiting...")
+        log.critical("Failed to build without errors.  Exiting...")
         return
 
 
@@ -730,7 +737,13 @@ def generate(
             clean=clean,
             skip_cache=force,
         )
-        log.info("Finished generating assets.\n")
+        # Check if there are errors reported by the build by looking at the error_flush_handler.
+        if utils.has_errors(error_flush_handler):
+            raise Exception(
+                "There were errors during the generate process.  See above."
+            )
+        # Otherwise, we can report success.
+        log.info("Finished generating assets successfully.\n")
     except ValidationError as e:
         # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
         log.critical(
