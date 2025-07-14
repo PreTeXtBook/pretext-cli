@@ -13,6 +13,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 - Better error messages when node version is too low for FITB generation step.
 - Github actions now install the correct version of node for FITB generation step.
+- Worksheet printing bug cause by top page margin has been fixed.
 
 ### Changed
 
