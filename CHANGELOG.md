@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.23.1] - 2025-07-14
+
+Includes updates to core through commit: [c750a05](https://github.com/PreTeXtBook/pretext/commit/c750a05a2c35cad67dd269682e1618e3c1eb63dc)
+
 ### Fixed
 
 - Better error messages when node version is too low for FITB generation step.
