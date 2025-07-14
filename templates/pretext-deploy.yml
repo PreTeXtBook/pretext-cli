@@ -34,6 +34,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: add gh-cli
         run: |
           apt-get update
@@ -61,4 +66,3 @@ jobs:
         run: git push origin gh-pages --force
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
