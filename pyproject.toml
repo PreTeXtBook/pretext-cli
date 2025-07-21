@@ -38,14 +38,14 @@ click-log = "^0.4"
 ghp-import = "^2"
 single-version = "^1"
 playwright = "^1"
-pydantic-xml = ">=2"
+pydantic-xml = "2.14.3"
 qrcode = "^7"
 psutil = "^7"
 plastex = "^3"
 jinja2 = "^3"
 coloraide = "^4"
 pelican = { extras = ["markdown"], version = "^4.10", optional = true }
-prefig = { extras = ["text"], version = "^0.3.2", optional = true }
+prefig = { extras = ["text"], version = "^0.3.6", optional = true }
 
 
 # Development dependencies

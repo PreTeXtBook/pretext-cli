@@ -11,7 +11,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Changed
 
-- Template devcontainer will now use versioned docker image
+- Template devcontainer will now use versioned docker image.
+- The `pretext upgrade` command will include prefigure and pelican if they are already installed.
 
 ### Fixed
 

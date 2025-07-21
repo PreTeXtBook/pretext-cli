@@ -1,3 +1,4 @@
+import importlib
 import logging
 import logging.handlers
 import sys
@@ -16,7 +17,6 @@ import subprocess
 from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
 from functools import update_wrapper
-
 
 from . import (
     utils,
@@ -195,10 +195,26 @@ def upgrade() -> None:
     """
     Upgrade PreTeXt-CLI to the latest version using pip.
     """
-    log.info("Upgrading PreTeXt-CLI...")
-    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pretext"])
+    extras = []
+    if importlib.util.find_spec("prefig") is not None:
+        log.debug(
+            "The 'prefig' package is installed; will attempt to upgrade it as well."
+        )
+        extras.append("prefigure")
+    if importlib.util.find_spec("pelican") is not None:
+        log.debug(
+            "The 'pelican' package is installed; will attempt to upgrade it as well."
+        )
+        extras.append("homepage")
+    if len(extras) > 0:
+        log.info(f"Upgrading PreTeXt (with extras: {', '.join(extras)})")
+        pretext_cmd = "pretext[" + ",".join(extras) + "]"
+    else:
+        log.info("Upgrading PreTeXt.")
+        pretext_cmd = "pretext"
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", pretext_cmd])
     log.info(
-        "Upgrade complete.  Individual projects can be updated to align with the latest version of the CLI with `pretext update` from their project folder."
+        "Upgrade complete.  Individual projects can be updated to align with the latest version of the CLI by running `pretext update` from their project folder."
     )
 
 
