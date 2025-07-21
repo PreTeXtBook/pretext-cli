@@ -37,9 +37,7 @@ def resource_hashes() -> None:
             for line in lines:
                 if "This file was automatically generated" in line:
                     # replace the version number with {VERSION}:
-                    new_line = re.sub(
-                        r"PreTeXt {VERSION}", f"PreTeXt {VERSION}", line
-                    )
+                    new_line = re.sub(r"PreTeXt {VERSION}", f"PreTeXt {VERSION}", line)
                     f.write(new_line)
                 elif '"image": "pretextbook/pretext' in line:
                     new_line = re.sub(
