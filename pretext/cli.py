@@ -212,7 +212,7 @@ def upgrade() -> None:
     else:
         log.info("Upgrading PreTeXt.")
         pretext_cmd = "pretext"
-    #subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", pretext_cmd])
+    subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", pretext_cmd])
     log.info(
         "Upgrade complete.  Individual projects can be updated to align with the latest version of the CLI by running `pretext update` from their project folder."
     )
