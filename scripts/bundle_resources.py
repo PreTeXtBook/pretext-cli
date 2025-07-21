@@ -2,12 +2,19 @@ import hashlib
 import shutil
 import re
 import json
+import urllib.request
 from pathlib import Path
 from pretext import VERSION
 from pretext.constants import PROJECT_RESOURCES
 
 
 def resource_hashes() -> None:
+    # Get version of the pretext-docker image:
+    docker_version_url = "https://raw.githubusercontent.com/PreTeXtBook/pretext-docker/refs/heads/main/version.txt"
+    with urllib.request.urlopen(docker_version_url) as response:
+        docker_version = response.read().decode().strip()
+    print(f"pretext-docker version: {docker_version}")
+
     # Load current hash table
     if (Path("pretext") / "resources" / "resource_hash_table.json").exists():
         with open(Path("pretext") / "resources" / "resource_hash_table.json", "r") as f:
@@ -30,17 +37,15 @@ def resource_hashes() -> None:
             for line in lines:
                 if "This file was automatically generated" in line:
                     # replace the version number with {VERSION}:
+                    new_line = re.sub(r"PreTeXt {VERSION}", f"PreTeXt {VERSION}", line)
+                    f.write(new_line)
+                elif '"image": "pretextbook/pretext' in line:
                     new_line = re.sub(
-                        r"PreTeXt \d+\.\d+\.\d+", f"PreTeXt {VERSION}", line
+                        r'("image": "pretextbook/pretext(-full)?):latest"',
+                        rf'\1:{docker_version}"',
+                        line,
                     )
                     f.write(new_line)
-                # elif '"image": "oscarlevin/pretext' in line:
-                #    new_line = re.sub(
-                #        r'("image": "oscarlevin/pretext(-full)?):latest"',
-                #        rf'\1:{VERSION}"',
-                #        line,
-                #    )
-                #    f.write(new_line)
                 else:
                     f.write(line)
         # Now hash the updated file to add to a hash-table for this version
