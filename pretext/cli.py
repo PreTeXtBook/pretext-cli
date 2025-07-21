@@ -16,6 +16,7 @@ import subprocess
 from pydantic import ValidationError
 from typing import Any, Callable, List, Literal, Optional
 from functools import update_wrapper
+import importlib.util
 
 
 from . import (
@@ -196,8 +197,6 @@ def upgrade() -> None:
     Upgrade PreTeXt-CLI to the latest version using pip.
     """
     extras = []
-    import importlib.util
-
     if importlib.util.find_spec("prefig") is not None:
         log.debug(
             "The 'prefig' package is installed; will attempt to upgrade it as well."
