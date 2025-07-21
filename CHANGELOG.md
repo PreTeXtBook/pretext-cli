@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.24.0] - 2025-07-21
+
+Includes updates to core through commit: [32262dd](https://github.com/PreTeXtBook/pretext/commit/32262dda4922a4535bcfb10fe1c66b50c51337ac)
+
 ### Changed
 
 - Template devcontainer will now use versioned docker image.
