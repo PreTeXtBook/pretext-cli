@@ -197,11 +197,16 @@ def upgrade() -> None:
     """
     extras = []
     import importlib.util
+
     if importlib.util.find_spec("prefig") is not None:
-        log.debug("The 'prefig' package is installed; will attempt to upgrade it as well.")
+        log.debug(
+            "The 'prefig' package is installed; will attempt to upgrade it as well."
+        )
         extras.append("prefigure")
     if importlib.util.find_spec("pelican") is not None:
-        log.debug("The 'pelican' package is installed; will attempt to upgrade it as well.")
+        log.debug(
+            "The 'pelican' package is installed; will attempt to upgrade it as well."
+        )
         extras.append("homepage")
     if len(extras) > 0:
         log.info(f"Upgrading PreTeXt (with extras: {', '.join(extras)})")
