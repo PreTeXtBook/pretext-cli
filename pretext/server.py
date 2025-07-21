@@ -63,10 +63,11 @@ class RunningServerInfo:
             return False
         for _, _, _, laddr, _, _ in p.net_connections("all"):
             if isinstance(laddr, str):
-                log.error(
+                log.debug(
                     f"BUG: the `pretext view` command encountered an error.  Please report this: process {self.pid} with laddr {laddr}"
                 )
-                continue
+                remove_server_entry(self.path_hash)
+                return False
             elif isinstance(laddr.port, int) and laddr.port == self.port:
                 log.info(f"Found PreTeXt web server at {self.url()}")
                 return True

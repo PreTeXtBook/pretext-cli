@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Template devcontainer will now use versioned docker image
+
+### Fixed
+
+- Bug that sometimes stopped `pretext view` from working in a codespace.
+
 ## [2.23.1] - 2025-07-14
 
 Includes updates to core through commit: [c750a05](https://github.com/PreTeXtBook/pretext/commit/c750a05a2c35cad67dd269682e1618e3c1eb63dc)
