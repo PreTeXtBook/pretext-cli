@@ -78,7 +78,8 @@
         "oscarlevin.pretext-tools",
         "CodeChat.codechat",
         "streetsidesoftware.code-spell-checker",
-        "alpinebuster.vscode-latex-table-editor"
+        "alpinebuster.vscode-latex-table-editor",
+        "mathematic.vscode-pdf"
       ]
     }
   }
