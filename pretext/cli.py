@@ -606,7 +606,9 @@ def build(
         try:
             for t in targets:
                 log.info(f"Generating assets for {t.name}")
-                t.generate_assets(only_changed=False, xmlid=xmlid, clean=clean)
+                t.generate_assets(
+                    only_changed=False, xmlid=xmlid, clean=clean, skip_cache=True
+                )
             no_generate = True
         except Exception as e:
             log.error(f"Failed to generate assets: {e} \n")

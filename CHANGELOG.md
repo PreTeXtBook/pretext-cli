@@ -11,6 +11,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Changed
 
+- NEW BEHAVIOR: the `pretext build -g` command will not use cached versions of assets when regenerating.  You can still generate assets and use the cache with `pretext generate`.
 - Improve default settings in codespace settings.
 
 ## [2.24.0] - 2025-07-21
