@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.25.0] - 2025-07-26
+
+Includes updates to core through commit: [45be2cf](https://github.com/PreTeXtBook/pretext/commit/45be2cfe85fd54a3e5c03743226919eb1a6b2085)
+
 ### Changed
 
 - NEW BEHAVIOR: the `pretext build -g` command will not use cached versions of assets when regenerating.  You can still generate assets and use the cache with `pretext generate`.
