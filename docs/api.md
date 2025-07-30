@@ -22,3 +22,7 @@ The `logger.add_log_stream_handler()` function simply creates a stream-handler t
 ```python
 logger.add_log_file_handler(path_to_log_directory)
 ```
+
+## Report pretext version
+
+If you want to include the current running version of PreTeXt in your app, you can call `utils.report_version` to get a info-level log report of the version, or import `VERSION` from the base of the project and use that in your own log message.

@@ -982,6 +982,13 @@ def check_for_updates() -> None:
         f.write(str(datetime.date.today()))
 
 
+def report_version() -> None:
+    """
+    Report the current version of pretext.
+    """
+    log.info(f"PreTeXt CLI version: {VERSION}")
+
+
 def is_pretext_proc(proc: psutil.Process) -> bool:
     if proc.name() == "pretext":
         return False
