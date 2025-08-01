@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug in which qrcodes don't generate for video/audio if no interactive or youtube elements exist.
+
+### Changed
+
+- qrcodes for pdf are now generated based on a hash of the elements they point to in addition to the baseurl for the publication file.
+
 ## [2.25.0] - 2025-07-26
 
 Includes updates to core through commit: [45be2cf](https://github.com/PreTeXtBook/pretext/commit/45be2cfe85fd54a3e5c03743226919eb1a6b2085)

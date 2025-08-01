@@ -61,11 +61,15 @@ class Format(str, Enum):
 
 
 # The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
+# Since we will want to hash the baseurl for generating qr codes, we also load it here.
 class PublicationSubset(
     pxml.BaseXmlModel, tag="publication", search_mode=SearchMode.UNORDERED
 ):
     external: Path = pxml.wrapped("source/directories", pxml.attr())
     generated: Path = pxml.wrapped("source/directories", pxml.attr())
+    baseurl: t.Optional[str] = pxml.wrapped(
+        "html/baseurl", pxml.attr(name="href", default=None)
+    )
 
 
 class BrailleMode(str, Enum):
@@ -517,6 +521,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             for node in source_assets:
                 assert isinstance(node, ET._Element)
                 hash.update(ET.tostring(node))
+            # For QR codes, we also hash the base URL, if it exists.
+            if asset == "qrcode":
+                base_url = self._read_publication_file_subset().baseurl
+                if base_url is not None:
+                    hash.update(base_url.encode("utf-8"))
+            # Finally, we store the hash as a string in the dictionary.
             asset_hash_dict[asset] = hash.hexdigest()
         return asset_hash_dict
 
@@ -1123,6 +1133,26 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.debug(e, exc_info=True)
             # youtube also requires the play button.
             self.ensure_play_button()
+        if "qrcode" in assets_to_generate:
+            try:
+                # Warn if trying to generate qrcodes without a base URL.
+                base_url = self._read_publication_file_subset().baseurl
+                if base_url is None:
+                    log.warning(
+                        "You are trying to generate qrcodes, but the publication file does not have a base URL. "
+                        + "This will result in qrcodes that do not point to anything meaningful."
+                    )
+                core.qrcode(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "qrcode",
+                )
+                successful_assets.append("qrcode")
+            except Exception as e:
+                log.error(f"Unable to generate some qrcodes:\n {e}")
+                log.debug(e, exc_info=True)
         if "mermaid" in assets_to_generate:
             try:
                 core.mermaid_images(
@@ -1161,20 +1191,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 successful_assets.append("datafile")
             except Exception as e:
                 log.error(f"Unable to generate some datafiles:\n {e}")
-                log.debug(e, exc_info=True)
-        # Finally, also generate the qrcodes for interactive and youtube assets:
-        # NOTE: we do not currently check for success of this for saving assets to the asset cache.
-        if "interactive" in assets_to_generate or "youtube" in assets_to_generate:
-            try:
-                core.qrcode(
-                    xml_source=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                    xmlid_root=xmlid,
-                    dest_dir=self.generated_dir_abspath() / "qrcode",
-                )
-            except Exception as e:
-                log.error(f"Unable to generate some qrcodes:\n {e}", exc_info=True)
                 log.debug(e, exc_info=True)
         # Delete temporary directories left behind by core:
         try:

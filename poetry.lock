@@ -18,6 +18,35 @@ url = "https://pypi.org/simple"
 reference = "pypi-public"
 
 [[package]]
+name = "anyio"
+version = "4.9.0"
+description = "High level compatibility layer for multiple asynchronous event loop implementations"
+optional = true
+python-versions = ">=3.9"
+groups = ["main"]
+markers = "extra == \"homepage\" or extra == \"all\""
+files = [
+    {file = "anyio-4.9.0-py3-none-any.whl", hash = "sha256:9f76d541cad6e36af7beb62e978876f3b41e3e04f2c1fbf0884604c0a9c4d93c"},
+    {file = "anyio-4.9.0.tar.gz", hash = "sha256:673c0c244e15788651a4ff38710fea9675823028a6f08a5eda409e0c9840a028"},
+]
+
+[package.dependencies]
+exceptiongroup = {version = ">=1.0.2", markers = "python_version < \"3.11\""}
+idna = ">=2.8"
+sniffio = ">=1.1"
+typing_extensions = {version = ">=4.5", markers = "python_version < \"3.13\""}
+
+[package.extras]
+doc = ["Sphinx (>=8.2,<9.0)", "packaging", "sphinx-autodoc-typehints (>=1.2.0)", "sphinx_rtd_theme"]
+test = ["anyio[trio]", "blockbuster (>=1.5.23)", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypothesis (>=4.0)", "psutil (>=5.9)", "pytest (>=7.0)", "trustme", "truststore (>=0.9.1) ; python_version >= \"3.10\"", "uvloop (>=0.21) ; platform_python_implementation == \"CPython\" and platform_system != \"Windows\" and python_version < \"3.14\""]
+trio = ["trio (>=0.26.1)"]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "pypi-public"
+
+[[package]]
 name = "autocommand"
 version = "2.2.2"
 description = "A library to create a command-line program from a function"
@@ -596,12 +625,12 @@ version = "1.2.2"
 description = "Backport of PEP 654 (exception groups)"
 optional = false
 python-versions = ">=3.7"
-groups = ["dev"]
-markers = "python_version == \"3.10\""
+groups = ["main", "dev"]
 files = [
     {file = "exceptiongroup-1.2.2-py3-none-any.whl", hash = "sha256:3111b9d131c238bec2f8f516e123e14ba243563fb135d3fe885990585aa7795b"},
     {file = "exceptiongroup-1.2.2.tar.gz", hash = "sha256:47c2edf7c6738fafb49fd34290706d1a1a2f4d1c6df275526b62cbb4aa5393cc"},
 ]
+markers = {main = "(extra == \"homepage\" or extra == \"all\") and python_version == \"3.10\"", dev = "python_version == \"3.10\""}
 
 [package.extras]
 test = ["pytest (>=6)"]
@@ -1948,15 +1977,15 @@ reference = "pypi-public"
 
 [[package]]
 name = "prefig"
-version = "0.3.6"
+version = "0.3.9"
 description = "An authoring system for mathematical diagrams"
 optional = true
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 markers = "extra == \"prefigure\" or extra == \"all\""
 files = [
-    {file = "prefig-0.3.6-py3-none-any.whl", hash = "sha256:630dd88b3badcce2ed09c64a345b7ccbbecb9433786484a27f3d531a4dc366df"},
-    {file = "prefig-0.3.6.tar.gz", hash = "sha256:660cf637e6c354a077c73f0582a0d38a3d061500c8cce0ecd91a2c470288a598"},
+    {file = "prefig-0.3.9-py3-none-any.whl", hash = "sha256:5d5e962ec9a1ad7f5a4da1e3e99f8787f8af3ee70594fdadeee0f1dea53e6942"},
+    {file = "prefig-0.3.9.tar.gz", hash = "sha256:264d070763378e96a1fa5899d3bc81688b8300e774f2c8acbff01669f184c846"},
 ]
 
 [package.dependencies]
@@ -2917,6 +2946,24 @@ url = "https://pypi.org/simple"
 reference = "pypi-public"
 
 [[package]]
+name = "sniffio"
+version = "1.3.1"
+description = "Sniff out which async library your code is running under"
+optional = true
+python-versions = ">=3.7"
+groups = ["main"]
+markers = "extra == \"homepage\" or extra == \"all\""
+files = [
+    {file = "sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2"},
+    {file = "sniffio-1.3.1.tar.gz", hash = "sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.org/simple"
+reference = "pypi-public"
+
+[[package]]
 name = "strictyaml"
 version = "1.7.3"
 description = "Strict, typed YAML parser"
@@ -3132,14 +3179,20 @@ reference = "pypi-public"
 [[package]]
 name = "urllib3"
 version = "2.2.3"
-description = ""
+description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
     {file = "urllib3-2.2.3-py3-none-any.whl", hash = "sha256:ca899ca043dcb1bafa3e262d73aa25c465bfb49e0bd9dd5d59f1d0acba2f8fac"},
     {file = "urllib3-2.2.3.tar.gz", hash = "sha256:e7d814a81dad81e6caf2ec9fdedb284ecc9c73076b62654547cc64ccdcae26e9"},
 ]
+
+[package.extras]
+brotli = ["brotli (>=1.0.9) ; platform_python_implementation == \"CPython\"", "brotlicffi (>=0.8.0) ; platform_python_implementation != \"CPython\""]
+h2 = ["h2 (>=4,<5)"]
+socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
+zstd = ["zstandard (>=0.18.0)"]
 
 [package.source]
 type = "legacy"
@@ -3202,9 +3255,9 @@ reference = "pypi-public"
 [[package]]
 name = "watchfiles"
 version = "0.24.0"
-description = ""
+description = "Simple, modern and high performance file watching and code reload in python."
 optional = true
-python-versions = "*"
+python-versions = ">=3.8"
 groups = ["main"]
 markers = "extra == \"homepage\" or extra == \"all\""
 files = [
@@ -3292,6 +3345,9 @@ files = [
     {file = "watchfiles-0.24.0-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:49fb58bcaa343fedc6a9e91f90195b20ccb3135447dc9e4e2570c3a39565853e"},
     {file = "watchfiles-0.24.0.tar.gz", hash = "sha256:afb72325b74fa7a428c009c1b8be4b4d7c2afedafb2982827ef2156646df2fe1"},
 ]
+
+[package.dependencies]
+anyio = ">=3.0.0"
 
 [package.source]
 type = "legacy"
@@ -3450,4 +3506,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "0204734b551b144d9f725a48c6c671032c5091d879de7916c5446889bb9d593c"
+content-hash = "0bfee72d04d87793d43ec17d6a48c2a4070fc09706fea9f536c9b04b5f5cb269"
