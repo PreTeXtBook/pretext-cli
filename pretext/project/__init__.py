@@ -67,7 +67,9 @@ class PublicationSubset(
 ):
     external: Path = pxml.wrapped("source/directories", pxml.attr())
     generated: Path = pxml.wrapped("source/directories", pxml.attr())
-    baseurl: t.Optional[str] = pxml.wrapped("html/baseurl", pxml.attr(name="href", default=None))
+    baseurl: t.Optional[str] = pxml.wrapped(
+        "html/baseurl", pxml.attr(name="href", default=None)
+    )
 
 
 class BrailleMode(str, Enum):
