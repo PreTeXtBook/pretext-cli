@@ -21,7 +21,7 @@ authors = [
     "Steven Clontz <steven.clontz@gmail.com>",
 ]
 license = "GPL-3.0-or-later"
-include = ["pretext/core/pretext.py", "pretext/resources/*.zip", "pretext/resources/*.json"]
+include = ["pretext/core/pretext.py", "pretext/core/braille_format.py", "pretext/resources/*.zip", "pretext/resources/*.json"]
 
 # Dependencies
 # ------------

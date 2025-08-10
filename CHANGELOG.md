@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug preventing braille building to work.
+
 ## [2.25.1] - 2025-08-01
 
 Includes updates to core through commit: [f15f9b9](https://github.com/PreTeXtBook/pretext/commit/f15f9b9fee75331d64d0fff4d757c479ef85fcb7)
