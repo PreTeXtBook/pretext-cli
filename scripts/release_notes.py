@@ -16,7 +16,13 @@ Optional env (OpenAI-compatible chat API) if you use --llm:
   LLM_BASE_URL      = https://api.openai.com/v1   (or your own endpoint)
   LLM_MODEL         = gpt-4o-mini                 (or any served model)
 """
-import argparse, os, subprocess, re, json, urllib.request
+import argparse
+import os
+import subprocess
+import re
+import json
+import urllib.request
+
 
 def run(cmd: list[str]) -> str:
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -24,11 +30,13 @@ def run(cmd: list[str]) -> str:
         raise RuntimeError(f"Command failed: {' '.join(cmd)}\n{p.stderr}")
     return p.stdout
 
+
 def last_tag() -> str | None:
     try:
         return run(["git", "describe", "--tags", "--abbrev=0"]).strip()
     except Exception:
         return None
+
 
 def commits(since: str | None = None, until: str = "HEAD") -> list[str]:
     rng = f"{since}..{until}" if since else until
@@ -38,9 +46,26 @@ def commits(since: str | None = None, until: str = "HEAD") -> list[str]:
         log = run(["git", "log", "--pretty=%s", rng])
     return [ln.strip() for ln in log.splitlines() if ln.strip()]
 
+
 def categorize(msgs: list[str]) -> dict[str, list[str]]:
-    cats = {k: [] for k in ["feat","fix","perf","docs","refactor","test","build","ci","chore","other"]}
-    pat = re.compile(r"^(feat|fix|perf|docs|refactor|test|build|ci|chore)(\(.+?\))?:\s*(.+)$", re.I)
+    cats = {
+        k: []
+        for k in [
+            "feat",
+            "fix",
+            "perf",
+            "docs",
+            "refactor",
+            "test",
+            "build",
+            "ci",
+            "chore",
+            "other",
+        ]
+    }
+    pat = re.compile(
+        r"^(feat|fix|perf|docs|refactor|test|build|ci|chore)(\(.+?\))?:\s*(.+)$", re.I
+    )
     for m in msgs:
         mt = pat.match(m)
         if mt:
@@ -49,12 +74,36 @@ def categorize(msgs: list[str]) -> dict[str, list[str]]:
             cats["other"].append(m)
     return cats
 
+
 def format_notes(cats: dict[str, list[str]], since: str | None, until: str) -> str:
-    title = f"Release Notes ({since} â†’ {until})" if since else f"Release Notes (up to {until})"
-    order = ["feat","fix","perf","refactor","docs","test","build","ci","chore","other"]
+    title = (
+        f"Release Notes ({since} â†’ {until})"
+        if since
+        else f"Release Notes (up to {until})"
+    )
+    order = [
+        "feat",
+        "fix",
+        "perf",
+        "refactor",
+        "docs",
+        "test",
+        "build",
+        "ci",
+        "chore",
+        "other",
+    ]
     labels = {
-        "feat":"Features","fix":"Fixes","perf":"Performance","refactor":"Refactoring",
-        "docs":"Documentation","test":"Tests","build":"Build","ci":"CI","chore":"Chore","other":"Other"
+        "feat": "Features",
+        "fix": "Fixes",
+        "perf": "Performance",
+        "refactor": "Refactoring",
+        "docs": "Documentation",
+        "test": "Tests",
+        "build": "Build",
+        "ci": "CI",
+        "chore": "Chore",
+        "other": "Other",
     }
     out = [f"# {title}", ""]
     for k in order:
@@ -65,6 +114,7 @@ def format_notes(cats: dict[str, list[str]], since: str | None, until: str) -> s
             out.append("")
     out.append("â€” Generated locally by release_notes.py")
     return "\n".join(out)
+
 
 def llm_polish(markdown: str) -> str | None:
     api_key = os.getenv("LLM_API_KEY")
@@ -81,14 +131,17 @@ Keep headings and lists in Markdown. Do not invent changes.
         "model": model,
         "messages": [
             {"role": "system", "content": "You are a meticulous technical editor."},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.2,
     }
     req = urllib.request.Request(
         f"{base_url}/chat/completions",
         data=json.dumps(data).encode("utf-8"),
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
     )
     try:
         with urllib.request.urlopen(req, timeout=60) as resp:
@@ -97,12 +150,15 @@ Keep headings and lists in Markdown. Do not invent changes.
     except Exception:
         return None
 
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--since", help="tag/ref to start from (e.g., v1.2.0)")
     ap.add_argument("--until", default="HEAD", help="end ref (default HEAD)")
     ap.add_argument("--last-tag", action="store_true", help="use last tag as --since")
-    ap.add_argument("--llm", action="store_true", help="polish output via LLM if env vars set")
+    ap.add_argument(
+        "--llm", action="store_true", help="polish output via LLM if env vars set"
+    )
     args = ap.parse_args()
 
     since = args.since or (last_tag() if args.last_tag else None)
@@ -116,6 +172,6 @@ def main():
             return
     print(md)
 
+
 if __name__ == "__main__":
     main()
-
