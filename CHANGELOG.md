@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.26.0] - 2025-08-11
+
+Includes updates to core through commit: [8b25e5f](https://github.com/PreTeXtBook/pretext/commit/8b25e5f6b8c1b0c8e0a9b2488cdb83cddd6e6ffd)
+
 ### Changed
 
 - HTML links no longer produce footnotes with url; LaTeX puts url in parentheses (core).
