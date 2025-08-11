@@ -9,9 +9,20 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- HTML links no longer produce footnotes with url; LaTeX puts url in parentheses (core).
+
+### Added
+
+- WeBWorK problems can be authored in bare PG (core).
+
 ### Fixed
 
 - Bug preventing braille building to work.
+- Bug preventing workspace in HTML worksheets when no special worksheet formatting is requested (core).
+- Variety of HTML theme improvements (core).
+
 
 ## [2.25.1] - 2025-08-01
 
