@@ -311,6 +311,15 @@ Generating assets is complicated.  See [docs/asset-generation.md](docs/asset-gen
 
 ---
 
+### Generate release notes locally (optional helper)
+
+```bash
+python3 scripts/release_notes.py --last-tag > RELEASE_NOTES.md
+# or pick a range:
+python3 scripts/release_notes.py --since vX.Y.Z > RELEASE_NOTES.md
+
+---
+
 ## About
 
 ### PreTeXt-CLI Team
