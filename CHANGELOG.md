@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.27.0] - 2025-08-12
+
+Includes updates to core through commit: [132ca23](https://github.com/PreTeXtBook/pretext/commit/132ca234495d16ffbb8ad75fc06375f991000db4)
+
 ### Changed
 
 - Lagacy themes for HTML will not be automatically replaced with their new equivalents.
