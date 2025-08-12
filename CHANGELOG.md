@@ -9,6 +9,19 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Lagacy themes for HTML will not be automatically replaced with their new equivalents.
+
+### Added
+
+- Codelense trace improvements.
+
+### Fixed
+
+- Bug preventing authored webwork problems in projects from being generated.
+- Runestone profile menu now works in mobile view.
+
 ## [2.26.0] - 2025-08-11
 
 Includes updates to core through commit: [8b25e5f](https://github.com/PreTeXtBook/pretext/commit/8b25e5f6b8c1b0c8e0a9b2488cdb83cddd6e6ffd)
