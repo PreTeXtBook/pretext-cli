@@ -705,6 +705,13 @@ def build(
     is_flag=True,
     help="Force generation of assets; do not rely on assets in the cache.",
 )
+@click.option(
+    "-s",
+    "--slow",
+    is_flag=True,
+    default=False,
+    help="Increase the timeout for capturing screenshots of interactive elements.  Only needed if some interactive previews are not rendering correctly.",
+)
 @click.pass_context
 @nice_errors
 def generate(
@@ -716,6 +723,7 @@ def generate(
     xmlid: Optional[str],
     clean: bool,
     force: bool,
+    slow: bool,
 ) -> None:
     """
     Generate specified (or all) assets for the default target (first target in "project.ptx"). Asset "generation" is typically
@@ -754,6 +762,7 @@ def generate(
             xmlid=xmlid,
             clean=clean,
             skip_cache=force,
+            slow=slow,
         )
         # Check if there are errors reported by the build by looking at the error_flush_handler.
         if utils.has_errors(error_flush_handler):
