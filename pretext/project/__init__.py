@@ -1146,7 +1146,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     stringparams=stringparams_copy,
                     xmlid_root=xmlid,
                     dest_dir=self.generated_dir_abspath() / "preview",
-                    method="slow" if slow else "fast"
+                    method="slow" if slow else "fast",
                 )
                 successful_assets.append("interactive")
             except Exception as e:
