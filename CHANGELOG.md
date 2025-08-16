@@ -9,13 +9,25 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- New "handout" division, similar to worksheets, but intended for pages you print without exercises.
+- `@workspace` can go on most paragraph-level elements in worksheets and handouts.
+- Experimental support for improve bibliographies using citeproc.  `pretext generate references` will generate the required xml file in generated assets.
+- Experimental support for generating STACK static assets.  `pretext generate stack` will generate the required assets.
+
+### Fixed
+
+- Footnotes inside detached `proof` works better in print conversion.
+- Improve autoscroll of table of contents for HTML.
+
 ## [2.27.0] - 2025-08-12
 
 Includes updates to core through commit: [132ca23](https://github.com/PreTeXtBook/pretext/commit/132ca234495d16ffbb8ad75fc06375f991000db4)
 
 ### Changed
 
-- Lagacy themes for HTML will not be automatically replaced with their new equivalents.
+- Legacy themes for HTML will now be automatically replaced with their new equivalents.
 
 ### Added
 

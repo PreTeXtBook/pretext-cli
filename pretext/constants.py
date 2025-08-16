@@ -141,6 +141,8 @@ ASSET_TO_XPATH = {
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
     "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
+    "references": ".//biblio",
+    "stack": ".//stack",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
@@ -158,6 +160,8 @@ ASSET_TO_DIR = {
     "mermaid": ["mermaid"],
     "myopenmath": ["problems"],
     "dynamic-subs": ["dynamic_subs"],
+    "references": ["references"],
+    "stack": ["stack"],
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
