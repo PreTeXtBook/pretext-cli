@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.28.0] - 2025-08-16
+
+Includes updates to core through commit: [bec45fb](https://github.com/PreTeXtBook/pretext/commit/bec45fb595aa6d758e50e7e9eb7185405ada9f0d)
+
 ### Added
 
 - New "handout" division, similar to worksheets, but intended for pages you print without exercises.
