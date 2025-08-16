@@ -14,6 +14,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 - New "handout" division, similar to worksheets, but intended for pages you print without exercises.
 - `@workspace` can go on most paragraph-level elements in worksheets and handouts.
 - Experimental support for improve bibliographies using citeproc.  `pretext generate references` will generate the required xml file in generated assets.
+- Experimental support for generating STACK static assets.  `pretext generate stack` will generate the required assets.
 
 ### Fixed
 

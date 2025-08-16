@@ -901,6 +901,21 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.debug(e, exc_info=True)
             finally:
                 return
+        # To help with debugging, we are temporarily adding a stack generation step here.  The only way this will be called is if `pretext generate stack` is called explicitly.
+        if requested_asset_types == ("stack",):
+            try:
+                core.stack_extraction(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams.copy(),
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "stack",
+                )
+            except Exception as e:
+                log.error(f"Unable to generate some stack assets:\n {e}")
+                log.debug(e, exc_info=True)
+            finally:
+                return
 
         # clear out the generated assets and cache if requested
         if clean:
