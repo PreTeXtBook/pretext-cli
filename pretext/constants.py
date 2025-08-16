@@ -141,7 +141,7 @@ ASSET_TO_XPATH = {
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
     "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
-    "references": ".//biblio"
+    "references": ".//biblio",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 

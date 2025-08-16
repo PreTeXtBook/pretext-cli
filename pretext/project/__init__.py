@@ -1209,7 +1209,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.error(f"Unable to generate some datafiles:\n {e}")
                 log.debug(e, exc_info=True)
         # The following code will eventually be needed, but for now, we leave as a placeholder.
-        #if "references" in assets_to_generate and debug_references:
+        # if "references" in assets_to_generate and debug_references:
         #    try:
         #        core.references(
         #            xml_source=self.source_abspath(),
