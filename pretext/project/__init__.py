@@ -886,6 +886,22 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         """
         log.info("Generating any needed assets.")
 
+        # To help with debugging, we are temporarily adding a reference generation step here.  The only way this will be called is if `pretext generate references` is called explicitly.
+        if requested_asset_types == ("references",):
+            try:
+                core.references(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams.copy(),
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "references",
+                )
+            except Exception as e:
+                log.error(f"Unable to generate some references:\n {e}")
+                log.debug(e, exc_info=True)
+            finally:
+                return
+
         # clear out the generated assets and cache if requested
         if clean:
             self.clean_assets()
@@ -1192,6 +1208,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             except Exception as e:
                 log.error(f"Unable to generate some datafiles:\n {e}")
                 log.debug(e, exc_info=True)
+        # The following code will eventually be needed, but for now, we leave as a placeholder.
+        #if "references" in assets_to_generate and debug_references:
+        #    try:
+        #        core.references(
+        #            xml_source=self.source_abspath(),
+        #            pub_file=self.publication_abspath().as_posix(),
+        #            stringparams=stringparams_copy,
+        #            xmlid_root=xmlid,
+        #            dest_dir=self.generated_dir_abspath() / "references",
+        #        )
+        #        successful_assets.append("references")
+        #    except Exception as e:
+        #        log.error(f"Unable to generate some references:\n {e}")
+        #        log.debug(e, exc_info=True)
         # Delete temporary directories left behind by core:
         try:
             core.release_temporary_directories()
