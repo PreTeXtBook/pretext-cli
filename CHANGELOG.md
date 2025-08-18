@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.28.2] - 2025-08-18
+
+Includes updates to core through commit: [488b019](https://github.com/PreTeXtBook/pretext/commit/488b019c8f79306ecdaf8a8dee20d0717ce7a034)
+
 ### Fixed
 
 - Project-like that are inside a worksheet were not getting solutions in the backmatter.
