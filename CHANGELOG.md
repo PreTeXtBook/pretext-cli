@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Project-like that are inside a worksheet were not getting solutions in the backmatter.
+- Added an optional `cname` attribute on the `<project>` in the manifest to allow deploy to work with github pages using custom subdomains.
+
 ## [2.28.1] - 2025-08-18
 
 Includes updates to core through commit: [5fd31db](https://github.com/PreTeXtBook/pretext/commit/5fd31dbe840afff119b45bffdaf0921bd7afb1ae)

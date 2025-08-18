@@ -685,7 +685,10 @@ def parse_git_remote(string: str) -> t.List[str]:
 
 
 def publish_to_ghpages(
-    directory: Path, update_source: bool, no_push: bool = False
+    directory: Path,
+    update_source: bool,
+    no_push: bool = False,
+    cname: t.Optional[str] = None,
 ) -> None:
     """
     Publish the current project to GitHub pages.
@@ -774,7 +777,9 @@ def publish_to_ghpages(
     log.info("")
     # Should we let ghp_import do the push for us?
     # Should we remove the history?
-    ghp_import.ghp_import(directory, mesg="Latest build deployed.", nojekyll=True)
+    ghp_import.ghp_import(
+        directory, mesg="Latest build deployed.", nojekyll=True, cname=cname
+    )
     log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
     # log.info("(Your SSH password may be required.)")
     log.info("")
