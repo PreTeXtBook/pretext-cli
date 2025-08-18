@@ -1313,6 +1313,9 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             raise ValueError("Server names must not be repeated.")
         return v
 
+    # cname attribute on project for writing into a `CNAME` file as part of a deploy.
+    cname: t.Optional[str] = pxml.attr(default=None)
+
     # This validator sets the `_path`, which is provided in the validation context. It can't be loaded from the XML, since this is metadata about the XML (the location of the file it was loaded from).
     # (It's unclear why the typing of the next line is causing issues.)
     @model_validator(mode="after")
@@ -1727,7 +1730,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             self.stage_deployment()
         if not stage_only:
             utils.publish_to_ghpages(
-                self.stage_abspath(), update_source, no_push=no_push
+                self.stage_abspath(), update_source, no_push=no_push, cname=self.cname
             )
 
     def is_git_managed(self) -> bool:
