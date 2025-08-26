@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.29.0] - 2025-08-26
+
+Includes updates to core through commit: [38f9e6c](https://github.com/PreTeXtBook/pretext/commit/38f9e6c394e64463946ccad634359345c207093e)
+
 ### Added
 
 - A description list (`dl`) can now be set to `@width="wide"` to give more room for the titles/terms.
