@@ -9,6 +9,22 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- A description list (`dl`) can now be set to `@width="wide"` to give more room for the titles/terms.
+
+### Changed
+
+- You can override the default table of contents "focus" (expandable levels) for a theme with a publication variable.
+
+### Fixed
+
+- Include introductions and conclusions for tasks in Runestone.
+- Variety of styling improvements.
+- `dl` with `@width="narrow"` now respected in HTML.
+- detached proofs now reference their theorem with a knowl and without duplication.
+- Project-like duplication for ActiveCode and CodeLens now fixed for Runestoone.
+
 ## [2.28.2] - 2025-08-18
 
 Includes updates to core through commit: [488b019](https://github.com/PreTeXtBook/pretext/commit/488b019c8f79306ecdaf8a8dee20d0717ce7a034)
