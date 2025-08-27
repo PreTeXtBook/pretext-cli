@@ -841,6 +841,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     stringparams=stringparams_copy,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     tgz=self.compression,
+                    need_macros=True,
                 )
             elif self.format == Format.CUSTOM:
                 # Need to add the publication file to string params since xsltproc function doesn't include pubfile.
