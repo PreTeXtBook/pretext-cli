@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Now checking for full list of deprecations from core pretext by default.
+
+### Fixed
+
+- Bug preventing locally authored WeBWorK from activating in Runestone.
+
 ## [2.29.0] - 2025-08-26
 
 Includes updates to core through commit: [38f9e6c](https://github.com/PreTeXtBook/pretext/commit/38f9e6c394e64463946ccad634359345c207093e)
