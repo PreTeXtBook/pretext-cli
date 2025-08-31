@@ -199,10 +199,22 @@ def start_server(
     port: int = 8128,
     callback: t.Callable[[int], None] | None = None,
 ) -> None:
+    # We call this when we are sure we want a new server on a new port, currently just from the CLI's view command after already checking that the current project doesn't already have a running server.
     log.info("setting up PreTeXt web server ...")
     path_hash = hash_path(base_dir)
     pid = os.getpid()
     binding = binding_for_access(access)
+    # Look for a port that isn't already listed in the running_servers
+    while is_port_in_use(port):
+        log.debug(f"Port {port} is in use.")
+        port = port + 1
+        log.debug(f"Trying port {port} instead.")
+        # prevent an infinite loop in case something is very wrong.
+        if port > 8199:
+            log.warning(
+                "Couldn't find a port within a reasonable time, stopping search."
+            )
+            break
     log.debug("values set: %s, %s, %s", path_hash, binding, port)
 
     # Previously we defined a custom handler to prevent caching, but we don't need to do that anymore.  It was causing issues with the _static js/css files inside codespaces for an unknown reason.  Might bring this back in the future.
