@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.29.2] - 2025-09-10
+
+Includes updates to core through commit: [016b805](https://github.com/PreTeXtBook/pretext/commit/016b805e8716fc8d4246027f3e999c566a57442c)
+
 ### Fixed
 
 - Bug which prevented two projects to be previewed at the same time on Windows.
