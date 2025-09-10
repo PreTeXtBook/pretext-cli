@@ -12,6 +12,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Fixed
 
 - Bug which prevented two projects to be previewed at the same time on Windows.
+- Better styling for html worksheets and handouts.
+- Better spacing around paragraphs inside other containers.
 
 ## [2.29.1] - 2025-08-30
 
