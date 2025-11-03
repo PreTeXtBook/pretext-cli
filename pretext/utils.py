@@ -990,8 +990,8 @@ def check_for_updates() -> None:
         log.info(f"You are using the latest version of pretext, {current_version}.\n")
     # update the last check date
     with open(last_check, "w") as f:
-        f.write(str(datetime.date.today())+"\n")
-        f.write(latest+"\n")
+        f.write(str(datetime.date.today()) + "\n")
+        f.write(latest + "\n")
 
 
 def report_version() -> None:
