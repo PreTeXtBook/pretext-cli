@@ -959,14 +959,20 @@ def check_for_updates() -> None:
     """
     # check whether we have looked for updates today
     last_check = resources.resource_base_path() / "last_update_check.txt"
+    current_version = VERSION
     if last_check.exists():
         with open(last_check, "r") as f:
-            last_date = f.read()
+            last_date = f.readline().strip()
+            cached_version = f.readline().strip()
         if last_date == str(datetime.date.today()):
             log.debug("Already checked for updates today.")
+            if is_earlier_version(current_version, cached_version):
+                log.info(
+                    f"Version {cached_version.strip()} of pretext is available.  You are currently using version {current_version}."
+                )
+                log.info("To upgrade, run `pretext upgrade`.")
             return
     # Check for updates
-    current_version = VERSION
     latest = latest_version()
     if latest is None:
         log.debug("Could not check for updates.")
@@ -984,7 +990,8 @@ def check_for_updates() -> None:
         log.info(f"You are using the latest version of pretext, {current_version}.\n")
     # update the last check date
     with open(last_check, "w") as f:
-        f.write(str(datetime.date.today()))
+        f.write(str(datetime.date.today()) + "\n")
+        f.write(latest + "\n")
 
 
 def report_version() -> None:
