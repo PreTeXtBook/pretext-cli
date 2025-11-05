@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- New `--slow` option for `pretext generate` to increase the timeout for interactive preview generation.
+
 ### Changed
 
 - When an update is available, report this on every run of pretext.
