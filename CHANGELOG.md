@@ -12,10 +12,21 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Added
 
 - New `--slow` option for `pretext generate` to increase the timeout for interactive preview generation.
+- Publisher options for hiding subtitle and byline in html page banner.
+- Solution-like elements persist for Runestone assignment page.
+- `worksheet` added to stable schema; `handout` added to dev schema.
+
 
 ### Changed
 
 - When an update is available, report this on every run of pretext.
+- `md` elements with no `mrow` produce math equations (previously `me`).
+
+### Fixed
+
+- Styling for non-math, non-interactive fillins in html.
+- MathJax svg display in dark mode.
+- Table justification in html.
 
 ## [2.29.2] - 2025-09-10
 
