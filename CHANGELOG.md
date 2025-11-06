@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.30.0] - 2025-11-06
+
+Includes updates to core through commit: [6e68559](https://github.com/PreTeXtBook/pretext/commit/6e685595d5967d5d25eae299aab96dde54d89445)
+
 ### Added
 
 - New `--slow` option for `pretext generate` to increase the timeout for interactive preview generation.
