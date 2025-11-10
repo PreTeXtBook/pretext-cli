@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug preventing OPL WeBWorK problems from loading inside Runestone.
+
+
 ## [2.30.0] - 2025-11-06
 
 Includes updates to core through commit: [6e68559](https://github.com/PreTeXtBook/pretext/commit/6e685595d5967d5d25eae299aab96dde54d89445)
@@ -20,7 +25,6 @@ Includes updates to core through commit: [6e68559](https://github.com/PreTeXtBoo
 - Solution-like elements persist for Runestone assignment page.
 - `worksheet` added to stable schema; `handout` added to dev schema.
 
-
 ### Changed
 
 - When an update is available, report this on every run of pretext.
@@ -31,6 +35,7 @@ Includes updates to core through commit: [6e68559](https://github.com/PreTeXtBoo
 - Styling for non-math, non-interactive fillins in html.
 - MathJax svg display in dark mode.
 - Table justification in html.
+
 
 ## [2.29.2] - 2025-09-10
 
