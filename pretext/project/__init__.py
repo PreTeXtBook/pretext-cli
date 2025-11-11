@@ -754,18 +754,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     ext_rs_methods=utils.rs_methods,
                 )
-                try:
-                    codechat.map_path_to_xml_id(
-                        self.source_abspath(),
-                        self._project.abspath(),
-                        self.output_dir_abspath().as_posix(),
-                    )
-                except Exception as e:
-                    log.warning(
-                        "Failed to map codechat path to xml id; codechat will not work."
-                    )
-                    log.debug(f"Error: {e}")
-                    log.debug("Traceback:", exc_info=True)
+                if self.platform != Platform.RUNESTONE:
+                    # On non-runestone builds, we try to create a codechat mapping for authors.
+                    try:
+                        codechat.map_path_to_xml_id(
+                            self.source_abspath(),
+                            self._project.abspath(),
+                            self.output_dir_abspath().as_posix(),
+                        )
+                    except Exception as e:
+                        log.warning(
+                            "Failed to map codechat path to xml id; codechat will not work."
+                        )
+                        log.debug(e, exc_info=True)
             elif self.format == Format.PDF:
                 core.pdf(
                     xml=self.source_abspath(),
