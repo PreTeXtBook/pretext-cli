@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.30.2] - 2025-11-11
+
+Includes updates to core through commit: [ad3ef3f](https://github.com/PreTeXtBook/pretext/commit/ad3ef3fb102bf393b9fe33ecb242848e5ca6b0df)
+
 ### Changed
 
 - Runestone builds no longer try to generate codechat mapping (if you want to use codechat previews, use a non-runestone html build).
