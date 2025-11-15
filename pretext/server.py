@@ -49,34 +49,43 @@ class RunningServerInfo:
         """Returns whether the server represented by this object is active on the provided port"""
         try:
             p = psutil.Process(self.pid)
+            if not p.is_running():
+                log.debug(f"Found entry no longer running {p.pid}; removing entry.")
+                remove_server_entry(self.path_hash)
+                return False
+            if p.status == psutil.STATUS_ZOMBIE:
+                log.debug(f"Found zombie process {p.pid}; removing entry.")
+                remove_server_entry(self.path_hash)
+                return False
+            for _, _, _, laddr, _, _ in p.net_connections("all"):
+                if isinstance(laddr, str):
+                    log.debug(
+                        f"BUG: the `pretext view` command encountered an error.  Please report this: process {self.pid} with laddr {laddr}"
+                    )
+                    remove_server_entry(self.path_hash)
+                    return False
+                elif isinstance(laddr.port, int) and laddr.port == self.port:
+                    log.info(f"Found PreTeXt web server at {self.url()}")
+                    return True
+                else:
+                    log.debug(f"Found process {self.pid} with laddr {laddr}")
+            log.debug(
+                f"Found process {self.pid} no longer listening on specified port {self.port}"
+            )
+            return False
         except psutil.NoSuchProcess:
             log.debug(f"Found entry no longer exists {self.pid}; removing entry.")
             remove_server_entry(self.path_hash)
             return False
-        if not p.is_running():
-            log.debug(f"Found entry no longer running {p.pid}; removing entry.")
+        except psutil.AccessDenied:
+            log.debug(
+                f"Was denied access to process {self.pid}; please report. Removing entry."
+            )
             remove_server_entry(self.path_hash)
             return False
-        if p.status == psutil.STATUS_ZOMBIE:
-            log.debug(f"Found zombie process {p.pid}; removing entry.")
-            remove_server_entry(self.path_hash)
+        except Exception as e:
+            log.debug(f"Unexpected error when accessing process {self.pid}: {e}")
             return False
-        for _, _, _, laddr, _, _ in p.net_connections("all"):
-            if isinstance(laddr, str):
-                log.debug(
-                    f"BUG: the `pretext view` command encountered an error.  Please report this: process {self.pid} with laddr {laddr}"
-                )
-                remove_server_entry(self.path_hash)
-                return False
-            elif isinstance(laddr.port, int) and laddr.port == self.port:
-                log.info(f"Found PreTeXt web server at {self.url()}")
-                return True
-            else:
-                log.debug(f"Found process {self.pid} with laddr {laddr}")
-        log.debug(
-            f"Found process {self.pid} no longer listening on specified port {self.port}"
-        )
-        return False
 
     def terminate(self) -> None:
         """Attempt to terminate the process described by this info."""
