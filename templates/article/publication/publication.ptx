@@ -4,4 +4,13 @@
     <source>
         <directories external="../assets" generated="../generated-assets"/>
     </source>
+
+    <common>
+        <!-- When writing an article for a specific journal, you can   -->
+        <!-- specify the name of the journal to get appropriate latex. -->
+        <!-- See the guide for a list of valid names:
+          https://pretextbook.org/doc/guide/html/appendix-journals.html#appendix-journals -->
+
+        <!--<journal name="ams" /> -->
+    </common>
 </publication>
