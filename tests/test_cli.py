@@ -321,7 +321,7 @@ def test_slideshow(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "slides"], cwd=tmp_path
     ).success
-    assert (tmp_path / "output" / "slides" / "slides.html").exists()
+    assert (tmp_path / "output" / "slides" / "index.html").exists()
 
 
 def test_deploy(tmp_path: Path, script_runner: ScriptRunner) -> None:
