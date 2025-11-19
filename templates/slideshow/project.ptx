@@ -5,7 +5,7 @@
     <target
         name="slides"
         format="revealjs"
-        output-filename="slides.html"
+        output-filename="index.html"
         />
   </targets>
 </project>

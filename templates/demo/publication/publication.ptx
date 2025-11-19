@@ -34,7 +34,7 @@
       <!-- <watermark scale="0.5">DRAFT</watermark> -->
 
     <!-- Mermaid diagram themes -->
-      <!-- <mermaid theme="default" /> -->  
+      <!-- <mermaid theme="default" /> -->
 
     <!-- QR code image: set path to an image to put in center of QR codes -->
       <!-- <qrcode image="image.png" /> -->
@@ -105,7 +105,7 @@
     <!-- Covers: provide paths to pdfs for front and back covers: -->
       <!--<covers front="cover-front.pdf" back="cover-back.pdf" />-->
     <!-- Set @formatted to "no" to remove formatting on worksheets: -->
-      <!--<worksheets formatted="yes" />-->
+      <!--<worksheet formatted="yes" />-->
   </latex>
 
   <html>

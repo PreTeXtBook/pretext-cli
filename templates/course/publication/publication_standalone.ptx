@@ -105,7 +105,7 @@
     <!-- Covers: provide paths to pdfs for front and back covers: -->
       <!--<cover front="cover-front.pdf" back="cover-back.pdf" />-->
     <!-- Set @formatted to "no" to remove formatting on worksheets: -->
-      <!--<worksheets formatted="yes" />-->
+      <!--<worksheet formatted="yes" />-->
   </latex>
 
   <html>
