@@ -34,7 +34,7 @@
       <!-- <watermark scale="0.5">DRAFT</watermark> -->
 
     <!-- Mermaid diagram themes -->
-      <!-- <mermaid theme="default" /> -->  
+      <!-- <mermaid theme="default" /> -->
 
     <!-- QR code image: set path to an image to put in center of QR codes -->
       <!-- <qrcode image="image.png" /> -->
@@ -92,7 +92,7 @@
           font-size="10"
           draft="no"
           latex-style="dyslexic-font"
-      > 
+      >
   -->
 
     <!-- Control text justification and bottom page behavior. Add content intended for \geometry{} inside the <geometry> element. -->
@@ -109,7 +109,7 @@
     <!-- Covers: provide paths to pdfs for front and back covers: -->
       <!--<cover front="cover-front.pdf" back="cover-back.pdf" />-->
     <!-- Set @formatted to "no" to remove formatting on worksheets: -->
-      <!--<worksheets formatted="yes" />-->
+      <!--<worksheet formatted="yes" />-->
   </latex>
 
   <html>

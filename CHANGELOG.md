@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug that sometimes prevented `pretext view` from working due to permissions on mac
+- Typos in template publication files
+
 ## [2.30.2] - 2025-11-11
 
 Includes updates to core through commit: [ad3ef3f](https://github.com/PreTeXtBook/pretext/commit/ad3ef3fb102bf393b9fe33ecb242848e5ca6b0df)
