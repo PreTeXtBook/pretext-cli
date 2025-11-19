@@ -11,8 +11,9 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Fixed
 
-- Bug that sometimes prevented `pretext view` from working due to permissions on mac
-- Typos in template publication files
+- Bug that sometimes prevented `pretext view` from working due to permissions on mac.
+- Typos in template publication files.
+- Default output filename for the slideshow template is now `index.html` so `pretext view` will open directly to the slideshow.
 
 ## [2.30.2] - 2025-11-11
 
