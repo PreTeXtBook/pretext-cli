@@ -9,11 +9,22 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Support for Kotlin programming language in activecode. (core)
+- Improvements for Mermaid image generation. (core)
+- Image descriptions now work on Asymptote images. (core)
+
+### Changed
+
+- Display math can be placed inside `<md>` (without `<mrow>`) instead of `<me>`.  Numbered equations now specified with an attribute. (core)
+
 ### Fixed
 
 - Bug that sometimes prevented `pretext view` from working due to permissions on mac.
 - Typos in template publication files.
 - Default output filename for the slideshow template is now `index.html` so `pretext view` will open directly to the slideshow.
+- Bug that sometimes prevented a journal article style file from being downloaded.
 
 ## [2.30.2] - 2025-11-11
 
