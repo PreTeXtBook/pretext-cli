@@ -1190,14 +1190,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.debug(e, exc_info=True)
         if "mermaid" in assets_to_generate:
             try:
-                core.mermaid_images(
-                    xml_source=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                    xmlid_root=xmlid,
-                    dest_dir=self.generated_dir_abspath() / "mermaid",
-                )
-                successful_assets.append("mermaid")
+                for outformat in asset_formats["mermaid"]:
+                    core.mermaid_images(
+                        xml_source=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=stringparams_copy,
+                        xmlid_root=xmlid,
+                        dest_dir=self.generated_dir_abspath() / "mermaid",
+                        outformat=outformat,
+                    )
+                    successful_assets.append("mermaid")
             except Exception as e:
                 log.error(f"Unable to generate some mermaid images: \n{e}")
                 log.debug(e, exc_info=True)

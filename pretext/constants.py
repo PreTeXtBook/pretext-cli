@@ -170,12 +170,14 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "latex-image": [],
         "sageplot": ["pdf", "png"],
         "prefigure": ["pdf"],
+        "mermaid": ["png"],
     },
     "latex": {
         "asymptote": ["pdf"],
         "latex-image": [],
         "sageplot": ["pdf", "png"],
         "prefigure": ["pdf"],
+        "mermaid": ["png"],
     },
     "html": {
         "asymptote": ["html"],
@@ -194,12 +196,14 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "latex-image": ["svg"],
         "sageplot": ["svg"],
         "prefigure": ["svg"],
+        "mermaid": ["svg"],
     },
     "kindle": {
         "asymptote": ["png"],
         "latex-image": ["png"],
         "sageplot": ["png"],
         "prefigure": ["png"],
+        "mermaid": ["svg"],
     },
     "braille": {
         "asymptote": ["all"],
@@ -222,6 +226,7 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "latex-image": ["all"],
         "sageplot": ["all"],
         "prefigure": ["all"],
+        "mermaid": ["png", "svg"],
     },
 }
 
