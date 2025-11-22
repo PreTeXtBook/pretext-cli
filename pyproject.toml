@@ -47,7 +47,7 @@ coloraide = "^4"
 pelican = { extras = ["markdown"], version = "^4.10", optional = true }
 prefig = { extras = ["text"], version = "^0.4.2", optional = true }
 citeproc-py = "^0"
-
+passagemath-standard = { version = "^10", optional = true }
 
 # Development dependencies
 # ------------------------
@@ -72,6 +72,7 @@ pep8-naming = "^0.14.1"
 [tool.poetry.extras]
 homepage = ["pelican"]
 prefigure = ["prefig"]
+passagemath = ["passagemath-standard"]
 all = ["pelican","prefig"]
 
 [tool.poetry.scripts]
