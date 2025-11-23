@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- PDF targets built with `--latex` flag will include the latex source in the output directory.
+
 ## [2.31.0] - 2025-11-20
 
 Includes updates to core through commit: [65231d1](https://github.com/PreTeXtBook/pretext/commit/65231d1891e6a60f9e9d4873520e5d3e849e59b3)

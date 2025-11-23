@@ -483,6 +483,12 @@ def init(refresh: bool, files: List[str], system: bool) -> None:
     help="Only build the theme for the target, without performing any other build or generate steps.  (Themes are automatically built when building a target.)",
 )
 @click.option(
+    "-l",
+    "--latex",
+    is_flag=True,
+    help="When building a PDF, also place LaTeX source files in the output directory for inspection or manual compilation.",
+)
+@click.option(
     "-x",
     "--xmlid",
     type=click.STRING,
@@ -514,6 +520,7 @@ def build(
     generate: bool,
     no_generate: bool,
     theme: bool,
+    latex: bool,
     xmlid: Optional[str],
     no_knowls: bool,
     deploys: bool,
@@ -627,7 +634,11 @@ def build(
             if xmlid is not None:
                 log.info(f"with root of tree below {xmlid}")
             t.build(
-                clean=clean, generate=not no_generate, xmlid=xmlid, no_knowls=no_knowls
+                clean=clean,
+                generate=not no_generate,
+                xmlid=xmlid,
+                no_knowls=no_knowls,
+                latex=latex,
             )
             if t.format == "html" and t.compression is None:
                 log.info(

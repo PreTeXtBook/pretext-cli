@@ -665,6 +665,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         generate: bool = True,
         xmlid: t.Optional[str] = None,
         no_knowls: bool = False,
+        latex: bool = False,
     ) -> None:
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
@@ -776,20 +777,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.latex_engine,
+                    outputs="all" if latex else "pdf",
                 )
             elif self.format == Format.LATEX:
-                core.latex(
+                core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=stringparams_copy,
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                )
-                utils.manage_directories(
-                    self.output_dir_abspath(),
-                    external_abs=self.external_dir_abspath(),
-                    generated_abs=self.generated_dir_abspath(),
+                    method=self.latex_engine,
+                    outputs="prebuild",
                 )
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
