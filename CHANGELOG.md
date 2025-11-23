@@ -11,7 +11,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Added
 
-- PDF targets built with `-v debug` will include the latex source in the output directory.
+- PDF targets built with `--latex` flag will include the latex source in the output directory.
 
 ## [2.31.0] - 2025-11-20
 
