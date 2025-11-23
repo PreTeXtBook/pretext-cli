@@ -790,11 +790,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     method=self.latex_engine,
                     outputs="prebuild",
                 )
-                utils.manage_directories(
-                    self.output_dir_abspath(),
-                    external_abs=self.external_dir_abspath(),
-                    generated_abs=self.generated_dir_abspath(),
-                )
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
                 core.epub(
