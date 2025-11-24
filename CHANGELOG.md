@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- The `latex-source` attribute, set to anything except "no", on a target with format `pdf` will copy latex source files to output directory.
+
 ## [2.32.0] - 2025-11-23
 
 Includes updates to core through commit: [ce20f15](https://github.com/PreTeXtBook/pretext/commit/ce20f15d525f2d1e7a3c3fb8da3bb5fa9d16d3ee)
