@@ -132,6 +132,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     latex_engine: LatexEngine = pxml.attr(
         name="latex-engine", default=LatexEngine.XELATEX
     )
+    # Flag to indicate whether to include LaTeX source files in the output directory when building a PDF target.
+    latex_source: t.Optional[str] = pxml.attr(name="latex-source", default=None)
+
+    @field_validator("latex_source")
+    @classmethod
+    def latex_source_validator(
+        cls, v: t.Optional[str]
+    ) -> bool:
+        if v is None:
+            return False
+        return v.lower() != "no"
+
     braille_mode: BrailleMode = pxml.attr(
         name="braille-mode", default=BrailleMode.EMBOSS
     )
@@ -769,6 +781,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                         log.debug(e, exc_info=True)
             elif self.format == Format.PDF:
+                # Include latex source files if requested.
+                if self.latex_source:
+                    latex = True
                 core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -777,7 +792,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.latex_engine,
-                    outputs="all" if latex else "pdf",
+                    outputs="all" if latex else "pdf-only",
                 )
             elif self.format == Format.LATEX:
                 core.pdf(
