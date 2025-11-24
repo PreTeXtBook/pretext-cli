@@ -137,9 +137,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     @field_validator("latex_source")
     @classmethod
-    def latex_source_validator(
-        cls, v: t.Optional[str]
-    ) -> bool:
+    def latex_source_validator(cls, v: t.Optional[str]) -> bool:
         if v is None:
             return False
         return v.lower() != "no"
