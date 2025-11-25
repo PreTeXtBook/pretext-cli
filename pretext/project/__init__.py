@@ -53,6 +53,7 @@ class Format(str, Enum):
     LATEX = "latex"
     PDF = "pdf"
     EPUB = "epub"
+    EPUB_NOZIP = "epub_nozip"
     KINDLE = "kindle"
     BRAILLE = "braille"
     REVEALJS = "revealjs"
@@ -810,6 +811,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     pub_file=self.publication_abspath().as_posix(),
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
+                    file_format="epub",
+                    math_format="svg",
+                    stringparams=stringparams_copy,
+                )
+            elif self.format == Format.EPUB_NOZIP:
+                utils.mjsre_npm_install()
+                core.epub(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    out_file=out_file,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    file_format="nozip",
                     math_format="svg",
                     stringparams=stringparams_copy,
                 )
@@ -820,6 +833,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     pub_file=self.publication_abspath().as_posix(),
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
+                    file_format="epub",
                     math_format="kindle",
                     stringparams=stringparams_copy,
                 )
