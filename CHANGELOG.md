@@ -12,6 +12,9 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Added
 
 - The `latex-source` attribute, set to anything except "no", on a target with format `pdf` will copy latex source files to output directory.
+- Improvements to ePub output format (core).
+- Experimental dual static/interactive exercises with Runestone support (core).
+- Improvements to `intertext` in display math (core).
 
 ## [2.32.0] - 2025-11-23
 
