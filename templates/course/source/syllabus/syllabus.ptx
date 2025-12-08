@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<section xml:id="syllabus" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <title>Syllabus</title>
+
+  <introduction>
+    <p>
+      Welcome to what promises to be an exciting and fun semester of ...
+    </p>
+  </introduction>
+  <!-- Include chapters -->
+  <subsection xml:id="sec-course-info">
+    <title>Course Information</title>
+
+    <p>
+      This is the syllabus for <term>course name (MATH xxx, section xxx)</term> for semester 20xx.
+      It is a x credit course.
+      <dl>
+      <li>
+        <title>Instructor</title>
+
+        <p>
+          Prof.
+          Lastname, Office Location, <url href="mailto:prof.lastname@example.edu">prof.lastname@example.edu</url>.
+        </p>
+      </li>
+
+      <li>
+        <title>Student Hours</title>
+
+        <p>
+          TBD
+        </p>
+
+        <p>
+          <alert>Important</alert>: I <em>want</em> to see you in student hours, and will happily make appointments with you outside of the regular hours.  I'm also available by email and will respond within 24 hours, usually much sooner.  There is little I enjoy more than discussing mathematics, so you are really doing me a favor by coming to see me.
+        </p>
+      </li>
+
+      <li>
+        <title>Class meets</title>
+
+        <p>
+          course times and location.
+        </p>
+      </li>
+
+      <li>
+        <title>Course Description</title>
+
+        <p>
+          course description from catalog
+        </p>
+      </li>
+
+      <li>
+        <title>Prerequisite</title>
+
+        <p>
+          list of prerequisites
+        </p>
+      </li>
+
+      <li>
+        <title>Textbook and course materials</title>
+
+        <p>
+          <pubtitle>textbook name</pubtitle>
+          by textbook author.
+        </p>
+      </li>
+      </dl>
+    </p>
+
+
+    <paragraphs>
+      <title>Course Overview</title>
+
+      <p>
+      </p>
+    </paragraphs>
+  </subsection>
+
+
+  <subsection xml:id="sec-assessments">
+    <title>Assessments and Grades</title>
+
+    <p>
+    </p>
+
+
+    <paragraphs>
+      <title>Learning targets</title>
+
+      <p>
+        By the end of this course, you should be able to:
+        <ol>
+          <li>
+            <p>
+            </p>
+          </li>
+
+          <li>
+            <p>
+            </p>
+          </li>
+        </ol>
+      </p>
+    </paragraphs>
+
+
+    <paragraphs>
+      <title>Assessment of Learning Targets</title>
+
+      <p>
+      </p>
+    </paragraphs>
+
+
+    <paragraphs>
+      <title>Final Exam</title>
+
+      <p>
+      </p>
+    </paragraphs>
+
+
+    <paragraphs>
+      <title>Assessment of Mathematical Engagement</title>
+
+      <p>
+        Your level of effort and engagement will be assessed through your participation in class and completion of a variety of homework assignments.
+        <dl>
+        <li>
+          <title>Participation</title>
+
+          <p>
+          </p>
+        </li>
+
+        <li>
+          <title>Daily Prep Assignments</title>
+
+          <p>
+          </p>
+        </li>
+
+        <li>
+          <title>Practice Problems</title>
+
+          <p>
+          </p>
+        </li>
+
+        <li>
+          <title>Written Homework</title>
+
+          <p>
+          </p>
+        </li>
+        </dl>
+      </p>
+    </paragraphs>
+
+
+    <paragraphs>
+      <title>Final Grades</title>
+
+      <p>
+      </p>
+    </paragraphs>
+  </subsection>
+  <!-- Since some parts of the syllabus are used in multiple courses, the following are included as separate files that can easily be copied elsehwere. -->
+  <xi:include href="./subsec-policies.ptx" />
+  <xi:include href="./subsec-dates.ptx" />
+</section>

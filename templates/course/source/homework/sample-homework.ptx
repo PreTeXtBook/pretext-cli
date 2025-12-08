@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Written by Sarah Sparks, Fall 2025 -->
+
+<worksheet xml:id="hw1">
+  <title>Sample Homework: Written Homework 1</title>
+  <introduction>
+    <p>
+      <alert>Instructions:</alert> Complete all the parts below on a <em>separate page</em> (not between the prompts).  Submit your work by uploading a <alert>single PDF</alert> to Canvas.  This can either be a scan of handwritten solutions or a PDF you created by first typing your solutions.
+    </p>
+
+    <p>
+      Note that the last prompt asks you to write a <term>project proposal</term>.  This should be written out in paragraph form.  Pretend you are really trying to earn the business of the farmer, so make it professional and accurate.
+    </p>
+  </introduction>
+  
+  <page>
+
+  <project>
+    <introduction>
+      <p>
+        A local farmer has reached out to your family's livestock containment company for an estimate to create a habitat for their new emus. The requirements given to you by the farmer are:
+        <ul>
+          <li>
+            <p>
+              Create a rectangular habitat that is 4000 square feet total, divided into two equal sized areas.
+            </p>
+          </li>
+          <li>
+            <p>
+              Exterior fence must be 6' tall sturdy 12 gauge galvanized steel.
+            </p>
+          </li>
+          <li>
+            <p>
+              Interior fence to divide the two areas can be 4' tall and as needs to only be 16 gauge.
+            </p>
+          </li>
+          <li>
+            <p>
+              Since emu's like to run, it is preferable to have one dimension of the individual areas be at least 100' long.
+            </p>
+          </li>
+        </ul>
+        The farmer has requested a project plan, including estimates, for the habitat.  Your dad has asked you to use calculus to help write the proposal.
+      </p>
+
+      <p>
+        On your end, you know that including parts and labor, the exterior fence will cost $15 per foot, while the interior fence costs only $10 per foot.  
+      </p>
+
+    </introduction>
+
+
+    <task>
+      <statement>
+        <p>
+          Start by drawing a schematic for the project.
+        </p>
+      </statement>
+    </task>
+
+    <task>
+      <statement>
+        <p>
+          Suppose one dimension is exactly 100'.  Find the other dimension and compute the exact cost for this version of the habitat.
+        </p>
+      </statement>
+    </task>
+
+    <task>
+      <statement>
+        <p>
+          Is there a way to reduce the cost for the farmer?  Create a function <m>C(x)</m> that gives the total cost of a project when the long side of the habitat is <m>x</m> feet long.  Verify that <m>C(100)</m> is the same cost as you found in the previous part.
+        </p>
+      </statement>
+      <hint>
+        <p>
+          You will likely want to first write <m>C</m> in terms of two dimensions.  Then use the fact that the total area of the habitat must be 4000 square feet to eliminate one variable.
+        </p>
+      </hint>
+    </task>
+
+    <task>
+      <statement>
+        <p>
+          Sketch a graph of the function <m>C(x)</m> on an appropriate domain.
+        </p>
+      </statement>
+    </task>
+
+    <task>
+      <statement>
+        <p>
+          Use calculus to find the absolute minimum of the function <m>C(x)</m>, both with and without the restriction that one side of the habitat must be 100' long.
+        </p>
+      </statement>
+    </task>
+
+    <task>
+      <statement>
+        <p>
+          Use what you have found in the above parts to write a <term>self contained</term> project proposal, that includes at least two options for the farmer.  Clearly explain what the options are, how much they would cost, and what the farmer would get with each.  Remember, you are trying to sell fence here.  Don't dissapoint your dad!
+        </p>
+      </statement>
+    </task>
+
+  </project>
+  </page>
+</worksheet>

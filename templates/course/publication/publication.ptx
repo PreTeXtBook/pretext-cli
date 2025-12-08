@@ -12,7 +12,7 @@
 <publication>
   <common>
     <!-- Level at which are html files generated (chapter/section/etc): -->
-      <chunking level="1" />
+      <chunking level="2" />
 
     <!-- Depth for table of contents.  0 means no TOC -->
       <!--<tableofcontents level="1" />-->
@@ -52,6 +52,7 @@
     <!-- Set which marked elements are included in this version: -->
     <!-- See
     https://pretextbook.org/doc/guide/html/publication-file-source.html#publication-file-source-version -->
+    <!-- In this example, we include the w1s components from the sample activity to show solutions. -->
       <version include="w1s"/>
 
   </source>
@@ -105,10 +106,12 @@
     <!-- Covers: provide paths to pdfs for front and back covers: -->
       <!--<cover front="cover-front.pdf" back="cover-back.pdf" />-->
     <!-- Set @formatted to "no" to remove formatting on worksheets: -->
-      <!--<worksheet formatted="yes" />-->
+      <!--<worksheets formatted="yes" />-->
   </latex>
 
+  <!-- The embed-button makes it easy to copy the code for an iframe into your LMS -->
   <html embed-button="yes">
+
     <!-- A possible attribute for the html tag above is @short-answer-responses, with values either "always" or "graded".  As in: -->
     <!--<html short-answer-responses="always">-->
 
@@ -143,9 +146,10 @@
     <!-- See also                                              -->
     <!-- https://pretextbook.org/doc/guide/html/publication-file-online.html#online-style-options -->
     <css
-        theme="greeley"
+        theme="denver"
         primary-color="#386F94"
         primary-color-dark="#5192BD"
+        provide-dark-mode="yes"
     />
 
     <!-- Search can be default or none, or you can use a Google-cx number to use google's search
