@@ -35,7 +35,7 @@ The most important thing to remember when authoring in a codespace is that you a
 
 We have tried to keep the codespace small (so it starts up quickly and doesn't eat through your monthly storage allotment), so we do not include a full TeXLive distribution.  We have tried to include most packages and fonts you are likely to need to generate images using `<latex-image>` elements, and to generate PDF print output.  However, if you run into a situation where the LaTeX gives errors about packages missing (like it cannot find a `mypackage.sty` file), here is what you should do.
 
-1. To quickly resolve the issue yourself, open a terminal (``Ctrl+Shift+` ``) and use the TeXLive Package Manager to install the missing package.  
+1. To quickly resolve the issue yourself, open a terminal (``Ctrl+Shift+` ``) and use the TeXLive Package Manager to install the missing package.
     a. If you know that the package is called `mypackage` then enter the following two lines:
 
     ```bash
@@ -48,12 +48,21 @@ We have tried to keep the codespace small (so it starts up quickly and doesn't e
     tlmgr search --global --all "mypackage.sty"
     ```
 
-2. To ensure that you don't have to repeat this step every time you recreate the codespace, add the package name to the list of installs inside the file `.devcontainer/installLatex.sh` which gets run every time a codespace is created.
-
-3. Better yet, post the name of the missing package to this [GitHub issue](https://github.com/PreTeXtBook/pretext-codespace/issues/21) and we will add it to the devcontainer.  This has the advantage that you will still get updates that other authors submit (if you edit the `installLatex.sh` file, then it won't be updated when you run `pretext update`).
+2. Then please post the name of the missing package to this [GitHub issue](https://github.com/PreTeXtBook/pretext-codespace/issues/21) and we will add it to the devcontainer.  This has the advantage that you will still get updates that other authors submit.  The next time you update PreTeXt, you should get the better version of the devcontainer and everyone else will benefit as well.
 
 ### Troubleshooting: sageplot images
 
-By far the largest space-hog in a PreTeXt authoring environment is SageMath, which is only required if you generate images using sageplots.  By default, SageMath is not installed in a PreTeXt codespace, but it should be easy to install if you need it.  
+By far the largest space-hog in a PreTeXt authoring environment is SageMath, which is only required if you generate images using sageplots.  By default, SageMath is not installed in a PreTeXt codespace, but it should be easy to install if you need it.
 
-Just open the command palette (`Ctrl+Shift+P` of `F1`) and search for "PreTeXt: Install SageMath".  This will also update the `.devcontainer/devcontainer.json` file so that the next time you create a codespace for this project, it should install automatically.
+Open the file `.devcontainer/devcontainer.json` and edit the line that contains
+
+```
+  "image": "pretextbook/pretext:latest",
+```
+(or perhaps instead of `latest`, you have a version number).  Change this to
+
+```
+  "image": "pretextbook/pretext-full:latest",
+```
+
+VS Code should prompt you to rebuild your codespace, which you should do (you do not need to do a "full rebuild" though).  This docker image contains sagemath and you should be able to add sageplots and generate them successfully now.

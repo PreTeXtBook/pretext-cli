@@ -9,21 +9,24 @@
     <target name="print" source="main.ptx" format="pdf"
             output-filename="course.pdf" publication="publication.ptx" />
 
-    <target name="slides" source="slides/week01.ptx" format="revealjs"
-            publication="publication-slides.ptx" deploy-dir="slides" />
-    <target name="slides-annotated" source="slides/week01.ptx" format="revealjs"
-            publication="publication-slides-annotated.ptx" deploy-dir="slides-annotated" />
+    <target name="slides" source="slides/slides.ptx" format="revealjs"
+            publication="publication-slides.ptx" deploy-dir="slides"
+            output-filename="index.html"/>
+    <target name="slides-annotated" source="slides/slides.ptx" format="revealjs"
+            publication="publication-slides-annotated.ptx" deploy-dir="slides-annotated"
+            output-filename="index.html"/>
 
 
-  <!-- The following targets are used to create stand-alone documents, -->
-  <!-- either SCORM archives or pdfs. Run with `pretext build scorm -i source/[filename.ptx]`-->
-    <target name="scorm" standalone="yes" format="html" compression="scorm"
-            output-dir="scorms" publication="publication_standalone.ptx"
-            />
-    <target name="pdf" standalone="yes" format="pdf"
-            output-dir="pdfs" publication="publication_standalone.ptx" />
-    <target name="slides" standalone="yes" format="revealjs"
-            output-dir="slides" publication="publication-slides.ptx" />
+
+  <!-- The following targets are used to create stand-alone documents, which could be additional slide decks, pdfs, or SCORM archives. Run with `pretext build slides -i source/slides/[filename.ptx]`, for example. -->
+  <target name="pdf" standalone="yes" format="pdf"
+          output-dir="pdfs" publication="publication_standalone.ptx"/>
+  <target name="slides" standalone="yes" format="revealjs"
+          output-dir="slides" publication="publication-slides.ptx"/>
+  <target name="slides-annotated" standalone="yes" format="revealjs"
+          output-dir="slides" publication="publication-slides-annotated.ptx"/>
+  <target name="scorm" standalone="yes" format="html" compression="scorm"
+          output-dir="scorms" publication="publication_standalone.ptx"/>
   </targets>
 </project>
 
