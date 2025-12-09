@@ -27,7 +27,7 @@ include = ["pretext/core/pretext.py", "pretext/core/braille_format.py", "pretext
 # ------------
 [tool.poetry.dependencies]
 python = "^3.10"
-lxml = "^5.3"
+lxml = "^6"
 requests = "^2"
 GitPython = "^3"
 click = "^8"
