@@ -25,6 +25,7 @@ Includes updates to core through commit: [1c97959](https://github.com/PreTeXtBoo
 ### Changed
 
 - Improved `course` template and updated readme's for main templates.
+- Update requirements for `lxml` to version 6 for compatibility with python 3.14 on Windows.
 
 ## [2.33.0] - 2025-12-06
 
