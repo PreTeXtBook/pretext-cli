@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Worksheet contributed by Mitch Keller -->
- 
-<worksheet xml:id="wkst-relns-digraphs">
-  <title>Relations and Digraphs</title>
+
+<worksheet xml:id="activity-00-sample-activity">
+  <title>Sample Activity: Relations and Digraphs</title>
   <page>
     <exercise workspace="0.5in">
       <statement>
@@ -39,6 +39,7 @@
             </p>
           </statement>
 
+          <!-- The component allows a publication file to include or exclude solutions in a particular version (if, for example, you want to include them only after a particular date.) -->
           <solution component="w1s">
             <p>
               <ol marker="(a)">

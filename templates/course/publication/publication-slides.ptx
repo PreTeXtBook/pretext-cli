@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<publication>
+    <source>
+        <directories external="../assets" generated="../generated-assets"/>
+        <!-- add component="b" to parts of the slides that should show up in the "blank" (unannotated) version.  The next line makes sure this is included -->
+        <version include="b" />
+    </source>
+    <common>
+        <fillin mathstyle="underline" />
+    </common>
+    <revealjs>
+        <appearance theme="white"/>
+        <!-- these are "resources" defaults, but best for a sample -->
+        <!-- @minified is not even necessary with @host = 'cdn'    -->
+        <resources host="cdn"/>
+        <!-- display="yes" is the default so we can see arrows          -->
+        <!-- tutorial="yes" is the default                              -->
+        <!-- layout="bottom-right" is the default, "edges" is an option -->
+        <!-- backarrows="faded" is the default,                         -->
+        <!--     "hidden and "visible" are options                      -->
+        <controls display="yes" tutorial="yes" layout="bottom-right" backarrows="faded"/>
+        <!-- mode="default" is horizontal/vertical two-level navigation              -->
+        <!--   mode="grid" allows direct movement between adjacent vertical segments -->
+        <!--   mode="linear" is more traditional left/right movement for all slides  -->
+        <navigation mode="default"/>
+    </revealjs>
+</publication>

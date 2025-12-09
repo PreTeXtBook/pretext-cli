@@ -1,13 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<pretext>
-    <article xml:id="notes">
-        <section xml:id="notes-week-01">
-        <title>Week 1</title>
-        <p>
-            This week we covered the following topics:
-        </p>
+<section xml:id="notes-week-01">
+  <title>Week 1</title>
 
-        </section>
-    </article>
-</pretext>
+  <introduction>
+    <p>
+      This is an outline of the topics we covered in the first week of class.
+    </p>
+  </introduction>
+
+  <!-- Can also be <handout> instead of <subsection> to get a printable version -->
+  <subsection>
+    <title>Monday 8/22</title>
+
+    <p>
+    </p>
+  </subsection>
+
+
+  <subsection>
+    <title>Wednesday 8/24</title>
+
+    <p>
+    </p>
+  </subsection>
+
+
+  <subsection>
+    <title>Friday 8/26</title>
+
+    <p>
+    </p>
+  </subsection>
+</section>
