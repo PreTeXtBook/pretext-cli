@@ -661,13 +661,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 
+        time_logger = utils.Stopwatch("Target::build()", True)
+        time_logger.log("build started")
+
         # Check for xml syntax errors and quit if xml invalid:
         if not utils.xml_syntax_is_valid(self.source_abspath()):
             raise RuntimeError("XML syntax for source file is invalid")
         if not utils.xml_syntax_is_valid(self.publication_abspath(), "publication"):
             raise RuntimeError("XML syntax for publication file is invalid")
+        time_logger.log("XML syntax validated")
+
         # Validate xml against schema; continue with warning if invalid:
         utils.xml_source_validates_against_schema(self.source_abspath())
+        time_logger.log("source validated against schema")
 
         # Clean output upon request
         if clean:
@@ -678,6 +684,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps()
+        time_logger.log("webwork representations ensured")
 
         # Generate needed assets unless requested not to.
         if generate:
@@ -734,7 +741,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         log.warning(
                             "The platform host in the publication file is not set to runestone. Since the requested target has @platform='runestone', we will override the publication file's platform host."
                         )
+                time_logger.log("building HTML")
                 utils.ensure_css_node_modules()
+                time_logger.log("node set")
                 core.html(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -746,6 +755,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     ext_rs_methods=utils.rs_methods,
                 )
+                time_logger.log("done building HTML")
                 if self.platform != Platform.RUNESTONE:
                     # On non-runestone builds, we try to create a codechat mapping for authors.
                     try:
@@ -754,6 +764,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             self._project.abspath(),
                             self.output_dir_abspath().as_posix(),
                         )
+                        time_logger.log("done mapping codechat")
                     except Exception as e:
                         log.warning(
                             "Failed to map codechat path to xml id; codechat will not work."
