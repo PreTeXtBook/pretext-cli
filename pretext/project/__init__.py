@@ -368,29 +368,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             if server.name not in self_server_names:
                 self.server.append(server)
 
-        # For the Runestone format, determine the `<document-id>`, which specifies the `output_dir`.
-        if self.format == Format.HTML and self.platform == Platform.RUNESTONE:
-            # We expect `d_list ==  ["document-id contents here"]`.
-            d_list = self.source_element().xpath("/pretext/docinfo/document-id/text()")
-            if isinstance(d_list, list):
-                if len(d_list) != 1:
-                    raise ValueError(
-                        "Only one `document-id` tag is allowed in a PreTeXt document."
-                    )
-                # NB as of 2025-04-08, we are no longer setting the output directory automatically for
-                # Runestone targets.  This must be managed by the project.ptx file or by a client script.
-                # The commented code below is how we used to do this.
-
-                # d = d_list[0]
-                # assert isinstance(d, str)
-                # # Use the correct number of `../` to undo the project's `output-dir`, so the output from the build is located in the correct directory of `published/document-id`.
-                # self.output_dir = Path(
-                #    f"{'../'*len(self._project.output_dir.parents)}published/{d}"
-                # )
-            else:
-                raise ValueError(
-                    "The `document-id` tag must be defined for the Runestone format."
-                )
+        # NB as of 2025-04-08, we are no longer setting the output directory automatically for
+        # Runestone targets.  This must be managed by the project.ptx file or by a client script.
+        # Check history here for how that was done.
 
     def source_abspath(self) -> Path:
         return self._project.source_abspath() / self.source
