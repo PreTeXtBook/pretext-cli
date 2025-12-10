@@ -685,7 +685,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         time_logger.log("XML syntax validated")
 
         # Validate xml against schema; continue with warning if invalid:
-        utils.xml_source_validates_against_schema(self.source_abspath())
+        utils.xml_validates_against_schema(self.source_element())
         time_logger.log("source validated against schema")
 
         # Clean output upon request
