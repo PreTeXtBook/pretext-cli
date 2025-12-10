@@ -112,6 +112,9 @@ def main(ctx: click.Context, targets: bool) -> None:
     Use the `--help` option on any CLI command to learn more, for example,
     `pretext build --help`.
     """
+    time_logger = utils.Stopwatch("core ", True)
+    time_logger.log("core started")
+
     # the targets option just lists targets in the current project
     if targets:
         if (pp := utils.project_path()) is not None:
@@ -136,7 +139,9 @@ def main(ctx: click.Context, targets: bool) -> None:
         return
     # In all other cases we need to know whether we are in a directory for a project.
     if (pp := utils.project_path()) is not None:
+        time_logger.log("starting project parse")
         project = Project.parse(pp)
+        time_logger.log("project parsed")
         log.info(f"PreTeXt project found in `{utils.project_path()}`.")
 
         logger.add_log_file_handler(pp / "logs")
