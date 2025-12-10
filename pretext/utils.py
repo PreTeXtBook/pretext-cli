@@ -204,16 +204,12 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
     return True
 
 
-def xml_source_validates_against_schema(xmlfile: Path) -> bool:
+def xml_validates_against_schema(etree: ET) -> bool:
     # get path to RelaxNG schema file:
     schemarngfile = resources.resource_base_path() / "core" / "schema" / "pretext.rng"
 
     # Open schemafile for validation:
     relaxng = ET.RelaxNG(file=schemarngfile)
-
-    # Parse xml file:
-    source_xml = ET.parse(xmlfile)
-    source_xml.xinclude()
 
     # just for testing
     # ----------------
@@ -223,7 +219,7 @@ def xml_source_validates_against_schema(xmlfile: Path) -> bool:
 
     # validate against schema
     try:
-        relaxng.assertValid(source_xml)
+        relaxng.assertValid(etree)
         log.info("PreTeXt source passed schema validation.")
     except ET.DocumentInvalid as err:
         log.debug(
