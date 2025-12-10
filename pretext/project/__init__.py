@@ -671,7 +671,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 
         # Check for xml syntax errors and quit if xml invalid:
-        if not utils.xml_syntax_is_valid(self.source_abspath()):
+        try:
+            # Access the source_element to trigger assembly if it hasn't been done yet.
+            self.source_element()
+        except Exception as e:
+            log.error(f"Error assembling source file: {e}")
             raise RuntimeError("XML syntax for source file is invalid")
         if not utils.xml_syntax_is_valid(self.publication_abspath(), "publication"):
             raise RuntimeError("XML syntax for publication file is invalid")
