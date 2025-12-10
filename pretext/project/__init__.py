@@ -128,6 +128,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     #
     # A path to the root source for this target, relative to the project's `source` path.
     source: Path = pxml.attr(default=Path("main.ptx"))
+    # Cache of assembled source element.
+    _source_element: t.Optional[ET._Element] = None
     # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
     publication: Path = pxml.attr(default=None)
     latex_engine: LatexEngine = pxml.attr(
@@ -388,14 +390,21 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def source_element(self) -> ET._Element:
         """
         Returns the root element for the assembled source, after processing with the "version-only" assembly.
+        Caches the result for future calls.
         """
-        assembled = core.assembly_internal(
-            xml=self.source_abspath(),
-            pub_file=self.publication_abspath().as_posix(),
-            stringparams=self.stringparams.copy(),
-            method="version",
-        )
-        return assembled.getroot()
+        if self._source_element is None:
+            log.debug(
+                f"Parsing source element for target {self.name}",
+            )
+            self._source_element = core.assembly_internal(
+                xml=self.source_abspath(),
+                pub_file=self.publication_abspath().as_posix(),
+                stringparams=self.stringparams.copy(),
+                method="version",
+            )
+        else:
+            log.debug(f"Using cached source_element for target {self.name}")
+        return self._source_element.getroot()
 
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
