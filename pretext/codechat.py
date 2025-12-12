@@ -88,7 +88,8 @@ def map_path_to_xml_id(
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
     src_tree = ET.parse(_xml, parser=huge_parser)
-    lxml.ElementInclude.include(src_tree, loader=my_loader)
+    #lxml.ElementInclude.include(src_tree, loader=my_loader)
+    lxml.ElementInclude.include(src_tree)
 
     # Walk though every element with an xml ID. Note: the type stubs don't have the ``iterfind`` method, hence the ignore in the next line.
     for elem in src_tree.iterfind(f".//*[@{xml_id_attrib}]"):  # type: ignore
