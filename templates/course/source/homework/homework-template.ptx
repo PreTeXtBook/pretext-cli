@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<worksheet>
+  <title>Homework xx</title>
+  <introduction>
+    <p>
+      <alert>Instructions:</alert> etc.
+    </p>
+  </introduction>
+
+  <page>
+    <exercise workspace="1in">
+      <statement>
+        <p>
+          This is the first homework exercise.
+        </p>
+      </statement>
+    </exercise>
+
+  </page>
+</worksheet>

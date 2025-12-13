@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- When creating a new activity, make a copy of this file with appropriate name -->
-<worksheet>
-  <title>Activity Title</title>
+<worksheet xml:id="activity-01-intro-activity">
+  <title>Introduction Activity</title>
 
   <!-- Optional introduction -->
   <introduction>
