@@ -204,7 +204,7 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
     return True
 
 
-def xml_validates_against_schema(etree: ET) -> bool:
+def xml_validates_against_schema(etree: _Element) -> bool:
     # get path to RelaxNG schema file:
     schemarngfile = resources.resource_base_path() / "core" / "schema" / "pretext.rng"
 
@@ -1114,11 +1114,11 @@ class Stopwatch:
         self.start_time = time.time()
         self.last_log_time = self.start_time
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the log timer to the current time."""
         self.last_log_time = time.time()
 
-    def log(self, timepoint_description: str = ""):
+    def log(self, timepoint_description: str = "") -> None:
         """Print a log message with the elapsed time since the last log event."""
         if self.print_log:
             cur_time = time.time()
