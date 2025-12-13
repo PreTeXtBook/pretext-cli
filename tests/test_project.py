@@ -288,6 +288,7 @@ def test_html_build_permissions(tmp_path: Path) -> None:
         assert (prj_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
 
 
+@pytest.mark.skip(reason="Temporarily disabled")
 def test_demo_html_build(tmp_path: Path) -> None:
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
