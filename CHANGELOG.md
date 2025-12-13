@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.33.2] - 2025-12-13
+
+Includes updates to core through commit: [1c97959](https://github.com/PreTeXtBook/pretext/commit/1c97959297d51749717f9b34ce5da131c960b92d)
+
 ### Changed
 
 - Simplify course template.
