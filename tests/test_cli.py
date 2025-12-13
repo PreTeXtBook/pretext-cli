@@ -1,4 +1,3 @@
-import json
 import subprocess
 import os
 import shutil
@@ -13,7 +12,8 @@ from pretext import constants
 from typing import cast, Generator
 import pytest
 from pytest_console_scripts import ScriptRunner
-from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
+#from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
+from .common import EXAMPLES_DIR, check_installed
 
 PTX_CMD = cast(str, shutil.which("pretext"))
 assert PTX_CMD is not None
@@ -134,9 +134,8 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # Temporarily disable:
     # mapping = json.load(open(web_path / ".mapping.json"))
     # print(mapping)
-    ## This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
-    ##
-    ## The path separator varies by platform.
+    # # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
+    # # The path separator varies by platform.
     # assert mapping == DEMO_MAPPING
 
 
