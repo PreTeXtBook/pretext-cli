@@ -401,10 +401,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 pub_file=self.publication_abspath().as_posix(),
                 stringparams=self.stringparams.copy(),
                 method="version",
-            )
+            ).getroot()
         else:
             log.debug(f"Using cached source_element for target {self.name}")
-        return self._source_element.getroot()
+        return self._source_element
 
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
@@ -680,7 +680,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if not utils.xml_syntax_is_valid(self.publication_abspath(), "publication"):
             raise RuntimeError("XML syntax for publication file is invalid")
         # Validate xml against schema; continue with warning if invalid:
-        utils.xml_source_validates_against_schema(self.source_abspath())
+        utils.xml_validates_against_schema(self.source_element())
 
         # Clean output upon request
         if clean:
