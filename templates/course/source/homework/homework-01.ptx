@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<worksheet>
+  <title>Homework 01</title>
+  <introduction>
+    <p>
+      <alert>Instructions:</alert> Complete all the exercises below and submit your work by the due date.
+    </p>
+  </introduction>
+
+  <page>
+    <exercise>
+      <statement>
+        <p>
+          This is the first homework exercise.
+        </p>
+      </statement>
+    </exercise>
+
+  </page>
+</worksheet>

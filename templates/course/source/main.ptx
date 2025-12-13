@@ -18,9 +18,7 @@
 
       <!-- Course syllabus -->
       <xi:include href="./syllabus/syllabus.ptx" />
-
       <!-- Other documents could go here, like a schedule, project description, etc. -->
-
     </chapter>
 
     <chapter xml:id="course-notes">
@@ -50,24 +48,22 @@
       </introduction>
 
       <!-- Remove the example and replace with your own activities -->
-      <xi:include href="./activities/00-sample-activity.ptx"/>
+      <xi:include href="./activities/01-intro-activity.ptx"/>
 
       <!-- Add more xi:include files here to include them in the main course -->
     </chapter>
 
     <chapter xml:id="handouts">
       <title>Handouts</title>
-
-      <!-- Remove or comment out the sample and replace with your own handouts -->
-      <!-- You can also comment out the entire chapter on Handouts until you are ready to include them -->
-      <xi:include href="./handouts/sample-handout.ptx"/>
+      <!-- Include handouts -->
+      <!--<xi:include href="./handouts/handout-filename.ptx"/>-->
     </chapter>
 
     <chapter xml:id="homework">
       <title>Homework</title>
 
-      <!-- Remove or comment out the sample and replace with your own homework -->
-      <xi:include href="./homework/sample-homework.ptx"/>
+      <!-- Include homework files -->
+      <!--<xi:include href="./homework/homework01.ptx"/>-->
 
     </chapter>
 

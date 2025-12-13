@@ -4,7 +4,7 @@
 <project ptx-version="2">
   <targets>
     <!-- Main course for html or pdf -->
-    <target name="web" source="main.ptx" format="html"
+    <target name="course" source="main.ptx" format="html"
             publication="publication.ptx" deploy-dir="course" />
     <target name="print" source="main.ptx" format="pdf"
             output-filename="course.pdf" publication="publication.ptx" />
