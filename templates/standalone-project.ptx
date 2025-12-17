@@ -8,6 +8,7 @@ All targets are standalone, so the output will be placed adjacent to the source 
   <targets>
     <target name="html" format="html" standalone="yes"/>
     <target name="pdf" format="pdf" standalone="yes" />
+    <target name="slides" format="revealjs" standalone="yes" />
     <target name="scorm" format="html" compression="scorm" standalone="yes" />
   </targets>
 </project>
