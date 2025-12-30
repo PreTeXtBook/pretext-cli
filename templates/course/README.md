@@ -9,13 +9,13 @@ The course template includes a single PreTeXt "book" that contains (as chapters)
 You can build the course using
 
 ```bash
-pretext build course
+pretext build web
 ```
 
 and view it with
 
 ```bash
-pretext view course
+pretext view web
 ```
 
 Also included is the start of a slide deck.  This is a single file in the `source/slides` folder.  You could use this for all the slides in a course (as a single slideshow), or create separate slideshows.  In that case, you might want to build those separate ones with something like,
