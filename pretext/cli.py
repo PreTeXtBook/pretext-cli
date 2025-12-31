@@ -147,7 +147,7 @@ def main(ctx: click.Context, targets: bool) -> None:
             log.warning(
                 "Project's CLI version could not be detected from `requirements.txt`."
             )
-            log.warning("Try `pretext init --refresh` to produce a compatible file.")
+            log.warning("Try `pretext update` to produce a compatible file.")
         elif utils.requirements_version() != VERSION:
             log.warning(f"Using CLI version {VERSION} but project's `requirements.txt`")
             log.warning(
@@ -381,7 +381,7 @@ def new(template: str, directory: Path, url_template: str) -> None:
     "-r",
     "--refresh",
     is_flag=True,
-    help=" Refresh initialization of project even if project.ptx exists. [This will be deprecated in the future; use `pretext update -f` instead.] ",
+    help="Refresh initialization of project even if project.ptx exists. [This will be deprecated in the future; use `pretext update -f` instead.] ",
 )
 @click.option(
     "-f",
