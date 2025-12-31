@@ -261,7 +261,6 @@ PROJECT_RESOURCES = {
     "pretext-cli.yml": Path(".github", "workflows", "pretext-cli.yml"),
     "pretext-deploy.yml": Path(".github", "workflows", "pretext-deploy.yml"),
     "installPandoc.sh": Path(".devcontainer", "installPandoc.sh"),
-    "installSage.sh": Path(".devcontainer", "installSage.sh"),
 }
 
 DEPRECATED_PROJECT_RESOURCES = {
@@ -270,6 +269,7 @@ DEPRECATED_PROJECT_RESOURCES = {
     ".devcontainer.json": Path(".devcontainer.json"),
     "installPretext": Path(".devcontainer", "installPretext"),
     "installLatex": Path(".devcontainer", "installLatex"),
+    "installSage.sh": Path(".devcontainer", "installSage.sh"),
 }
 
 GIT_RESOURCES = [
@@ -278,5 +278,4 @@ GIT_RESOURCES = [
     "pretext-deploy.yml",
     "devcontainer.json",
     "installPandoc.sh",
-    "installSage.sh",
 ]

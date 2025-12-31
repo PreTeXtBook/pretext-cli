@@ -67,8 +67,9 @@
         "editor.quickSuggestions": {
           "other": "off"
         },
-        "files.autoSave": "afterDelay",
+        "editor.suggest.showProperties": false,
         "editor.snippetSuggestions": "bottom",
+        "files.autoSave": "afterDelay",
         "xml.validation.enabled": true,
         "redhat.telemetry.enabled": false,
         "CodeChat.CodeChatServer.Command": "CodeChat_Server"
