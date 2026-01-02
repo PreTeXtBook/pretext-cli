@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.34.0] - 2026-01-02
+
+Includes updates to core through commit: [a7a0894](https://github.com/PreTeXtBook/pretext/commit/a7a089448b50916f7d114d9459185b049f96ccc8)
+
 ### Added
 
 - Better support for portable builds that use worksheets and handouts (they print now).
