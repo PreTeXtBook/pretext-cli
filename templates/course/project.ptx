@@ -9,12 +9,16 @@
     <target name="print" source="main.ptx" format="pdf"
             output-filename="course.pdf" publication="publication.ptx" />
 
+    <!--
     <target name="slides" source="slides/slides.ptx" format="revealjs"
             publication="publication-slides.ptx" deploy-dir="slides"
             output-filename="index.html"/>
+    -->
+    <!-- 
     <target name="slides-annotated" source="slides/slides.ptx" format="revealjs"
             publication="publication-slides-annotated.ptx" deploy-dir="slides-annotated"
             output-filename="index.html"/>
+    -->
 
 
 

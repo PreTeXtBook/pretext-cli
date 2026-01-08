@@ -9,13 +9,13 @@ The course template includes a single PreTeXt "book" that contains (as chapters)
 You can build the course using
 
 ```bash
-pretext build web
+pretext build course
 ```
 
 and view it with
 
 ```bash
-pretext view web
+pretext view course
 ```
 
 Also included is the start of a slide deck.  This is a single file in the `source/slides` folder.  You could use this for all the slides in a course (as a single slideshow), or create separate slideshows.  In that case, you might want to build those separate ones with something like,
@@ -23,6 +23,8 @@ Also included is the start of a slide deck.  This is a single file in the `sourc
 ```bash
 pretext build slides -i source/slides/chapter2.ptx
 ```
+
+In either case, you will need to uncomment the "slide" targets inside `project.ptx`.
 
 ### Creating a landing page for multiple targets
 
@@ -32,7 +34,7 @@ Build the entire course with:
 pretext build --deploys
 ```
 
-This will build both the course "book" and the slide deck.  You can create a landing page with links to each of these automatically with the command,
+This will build the course "book" (and the slide deck if you uncomment that target in `project.ptx`).  You can create a landing page with links to each of these automatically with the command,
 
 ```bash
 pretext deploy --stage-only
