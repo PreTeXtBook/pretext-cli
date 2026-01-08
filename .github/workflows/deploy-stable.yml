@@ -116,23 +116,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: "v${{ env.VERSION }}"
-          release_name: "v${{ env.VERSION }}"
-          body: |
-            See the [changelog](CHANGELOG.md) for details.
-          draft: false
-          prerelease: false
+          tag: ${{ env.VERSION }}
+        run: |
+          gh release create "v$tag" \
+            --repo="$GITHUB_REPOSITORY" \
+            --title="v$tag" \
+            --notes="See the [changelog](CHANGELOG.md) for details."
 
   dispatch:
     needs: deploy
     strategy:
       matrix:
-        repo: ['oscarlevin/pretext-docker', 'pretextbook/html-static']
+        repo: ['pretextbook/pretext-docker', 'pretextbook/html-static']
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
