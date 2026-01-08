@@ -1969,15 +1969,15 @@ reference = "pypi-public"
 
 [[package]]
 name = "prefig"
-version = "0.4.6"
+version = "0.5.0"
 description = "An authoring system for mathematical diagrams"
 optional = true
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 markers = "extra == \"prefigure\" or extra == \"all\""
 files = [
-    {file = "prefig-0.4.6-py3-none-any.whl", hash = "sha256:c291ebacf146cc9bdd0afddc370d301da51191feb5c275e00774f8c65492b88b"},
-    {file = "prefig-0.4.6.tar.gz", hash = "sha256:7d8543d5a543071c29ad214d8c9261d6689145ba793950c0e97b6ce21ee5ced4"},
+    {file = "prefig-0.5.0-py3-none-any.whl", hash = "sha256:2c5126a0b81dd863451a4cfe20a19613bf9e590f4d2194c9ac2a8ec23ff95e15"},
+    {file = "prefig-0.5.0.tar.gz", hash = "sha256:332b2c217058db7dd7540e55b3fd995ab64368d4627303144d7bf5c915b2a546"},
 ]
 
 [package.dependencies]
@@ -3471,4 +3471,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "03998de1f09921cebd9ca6ab44d0af9e75bfe78fbf360c4dc35dc1de3dc253e9"
+content-hash = "a828809c4b3507c3d01f6d46bacdea29bd3169eb6f7dce9d5a15124663dd7630"
