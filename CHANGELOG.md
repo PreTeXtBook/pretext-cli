@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.35.0] - 2026-01-08
+
+Includes updates to core through commit: [d95a31b](https://github.com/PreTeXtBook/pretext/commit/d95a31b8ed95f8152b8fe66ddf8754f62ad65e24)
+
 ### Added
 
 - Publisher controlled page breaks for PDF output
