@@ -225,7 +225,7 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "latex-image": ["png"],
         "sageplot": ["png"],
         "prefigure": ["png"],
-        "mermaid": ["svg"],
+        "mermaid": ["png"],
     },
     "braille": {
         "asymptote": ["all"],
