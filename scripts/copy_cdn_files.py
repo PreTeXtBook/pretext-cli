@@ -69,11 +69,6 @@ def main(args=None) -> None:
             static_dir / "pretext" / "js",
             dirs_exist_ok=True,
         )
-        shutil.copytree(
-            Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "js_lib",
-            static_dir / "pretext" / "js" / "lib",
-            dirs_exist_ok=True,
-        )
 
 
 if __name__ == "__main__":
