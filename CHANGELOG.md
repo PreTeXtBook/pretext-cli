@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.36.0] - 2026-01-14
+
+Includes updates to core through commit: [3b7177a](https://github.com/PreTeXtBook/pretext/commit/3b7177a830a26fbb7595a2edeaf09478ca71ac93)
+
 ### Added
 
 - Support for headers and footers in worksheets and handouts.
