@@ -42,3 +42,16 @@ def add_log_file_handler(log_folder_path: Path) -> None:
     file_log_format = logging.Formatter("{levelname:<8}: {message}", style="{")
     fh.setFormatter(file_log_format)
     log.addHandler(fh)
+
+def print_logs(log_level="info") -> None:
+    levels = {
+        "info": logging.INFO,
+        "debug": logging.DEBUG,
+    }
+    if log_level.lower() not in levels.keys():
+        raise ValueError(f"invalid log_level: {log_level}")
+        return
+    log = logging.getLogger("ptxlogger")
+    logger.add_log_stream_handler()
+    log.setLevel(levels[log_level.lower()])
+    return
