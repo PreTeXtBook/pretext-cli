@@ -16,6 +16,7 @@ import time as time
 import logging
 import logging.handlers
 import psutil
+import re
 import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET  # noqa: N812
@@ -133,9 +134,10 @@ def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
         return None
     try:
         with open(pp / "requirements.txt", "r") as f:
+            REGEX = r"\s*pretext(book)?(\[.*\])?\s*==\s*(?P<version>[\d\.]*)\s*"gm
             for line in f.readlines():
-                if ("pretext ==" in line) or ("pretextbook ==" in line):
-                    return line.split("==")[1].strip()
+                if re.match(REGEX, line):
+                    return re.match(REGEX, line).group("version")
     except Exception as e:
         log.debug("Could not read `requirements.txt`:")
         log.debug(e)
