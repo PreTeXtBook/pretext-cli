@@ -9,6 +9,16 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Design-width publication variable for interactives for improved sizing.
+- Improvements to sidebyside images in slideshows.
+
+### Fixed
+
+- Improvements to printouts: hide image descriptions and order tasks correctly.
+
+
 ## [2.36.0] - 2026-01-14
 
 Includes updates to core through commit: [3b7177a](https://github.com/PreTeXtBook/pretext/commit/3b7177a830a26fbb7595a2edeaf09478ca71ac93)
