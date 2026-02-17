@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.37.0] - 2026-02-17
+
+Includes updates to core through commit: [03e9352](https://github.com/PreTeXtBook/pretext/commit/03e9352d844671f32ff5dcc4d1074814e145844d)
+
 ### Added
 
 - Design-width publication variable for interactives for improved sizing.
