@@ -17,6 +17,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Fixed
 
 - Improvements to printouts: hide image descriptions and order tasks correctly.
+- Bug that incorrectly clipped prefigure images for portable builds
 
 
 ## [2.36.0] - 2026-01-14
