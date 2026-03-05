@@ -136,8 +136,9 @@ def requirements_version(dirpath: Optional[Path] = None) -> Optional[str]:
         with open(pp / "requirements.txt", "r") as f:
             REGEX = r"\s*pretext(book)?(\[.*\])?\s*==\s*(?P<version>[\d\.]*)\s*"gm
             for line in f.readlines():
-                if re.match(REGEX, line):
-                    return re.match(REGEX, line).group("version")
+                match = re.match(REGEX, line)
+                if match:
+                    return match.group("version")
     except Exception as e:
         log.debug("Could not read `requirements.txt`:")
         log.debug(e)
