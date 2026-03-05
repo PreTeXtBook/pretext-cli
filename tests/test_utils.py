@@ -42,3 +42,32 @@ def test_is_unmodified() -> None:
         b"foo\n<!-- Managed automatically by PreTeXt authoring tools -->\nbar"
     )
     assert utils.is_unmodified("foo", magic_comment)
+
+
+def test_requirements_version(tmp_path: Path) -> None:
+    # Create a minimal project.ptx so project_path() can find the project root
+    (tmp_path / "project.ptx").write_text("")
+
+    cases = [
+        ("pretext == 2.36.0", "2.36.0"),
+        ("pretextbook == 1.2.3", "1.2.3"),
+        ("pretext[prefigure] == 2.36.0", "2.36.0"),
+        ("  pretext  ==  3.0.0  ", "3.0.0"),
+        ("pretext[prefigure,extra] == 0.9.1", "0.9.1"),
+    ]
+
+    for line, expected in cases:
+        req_file = tmp_path / "requirements.txt"
+        req_file.write_text(line + "\n")
+        assert utils.requirements_version(tmp_path) == expected, f"Failed for: {line!r}"
+
+    # Lines that should NOT match
+    non_matching = [
+        "numpy == 1.0.0",
+        "pretext ==",
+        "pretext",
+    ]
+    for line in non_matching:
+        req_file = tmp_path / "requirements.txt"
+        req_file.write_text(line + "\n")
+        assert utils.requirements_version(tmp_path) is None, f"Should not match: {line!r}"
