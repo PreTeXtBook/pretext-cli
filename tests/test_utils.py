@@ -70,4 +70,6 @@ def test_requirements_version(tmp_path: Path) -> None:
     for line in non_matching:
         req_file = tmp_path / "requirements.txt"
         req_file.write_text(line + "\n")
-        assert utils.requirements_version(tmp_path) is None, f"Should not match: {line!r}"
+        assert (
+            utils.requirements_version(tmp_path) is None
+        ), f"Should not match: {line!r}"
