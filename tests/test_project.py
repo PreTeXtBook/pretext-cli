@@ -416,6 +416,54 @@ def test_deploy(tmp_path: Path) -> None:
         )
 
 
+def test_deploy_path(tmp_path: Path) -> None:
+    # Test that deploy_path() returns the correct path for single-file formats
+    # when output_filename is not specified.
+    prj_path = tmp_path / "test_deploy_path"
+    shutil.copytree(
+        EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path
+    )
+    (prj_path / "project.ptx").unlink()
+    with utils.working_directory(prj_path):
+        project = pr.Project(ptx_version="2")
+
+        # For PDF target with no output_filename and no output dir: fallback to directory
+        t_pdf = project.new_target(name="print", format="pdf", deploy_dir="print-dir")
+        assert t_pdf.deploy_path() == Path("print-dir")
+
+        # Simulate a built PDF in the output directory
+        pdf_output_dir = t_pdf.output_dir_abspath()
+        pdf_output_dir.mkdir(parents=True, exist_ok=True)
+        (pdf_output_dir / "main.pdf").touch()
+
+        # deploy_path() should now find the PDF and include it in the path
+        assert t_pdf.deploy_path() == Path("print-dir") / "main.pdf"
+
+        # If output_filename is explicitly set, it should take precedence
+        t_pdf_explicit = project.new_target(
+            name="print-explicit",
+            format="pdf",
+            deploy_dir="print-dir2",
+            output_filename="custom.pdf",
+        )
+        assert t_pdf_explicit.deploy_path() == Path("print-dir2") / "custom.pdf"
+
+        # For HTML format (directory output), deploy_path() should still return the directory
+        t_html = project.new_target(name="web", format="html", deploy_dir="web-dir")
+        assert t_html.deploy_path() == Path("web-dir")
+
+        # EPUB target with no output file: fallback to directory
+        t_epub = project.new_target(name="epub", format="epub", deploy_dir="epub-dir")
+        assert t_epub.deploy_path() == Path("epub-dir")
+
+        # Simulate a built EPUB
+        epub_output_dir = t_epub.output_dir_abspath()
+        epub_output_dir.mkdir(parents=True, exist_ok=True)
+        (epub_output_dir / "book.epub").touch()
+
+        assert t_epub.deploy_path() == Path("epub-dir") / "book.epub"
+
+
 def test_validation(tmp_path: Path) -> None:
     project = pr.Project(ptx_version="2")
     # Verify that repeated server names cause a validation error.
