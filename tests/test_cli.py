@@ -246,6 +246,91 @@ def test_init_and_update_with_git(tmp_path: Path, script_runner: ScriptRunner) -
     not HAS_ASY,
     reason="Skipped since asy isn't found.",
 )
+def test_build_generate(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    """
+    Test the behavior of `pretext build -g` (force generate) and `pretext build -q` (no generate).
+
+    Expected behaviors (per docs/asset-generation.md):
+    - `pretext build -q`: no assets are generated, even if source has changed.
+    - `pretext build -g`: all assets generated regardless of whether source has changed.
+    - `pretext build -g -q`: warning issued; proceeds as if neither flag was set.
+    - Regular `pretext build` after a successful build: assets NOT regenerated when source is unchanged.
+    """
+    graphics_path = tmp_path / "graphics"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
+
+    asymptote_asset = graphics_path / "generated-assets" / "asymptote" / "test.html"
+    prefigure_asset = graphics_path / "generated-assets" / "prefigure" / "pftest.svg"
+
+    # --- Test -q: build without generating any assets ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-q"], cwd=graphics_path
+    )
+    assert result.success
+    assert not asymptote_asset.exists(), (
+        "Assets should NOT be generated when using -q (no-generate)"
+    )
+    assert not prefigure_asset.exists(), (
+        "Assets should NOT be generated when using -q (no-generate)"
+    )
+
+    # --- Test -g: build with force-generate ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=graphics_path
+    )
+    assert result.success
+    assert asymptote_asset.exists(), (
+        "Asymptote asset should be generated when using -g (force generate)"
+    )
+    assert prefigure_asset.exists(), (
+        "Prefigure asset should be generated when using -g (force generate)"
+    )
+    assert (graphics_path / "output" / "web").exists(), (
+        "Build output should exist after `pretext build -g`"
+    )
+
+    # --- Test regular build does NOT regenerate when source is unchanged ---
+    # Delete the generated asset to simulate a missing file after a previous build.
+    asymptote_asset.unlink()
+    assert not asymptote_asset.exists()
+
+    # A regular build (no -g flag) should NOT regenerate since source hash has not changed.
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build"], cwd=graphics_path
+    )
+    assert result.success
+    assert not asymptote_asset.exists(), (
+        "Regular `pretext build` should NOT regenerate assets when source is unchanged"
+    )
+
+    # --- Test -g regenerates even though source is unchanged ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=graphics_path
+    )
+    assert result.success
+    assert asymptote_asset.exists(), (
+        "`pretext build -g` should regenerate assets even when source is unchanged"
+    )
+
+    # --- Test -g -q together: warning issued, behaves like normal build ---
+    # Remove an asset to confirm it is NOT regenerated (warning clears both flags, behaves like normal build).
+    asymptote_asset.unlink()
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g", "-q"], cwd=graphics_path
+    )
+    assert result.success
+    # The warning message about conflicting flags should appear in the output.
+    combined_output = result.stdout + result.stderr
+    assert "doesn't make sense" in combined_output, (
+        "A warning about using -g and -q together should be emitted"
+    )
+    # Since the flags cancel each other, behavior is like a normal build with no source changes,
+    # so assets should NOT be regenerated.
+    assert not asymptote_asset.exists(), (
+        "With -g and -q together, assets should not be regenerated (flags cancel each other)"
+    )
+
+
 def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
     graphics_path = tmp_path / "graphics"
     shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
