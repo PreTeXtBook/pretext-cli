@@ -261,6 +261,17 @@ def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (graphics_path / "generated-assets" / "prefigure" / "pftest.svg").exists()
 
 
+def test_generate_datafile(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    datafile_path = tmp_path / "datafile"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "datafile", datafile_path)
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "generate", "datafile"], cwd=datafile_path
+    ).success
+    assert (
+        datafile_path / "generated-assets" / "datafile" / "data-csv.xml"
+    ).exists()
+
+
 # @pytest.mark.skip(
 #     reason="Waiting on upstream changes to interactive preview generation"
 # )

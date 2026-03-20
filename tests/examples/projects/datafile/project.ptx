@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project ptx-version="2">
+  <targets>
+    <target name="web" format="html" />
+  </targets>
+</project>
