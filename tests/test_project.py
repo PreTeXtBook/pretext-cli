@@ -57,6 +57,11 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.xsl is None
             assert target.latex_engine == pr.LatexEngine.XELATEX
             assert target.stringparams == {}
+    # Default asy_method should be "local"
+    assert project.asy_method == pr.AsyMethod.LOCAL
+    for t in ts:
+        name, _ = t
+        assert project.get_target(name).asy_method == pr.AsyMethod.LOCAL
 
 
 def test_serve(tmp_path: Path) -> None:
@@ -105,6 +110,11 @@ def test_manifest_simple(tmp_path: Path) -> None:
         ) == Path("output/rs")
 
         assert not project.has_target("foo")
+
+        # When asy-method is not specified, the default should be "local"
+        assert project.asy_method == pr.AsyMethod.LOCAL
+        assert t_web.asy_method == pr.AsyMethod.LOCAL
+        assert t_print.asy_method == pr.AsyMethod.LOCAL
 
         default_project = pr.Project(ptx_version="2")
         assert default_project.site == project.site

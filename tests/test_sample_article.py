@@ -6,10 +6,17 @@ from pretext.project import Project
 import pretext.utils
 from .common import check_installed, EXAMPLES_DIR
 
+HAS_XELATEX = check_installed(["xelatex", "--version"])
+HAS_ASY = check_installed(["asy", "--version"])
+
 
 @pytest.mark.skipif(
-    not check_installed(["xelatex", "--version"]),
+    not HAS_XELATEX,
     reason="Note: several tests are skipped, since xelatex wasn't installed.",
+)
+@pytest.mark.skipif(
+    not HAS_ASY,
+    reason="Skipped since asy isn't found.",
 )
 def test_sample_article(tmp_path: Path) -> None:
     error_checker = errorhandler.ErrorHandler(logger="ptxlogger")

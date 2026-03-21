@@ -1344,7 +1344,7 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     #
     # TODO: why is this optional, if there's a non-optional default? How would it ever be optional if loaded from an XML file?
     asy_method: t.Optional[AsyMethod] = pxml.attr(
-        name="asy-method", default=AsyMethod.SERVER
+        name="asy-method", default=AsyMethod.LOCAL
     )
 
     # See the docs on `Target.server`; they apply here as well.

@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- The default Asymptote generation method is now `local` (using the local `asy` binary) instead of `server`. This improves reliability since the server method has been subject to breakage whenever the Asymptote web interface is updated. Users who need the server method can still opt in via `asy-method="server"` in `project.ptx`.
+
 ## [2.37.1] - 2026-02-19
 
 Includes updates to core through commit: [4e4ff13](https://github.com/PreTeXtBook/pretext/commit/4e4ff13706654ca5eb4ff9936bc2acddbd4aa648)
