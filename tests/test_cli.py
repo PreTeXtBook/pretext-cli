@@ -22,6 +22,7 @@ PY_CMD = sys.executable
 
 HAS_XELATEX = check_installed(["xelatex", "--version"])
 HAS_ASY = check_installed(["asy", "--version"])
+HAS_SAGE = check_installed(["sage", "--version"])
 
 
 @contextmanager
@@ -89,6 +90,10 @@ def test_devscript(script_runner: ScriptRunner) -> None:
     reason="Skipped since xelatex isn't found.",
 )
 @pytest.mark.skipif(
+    not HAS_SAGE,
+    reason="Skipped since sage isn't found.",
+)
+@pytest.mark.skipif(
     not HAS_ASY,
     reason="Skipped since asy isn't found.",
 )
@@ -131,7 +136,6 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
         / "fig_tikz-example-diagram.svg"
     ).exists()
 
-    # Do a full build.
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "web"], cwd=project_path
     ).success
@@ -242,13 +246,137 @@ def test_init_and_update_with_git(tmp_path: Path, script_runner: ScriptRunner) -
         assert f"pretext == {pretext.VERSION}\n" in lines[1]
 
 
+def test_build_no_generate(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    """
+    Test the behavior of `pretext build -q` (no generate) and -g -q together.
+
+    Expected behaviors (per docs/asset-generation.md):
+    - `pretext build -q`: no assets are generated, even if source has changed.
+    - `pretext build -g -q`: warning issued; proceeds as if neither flag was set.
+    """
+    prefigure_path = tmp_path / "prefigure"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "prefigure", prefigure_path)
+
+    prefigure_asset = prefigure_path / "generated-assets" / "prefigure" / "pftest.svg"
+
+    # --- Test -q: build without generating any assets ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-q"], cwd=prefigure_path
+    )
+    assert result.success
+    assert (
+        not prefigure_asset.exists()
+    ), "Prefigure assets should NOT be generated when using -q (no-generate)"
+
+    # --- Test -g -q together: warning issued, behaves like normal build ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g", "-q"], cwd=prefigure_path
+    )
+    assert result.success
+    # The warning message about conflicting flags should appear in the output.
+    combined_output = result.stdout + result.stderr
+    assert (
+        "doesn't make sense" in combined_output
+    ), "A warning about using -g and -q together should be emitted"
+    # Since the flags cancel each other, behavior is like a normal build.
+    # On a clean project, that means the missing prefigure asset should be generated.
+    assert (
+        prefigure_asset.exists()
+    ), "With -g and -q together, prefigure assets should be generated on a clean project (flags cancel each other)"
+
+
+def test_build_force_generate_prefigure(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    """
+    Test the behavior of `pretext build -g` (force generate) and regular builds.
+
+    Expected behaviors (per docs/asset-generation.md):
+    - `pretext build -g`: all assets generated regardless of whether source has changed.
+    - Regular `pretext build` after a successful build: assets NOT regenerated when source is unchanged.
+    """
+    prefigure_path = tmp_path / "prefigure"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "prefigure", prefigure_path)
+
+    prefigure_asset = prefigure_path / "generated-assets" / "prefigure" / "pftest.svg"
+
+    # --- Test -g: build with force-generate ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=prefigure_path
+    )
+    assert result.success
+    assert (
+        prefigure_asset.exists()
+    ), "Prefigure asset should be generated when using -g (force generate)"
+    assert (
+        prefigure_path / "output" / "web"
+    ).exists(), "Build output should exist after `pretext build -g`"
+
+    # --- Test regular build does NOT regenerate when source is unchanged ---
+    # Delete the generated asset to simulate a missing file after a previous build.
+    prefigure_asset.unlink()
+    assert not prefigure_asset.exists()
+
+    # A regular build (no -g flag) should NOT regenerate since source hash has not changed.
+    result = script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=prefigure_path)
+    assert result.success
+    assert (
+        not prefigure_asset.exists()
+    ), "Regular `pretext build` should NOT regenerate prefigure assets when source is unchanged"
+
+    # --- Test -g regenerates even though source is unchanged ---
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=prefigure_path
+    )
+    assert result.success
+    assert (
+        prefigure_asset.exists()
+    ), "`pretext build -g` should regenerate prefigure assets even when source is unchanged"
+
+
 @pytest.mark.skipif(
     not HAS_ASY,
     reason="Skipped since asy isn't found.",
 )
-def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
+def test_build_force_generate_asymptote(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
     graphics_path = tmp_path / "graphics"
     shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
+
+    asymptote_asset = graphics_path / "generated-assets" / "asymptote" / "test.html"
+
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "-g"], cwd=graphics_path
+    )
+    assert result.success
+    assert (
+        asymptote_asset.exists()
+    ), "Asymptote asset should be generated when using -g (force generate)"
+
+
+def test_generate_graphics_prefigure(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    prefigure_path = tmp_path / "prefigure"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "prefigure", prefigure_path)
+
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "generate", "prefigure"], cwd=prefigure_path
+    ).success
+    assert (prefigure_path / "generated-assets" / "prefigure" / "pftest.svg").exists()
+
+
+@pytest.mark.skipif(
+    not HAS_ASY,
+    reason="Skipped since asy isn't found.",
+)
+def test_generate_graphics_asymptote_local(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    graphics_path = tmp_path / "graphics"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
+
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=graphics_path
     ).success
@@ -263,11 +391,27 @@ def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
         [PTX_CMD, "-v", "debug", "generate", "asymptote", "-t", "web"],
         cwd=graphics_path,
     ).success
-    os.remove(graphics_path / "generated-assets" / "asymptote" / "test.html")
+
+
+def test_generate_graphics_asymptote_server(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    graphics_path = tmp_path / "graphics"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
+
+    # Force server-backed asymptote generation so this test is independent of local asy.
+    project_manifest = graphics_path / "project.ptx"
+    project_manifest.write_text(
+        project_manifest.read_text().replace(
+            '<project ptx-version="2">',
+            '<project ptx-version="2" asy-method="server">',
+        )
+    )
+
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "generate", "prefigure"], cwd=graphics_path
+        [PTX_CMD, "-v", "debug", "generate", "asymptote"], cwd=graphics_path
     ).success
-    assert (graphics_path / "generated-assets" / "prefigure" / "pftest.svg").exists()
+    assert (graphics_path / "generated-assets" / "asymptote" / "test.html").exists()
 
 
 # @pytest.mark.skip(
