@@ -21,6 +21,7 @@ assert PTX_CMD is not None
 PY_CMD = sys.executable
 
 HAS_XELATEX = check_installed(["xelatex", "--version"])
+HAS_ASY = check_installed(["asy", "--version"])
 
 
 @contextmanager
@@ -86,6 +87,10 @@ def test_devscript(script_runner: ScriptRunner) -> None:
 @pytest.mark.skipif(
     not HAS_XELATEX,
     reason="Skipped since xelatex isn't found.",
+)
+@pytest.mark.skipif(
+    not HAS_ASY,
+    reason="Skipped since asy isn't found.",
 )
 def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     path_with_spaces = "test path with spaces"
@@ -237,6 +242,10 @@ def test_init_and_update_with_git(tmp_path: Path, script_runner: ScriptRunner) -
         assert f"pretext == {pretext.VERSION}\n" in lines[1]
 
 
+@pytest.mark.skipif(
+    not HAS_ASY,
+    reason="Skipped since asy isn't found.",
+)
 def test_generate_graphics(tmp_path: Path, script_runner: ScriptRunner) -> None:
     graphics_path = tmp_path / "graphics"
     shutil.copytree(EXAMPLES_DIR / "projects" / "graphics", graphics_path)
