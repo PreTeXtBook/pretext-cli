@@ -61,6 +61,16 @@ class Format(str, Enum):
     CUSTOM = "custom"
 
 
+# Maps single-file output formats to their file extension, used when looking up
+# the actual output file to generate a better deploy link.
+_SINGLE_FILE_FORMAT_EXTENSIONS: t.Dict["Format", str] = {
+    Format.PDF: ".pdf",
+    Format.EPUB: ".epub",
+    Format.KINDLE: ".epub",
+    Format.BRAILLE: ".brl",
+}
+
+
 # The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
 # Since we will want to hash the baseurl for generating qr codes, we also load it here.
 class PublicationSubset(
@@ -439,9 +449,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return self._project.stage / self.deploy_dir_path()
 
     def deploy_path(self) -> Path:
-        if self.output_filename is None:
-            return self.deploy_dir_path()
-        return self.deploy_dir_path() / self.output_filename
+        if self.output_filename is not None:
+            return self.deploy_dir_path() / self.output_filename
+        # For single-file output formats, look for the actual output file in
+        # the output directory to create a better link in the pelican-generated site.
+        ext = _SINGLE_FILE_FORMAT_EXTENSIONS.get(self.format)
+        if ext is not None:
+            output_dir = self.output_dir_abspath()
+            if output_dir.exists():
+                gen = output_dir.glob(f"*{ext}")
+                first = next(gen, None)
+                if first is not None and next(gen, None) is None:
+                    return self.deploy_dir_path() / first.name
+        return self.deploy_dir_path()
 
     def xsl_abspath(self) -> t.Optional[Path]:
         if self.xsl is None:
