@@ -267,9 +267,7 @@ def test_generate_datafile(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "generate", "datafile"], cwd=datafile_path
     ).success
-    assert (
-        datafile_path / "generated-assets" / "datafile" / "data-csv.xml"
-    ).exists()
+    assert (datafile_path / "generated-assets" / "datafile" / "data-csv.xml").exists()
 
 
 # @pytest.mark.skip(
