@@ -63,7 +63,6 @@ pytest-cov = "^4"
 pytest-mock = "^3"
 # Needed by coverage, so it can read its configuration from this file. See the [Coverage docs](https://coverage.readthedocs.io/en/7.2.7/config.html).
 toml = "^0"
-passagemath-standard = "^10"
 
 # Misc
 # ----
