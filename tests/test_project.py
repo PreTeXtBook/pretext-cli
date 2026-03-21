@@ -420,9 +420,7 @@ def test_deploy_path(tmp_path: Path) -> None:
     # Test that deploy_path() returns the correct path for single-file formats
     # when output_filename is not specified.
     prj_path = tmp_path / "test_deploy_path"
-    shutil.copytree(
-        EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path
-    )
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     (prj_path / "project.ptx").unlink()
     with utils.working_directory(prj_path):
         project = pr.Project(ptx_version="2")
