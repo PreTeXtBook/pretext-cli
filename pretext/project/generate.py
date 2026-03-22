@@ -74,6 +74,10 @@ def individual_prefigure(
                         f"Created prefigure diagram {annotations_output_file}; saving a copy to cache as {annotations_cache_file}"
                     )
                     shutil.copy2(annotations_output_file, annotations_cache_file)
+            else:
+                msg = f"Failed to generate prefigure diagram {Path(pfdiagram).name} in {format} format."
+                log.error(msg)
+                raise Exception(msg)
     log.debug("Finished individual_prefigure function")
 
 
@@ -109,6 +113,10 @@ def individual_asymptote(
                 f"Created asymptote diagram {output_file}; saving a copy to cache as {cache_file}"
             )
             shutil.copy2(output_file, cache_file)
+        else:
+            msg = f"Failed to generate asymptote diagram {Path(asydiagram).name} in {outformat} format."
+            log.error(msg)
+            raise Exception(msg)
     log.debug("Finished individual_asymptote function")
 
 
@@ -146,6 +154,10 @@ def individual_sage(
                 f"Created sageplot diagram {output_file}; saving a copy to cache as {cache_file}"
             )
             shutil.copy2(output_file, cache_file)
+        else:
+            msg = f"Failed to generate sageplot diagram {Path(sageplot).name} in {outformat} format."
+            log.error(msg)
+            raise Exception(msg)
     log.debug("Finished individual_sage function")
 
 
@@ -191,6 +203,10 @@ def individual_latex_image(
                     f"Created latex-image {output_files[ext]}; saving a copy to cache as {cache_files[ext]}"
                 )
                 shutil.copy2(output_files[ext], cache_files[ext])
+            else:
+                msg = f"Failed to generate latex-image {Path(latex_image).name} in {ext} format."
+                log.error(msg)
+                raise Exception(msg)
     log.debug("Finished individual_latex function")
 
 
