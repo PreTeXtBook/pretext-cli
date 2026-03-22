@@ -5,6 +5,7 @@ When a core conversion function fails to produce an output file, the
 individual_* functions in pretext/project/generate.py should raise an
 exception so that the asset type is not added to the generated asset cache.
 """
+
 from pathlib import Path
 from unittest.mock import patch
 
@@ -49,7 +50,9 @@ def test_individual_latex_image_succeeds_when_output_exists(tmp_path: Path) -> N
     dest_dir = tmp_path / "dest"
     dest_dir.mkdir()
 
-    def fake_conversion(latex_image: str, outformat: str, dest_dir: Path, method: str) -> None:
+    def fake_conversion(
+        latex_image: str, outformat: str, dest_dir: Path, method: str
+    ) -> None:
         # Simulate a successful conversion by creating the expected output file.
         (dest_dir / Path(latex_image).with_suffix(".svg").name).touch()
 

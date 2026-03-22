@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Failed individual asset generation (when core does not produce the expected output file) now raises an error and is no longer silently treated as a success. This prevents incorrectly caching incomplete asset generation results.
+
 ### Changed
 
 - The default Asymptote generation method is now `local` (using the local `asy` binary) instead of `server`. This improves reliability since the server method has been subject to breakage whenever the Asymptote web interface is updated. Users who need the server method can still opt in via `asy-method="server"` in `project.ptx`.
