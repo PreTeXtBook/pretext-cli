@@ -1292,10 +1292,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             log.debug(e, exc_info=True)
         # After all assets are generated, update the asset cache (but we shouldn't do this if we didn't generate any assets successfully)
         log.debug(f"Updated these assets successfully: {successful_assets}")
-        if len(successful_assets) > 0 and not xmlid:
+        unsuccessful_assets = [
+            asset for asset in assets_to_generate if asset not in successful_assets
+        ]
+        log.debug(f"These assets were unsuccessful: {unsuccessful_assets}")
+        if not xmlid:
             # If the build limited by xmlid, then we don't know that all assets of that type were build correctly, so we only do this if not generating a subset.
+            # First create a list of unsuccessful assets to log:
             for asset_type in successful_assets:
                 saved_asset_table[asset_type] = source_asset_table[asset_type]
+            for asset_type in unsuccessful_assets:
+                log.debug(
+                    f"Asset type {asset_type} was requested to be generated, but was not generated successfully.  This asset type will be regenerated on the next build, even if the source files have not changed, since we can't be sure that the existing generated assets are up to date."
+                )
+                saved_asset_table.pop(asset_type, None)
             # Save the asset table to disk:
             self.save_asset_table(saved_asset_table)
         log.info("Finished generating assets.\n")
