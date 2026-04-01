@@ -9,13 +9,22 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Support for "paragraphs" element in printouts (worksheets and handouts).
+- Optional LaTeX link highlighting via the `latex/@link-highlight` publisher option.
+- New quotation mark styles for Canada and Germany locales.
+
 ### Fixed
 
 - Failed individual asset generation (when core does not produce the expected output file) now raises an error and is no longer silently treated as a success. This prevents incorrectly caching incomplete asset generation results.
+- Landing page links for print and single-file targets now generate correctly.
+- JavaScript bug in printouts that miscalculated workspace with slow-loading images.
 
 ### Changed
 
 - The default Asymptote generation method is now `local` (using the local `asy` binary) instead of `server`. This improves reliability since the server method has been subject to breakage whenever the Asymptote web interface is updated. Users who need the server method can still opt in via `asy-method="server"` in `project.ptx`.
+
 
 ## [2.37.1] - 2026-02-19
 

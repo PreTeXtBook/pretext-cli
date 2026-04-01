@@ -19,7 +19,7 @@ from single_version import get_version
 VERSION = get_version("pretext", Path(__file__).parent.parent)
 
 
-CORE_COMMIT = "8cc838f3fad87b51b2f3ba76ec9ca63fce8978ea"
+CORE_COMMIT = "8fa439172314b489e4b1b835564c08379b5de7bd"
 
 
 def activate() -> None:
