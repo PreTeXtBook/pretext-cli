@@ -111,7 +111,21 @@ jobs:
           git commit --allow-empty -m "commit changes to resource_hash_table.json"
           git push -f --set-upstream origin ${{ env.VERSION }}-deploy
           gh pr create --fill
-          gh pr merge -s -d -t "Update changelog and bump version to next patch level for nightly releases"
+          # Wait briefly for PR to be fully processed before merging
+          sleep 5
+          # Retry merge up to 3 times in case of transient API errors
+          for attempt in 1 2 3; do
+            if gh pr merge -s -d -t "Update changelog and bump version to next patch level for nightly releases"; then
+              echo "PR merged successfully"
+              break
+            elif [ $attempt -lt 3 ]; then
+              echo "Merge attempt $attempt failed, retrying in 10 seconds..."
+              sleep 10
+            else
+              echo "Failed to merge PR after 3 attempts"
+              exit 1
+            fi
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
