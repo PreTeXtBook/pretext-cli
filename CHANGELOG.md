@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.38.0] - 2026-04-01
+
+Includes updates to core through commit: [8fa4391](https://github.com/PreTeXtBook/pretext/commit/8fa439172314b489e4b1b835564c08379b5de7bd)
+
 ### Added
 
 - Support for "paragraphs" element in printouts (worksheets and handouts).
