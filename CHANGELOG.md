@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.38.2] - 2026-04-07
+
+Includes updates to core through commit: [22c2cd3](https://github.com/PreTeXtBook/pretext/commit/22c2cd36f996308ae16df2b77aa60ee9af5a8e69)
+
 ### Fixed
 
 - Fix for fill-ins for Runestone builds
