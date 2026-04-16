@@ -596,7 +596,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
-        if self.source_element().xpath(".//webwork[@*|*]"):
+        # NB: need to include `text()` as well as `@*|*` in the xpath, since some webwork problems are only included as text/pg source.
+        if self.source_element().xpath(".//webwork[@*|*|text()]"):
             log.debug("Source contains webwork problems")
             if not (
                 self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
