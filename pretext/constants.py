@@ -143,7 +143,7 @@ ASSETS_BY_FORMAT = {
 }
 
 ASSET_TO_XPATH = {
-    "webwork": ".//webwork[*|@*]",
+    "webwork": ".//webwork[*|@*|text()]",
     "latex-image": ".//latex-image",
     "sageplot": ".//sageplot",
     "asymptote": ".//asymptote",
