@@ -9,9 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Better support for building latex from pretext: detects when latex needs to be rerun multiple times.
+
 ### Fixed
 
 - Bug that failed to detect webwork problems authored as local pg files.
+- epub fillinmath and sfrac rendering.
 
 ## [2.38.2] - 2026-04-07
 
