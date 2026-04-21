@@ -23,9 +23,9 @@ jobs:
     outputs:
       ready: ${{ steps.prep.outputs.ready }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.12
 
@@ -59,7 +59,7 @@ jobs:
 
       - name: Upload prepared source
         if: ${{ steps.prep.outputs.ready == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nightly-prepared-source
           path: |
@@ -83,10 +83,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # Sets up python3
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.12
 
@@ -102,7 +102,7 @@ jobs:
           sudo apt-get -y install python3-louis librsvg2-bin libcairo2-dev
 
       - name: Download prepared source
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: nightly-prepared-source
           path: .
