@@ -17,12 +17,68 @@ on:
             - "oscarlevin/pretext"
 
 jobs:
+  prepare:
+    name: Prepare nightly source
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.prep.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Install poetry 1.8.4
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install poetry==1.8.4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install python3-louis librsvg2-bin libcairo2-dev
+
+      - name: Install dependencies
+        shell: bash
+        run: python -m poetry install --all-extras
+
+      - name: Run prep-nightly script
+        id: prep
+        shell: bash
+        run: |
+          echo "Updating core commit and version; building"
+          output=$(poetry run python scripts/prep_nightly.py ${{ inputs.core-repo }})
+          echo "$output"
+          echo "Finished steps to prep nightly deployment"
+          if [[ $output == *"Ready to deploy"* ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload prepared source
+        if: ${{ steps.prep.outputs.ready == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-prepared-source
+          path: |
+            pretext/
+            tests/examples/core/
+            templates/
+            pyproject.toml
+
   tests:
+    needs: prepare
+    if: ${{ needs.prepare.outputs.ready == 'true' }}
     name: Run tests
     uses: ./.github/workflows/tests.yml
+    with:
+      source-artifact: nightly-prepared-source
 
   deploy:
-    needs: tests
+    needs: [prepare, tests]
+    if: ${{ needs.prepare.outputs.ready == 'true' }}
     name: Deploy to pypi
     runs-on: ubuntu-latest
     steps:
@@ -45,19 +101,20 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install python3-louis librsvg2-bin libcairo2-dev
 
+      - name: Download prepared source
+        uses: actions/download-artifact@v4
+        with:
+          name: nightly-prepared-source
+          path: .
+
       - name: Install dependencies
         shell: bash
         run: python -m poetry install --all-extras
 
-      - name: Run prep-nightly script and publish if ready
+      - name: Publish nightly build
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          echo "Updating core commit and version; building"
-          output=$(poetry run python scripts/prep_nightly.py ${{ inputs.core-repo }})
-          echo "Finished steps to prep nightly deployment"
-          if [[ $output == *"Ready to deploy"* ]]; then
-            poetry config pypi-token.pypi $PYPI_TOKEN
-            poetry publish --build
-            echo "Published to pypi"
-          fi
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish --build
+          echo "Published to pypi"

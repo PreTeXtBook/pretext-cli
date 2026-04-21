@@ -6,6 +6,12 @@ on:
   workflow_dispatch:
   # Allows usage from other workflows
   workflow_call:
+    inputs:
+      source-artifact:
+        description: Prepared source artifact to test instead of fetching core into a fresh checkout.
+        required: false
+        type: string
+        default: ""
 
 jobs:
   format-and-types:
@@ -13,6 +19,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Download prepared source
+        if: ${{ inputs.source-artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source-artifact }}
+          path: .
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -25,10 +37,11 @@ jobs:
         run: python -m pip install flake8 black mypy
       - name: Install poetry
         run: python -m pip install poetry
+      - name: Install dependencies
+        run: python -m poetry install
       - name: Initialize project
-        run: |
-          python -m poetry install
-          python -m poetry run python scripts/fetch_core.py
+        if: ${{ inputs.source-artifact == '' }}
+        run: python -m poetry run python scripts/fetch_core.py
       - name: Check formatting with black
         run: python -m poetry run black --check --diff $(git ls-files "*.py")
       - name: Check for lint
@@ -43,6 +56,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Download prepared source
+        if: ${{ inputs.source-artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source-artifact }}
+          path: .
 
       - name: Report Python version
         run: python --version
@@ -67,9 +86,10 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: |
-          poetry install --all-extras
-          poetry run python scripts/fetch_core.py
+        run: poetry install --all-extras
+      - name: Initialize project
+        if: ${{ inputs.source-artifact == '' }}
+        run: poetry run python scripts/fetch_core.py
 
       - name: Ensure dependencies are present
         run: |
@@ -102,6 +122,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Download prepared source
+        if: ${{ inputs.source-artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.source-artifact }}
+          path: .
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -130,9 +156,10 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: |
-          python -m poetry install --all-extras
-          python -m poetry run python scripts/fetch_core.py
+        run: python -m poetry install --all-extras
+      - name: Initialize project
+        if: ${{ inputs.source-artifact == '' }}
+        run: python -m poetry run python scripts/fetch_core.py
 
       - name: Initialize playwright
         run: |
@@ -156,6 +183,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Download prepared source
+      if: ${{ inputs.source-artifact != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.source-artifact }}
+        path: .
     - uses: awalsh128/cache-apt-pkgs-action@v1.4.3
       with:
         packages: jing trang
