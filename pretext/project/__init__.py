@@ -1094,7 +1094,29 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     f"Unable to extract some dynamic exercise substitutions: \n{e}"
                 )
                 log.debug(e, exc_info=True)
+        if "qrcode" in assets_to_generate:
+            log.warning("Now generating QR codes")
+            try:
+                # Warn if trying to generate qrcodes without a base URL.
+                base_url = self._read_publication_file_subset().baseurl
+                if base_url is None:
+                    log.warning(
+                        "You are trying to generate qrcodes, but the publication file does not have a base URL. "
+                        + "This will result in qrcodes that do not point to anything meaningful."
+                    )
+                core.qrcode(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "qrcode",
+                )
+                successful_assets.append("qrcode")
+            except Exception as e:
+                log.error(f"Unable to generate some qrcodes:\n {e}")
+                log.debug(e, exc_info=True)
         if "latex-image" in assets_to_generate:
+            log.warning("Now generating latex images")
             try:
                 for outformat in asset_formats["latex-image"]:
                     core.latex_image_conversion(
@@ -1208,26 +1230,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.debug(e, exc_info=True)
             # youtube also requires the play button.
             self.ensure_play_button()
-        if "qrcode" in assets_to_generate:
-            try:
-                # Warn if trying to generate qrcodes without a base URL.
-                base_url = self._read_publication_file_subset().baseurl
-                if base_url is None:
-                    log.warning(
-                        "You are trying to generate qrcodes, but the publication file does not have a base URL. "
-                        + "This will result in qrcodes that do not point to anything meaningful."
-                    )
-                core.qrcode(
-                    xml_source=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                    xmlid_root=xmlid,
-                    dest_dir=self.generated_dir_abspath() / "qrcode",
-                )
-                successful_assets.append("qrcode")
-            except Exception as e:
-                log.error(f"Unable to generate some qrcodes:\n {e}")
-                log.debug(e, exc_info=True)
         if "mermaid" in assets_to_generate:
             try:
                 for outformat in asset_formats["mermaid"]:
