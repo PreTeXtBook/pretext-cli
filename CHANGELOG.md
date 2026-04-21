@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.38.3] - 2026-04-21
+
+Includes updates to core through commit: [f22ebc5](https://github.com/PreTeXtBook/pretext/commit/f22ebc5d4ac96835c69e141ce89bd313c33210a2)
+
 ### Added
 
 - Better support for building latex from pretext: detects when latex needs to be rerun multiple times.
