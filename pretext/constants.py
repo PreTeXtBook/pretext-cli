@@ -28,6 +28,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "myopenmath",
         "dynamic-subs",
+        "qrcode",
     ],
     "pdf": [
         "webwork",
@@ -152,7 +153,7 @@ ASSET_TO_XPATH = {
     "codelens": ".//program[@interactive = 'codelens']",
     "datafile": ".//datafile",
     "interactive": ".//interactive",
-    "qrcode": ".//audio[@source|@href]|.//video[@source|@href|@youtube|@youtubeplaylist|@vimeo]|.//interactive",
+    "qrcode": ".//audio[@source|@href]|.//video[@source|@href|@youtube|@youtubeplaylist|@vimeo]|.//interactive|.//program[@interactive]",
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
     "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
