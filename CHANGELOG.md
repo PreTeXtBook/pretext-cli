@@ -9,6 +9,16 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- PreTeXt now uses MathJax 4 for rendering math in HTML output.
+
+### Fixed
+
+- Handouts and worksheets avoid a blank page at the end of a document in Chrome on Windows.
+- Permalinks are no longer selected when copying blocks of text.
+- "list-of" improvements (avoiding conflicts with prefigure names).
+
 ## [2.38.3] - 2026-04-21
 
 Includes updates to core through commit: [f22ebc5](https://github.com/PreTeXtBook/pretext/commit/f22ebc5d4ac96835c69e141ce89bd313c33210a2)

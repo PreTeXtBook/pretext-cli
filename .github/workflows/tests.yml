@@ -106,16 +106,16 @@ jobs:
   broad-tests:
     needs: format-and-types
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
         os: [ubuntu-latest, windows-latest]
         exclude:
           - os: windows-latest
             python-version: "3.10"
           - os: windows-latest
             python-version: "3.11"
-          - os: ubuntu-latest
+          - os: windows-latest
             python-version: "3.12"
 
     runs-on: ${{ matrix.os }}
@@ -152,7 +152,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get -y install python3-louis librsvg2-bin libcairo2-dev
+          sudo apt-get -y install \
+          gcc pkg-config python3-dev build-essential python3-louis librsvg2-bin libcairo2-dev
 
       - name: Install dependencies
         shell: bash
