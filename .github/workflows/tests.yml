@@ -153,15 +153,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install \
-          gcc pkg-config python3-dev build-essential \
-          python3-louis librsvg2-bin libcairo2-dev \
-          libcairo2 pango1.0-tools libpango-1.0-0 libpangocairo-1.0-0
-
-      - name: Ensure prefigure is installed
-        run: |
-          poetry run pip install prefig[pycairo]
-          poetry run prefig init
-          poetry run prefig --help
+          gcc pkg-config python3-dev build-essential python3-louis librsvg2-bin libcairo2-dev
 
       - name: Install dependencies
         shell: bash
