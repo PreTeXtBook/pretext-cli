@@ -2025,15 +2025,15 @@ reference = "pypi-public"
 
 [[package]]
 name = "prefig"
-version = "0.5.14"
+version = "0.6.1"
 description = "An authoring system for mathematical diagrams"
 optional = true
 python-versions = ">=3.10,<4.0"
 groups = ["main"]
 markers = "extra == \"prefigure\" or extra == \"all\""
 files = [
-    {file = "prefig-0.5.14-py3-none-any.whl", hash = "sha256:4825f341480a5b18db9775d0fa997be5d589e69c3a7eb4a3bf0c316de136f3ec"},
-    {file = "prefig-0.5.14.tar.gz", hash = "sha256:40324fc2370fcade40d12b1361037e7da3cf79666905f6142ae33757a635105f"},
+    {file = "prefig-0.6.1-py3-none-any.whl", hash = "sha256:50e41f692cd45772be4cc64bb14abad0ff58c0bc835fed2d4a91d5deee304cc8"},
+    {file = "prefig-0.6.1.tar.gz", hash = "sha256:d41f548a5922464855999d8b6eacc895792c5ab9f80ee397c058cab1a229166a"},
 ]
 
 [package.dependencies]
@@ -3536,4 +3536,4 @@ prefigure = ["prefig"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "a23f1f822065def366bcfd6c105f2de9588108357e98344570e50c3bcc24c0dc"
+content-hash = "878c006e0fac1d387ae2cd06e3ab9c97e62466c672ef19a1cd09872fe67946b6"
