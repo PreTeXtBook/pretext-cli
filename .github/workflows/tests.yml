@@ -137,7 +137,7 @@ jobs:
       - name: set up node
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Install poetry
         run: |
@@ -151,8 +151,16 @@ jobs:
       - name: Install build dependencies if on Linux
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get -y install gcc pkg-config python3-dev build-essential python3-louis librsvg2-bin libcairo2-dev
+          apt-get update
+          apt-get -y install \
+          gcc pkg-config python3-dev build-essential \
+          python3-louis librsvg2-bin libcairo2-dev \
+          libcairo2 pango1.0-tools libpango-1.0-0 libpangocairo-1.0-0
+
+      - name: Ensure prefigure is installed
+        run: |
+          poetry run pip install prefigure
+          poetry run prefig --version
 
       - name: Install dependencies
         shell: bash
