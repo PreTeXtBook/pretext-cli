@@ -414,6 +414,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             ).getroot()
         else:
             log.debug(f"Using cached source_element for target {self.name}")
+        #print out entire tree for debugging:
+        log.debug("Assembled source element: ")
+        log.debug(ET.tostring(self._source_element, pretty_print=True).decode("utf-8"))
         return self._source_element
 
     def publication_abspath(self) -> Path:
@@ -597,8 +600,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
         # NB: need to include `text()` as well as `@*|*` in the xpath, since some webwork problems are only included as text/pg source.
-        if self.source_element().xpath(".//webwork[@*|*|text()]"):
+        if self.source_element().xpath(".//webwork[@copy|@source|*|text()]"):
             log.debug("Source contains webwork problems")
+            #spit out all the attributes of each parent of a webwork elements for debugging:
+            #webwork_elements = self.source_element().xpath(
+            #    ".//webwork[@copy|@source|*|text()]/parent::*"
+            #)
+            #assert isinstance(webwork_elements, t.List)
+            #for elem in webwork_elements:
+            #    assert isinstance(elem, ET._Element)
+            #    log.debug(f"Webwork element attributes: {elem.attrib}")
             if not (
                 self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
             ).exists():
