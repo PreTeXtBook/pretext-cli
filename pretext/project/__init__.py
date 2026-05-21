@@ -405,7 +405,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Caches the result for future calls.
         """
         if self._source_element is None:
-            
+
             log.debug(
                 f"Parsing source element for target {self.name}",
             )
@@ -418,7 +418,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         else:
             log.debug(f"Using cached source_element for target {self.name}")
         return self._source_element
-    
+
     def source_element_with_ids(self) -> ET._Element:
         """
         Returns the root element for the assembled source, after processing with assembly-id method. Caches the result for future calls.
@@ -620,7 +620,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # NB: need to include `text()` as well as `@copy|@source|*` in the xpath, since some webwork problems are only included as text/pg source.
         if self.source_element().xpath(".//webwork[@copy|@source|*|text()]"):
             log.debug("Source contains webwork problems")
-            #Get list of all assembly-ids for webwork (this will be the assembly-id of the parent of the webwork element).
+            # Get list of all assembly-ids for webwork (this will be the assembly-id of the parent of the webwork element).
             webwork_assembly_ids = self.source_element_with_ids().xpath(
                 ".//webwork[@copy|@source|*|text()]/parent::*/@assembly-id"
             )
@@ -629,13 +629,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 if not (
                     self.generated_dir_abspath() / "webwork" / f"{id}.xml"
                 ).exists():
-                    log.debug(f"At least one WeBWorK representation file (for webwork problem with id \"{id}\") does not exist, generating")
+                    log.debug(
+                        f'At least one WeBWorK representation file (for webwork problem with id "{id}") does not exist, generating'
+                    )
                     self.generate_assets(
                         requested_asset_types=["webwork"], only_changed=False
                     )
                     break
             else:
-                log.debug("All WeBWorK representation files already exist, not generating")
+                log.debug(
+                    "All WeBWorK representation files already exist, not generating"
+                )
         else:
             log.debug("Source does not contain webwork problems")
 
