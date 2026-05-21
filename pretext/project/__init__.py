@@ -624,11 +624,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             webwork_assembly_ids = self.source_element_with_ids().xpath(
                 ".//webwork[@copy|@source|*|text()]/parent::*/@assembly-id"
             )
-            assert isinstance(webwork_assembly_ids, t.List)
+            assert isinstance(webwork_assembly_ids, list)
             for id in webwork_assembly_ids:
-                if not (
-                    self.generated_dir_abspath() / "webwork" / f"{id}.xml"
-                ).exists():
+                assert isinstance(id, str)
+                filename = id + ".xml"
+                if not (self.generated_dir_abspath() / "webwork" / filename).exists():
                     log.debug(
                         f'At least one WeBWorK representation file (for webwork problem with id "{id}") does not exist, generating'
                     )
