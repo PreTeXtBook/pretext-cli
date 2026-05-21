@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- WeBWorK representations now use individual files for each problem.  Added checking for these files as they are needed in the build process.
+
 ## [2.39.0] - 2026-05-10
 
 Includes updates to core through commit: [b169423](https://github.com/PreTeXtBook/pretext/commit/b16942370f7710784c73c28349c62d4f368b3825)
