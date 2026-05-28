@@ -348,8 +348,9 @@ def test_xinclude_publication_build(tmp_path: Path) -> None:
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         target = project.get_target("web")
+        assert (target.external_dir() == Path("generated-assets"))
         target.build()
-        assert (target.output_dir_abspath() / "sec-first.html").exists()
+        assert (target.output_dir_abspath() / "index.html").exists()
 
 
 def test_asset_table(tmp_path: Path) -> None:
