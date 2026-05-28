@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <publication xmlns:xi="http://www.w3.org/2001/XInclude">
-    <xi:include src="./source.ptx"/>
-    <xi:include src="./html.ptx"/>
+    <xi:include href="./source.ptx"/>
+    <xi:include href="./html.ptx"/>
 </publication>
