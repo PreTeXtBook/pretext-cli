@@ -343,9 +343,7 @@ def test_zip_build(tmp_path: Path) -> None:
 
 def test_xinclude_publication_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "xi_pub"
-    shutil.copytree(
-        EXAMPLES_DIR / "projects" / "xi_pub", prj_path
-    )
+    shutil.copytree(EXAMPLES_DIR / "projects" / "xi_pub", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         target = project.get_target("web")
