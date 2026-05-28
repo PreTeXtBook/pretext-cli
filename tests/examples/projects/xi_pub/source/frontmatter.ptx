@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<frontmatter>
+  <bibinfo>
+    <author>
+      <personname>Author X. Lastname</personname>
+    </author>
+  </bibinfo>
+  
+  <abstract>
+    <p>
+      This is the abstract.
+    </p>
+  </abstract>
+</frontmatter>
