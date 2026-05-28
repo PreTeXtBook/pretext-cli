@@ -472,7 +472,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         return self._project.generated_cache_abspath()
 
     def _read_publication_file_subset(self) -> PublicationSubset:
-        p_bytes = self.publication_abspath().read_bytes()
+        p_et = ET.parse(self.publication_abspath())
+        p_et.xinclude()
+        p_bytes = ET.tostring(p_et)
         return PublicationSubset.from_xml(p_bytes)
 
     def external_dir(self) -> Path:
