@@ -341,6 +341,7 @@ def test_zip_build(tmp_path: Path) -> None:
         assert (target.output_dir_abspath() / "book.zip").exists()
         assert not (target.output_dir_abspath() / "index.html").exists()
 
+
 def test_xinclude_publication_build(tmp_path: Path) -> None:
     prj_path = tmp_path / "xi_pub"
     shutil.copytree(EXAMPLES_DIR / "projects" / "xi_pub", prj_path)
