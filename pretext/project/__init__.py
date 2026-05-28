@@ -138,8 +138,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     #
     # A path to the root source for this target, relative to the project's `source` path.
     source: Path = pxml.attr(default=Path("main.ptx"))
-    # Cache of assembled source element.
+    # Cache of assembled "version only" source element.
     _source_element: t.Optional[ET._Element] = None
+    # Cache of assembled with assembly-ids.
+    _source_element_with_ids: t.Optional[ET._Element] = None
     # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
     publication: Path = pxml.attr(default=None)
     latex_engine: LatexEngine = pxml.attr(
@@ -403,6 +405,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Caches the result for future calls.
         """
         if self._source_element is None:
+
             log.debug(
                 f"Parsing source element for target {self.name}",
             )
@@ -415,6 +418,24 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         else:
             log.debug(f"Using cached source_element for target {self.name}")
         return self._source_element
+
+    def source_element_with_ids(self) -> ET._Element:
+        """
+        Returns the root element for the assembled source, after processing with assembly-id method. Caches the result for future calls.
+        """
+        if self._source_element_with_ids is None:
+            log.debug(
+                f"Parsing source element with assembly ids for target {self.name}",
+            )
+            self._source_element_with_ids = core.assembly_internal(
+                xml=self.source_abspath(),
+                pub_file=self.publication_abspath().as_posix(),
+                stringparams=self.stringparams.copy(),
+                method="assembly-id",
+            ).getroot()
+        else:
+            log.debug(f"Using cached source_element_with_ids for target {self.name}")
+        return self._source_element_with_ids
 
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
@@ -598,18 +619,29 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
-        # NB: need to include `text()` as well as `@*|*` in the xpath, since some webwork problems are only included as text/pg source.
-        if self.source_element().xpath(".//webwork[@*|*|text()]"):
+        # NB: need to include `text()` as well as `@copy|@source|*` in the xpath, since some webwork problems are only included as text/pg source.
+        if self.source_element().xpath(".//webwork[@copy|@source|*|text()]"):
             log.debug("Source contains webwork problems")
-            if not (
-                self.generated_dir_abspath() / "webwork" / "webwork-representations.xml"
-            ).exists():
-                log.debug("Webwork representations file does not exist, generating")
-                self.generate_assets(
-                    requested_asset_types=["webwork"], only_changed=False
-                )
+            # Get list of all assembly-ids for webwork (this will be the assembly-id of the parent of the webwork element).
+            webwork_assembly_ids = self.source_element_with_ids().xpath(
+                ".//webwork[@copy|@source|*|text()]/parent::*/@assembly-id"
+            )
+            assert isinstance(webwork_assembly_ids, list)
+            for id in webwork_assembly_ids:
+                assert isinstance(id, str)
+                filename = id + ".xml"
+                if not (self.generated_dir_abspath() / "webwork" / filename).exists():
+                    log.debug(
+                        f'At least one WeBWorK representation file (for webwork problem with id "{id}") does not exist, generating'
+                    )
+                    self.generate_assets(
+                        requested_asset_types=["webwork"], only_changed=False
+                    )
+                    break
             else:
-                log.debug("Webwork representations file exists, not generating")
+                log.debug(
+                    "All WeBWorK representation files already exist, not generating"
+                )
         else:
             log.debug("Source does not contain webwork problems")
 
