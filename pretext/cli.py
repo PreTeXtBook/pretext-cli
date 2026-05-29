@@ -218,13 +218,14 @@ def upgrade() -> None:
     )
 
 
-@click.command('update')
+@click.command("update")
 def old_update():
     click.echo("This command is outdated. Use `pretext update-project` instead.")
 
+
 # pretext update-project
 @main.command(
-    'update-project',
+    "update-project",
     short_help="Update the current project to match the installed version of PreTeXt.  Note: to upgrade the installed version of pretext, use `pretext upgrade`.",
     context_settings=CONTEXT_SETTINGS,
 )
