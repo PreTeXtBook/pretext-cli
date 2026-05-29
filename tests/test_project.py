@@ -13,7 +13,6 @@ from pretext.resources import resource_base_path
 
 from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
 
-
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 HAS_XELATEX = check_installed(["xelatex", "--version"])
 

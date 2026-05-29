@@ -33,7 +33,7 @@ class RunningServerInfo:
     @staticmethod
     def from_file_line(line: str) -> RunningServerInfo:
         try:
-            (path_hash, pid, port, binding) = line.split()
+            path_hash, pid, port, binding = line.split()
         except ValueError:
             # We only call this function when line.strip() is true, so line is not empty
             log.debug(f"Invalid line in running servers file: {line}")

@@ -5,7 +5,6 @@ from pathlib import Path
 import shutil
 from .. import core
 
-
 log = logging.getLogger("ptxlogger")
 
 
