@@ -52,7 +52,7 @@ citeproc-py = "^0"
 # Development dependencies
 # ------------------------
 [tool.poetry.group.dev.dependencies]
-black = "^24.10"
+black = ">=24.10,<27.0"
 codechat-server = "^0"
 flake8 = "^6"
 lxml-stubs = "^0"
