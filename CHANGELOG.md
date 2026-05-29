@@ -9,9 +9,20 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Preliminary support for tracking student success in an LMS using SCORM builds.
+- Bare `md` elements (without `mrow`) can now have `@tag` attributes.
+- Xi:include can now be used for publication files.
+
 ### Changed
 
 - WeBWorK representations now use individual files for each problem.  Added checking for these files as they are needed in the build process.
+
+### Fixed
+
+- Improvements to HTML worksheet/handouts styling and printability.
+- Improvements to knowls when lots of math is present on page.
 
 ## [2.39.0] - 2026-05-10
 
