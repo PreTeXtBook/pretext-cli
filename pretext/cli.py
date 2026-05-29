@@ -219,8 +219,9 @@ def upgrade() -> None:
 
 
 @click.command("update")
-def old_update():
+def old_update() -> None:
     click.echo("This command is outdated. Use `pretext update-project` instead.")
+
 
 
 # pretext update-project
