@@ -18,6 +18,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Changed
 
 - WeBWorK representations now use individual files for each problem.  Added checking for these files as they are needed in the build process.
+- `pretext update` command replaced by `pretext update-project` for updating the project files.
 
 ### Fixed
 
