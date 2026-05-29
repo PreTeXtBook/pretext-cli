@@ -223,7 +223,6 @@ def old_update() -> None:
     click.echo("This command is outdated. Use `pretext update-project` instead.")
 
 
-
 # pretext update-project
 @main.command(
     "update-project",
