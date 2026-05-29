@@ -147,14 +147,14 @@ def main(ctx: click.Context, targets: bool) -> None:
             log.warning(
                 "Project's CLI version could not be detected from `requirements.txt`."
             )
-            log.warning("Try `pretext update` to produce a compatible file.")
+            log.warning("Try `pretext update-project` to produce a compatible file.")
         elif utils.requirements_version() != VERSION:
             log.warning(f"Using CLI version {VERSION} but project's `requirements.txt`")
             log.warning(
                 f"is configured to use {utils.requirements_version()}. Consider either installing"
             )
             log.warning(
-                f"CLI version {utils.requirements_version()} or running `pretext update`"
+                f"CLI version {utils.requirements_version()} or running `pretext update-project`"
             )
             log.warning(
                 f"to update `requirements.txt` and other managed files to match {VERSION}."
@@ -214,12 +214,18 @@ def upgrade() -> None:
         pretext_cmd = "pretext"
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", pretext_cmd])
     log.info(
-        "Upgrade complete.  Individual projects can be updated to align with the latest version of the CLI by running `pretext update` from their project folder."
+        "Upgrade complete.  Individual projects can be updated to align with the latest version of the CLI by running `pretext update-project` from their project folder."
     )
 
 
-# pretext update
+@click.command("update")
+def old_update() -> None:
+    click.echo("This command is outdated. Use `pretext update-project` instead.")
+
+
+# pretext update-project
 @main.command(
+    "update-project",
     short_help="Update the current project to match the installed version of PreTeXt.  Note: to upgrade the installed version of pretext, use `pretext upgrade`.",
     context_settings=CONTEXT_SETTINGS,
 )
@@ -227,7 +233,7 @@ def upgrade() -> None:
     "-b", "--backup", is_flag=True, help="Backup project files before updating."
 )
 @click.option("-f", "--force", is_flag=True, help="Force update of project files.")
-def update(backup: bool, force: bool) -> None:
+def update_project(backup: bool, force: bool) -> None:
     """
     Update the current project to match the installed version of PreTeXt.
     """
