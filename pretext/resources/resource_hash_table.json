@@ -603,5 +603,14 @@
     "pretext-cli.yml": "bd03a4481343db707982f77fe5333f4996537c148b9b22cee2d3d0c0e3cec153",
     "pretext-deploy.yml": "22361778b40bc1d71cdf2dc013b58e7282ee03877500259633fdca6df89a1b63",
     "installPandoc.sh": "3ebfe6bdcbedc6e51f957f7e73fff2c3bf3163a4b6a8d9e9a79290be52cddc95"
+  },
+  "2.40.0": {
+    "project.ptx": "27e89a159264f87acf97485ee558726fc6f4edc9d4140881fae5db1d835ccbf1",
+    "codechat_config.yaml": "7600fe14f89bda5b46a8025e80848dac2dceae9dde3064e23fac65ba22d0054b",
+    ".gitignore": "5bc77c611bc947ddde06d4788625102f67fd5f2d7648e12f636ca53ebf424cbc",
+    "devcontainer.json": "b8d7ab210b48467964549d8359f5e976d197fb562b6f7984d8148b15250ba5ef",
+    "pretext-cli.yml": "2f8d080ccd8fc21de8960b5ab702e549780c8393a17abe1148166ad9b72e6a5f",
+    "pretext-deploy.yml": "f586f8f082775f27c0025ffa95245d9c7a658995e8c51e73dfab4ee1dd933258",
+    "installPandoc.sh": "9d1a00fd7c3512b867fb306480d217a367b9528c9f1a5414ad87a006f0daa7e8"
   }
 }
