@@ -61,9 +61,6 @@ def main(args: any = None, update_templates: bool = False) -> None:
     print(f"Requesting core {repo_name} commit {CORE_COMMIT} from GitHub.")
     core_zip_path = Path("pretext").resolve() / "resources" / "core.zip"
     core_zip = requests.get(f"https://github.com/{repo_name}/archive/{CORE_COMMIT}.zip")
-    # remove current core/pretext.py file in case it is a link
-    utils.remove_path(Path("pretext").resolve() / "core" / "pretext.py")
-    utils.remove_path(Path("pretext").resolve() / "core" / "braille_format.py")
 
     with open(core_zip_path, "wb") as f:
         f.write(core_zip.content)
@@ -71,40 +68,31 @@ def main(args: any = None, update_templates: bool = False) -> None:
     with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmpdirname:
         with zipfile.ZipFile(core_zip_path) as archive:
             archive.extractall(tmpdirname)
-            # Run the cssbuilder script:
-            # update_css(tmpdirname)
 
-            shutil.copyfile(
-                Path(tmpdirname)
-                / f"pretext-{CORE_COMMIT}"
-                / "pretext"
-                / "lib"
-                / "pretext.py",
-                Path("pretext").resolve() / "core" / "pretext.py",
-            )
-            shutil.copyfile(
-                Path(tmpdirname)
-                / f"pretext-{CORE_COMMIT}"
-                / "pretext"
-                / "lib"
-                / "braille_format.py",
-                Path("pretext").resolve() / "core" / "braille_format.py",
-            )
+            extracted_core_path = Path(tmpdirname) / f"pretext-{CORE_COMMIT}"
+            source_core_lib_path = extracted_core_path / "pretext" / "lib"
+            local_core_path = Path("pretext").resolve() / "core"
+            for existing_file in utils.core_python_files(local_core_path):
+                utils.remove_path(existing_file)
+            # Get all core python files from the extracted core (except __init__.py) and copy them to the local core directory
+            for source_file in utils.core_python_files(source_core_lib_path):
+                shutil.copyfile(source_file, local_core_path / source_file.name)
+            # Get the remaining core files:
             shutil.copytree(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "examples",
+                extracted_core_path / "examples",
                 Path("tests").resolve() / "examples" / "core" / "examples",
                 dirs_exist_ok=True,
             )
             shutil.rmtree(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "examples",
+                extracted_core_path / "examples",
             )
             shutil.copytree(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "doc",
+                extracted_core_path / "doc",
                 Path("tests").resolve() / "examples" / "core" / "doc",
                 dirs_exist_ok=True,
             )
             shutil.rmtree(
-                Path(tmpdirname) / f"pretext-{CORE_COMMIT}" / "doc",
+                extracted_core_path / "doc",
             )
             print(
                 "Successfully updated core PreTeXtBook/pretext files from GitHub.\n Now zippping core resources."
