@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+
 import pretext.resources
 from scripts import utils
 
@@ -15,19 +16,12 @@ def main(core_path: Path = Path("../pretext")) -> None:
     # Create a symlink to the core directory
     link_path.symlink_to(core_path)
 
-    # Remove the current pretext/core/pretext.py file
-    script_link_path = Path("pretext").resolve() / "core" / "pretext.py"
-    script_core_path = core_path / "pretext" / "lib" / "pretext.py"
-    utils.remove_path(script_link_path)
-    # Link to the local core python script
-    script_link_path.symlink_to(script_core_path)
-
-    # Repeat for braille_format the current pretext/core/pretext.py file
-    script_link_path = Path("pretext").resolve() / "core" / "braille_format.py"
-    script_core_path = core_path / "pretext" / "lib" / "braille_format.py"
-    utils.remove_path(script_link_path)
-    # Link to the local core python script
-    script_link_path.symlink_to(script_core_path)
+    source_core_lib_path = core_path / "pretext" / "lib"
+    local_core_path = Path("pretext").resolve() / "core"
+    for existing_file in utils.core_python_files(local_core_path):
+        utils.remove_path(existing_file)
+    for source_file in utils.core_python_files(source_core_lib_path):
+        (local_core_path / source_file.name).symlink_to(source_file)
     print(f"Linked local core pretext directory `{core_path}`")
 
 
