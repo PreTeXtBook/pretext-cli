@@ -23,6 +23,7 @@ class Executables(pxml.BaseXmlModel, tag="executables"):
     pdfeps: str = pxml.attr(default="pdftops")
     node: str = pxml.attr(default="node")
     liblouis: str = pxml.attr(default="file2brl")
+    perl: str = pxml.attr(default="perl")
 
 
 class LegacyFormat(str, Enum):
