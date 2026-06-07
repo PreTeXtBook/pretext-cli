@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix bug with packaging core pretext resources that prevented most recent commit from running.
+
 ## [2.41.1] - 2026-06-07
 
 Includes updates to core through commit: [fc8221d](https://github.com/PreTeXtBook/pretext/commit/fc8221d5b8e7027f686729102e169c482fbd1fe5)
