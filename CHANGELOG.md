@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- `perl` executable added as possible key in executables, which might help with local webwork generation.
+
 ## [2.41.0] - 2026-06-03
 
 Includes updates to core through commit: [f96a117](https://github.com/PreTeXtBook/pretext/commit/f96a117fce6e23c5af6df4038cad6ce87aec3ef9)
