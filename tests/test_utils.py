@@ -1,4 +1,6 @@
+import fnmatch
 import os
+import sys
 import pytest
 from pathlib import Path
 from pretext import utils
@@ -115,6 +117,39 @@ def test_is_earlier_version() -> None:
     # *after* the stable release, so "2.11.5" is earlier than "2.11.5.dev0".
     assert utils.is_earlier_version("2.11.5", "2.11.5.dev0")
     assert not utils.is_earlier_version("2.11.5.dev0", "2.11.5")
+
+
+def test_core_modules_included_in_package() -> None:
+    if sys.version_info >= (3, 11):
+        import tomllib
+
+        opener = lambda p: open(p, "rb")  # noqa: E731
+        loader = tomllib.load
+    else:
+        import toml
+
+        opener = lambda p: open(p, "r")  # noqa: E731
+        loader = toml.load
+
+    root = Path(__file__).parent.parent
+    with opener(root / "pyproject.toml") as f:
+        config = loader(f)
+
+    includes: list[str] = config["tool"]["poetry"]["include"]
+
+    core_dir = root / "pretext" / "core"
+    core_files = [
+        str(p.relative_to(root))
+        for p in sorted(core_dir.glob("*.py"))
+        if p.name != "__init__.py"
+    ]
+
+    for rel_path in core_files:
+        covered = any(fnmatch.fnmatch(rel_path, pat) for pat in includes)
+        assert covered, (
+            f"{rel_path} is not covered by any entry in pyproject.toml [tool.poetry] include.\n"
+            f"Add it explicitly or use a glob like 'pretext/core/*.py'."
+        )
 
 
 def test_hash_path(tmp_path: Path) -> None:
