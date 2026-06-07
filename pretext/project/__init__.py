@@ -582,7 +582,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         ) as f:
             json.dump(asset_table, f)
 
-    def ensure_myopenmath_xml(self) -> None:
+    def ensure_myopenmath_xml(self, clean_tmp_dirs: bool = True) -> None:
         """
         Ensures that the myopenmath xml files are present if the source contains myopenmath exercises.  Needed to generate other "static" assets and targets.
         """
@@ -607,14 +607,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         f"MyOpenMath problem {prob_num} does not exist, generating"
                     )
                     self.generate_assets(
-                        requested_asset_types=["myopenmath"], only_changed=False
+                        requested_asset_types=["myopenmath"], only_changed=False, clean_tmp_dirs=clean_tmp_dirs
                     )
                     # Only need to generate once a single missing file is discovered.
                     break
         else:
             log.debug("Source does not contain myopenmath problems")
 
-    def ensure_webwork_reps(self) -> None:
+    def ensure_webwork_reps(self, clean_tmp_dirs: bool = True) -> None:
         """
         Ensures that the webwork representation file is present if the source contains webwork problems.  This is needed to build or generate other assets.
         """
@@ -634,7 +634,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         f'At least one WeBWorK representation file (for webwork problem with id "{id}") does not exist, generating'
                     )
                     self.generate_assets(
-                        requested_asset_types=["webwork"], only_changed=False
+                        requested_asset_types=["webwork"], only_changed=False, clean_tmp_dirs=clean_tmp_dirs
                     )
                     break
             else:
@@ -720,6 +720,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         xmlid: t.Optional[str] = None,
         no_knowls: bool = False,
         latex: bool = False,
+        clean_tmp_dirs: bool = True,
     ) -> None:
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
@@ -744,11 +745,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         self.ensure_asset_directories()
 
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
-        self.ensure_webwork_reps()
+        self.ensure_webwork_reps(clean_tmp_dirs=clean_tmp_dirs)
 
         # Generate needed assets unless requested not to.
         if generate:
-            self.generate_assets(xmlid=xmlid)
+            self.generate_assets(xmlid=xmlid, clean_tmp_dirs=clean_tmp_dirs)
 
         # Ensure the output directories exist.
         self.ensure_output_directory()
@@ -936,7 +937,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.critical(f"Unknown format {self.format}")
                 # Delete temporary directories left behind by core:
         try:
-            core.release_temporary_directories()
+            core.release_temporary_directories(any_log_level=clean_tmp_dirs)
         except Exception as e:
             log.error(
                 "Unable to release temporary directories.  Please report this error to pretext-support"
@@ -952,6 +953,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         clean: bool = False,
         skip_cache: bool = False,
         slow: bool = False,
+        clean_tmp_dirs: bool = True,
     ) -> None:
         """
         Generates assets for the current target.  Options:
@@ -1320,10 +1322,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         #        log.debug(e, exc_info=True)
         # Delete temporary directories left behind by core:
         try:
-            core.release_temporary_directories()
+            core.release_temporary_directories(any_log_level=clean_tmp_dirs)
         except Exception as e:
-            log.error(
-                "Unable to release temporary directories.  Please report this error to pretext-support"
+            log.debug(
+                "Unable to release temporary directories."
             )
             log.debug(e, exc_info=True)
         # After all assets are generated, update the asset cache (but we shouldn't do this if we didn't generate any assets successfully)
