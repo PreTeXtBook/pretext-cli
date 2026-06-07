@@ -12,6 +12,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Added
 
 - `perl` executable added as possible key in executables, which might help with local webwork generation.
+- Better support for social-media cards for HTML output.
+
+### Fixed
+
+- Enable publisher page breaks for "subexercises" element.
 
 ## [2.41.0] - 2026-06-03
 
