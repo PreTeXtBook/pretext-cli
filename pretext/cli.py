@@ -83,7 +83,9 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 _VERBOSITY_HELP = "Sets the severity of log messaging: DEBUG for all, INFO (default) for most, then WARNING, ERROR, and CRITICAL for decreasing verbosity."
 
 
-def set_log_level(_ctx: click.Context, _param: click.Parameter, value: Optional[str]) -> None:
+def set_log_level(
+    _ctx: click.Context, _param: click.Parameter, value: Optional[str]
+) -> None:
     _ = (_ctx, _param)  # Click's callback protocol requires these; not used here.
     if value:
         log.setLevel(value.upper())
@@ -91,7 +93,8 @@ def set_log_level(_ctx: click.Context, _param: click.Parameter, value: Optional[
 
 class PreTeXtGroup(click.Group):
     """Click Group that injects a -v/--verbosity option into every subcommand so that
-    `pretext build -v debug` works in addition to the canonical `pretext -v debug build`."""
+    `pretext build -v debug` works in addition to the canonical `pretext -v debug build`.
+    """
 
     def command(self, *args: Any, **kwargs: Any) -> Any:
         original_decorator = super().command(*args, **kwargs)
@@ -116,7 +119,9 @@ class PreTeXtGroup(click.Group):
 
 
 #  Click command-line interface
-@click.group(cls=PreTeXtGroup, invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
+@click.group(
+    cls=PreTeXtGroup, invoke_without_command=True, context_settings=CONTEXT_SETTINGS
+)
 @click.pass_context
 # Allow a verbosity command:
 @click_log.simple_verbosity_option(
@@ -660,7 +665,11 @@ def build(
             for t in targets:
                 log.info(f"Generating assets for {t.name}")
                 t.generate_assets(
-                    only_changed=False, xmlid=xmlid, clean=clean, skip_cache=True, clean_tmp_dirs=not save_tmp_dirs
+                    only_changed=False,
+                    xmlid=xmlid,
+                    clean=clean,
+                    skip_cache=True,
+                    clean_tmp_dirs=not save_tmp_dirs,
                 )
             no_generate = True
         except Exception as e:

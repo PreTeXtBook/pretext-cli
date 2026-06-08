@@ -607,7 +607,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         f"MyOpenMath problem {prob_num} does not exist, generating"
                     )
                     self.generate_assets(
-                        requested_asset_types=["myopenmath"], only_changed=False, clean_tmp_dirs=clean_tmp_dirs
+                        requested_asset_types=["myopenmath"],
+                        only_changed=False,
+                        clean_tmp_dirs=clean_tmp_dirs,
                     )
                     # Only need to generate once a single missing file is discovered.
                     break
@@ -634,7 +636,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         f'At least one WeBWorK representation file (for webwork problem with id "{id}") does not exist, generating'
                     )
                     self.generate_assets(
-                        requested_asset_types=["webwork"], only_changed=False, clean_tmp_dirs=clean_tmp_dirs
+                        requested_asset_types=["webwork"],
+                        only_changed=False,
+                        clean_tmp_dirs=clean_tmp_dirs,
                     )
                     break
             else:
@@ -1324,9 +1328,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         try:
             core.release_temporary_directories(any_log_level=clean_tmp_dirs)
         except Exception as e:
-            log.debug(
-                "Unable to release temporary directories."
-            )
+            log.debug("Unable to release temporary directories.")
             log.debug(e, exc_info=True)
         # After all assets are generated, update the asset cache (but we shouldn't do this if we didn't generate any assets successfully)
         log.debug(f"Updated these assets successfully: {successful_assets}")
