@@ -80,9 +80,48 @@ def nice_errors(f: Callable[..., None]) -> Any:
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
+_VERBOSITY_HELP = "Sets the severity of log messaging: DEBUG for all, INFO (default) for most, then WARNING, ERROR, and CRITICAL for decreasing verbosity."
+
+
+def set_log_level(
+    _ctx: click.Context, _param: click.Parameter, value: Optional[str]
+) -> None:
+    _ = (_ctx, _param)  # Click's callback protocol requires these; not used here.
+    if value:
+        log.setLevel(value.upper())
+
+
+class PreTeXtGroup(click.Group):
+    """Click Group that injects a -v/--verbosity option into every subcommand so that
+    `pretext build -v debug` works in addition to the canonical `pretext -v debug build`.
+    """
+
+    def command(self, *args: Any, **kwargs: Any) -> Any:
+        original_decorator = super().command(*args, **kwargs)
+
+        def decorator(f: Callable[..., Any]) -> Any:
+            f = click.option(
+                "--verbosity",
+                "-v",
+                default=None,
+                expose_value=False,
+                is_eager=True,
+                callback=set_log_level,
+                type=click.Choice(
+                    ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                    case_sensitive=False,
+                ),
+                help=_VERBOSITY_HELP,
+            )(f)
+            return original_decorator(f)
+
+        return decorator
+
 
 #  Click command-line interface
-@click.group(invoke_without_command=True, context_settings=CONTEXT_SETTINGS)
+@click.group(
+    cls=PreTeXtGroup, invoke_without_command=True, context_settings=CONTEXT_SETTINGS
+)
 @click.pass_context
 # Allow a verbosity command:
 @click_log.simple_verbosity_option(
@@ -96,8 +135,13 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     is_flag=True,
     help='Display list of build/view "targets" available in the project manifest.',
 )
+@click.option(
+    "--save-tmp-dirs",
+    is_flag=True,
+    help="Do not clean temporary directories after a build or generate.  Might be useful for debugging (previously calling -v debug would also save these directories).",
+)
 @nice_errors
-def main(ctx: click.Context, targets: bool) -> None:
+def main(ctx: click.Context, targets: bool, save_tmp_dirs: bool) -> None:
     """
     Command line tools for quickly creating, authoring, and building PreTeXt projects.
 
@@ -177,7 +221,7 @@ def main(ctx: click.Context, targets: bool) -> None:
             f"No project.ptx manifest found in current workspace.  Using global configuration specified in '~/.ptx/{VERSION}/project.ptx'."
         )
     # Add project to context so it can be used in subcommands
-    ctx.obj = {"project": project}
+    ctx.obj = {"project": project, "save_tmp_dirs": save_tmp_dirs}
 
 
 @main.result_callback()
@@ -552,6 +596,7 @@ def build(
     # Create a new project, apply overlay, and get target. Note, the CLI always finds changes to the root folder of the project, so we don't need to specify a path to the project.ptx file.
     # Use the project discovered in the main command.
     project = ctx.obj["project"]
+    save_tmp_dirs = ctx.obj.get("save_tmp_dirs", False)
 
     # Check to see whether target_name is a path to a file:
     if target_name and Path(target_name).is_file():
@@ -620,7 +665,11 @@ def build(
             for t in targets:
                 log.info(f"Generating assets for {t.name}")
                 t.generate_assets(
-                    only_changed=False, xmlid=xmlid, clean=clean, skip_cache=True
+                    only_changed=False,
+                    xmlid=xmlid,
+                    clean=clean,
+                    skip_cache=True,
+                    clean_tmp_dirs=not save_tmp_dirs,
                 )
             no_generate = True
         except Exception as e:
@@ -645,6 +694,7 @@ def build(
                 xmlid=xmlid,
                 no_knowls=no_knowls,
                 latex=latex,
+                clean_tmp_dirs=not save_tmp_dirs,
             )
             if t.format == "html" and t.compression is None:
                 log.info(
@@ -761,6 +811,7 @@ def generate(
         return
 
     project = ctx.obj["project"]
+    save_tmp_dirs = ctx.obj.get("save_tmp_dirs", False)
     # Now create the target if the target_name is not missing.
     try:
         target = project.get_target(name=target_name)
@@ -780,6 +831,7 @@ def generate(
             clean=clean,
             skip_cache=force,
             slow=slow,
+            clean_tmp_dirs=not save_tmp_dirs,
         )
         # Check if there are errors reported by the build by looking at the error_flush_handler.
         if utils.has_errors(error_flush_handler):

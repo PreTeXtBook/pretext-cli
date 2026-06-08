@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+# Added
+
+- You can now specify the debug level *after* the command (e.g., `pretext -v debug build` can now also be entered as `pretext build -v debug`).
+- Temporary directories created by core pretext will now be cleaned up at all debug levels.  To save them for debugging, use the `--save-tmp-dirs` flag, as in `pretext --save-tmp-dirs build`.
+
 ## [2.41.2] - 2026-06-07
 
 Includes updates to core through commit: [fc8221d](https://github.com/PreTeXtBook/pretext/commit/fc8221d5b8e7027f686729102e169c482fbd1fe5)
