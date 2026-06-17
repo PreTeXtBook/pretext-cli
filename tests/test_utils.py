@@ -3,7 +3,7 @@ import os
 import sys
 import pytest
 from pathlib import Path
-from lxml import etree as ET
+from lxml import etree as ET # noqa: N812
 from pretext import utils
 
 
@@ -238,7 +238,9 @@ def test_xml_validates_against_schema_jing_fallback_invalid(
     )
 
     assert not utils.xml_validates_against_schema(etree)
-    assert (tmp_path / ".error_schema.log").read_text() == "schema validation error via jing"
+    assert (
+        tmp_path / ".error_schema.log"
+    ).read_text() == "schema validation error via jing"
 
 
 def test_xml_validates_against_schema_jing_unavailable(
@@ -261,7 +263,7 @@ def test_validate_with_lxml_valid_and_invalid(tmp_path: Path) -> None:
     schema_file = tmp_path / "mini.rng"
     schema_file.write_text(
         '<grammar xmlns="http://relaxng.org/ns/structure/1.0">'
-        "<start><element name=\"pretext\"><empty/></element></start></grammar>"
+        '<start><element name="pretext"><empty/></element></start></grammar>'
     )
 
     ok = utils._validate_with_lxml(ET.fromstring("<pretext/>"), schema_file)
@@ -280,14 +282,19 @@ def test_validate_with_lxml_uncompilable_schema_returns_none(
         raise ET.RelaxNGParseError("boom")
 
     monkeypatch.setattr(utils.ET, "RelaxNG", _raise)
-    assert utils._validate_with_lxml(ET.fromstring("<pretext/>"), tmp_path / "x.rng") is None
+    assert (
+        utils._validate_with_lxml(ET.fromstring("<pretext/>"), tmp_path / "x.rng")
+        is None
+    )
 
 
 def test_run_schema_validation_uses_first_available_engine(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: (True, ""))
-    monkeypatch.setattr(utils, "_validate_with_lxml", lambda *a: (False, "lxml says no"))
+    monkeypatch.setattr(
+        utils, "_validate_with_lxml", lambda *a: (False, "lxml says no")
+    )
 
     # jing first wins
     assert utils.run_schema_validation(

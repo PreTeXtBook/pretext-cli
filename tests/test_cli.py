@@ -8,7 +8,7 @@ from pathlib import Path
 from contextlib import contextmanager
 import requests
 import pretext
-from lxml import etree as ET
+from lxml import etree as ET # noqa: N812
 from pretext import constants
 from pretext import utils
 from typing import cast, Generator
@@ -563,9 +563,7 @@ def test_validate_malformed_xml_is_nonzero(
 @pytest.mark.skipif(
     not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
 )
-def test_validate_dev_schema_runs(
-    tmp_path: Path, script_runner: ScriptRunner
-) -> None:
+def test_validate_dev_schema_runs(tmp_path: Path, script_runner: ScriptRunner) -> None:
     project = _make_project(tmp_path, script_runner)
     ret = script_runner.run([PTX_CMD, "validate", "--dev"], cwd=project)
     assert ret.returncode == 0
@@ -583,7 +581,9 @@ def test_validate_could_not_validate_exits_2(
     # Avoid the network update check and force the "no validator available" result.
     monkeypatch.setattr(putils, "check_for_updates", lambda *a, **k: None)
     monkeypatch.setattr(
-        putils, "run_schema_validation", lambda *a, **k: (None, "no validator available")
+        putils,
+        "run_schema_validation",
+        lambda *a, **k: (None, "no validator available"),
     )
     result = CliRunner().invoke(cli.main, ["validate"])
     assert result.exit_code == 2

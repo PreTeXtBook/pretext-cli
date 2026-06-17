@@ -776,7 +776,9 @@ def validate(ctx: click.Context, target_name: Optional[str], dev: bool) -> None:
         log.error(error_text)
         raise SystemExit(2)
 
-    error_log_path = Path("logs") / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-schema-errors.log"
+    error_log_path = (
+        Path("logs") / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-schema-errors.log"
+    )
     with open(error_log_path, "w") as error_log_file:
         error_log_file.write(error_text)
     log.error("PreTeXt source did NOT pass schema validation:")
