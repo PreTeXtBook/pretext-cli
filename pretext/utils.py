@@ -294,6 +294,52 @@ def _validate_with_jing(etree: _Element, schema_file: Path) -> Optional[tuple[bo
             tmp_path.unlink(missing_ok=True)
 
 
+def _validate_with_lxml(
+    etree: _Element, schema_file: Path
+) -> Optional[tuple[bool, str]]:
+    # Returns None when lxml cannot compile the schema (the known
+    # "no define for ref" bug on some libxml2 builds), so the caller can
+    # fall back to another engine.
+    try:
+        relaxng = ET.RelaxNG(file=str(schema_file))
+    except ET.RelaxNGParseError:
+        log.debug(
+            "lxml could not compile the RelaxNG schema; trying the next validator."
+        )
+        return None
+    try:
+        relaxng.assertValid(etree)
+        return True, ""
+    except ET.DocumentInvalid as err:
+        return False, str(err.error_log)
+
+
+def run_schema_validation(
+    etree: _Element,
+    schema_file: Path,
+    order: t.Sequence[str] = ("lxml", "jing"),
+) -> tuple[Optional[bool], str]:
+    # Engines are looked up by name here (not captured at import time) so tests
+    # can monkeypatch `utils._validate_with_jing` / `utils._validate_with_lxml`.
+    engines = {
+        "lxml": _validate_with_lxml,
+        "jing": _validate_with_jing,
+    }
+    for engine_name in order:
+        result = engines[engine_name](etree, schema_file)
+        if result is not None:
+            return result
+    return None, (
+        "Schema validation could not be completed: no validator was available "
+        "(jing is not installed and lxml could not compile the schema)."
+    )
+
+
+def schema_path(dev: bool = False) -> Path:
+    schema_name = "pretext-dev.rng" if dev else "pretext.rng"
+    return resources.resource_base_path() / "core" / "schema" / schema_name
+
+
 # boilerplate to prevent overzealous caching by preview server, and
 # avoid port issues
 def binding_for_access(access: t.Literal["public", "private"] = "private") -> str:
