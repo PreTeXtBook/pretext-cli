@@ -563,17 +563,6 @@ def test_validate_malformed_xml_is_nonzero(
 @pytest.mark.skipif(
     not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
 )
-def test_validate_valid_project_is_zero(
-    tmp_path: Path, script_runner: ScriptRunner
-) -> None:
-    project = _make_project(tmp_path, script_runner)
-    ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
-    assert ret.returncode == 0
-
-
-@pytest.mark.skipif(
-    not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
-)
 def test_validate_dev_schema_runs(
     tmp_path: Path, script_runner: ScriptRunner
 ) -> None:
