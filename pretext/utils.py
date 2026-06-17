@@ -12,6 +12,7 @@ import shutil
 import socketserver
 import socket
 import subprocess
+import tempfile
 import time as time
 import logging
 import logging.handlers
@@ -209,9 +210,38 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
 def xml_validates_against_schema(etree: _Element) -> bool:
     # get path to RelaxNG schema file:
     schemarngfile = resources.resource_base_path() / "core" / "schema" / "pretext.rng"
+    log.debug(f"Validating PreTeXt source against schema {schemarngfile}")
 
     # Open schemafile for validation:
-    relaxng = ET.RelaxNG(file=schemarngfile)
+    try:
+        relaxng = ET.RelaxNG(file=schemarngfile)
+    except ET.RelaxNGParseError as err:
+        # Some libxml/lxml runtime combinations fail to compile this schema
+        # with false "no define for ref" errors. Fall back to jing if present.
+        log.debug(
+            "lxml could not compile the RelaxNG schema; trying jing validator instead."
+        )
+        jing_result = _validate_with_jing(etree, schemarngfile)
+        if jing_result is None:
+            error_text = str(getattr(err, "error_log", err))
+            log.warning(
+                "jing is unavailable, so schema validation could not be completed. "
+                "Continuing with build."
+            )
+            with open(".error_schema.log", "w") as error_log_file:
+                error_log_file.write(error_text)
+            return False
+        is_valid, error_output = jing_result
+        if is_valid:
+            log.info("PreTeXt source passed schema validation via jing.")
+            return True
+        log.debug(
+            "PreTeXt document did not pass schema validation (jing); unexpected output may result. "
+            "See .error_schema.log for hints. Continuing with build."
+        )
+        with open(".error_schema.log", "w") as error_log_file:
+            error_log_file.write(error_output)
+        return False
 
     # just for testing
     # ----------------
@@ -231,6 +261,37 @@ def xml_validates_against_schema(etree: _Element) -> bool:
             error_log_file.write(str(err.error_log))
         return False
     return True
+
+
+def _validate_with_jing(etree: _Element, schema_file: Path) -> Optional[tuple[bool, str]]:
+    jing_executable = shutil.which("jing")
+    if jing_executable is None:
+        return None
+
+    tmp_path: Optional[Path] = None
+    try:
+        xml_payload = ET.tostring(
+            etree.getroottree(), encoding="utf-8", xml_declaration=True
+        )
+        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as tmp:
+            tmp.write(xml_payload)
+            tmp_path = Path(tmp.name)
+
+        result = subprocess.run(
+            [jing_executable, str(schema_file), str(tmp_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        output = "\n".join(
+            chunk for chunk in [result.stdout.strip(), result.stderr.strip()] if chunk
+        )
+        return result.returncode == 0, output
+    except OSError:
+        return None
+    finally:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
 
 
 # boilerplate to prevent overzealous caching by preview server, and

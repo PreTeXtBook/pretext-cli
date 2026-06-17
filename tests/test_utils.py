@@ -3,6 +3,7 @@ import os
 import sys
 import pytest
 from pathlib import Path
+from lxml import etree as ET
 from pretext import utils
 
 
@@ -202,3 +203,55 @@ def test_xml_syntax_is_valid(tmp_path: Path) -> None:
     # A nonexistent file should raise IOError.
     with pytest.raises(IOError):
         utils.xml_syntax_is_valid(tmp_path / "nonexistent.ptx")
+
+
+def test_xml_validates_against_schema_jing_fallback_success(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    etree = ET.fromstring("<pretext/>")
+
+    def _raise_relaxng_parse_error(*args: object, **kwargs: object) -> object:
+        raise ET.RelaxNGParseError("boom")
+
+    monkeypatch.setattr(utils.ET, "RelaxNG", _raise_relaxng_parse_error)
+    monkeypatch.setattr(utils, "_validate_with_jing", lambda *args: (True, ""))
+
+    assert utils.xml_validates_against_schema(etree)
+    assert not (tmp_path / ".error_schema.log").exists()
+
+
+def test_xml_validates_against_schema_jing_fallback_invalid(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    etree = ET.fromstring("<pretext/>")
+
+    def _raise_relaxng_parse_error(*args: object, **kwargs: object) -> object:
+        raise ET.RelaxNGParseError("boom")
+
+    monkeypatch.setattr(utils.ET, "RelaxNG", _raise_relaxng_parse_error)
+    monkeypatch.setattr(
+        utils,
+        "_validate_with_jing",
+        lambda *args: (False, "schema validation error via jing"),
+    )
+
+    assert not utils.xml_validates_against_schema(etree)
+    assert (tmp_path / ".error_schema.log").read_text() == "schema validation error via jing"
+
+
+def test_xml_validates_against_schema_jing_unavailable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    etree = ET.fromstring("<pretext/>")
+
+    def _raise_relaxng_parse_error(*args: object, **kwargs: object) -> object:
+        raise ET.RelaxNGParseError("boom")
+
+    monkeypatch.setattr(utils.ET, "RelaxNG", _raise_relaxng_parse_error)
+    monkeypatch.setattr(utils, "_validate_with_jing", lambda *args: None)
+
+    assert not utils.xml_validates_against_schema(etree)
+    assert (tmp_path / ".error_schema.log").exists()
