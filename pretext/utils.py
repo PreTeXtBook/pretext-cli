@@ -208,59 +208,25 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
 
 
 def xml_validates_against_schema(etree: _Element) -> bool:
-    # get path to RelaxNG schema file:
-    schemarngfile = resources.resource_base_path() / "core" / "schema" / "pretext.rng"
+    schemarngfile = schema_path()
     log.debug(f"Validating PreTeXt source against schema {schemarngfile}")
-
-    # Open schemafile for validation:
-    try:
-        relaxng = ET.RelaxNG(file=schemarngfile)
-    except ET.RelaxNGParseError as err:
-        # Some libxml/lxml runtime combinations fail to compile this schema
-        # with false "no define for ref" errors. Fall back to jing if present.
-        log.debug(
-            "lxml could not compile the RelaxNG schema; trying jing validator instead."
-        )
-        jing_result = _validate_with_jing(etree, schemarngfile)
-        if jing_result is None:
-            error_text = str(getattr(err, "error_log", err))
-            log.warning(
-                "jing is unavailable, so schema validation could not be completed. "
-                "Continuing with build."
-            )
-            with open(".error_schema.log", "w") as error_log_file:
-                error_log_file.write(error_text)
-            return False
-        is_valid, error_output = jing_result
-        if is_valid:
-            log.info("PreTeXt source passed schema validation via jing.")
-            return True
-        log.debug(
-            "PreTeXt document did not pass schema validation (jing); unexpected output may result. "
-            "See .error_schema.log for hints. Continuing with build."
-        )
-        with open(".error_schema.log", "w") as error_log_file:
-            error_log_file.write(error_output)
-        return False
-
-    # just for testing
-    # ----------------
-    # relaxng.validate(source_xml)
-    # log = relaxng.error_log
-    # print(log)
-
-    # validate against schema
-    try:
-        relaxng.assertValid(etree)
+    # Build-time validation stays lxml-first (fast) and warn-only.
+    is_valid, error_text = run_schema_validation(
+        etree, schemarngfile, order=("lxml", "jing")
+    )
+    if is_valid:
         log.info("PreTeXt source passed schema validation.")
-    except ET.DocumentInvalid as err:
+        return True
+    if is_valid is None:
+        log.warning(error_text + " Continuing with build.")
+    else:
         log.debug(
-            "PreTeXt document did not pass schema validation; unexpected output may result. See .error_schema.log for hints.  Continuing with build."
+            "PreTeXt document did not pass schema validation; unexpected output "
+            "may result. See .error_schema.log for hints. Continuing with build."
         )
-        with open(".error_schema.log", "w") as error_log_file:
-            error_log_file.write(str(err.error_log))
-        return False
-    return True
+    with open(".error_schema.log", "w") as error_log_file:
+        error_log_file.write(error_text)
+    return False
 
 
 def _validate_with_jing(etree: _Element, schema_file: Path) -> Optional[tuple[bool, str]]:
