@@ -547,7 +547,7 @@ def test_validate_invalid_source_is_nonzero(
     main_src = project / "source" / "main.ptx"
     main_src.write_text('<?xml version="1.0"?>\n<pretext><bogus-element/></pretext>\n')
     ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
-    assert ret.returncode != 0
+    assert ret.returncode == 1
 
 
 def test_validate_malformed_xml_is_nonzero(
@@ -557,7 +557,7 @@ def test_validate_malformed_xml_is_nonzero(
     main_src = project / "source" / "main.ptx"
     main_src.write_text("<pretext>\n")  # not well-formed
     ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
-    assert ret.returncode != 0
+    assert ret.returncode == 1
 
 
 @pytest.mark.skipif(
@@ -569,3 +569,21 @@ def test_validate_dev_schema_runs(
     project = _make_project(tmp_path, script_runner)
     ret = script_runner.run([PTX_CMD, "validate", "--dev"], cwd=project)
     assert ret.returncode == 0
+
+
+def test_validate_could_not_validate_exits_2(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, script_runner: ScriptRunner
+) -> None:
+    from click.testing import CliRunner
+    from pretext import cli
+    from pretext import utils as putils
+
+    project = _make_project(tmp_path, script_runner)
+    monkeypatch.chdir(project)
+    # Avoid the network update check and force the "no validator available" result.
+    monkeypatch.setattr(putils, "check_for_updates", lambda *a, **k: None)
+    monkeypatch.setattr(
+        putils, "run_schema_validation", lambda *a, **k: (None, "no validator available")
+    )
+    result = CliRunner().invoke(cli.main, ["validate"])
+    assert result.exit_code == 2

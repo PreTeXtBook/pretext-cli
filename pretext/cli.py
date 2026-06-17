@@ -760,7 +760,7 @@ def validate(ctx: click.Context, target_name: Optional[str], dev: bool) -> None:
         etree = target.source_element()
     except Exception as e:
         log.error(f"Could not assemble source for validation: {e}")
-        ctx.exit(1)
+        raise SystemExit(1)
 
     schema_file = utils.schema_path(dev)
     log.info(f"Validating source against schema {schema_file.name}.")
@@ -773,14 +773,14 @@ def validate(ctx: click.Context, target_name: Optional[str], dev: bool) -> None:
         return
     if is_valid is None:
         log.error(error_text)
-        ctx.exit(2)
+        raise SystemExit(2)
 
     with open(".error_schema.log", "w") as error_log_file:
         error_log_file.write(error_text)
     log.error("PreTeXt source did NOT pass schema validation:")
     log.error(error_text)
     log.error("See .error_schema.log for the full report.")
-    ctx.exit(1)
+    raise SystemExit(1)
 
 
 # pretext generate
