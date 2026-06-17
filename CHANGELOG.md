@@ -13,6 +13,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 - You can now specify the debug level *after* the command (e.g., `pretext -v debug build` can now also be entered as `pretext build -v debug`).
 - Temporary directories created by core pretext will now be cleaned up at all debug levels.  To save them for debugging, use the `--save-tmp-dirs` flag, as in `pretext --save-tmp-dirs build`.
+- Added a `pretext validate` command that checks a target's source against the RelaxNG schema and exits non-zero on failure (use `--dev` for the development schema). Tries `jing` first, then falls back to lxml's built-in validator.
 
 ## [2.41.2] - 2026-06-07
 
