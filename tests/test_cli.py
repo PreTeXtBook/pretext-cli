@@ -8,7 +8,7 @@ from pathlib import Path
 from contextlib import contextmanager
 import requests
 import pretext
-from lxml import etree as ET # noqa: N812
+from lxml import etree as ET  # noqa: N812
 from pretext import constants
 from pretext import utils
 from typing import cast, Generator

@@ -3,7 +3,7 @@ import os
 import sys
 import pytest
 from pathlib import Path
-from lxml import etree as ET # noqa: N812
+from lxml import etree as ET  # noqa: N812
 from pretext import utils
 
 
