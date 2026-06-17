@@ -1,3 +1,4 @@
+from datetime import datetime
 import importlib
 import logging
 import logging.handlers
@@ -775,11 +776,12 @@ def validate(ctx: click.Context, target_name: Optional[str], dev: bool) -> None:
         log.error(error_text)
         raise SystemExit(2)
 
-    with open(".error_schema.log", "w") as error_log_file:
+    error_log_path = Path("logs") / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-schema-errors.log"
+    with open(error_log_path, "w") as error_log_file:
         error_log_file.write(error_text)
     log.error("PreTeXt source did NOT pass schema validation:")
     log.error(error_text)
-    log.error("See .error_schema.log for the full report.")
+    log.error(f"See {error_log_path} for the full report.")
     raise SystemExit(1)
 
 

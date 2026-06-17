@@ -224,7 +224,8 @@ def xml_validates_against_schema(etree: _Element) -> bool:
             "PreTeXt document did not pass schema validation; unexpected output "
             "may result. See .error_schema.log for hints. Continuing with build."
         )
-    with open(".error_schema.log", "w") as error_log_file:
+    error_log_path = Path("logs") / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}-schema-errors.log"
+    with open(error_log_path, "w") as error_log_file:
         error_log_file.write(error_text)
     return False
 
