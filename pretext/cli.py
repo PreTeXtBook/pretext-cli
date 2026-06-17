@@ -729,6 +729,60 @@ def build(
         return
 
 
+# pretext validate
+@main.command(
+    short_help="Validate source against the PreTeXt schema",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.argument("target_name", required=False, metavar="target")
+@click.option(
+    "--dev",
+    is_flag=True,
+    help="Validate against the development schema (pretext-dev.rng) instead of the "
+    "stable schema, allowing experimental elements.",
+)
+@click.pass_context
+@nice_errors
+def validate(ctx: click.Context, target_name: Optional[str], dev: bool) -> None:
+    """
+    Validate the source of TARGET against the PreTeXt RelaxNG schema.
+
+    Reports schema errors and exits with a non-zero status when the document is
+    invalid, so it can gate CI or pre-commit checks. Without TARGET, the first
+    target in project.ptx is used. Exit codes: 0 = valid, 1 = invalid, 2 =
+    validation could not be performed (no validator available).
+    """
+    project = ctx.obj["project"]
+    target = project.get_target(target_name)
+
+    # Assemble the source (resolves xinclude); surfaces syntax/xinclude errors.
+    try:
+        etree = target.source_element()
+    except Exception as e:
+        log.error(f"Could not assemble source for validation: {e}")
+        ctx.exit(1)
+
+    schema_file = utils.schema_path(dev)
+    log.info(f"Validating source against schema {schema_file.name}.")
+    is_valid, error_text = utils.run_schema_validation(
+        etree, schema_file, order=("jing", "lxml")
+    )
+
+    if is_valid:
+        log.info(f"PreTeXt source passed schema validation ({schema_file.name}).")
+        return
+    if is_valid is None:
+        log.error(error_text)
+        ctx.exit(2)
+
+    with open(".error_schema.log", "w") as error_log_file:
+        error_log_file.write(error_text)
+    log.error("PreTeXt source did NOT pass schema validation:")
+    log.error(error_text)
+    log.error("See .error_schema.log for the full report.")
+    ctx.exit(1)
+
+
 # pretext generate
 @main.command(
     short_help="Generate specified assets for default target or targets specified by `-t`",

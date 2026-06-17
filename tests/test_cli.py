@@ -8,7 +8,9 @@ from pathlib import Path
 from contextlib import contextmanager
 import requests
 import pretext
+from lxml import etree as ET
 from pretext import constants
+from pretext import utils
 from typing import cast, Generator
 import pytest
 from pytest_console_scripts import ScriptRunner
@@ -523,3 +525,58 @@ def test_support(tmp_path: Path, script_runner: ScriptRunner) -> None:
         [PTX_CMD, "-v", "debug", "new", "-d", "."], cwd=tmp_path
     ).success
     assert script_runner.run([PTX_CMD, "support"], cwd=tmp_path).success
+
+
+def _validator_available() -> bool:
+    # True if either lxml or jing can run against the bundled schema.
+    result = utils.run_schema_validation(
+        ET.fromstring("<pretext/>"), utils.schema_path(), order=("lxml", "jing")
+    )
+    return result[0] is not None
+
+
+def _make_project(tmp_path: Path, script_runner: ScriptRunner) -> Path:
+    assert script_runner.run([PTX_CMD, "new"], cwd=tmp_path).success
+    return tmp_path / "new-pretext-project"
+
+
+def test_validate_invalid_source_is_nonzero(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    project = _make_project(tmp_path, script_runner)
+    main_src = project / "source" / "main.ptx"
+    main_src.write_text('<?xml version="1.0"?>\n<pretext><bogus-element/></pretext>\n')
+    ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
+    assert ret.returncode != 0
+
+
+def test_validate_malformed_xml_is_nonzero(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    project = _make_project(tmp_path, script_runner)
+    main_src = project / "source" / "main.ptx"
+    main_src.write_text("<pretext>\n")  # not well-formed
+    ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
+    assert ret.returncode != 0
+
+
+@pytest.mark.skipif(
+    not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
+)
+def test_validate_valid_project_is_zero(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    project = _make_project(tmp_path, script_runner)
+    ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
+    assert ret.returncode == 0
+
+
+@pytest.mark.skipif(
+    not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
+)
+def test_validate_dev_schema_runs(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    project = _make_project(tmp_path, script_runner)
+    ret = script_runner.run([PTX_CMD, "validate", "--dev"], cwd=project)
+    assert ret.returncode == 0
