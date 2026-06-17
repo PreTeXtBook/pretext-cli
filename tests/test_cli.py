@@ -545,7 +545,9 @@ def test_validate_invalid_source_is_nonzero(
 ) -> None:
     project = _make_project(tmp_path, script_runner)
     main_src = project / "source" / "main.ptx"
-    main_src.write_text('<?xml version="1.0"?>\n<pretext><bogus-element/></pretext>\n')
+    main_src.write_text(
+        '<?xml version="1.0"?>\n<pretext><article><section>Text outside of element.</section></article></pretext>\n'
+    )
     ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
     assert ret.returncode == 1
 
