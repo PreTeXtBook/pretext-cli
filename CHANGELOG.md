@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.42.0] - 2026-06-18
+
+Includes updates to core through commit: [afb99f7](https://github.com/PreTeXtBook/pretext/commit/afb99f78226d4631e3fe87f5a0d4d41ff753e26f)
+
 # Added
 
 - You can now specify the debug level *after* the command (e.g., `pretext -v debug build` can now also be entered as `pretext build -v debug`).
