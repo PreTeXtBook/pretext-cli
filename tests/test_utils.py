@@ -3,6 +3,7 @@ import os
 import sys
 import pytest
 from pathlib import Path
+from lxml import etree as ET  # noqa: N812
 from pretext import utils
 
 
@@ -202,3 +203,78 @@ def test_xml_syntax_is_valid(tmp_path: Path) -> None:
     # A nonexistent file should raise IOError.
     with pytest.raises(IOError):
         utils.xml_syntax_is_valid(tmp_path / "nonexistent.ptx")
+
+
+def test_validate_with_lxml_valid_and_invalid(tmp_path: Path) -> None:
+    schema_file = tmp_path / "mini.rng"
+    schema_file.write_text(
+        '<grammar xmlns="http://relaxng.org/ns/structure/1.0">'
+        '<start><element name="pretext"><empty/></element></start></grammar>'
+    )
+
+    ok = utils._validate_with_lxml(ET.fromstring("<pretext/>"), schema_file)
+    assert ok == (True, "")
+
+    bad = utils._validate_with_lxml(ET.fromstring("<nope/>"), schema_file)
+    assert bad is not None
+    assert bad[0] is False
+    assert bad[1] != ""
+
+
+def test_validate_with_lxml_uncompilable_schema_returns_none(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    def _raise(*args: object, **kwargs: object) -> object:
+        raise ET.RelaxNGParseError("boom")
+
+    monkeypatch.setattr(utils.ET, "RelaxNG", _raise)
+    assert (
+        utils._validate_with_lxml(ET.fromstring("<pretext/>"), tmp_path / "x.rng")
+        is None
+    )
+
+
+def test_run_schema_validation_uses_first_available_engine(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: (True, ""))
+    monkeypatch.setattr(
+        utils, "_validate_with_lxml", lambda *a: (False, "lxml says no")
+    )
+
+    # jing first wins
+    assert utils.run_schema_validation(
+        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("jing", "lxml")
+    ) == (True, "")
+    # lxml first wins
+    assert utils.run_schema_validation(
+        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("lxml", "jing")
+    ) == (False, "lxml says no")
+
+
+def test_run_schema_validation_skips_unavailable_engine(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: None)
+    monkeypatch.setattr(utils, "_validate_with_lxml", lambda *a: (True, ""))
+    assert utils.run_schema_validation(
+        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("jing", "lxml")
+    ) == (True, "")
+
+
+def test_run_schema_validation_all_unavailable_returns_none(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: None)
+    monkeypatch.setattr(utils, "_validate_with_lxml", lambda *a: None)
+    result = utils.run_schema_validation(
+        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("jing", "lxml")
+    )
+    assert result[0] is None
+    assert "could not be completed" in result[1]
+
+
+def test_schema_path_selects_stable_or_dev() -> None:
+    assert utils.schema_path(dev=False).name == "pretext.rng"
+    assert utils.schema_path(dev=True).name == "pretext-dev.rng"
+    assert utils.schema_path().name == "pretext.rng"

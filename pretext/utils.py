@@ -12,6 +12,7 @@ import shutil
 import socketserver
 import socket
 import subprocess
+import tempfile
 import time as time
 import logging
 import logging.handlers
@@ -207,30 +208,107 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
 
 
 def xml_validates_against_schema(etree: _Element) -> bool:
-    # get path to RelaxNG schema file:
-    schemarngfile = resources.resource_base_path() / "core" / "schema" / "pretext.rng"
+    schemarngfile = schema_path()
+    log.debug(f"Validating PreTeXt source against schema {schemarngfile}")
+    # Build-time validation stays lxml-first (fast) and warn-only.
+    is_valid, error_text = run_schema_validation(
+        etree, schemarngfile, order=("lxml", "jing")
+    )
+    if is_valid:
+        log.info("PreTeXt source passed schema validation.")
+        return True
+    if is_valid is None:
+        log.warning(error_text + " Continuing with build.")
+    else:
+        log.debug(
+            "PreTeXt document did not pass schema validation; unexpected output "
+            "may result. See .error_schema.log for hints. Continuing with build."
+        )
+    log.debug(
+        "---- Schema validation error details: ----\n"
+        + error_text
+        + "\n---- End schema validation error details. ----"
+    )
+    return False
 
-    # Open schemafile for validation:
-    relaxng = ET.RelaxNG(file=schemarngfile)
 
-    # just for testing
-    # ----------------
-    # relaxng.validate(source_xml)
-    # log = relaxng.error_log
-    # print(log)
+def _validate_with_jing(
+    etree: _Element, schema_file: Path
+) -> Optional[tuple[bool, str]]:
+    jing_executable = shutil.which("jing")
+    if jing_executable is None:
+        return None
 
-    # validate against schema
+    tmp_path: Optional[Path] = None
+    try:
+        xml_payload = ET.tostring(
+            etree.getroottree(), encoding="utf-8", xml_declaration=True
+        )
+        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as tmp:
+            tmp.write(xml_payload)
+            tmp_path = Path(tmp.name)
+
+        result = subprocess.run(
+            [jing_executable, str(schema_file), str(tmp_path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        output = "\n".join(
+            chunk for chunk in [result.stdout.strip(), result.stderr.strip()] if chunk
+        )
+        return result.returncode == 0, output
+    except OSError:
+        return None
+    finally:
+        if tmp_path is not None:
+            tmp_path.unlink(missing_ok=True)
+
+
+def _validate_with_lxml(
+    etree: _Element, schema_file: Path
+) -> Optional[tuple[bool, str]]:
+    # Returns None when lxml cannot compile the schema (the known
+    # "no define for ref" bug on some libxml2 builds), so the caller can
+    # fall back to another engine.
+    try:
+        relaxng = ET.RelaxNG(file=str(schema_file))
+    except ET.RelaxNGParseError:
+        log.debug(
+            "lxml could not compile the RelaxNG schema; trying the next validator."
+        )
+        return None
     try:
         relaxng.assertValid(etree)
-        log.info("PreTeXt source passed schema validation.")
+        return True, ""
     except ET.DocumentInvalid as err:
-        log.debug(
-            "PreTeXt document did not pass schema validation; unexpected output may result. See .error_schema.log for hints.  Continuing with build."
-        )
-        with open(".error_schema.log", "w") as error_log_file:
-            error_log_file.write(str(err.error_log))
-        return False
-    return True
+        return False, str(err.error_log)
+
+
+def run_schema_validation(
+    etree: _Element,
+    schema_file: Path,
+    order: t.Sequence[str] = ("lxml", "jing"),
+) -> tuple[Optional[bool], str]:
+    # Engines are looked up by name here (not captured at import time) so tests
+    # can monkeypatch `utils._validate_with_jing` / `utils._validate_with_lxml`.
+    engines = {
+        "lxml": _validate_with_lxml,
+        "jing": _validate_with_jing,
+    }
+    for engine_name in order:
+        result = engines[engine_name](etree, schema_file)
+        if result is not None:
+            return result
+    return None, (
+        "Schema validation could not be completed: no validator was available "
+        "(jing is not installed and lxml could not compile the schema)."
+    )
+
+
+def schema_path(dev: bool = False) -> Path:
+    schema_name = "pretext-dev.rng" if dev else "pretext.rng"
+    return resources.resource_base_path() / "core" / "schema" / schema_name
 
 
 # boilerplate to prevent overzealous caching by preview server, and
