@@ -540,6 +540,9 @@ def _make_project(tmp_path: Path, script_runner: ScriptRunner) -> Path:
     return tmp_path / "new-pretext-project"
 
 
+pytest.mark.skipif(
+    not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
+)
 def test_validate_invalid_source_is_nonzero(
     tmp_path: Path, script_runner: ScriptRunner
 ) -> None:
