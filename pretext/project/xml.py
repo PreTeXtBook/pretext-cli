@@ -46,12 +46,14 @@ class LatexEngine(str, Enum):
     LATEX = "latex"
     PDFLATEX = "pdflatex"
 
+
 class PdfMethod(str, Enum):
     XELATEX = "xelatex"
     LATEX = "latex"
     PDFLATEX = "pdflatex"
     LUALATEX = "lualatex"
     PDF_FO = "pdf-fo"
+
 
 class LegacyStringParam(pxml.BaseXmlModel):
     model_config = ConfigDict()
