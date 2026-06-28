@@ -9,8 +9,7 @@ from contextlib import contextmanager
 import requests
 import pretext
 from lxml import etree as ET  # noqa: N812
-from pretext import constants
-from pretext import utils
+from pretext import constants, server, utils
 from typing import cast, Generator
 import pytest
 from pytest_console_scripts import ScriptRunner
@@ -460,9 +459,17 @@ def test_view(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run([PTX_CMD, "-v", "debug", "new", "-d", "1"]).success
     os.chdir(Path("1"))
     assert script_runner.run([PTX_CMD, "-v", "debug", "build"]).success
-    port = random.randint(10_000, 65_536)
+    port = random.randint(10_000, 65_535)
     with pretext_view("-p", f"{port}"):
-        r = requests.get(f"http://localhost:{port}")
+        project_hash = utils.hash_path(Path.cwd().resolve())
+        running_server = None
+        for _ in range(50):
+            running_server = server.active_server_for_path_hash(project_hash)
+            if running_server is not None and running_server.is_active_server():
+                break
+            time.sleep(0.1)
+        assert running_server is not None
+        r = requests.get(f"http://localhost:{running_server.port}")
         assert r.status_code == 200
         assert script_runner.run([PTX_CMD, "-v", "debug", "view", "-s"]).success
 

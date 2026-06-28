@@ -29,7 +29,7 @@ from pydantic import (
 )
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
-from .xml import Executables, LegacyProject, LatexEngine
+from .xml import Executables, LegacyProject, LatexEngine, PdfMethod
 from . import generate
 from .. import constants
 from .. import core
@@ -143,9 +143,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     _source_element_with_ids: t.Optional[ET._Element] = None
     # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
     publication: Path = pxml.attr(default=None)
-    latex_engine: LatexEngine = pxml.attr(
-        name="latex-engine", default=LatexEngine.XELATEX
-    )
+    # `pdf_method` is the canonical PDF engine setting.
+    # `latex_engine` is retained only for backwards compatibility and will be
+    # mapped into `pdf_method` when `pdf_method` is not explicitly provided.
+    pdf_method: PdfMethod = pxml.attr(name="pdf-method", default=None)
+    latex_engine: t.Optional[LatexEngine] = pxml.attr(name="latex-engine", default=None)
     # Flag to indicate whether to include LaTeX source files in the output directory when building a PDF target.
     latex_source: t.Optional[str] = pxml.attr(name="latex-source", default=None)
 
@@ -155,6 +157,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if v is None:
             return False
         return v.lower() != "no"
+
+    @model_validator(mode="after")
+    def pdf_method_validator(self) -> "Target":
+        if self.pdf_method is None:
+            if self.latex_engine is not None:
+                self.pdf_method = PdfMethod(self.latex_engine.value)
+            else:
+                self.pdf_method = PdfMethod.XELATEX
+        if self.format == Format.LATEX and self.pdf_method == PdfMethod.PDF_FO:
+            raise ValueError(
+                "The LaTeX format does not support pdf-method='pdf-fo'. Please use a standard LaTeX PDF method instead."
+            )
+        return self
 
     braille_mode: BrailleMode = pxml.attr(
         name="braille-mode", default=BrailleMode.EMBOSS
@@ -832,19 +847,30 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         )
                         log.debug(e, exc_info=True)
             elif self.format == Format.PDF:
-                # Include latex source files if requested.
-                if self.latex_source:
-                    latex = True
-                core.pdf(
-                    xml=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                    extra_xsl=custom_xsl,
-                    out_file=out_file,
-                    dest_dir=self.output_dir_abspath().as_posix(),
-                    method=self.latex_engine,
-                    outputs="all" if latex else "pdf-only",
-                )
+                if self.pdf_method == PdfMethod.PDF_FO:
+                    # Experimental support for the new PDF-FO method.
+                    core.pdf_fo(
+                        xml=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=stringparams_copy,
+                        out_file=out_file,
+                        dest_dir=self.output_dir_abspath().as_posix(),
+                    )
+                else:
+                    # Otherwise we use the standard latex methods.
+                    # Include latex source files if requested.
+                    if self.latex_source:
+                        latex = True
+                    core.pdf(
+                        xml=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=stringparams_copy,
+                        extra_xsl=custom_xsl,
+                        out_file=out_file,
+                        dest_dir=self.output_dir_abspath().as_posix(),
+                        method=self.pdf_method,
+                        outputs="all" if latex else "pdf-only",
+                    )
             elif self.format == Format.LATEX:
                 core.pdf(
                     xml=self.source_abspath(),
@@ -853,7 +879,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                    method=self.latex_engine,
+                    method=self.pdf_method,
                     outputs="prebuild",
                 )
             elif self.format == Format.EPUB:

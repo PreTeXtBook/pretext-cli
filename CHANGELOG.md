@@ -9,11 +9,17 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Reader options menu for HTML output, in place of light/dark toggle.
+- Additional accessibility improvements.
+- Support for testing experimental PDF-FO method for generating PDFs.  This is an experimental method that uses Apache FOP to generate PDFs from XSL-FO.  It is not yet fully supported, but can be enabled by setting `pdf-method="pdf-fo"` on a target in the manifest.
+
 ## [2.42.0] - 2026-06-18
 
 Includes updates to core through commit: [afb99f7](https://github.com/PreTeXtBook/pretext/commit/afb99f78226d4631e3fe87f5a0d4d41ff753e26f)
 
-# Added
+### Added
 
 - You can now specify the debug level *after* the command (e.g., `pretext -v debug build` can now also be entered as `pretext build -v debug`).
 - Temporary directories created by core pretext will now be cleaned up at all debug levels.  To save them for debugging, use the `--save-tmp-dirs` flag, as in `pretext --save-tmp-dirs build`.

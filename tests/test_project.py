@@ -54,7 +54,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.output_dir == Path(name)
             assert target.deploy_dir is None
             assert target.xsl is None
-            assert target.latex_engine == pr.LatexEngine.XELATEX
+            assert target.pdf_method == pr.PdfMethod.XELATEX
             assert target.stringparams == {}
     # Default asy_method should be "local"
     assert project.asy_method == pr.AsyMethod.LOCAL
@@ -225,7 +225,7 @@ def test_manifest_legacy() -> None:
             "publication", "publication.ptx"
         )
         assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
-        assert t_html.latex_engine == "xelatex"
+        assert t_html.pdf_method == "xelatex"
         assert t_html.stringparams == {"one": "uno", "two": "dos"}
 
         t_latex = project.get_target("latex")
@@ -233,14 +233,14 @@ def test_manifest_legacy() -> None:
         assert t_latex.source == Path("source", "main.ptx")
         assert t_latex.publication == Path("publication", "publication.ptx")
         assert t_latex.output_dir == Path("output", "latex")
-        assert t_latex.latex_engine == "xelatex"
+        assert t_latex.pdf_method == "xelatex"
 
         t_pdf = project.get_target("pdf")
         assert t_pdf.format == "pdf"
         assert t_pdf.source == Path("source", "main.ptx")
         assert t_pdf.publication == Path("publication", "publication.ptx")
         assert t_pdf.output_dir == Path("output", "pdf")
-        assert t_pdf.latex_engine == "pdflatex"
+        assert t_pdf.pdf_method == "pdflatex"
 
         assert not project.has_target("foo")
 
@@ -265,7 +265,7 @@ def test_manifest_legacy_wrong() -> None:
             "publication", "publication.ptx"
         )
         assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
-        assert t_html.latex_engine == "xelatex"
+        assert t_html.pdf_method == "xelatex"
         assert t_html.stringparams == {"one": "uno", "two": "dos"}
 
         t_latex = project.get_target("latex")
@@ -273,14 +273,14 @@ def test_manifest_legacy_wrong() -> None:
         assert t_latex.source == Path("source", "main.ptx")
         assert t_latex.publication == Path("publication", "publication.ptx")
         assert t_latex.output_dir == Path("output", "latex")
-        assert t_latex.latex_engine == "xelatex"
+        assert t_latex.pdf_method == "xelatex"
 
         t_pdf = project.get_target("pdf")
         assert t_pdf.format == "pdf"
         assert t_pdf.source == Path("source", "main.ptx")
         assert t_pdf.publication == Path("publication", "publication.ptx")
         assert t_pdf.output_dir == Path("output", "pdf")
-        assert t_pdf.latex_engine == "pdflatex"
+        assert t_pdf.pdf_method == "pdflatex"
 
         assert not project.has_target("foo")
 

@@ -24,6 +24,7 @@ class Executables(pxml.BaseXmlModel, tag="executables"):
     node: str = pxml.attr(default="node")
     liblouis: str = pxml.attr(default="file2brl")
     perl: str = pxml.attr(default="perl")
+    fop: str = pxml.attr(default="fop")
 
 
 class LegacyFormat(str, Enum):
@@ -44,6 +45,14 @@ class LatexEngine(str, Enum):
     XELATEX = "xelatex"
     LATEX = "latex"
     PDFLATEX = "pdflatex"
+
+
+class PdfMethod(str, Enum):
+    XELATEX = "xelatex"
+    LATEX = "latex"
+    PDFLATEX = "pdflatex"
+    LUALATEX = "lualatex"
+    PDF_FO = "pdf-fo"
 
 
 class LegacyStringParam(pxml.BaseXmlModel):
