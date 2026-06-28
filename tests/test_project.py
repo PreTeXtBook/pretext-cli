@@ -54,7 +54,7 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.output_dir == Path(name)
             assert target.deploy_dir is None
             assert target.xsl is None
-            assert target.latex_engine == pr.LatexEngine.XELATEX
+            assert target.pdf_method == pr.PdfMethod.XELATEX
             assert target.stringparams == {}
     # Default asy_method should be "local"
     assert project.asy_method == pr.AsyMethod.LOCAL
