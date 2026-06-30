@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pretext>
+  <docinfo>
+    <latex-image-preamble>
+      \usepackage{tikz}
+    </latex-image-preamble>
+  </docinfo>
+  <article xml:id="article-latex-image">
+    <title>LaTeX Image Test</title>
+    <section xml:id="sec-latex-image">
+      <title>LaTeX Image</title>
+      <figure xml:id="fig-tikz-test">
+        <caption>A simple TikZ diagram.</caption>
+        <image>
+          <latex-image label="tikz-test">
+\begin{tikzpicture}
+\draw (0,0) circle (1cm);
+\end{tikzpicture}
+          </latex-image>
+        </image>
+      </figure>
+    </section>
+  </article>
+</pretext>

@@ -52,7 +52,7 @@ jobs:
   deep-test:
     needs: format-and-types
     runs-on: ubuntu-22.04
-    container: oscarlevin/pretext-full
+    container: pretextbook/pretext-full:latest
 
     steps:
       - uses: actions/checkout@v6
