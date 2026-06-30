@@ -3,7 +3,7 @@
 {
 	"name": "PreTeXt-CLI-dev",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "oscarlevin/pretext:full",
+	"image": "pretextbook/pretext-full:latest",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
 	"features": {
