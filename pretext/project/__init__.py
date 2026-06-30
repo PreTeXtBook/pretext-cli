@@ -147,7 +147,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     # `latex_engine` is always used as the engine for generating latex-image assets, and
     # if `pdf_method` is not specified, it is also used as the PDF engine for generating PDF output.
     pdf_method: PdfMethod = pxml.attr(name="pdf-method", default=None)
-    latex_engine: t.Optional[LatexEngine] = pxml.attr(name="latex-engine", default=LatexEngine.XELATEX)
+    latex_engine: t.Optional[LatexEngine] = pxml.attr(
+        name="latex-engine", default=LatexEngine.XELATEX
+    )
     # Flag to indicate whether to include LaTeX source files in the output directory when building a PDF target.
     latex_source: t.Optional[str] = pxml.attr(name="latex-source", default=None)
 
