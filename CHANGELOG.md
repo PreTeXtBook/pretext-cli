@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.43.1] - 2026-06-30
+
+Includes updates to core through commit: [73e61ec](https://github.com/PreTeXtBook/pretext/commit/73e61ec2c3f91468a80a12ce249fa69a734e6d26)
+
 ### Fixed
 
 - Bug preventing latex images to be created when `latex-engine` is not set.
