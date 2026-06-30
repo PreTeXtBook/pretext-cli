@@ -144,10 +144,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
     publication: Path = pxml.attr(default=None)
     # `pdf_method` is the canonical PDF engine setting.
-    # `latex_engine` is retained only for backwards compatibility and will be
-    # mapped into `pdf_method` when `pdf_method` is not explicitly provided.
+    # `latex_engine` is always used as the engine for generating latex-image assets, and
+    # if `pdf_method` is not specified, it is also used as the PDF engine for generating PDF output.
     pdf_method: PdfMethod = pxml.attr(name="pdf-method", default=None)
-    latex_engine: t.Optional[LatexEngine] = pxml.attr(name="latex-engine", default=None)
+    latex_engine: t.Optional[LatexEngine] = pxml.attr(name="latex-engine", default=LatexEngine.XELATEX)
     # Flag to indicate whether to include LaTeX source files in the output directory when building a PDF target.
     latex_source: t.Optional[str] = pxml.attr(name="latex-source", default=None)
 
@@ -158,9 +158,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             return False
         return v.lower() != "no"
 
+    # If pdf_method is set, we use it for generating the PDF output.  If not set, we fall back to the latex_engine (which is also used for generating latex-image assets), which defaults to xelatex.
     @model_validator(mode="after")
     def pdf_method_validator(self) -> "Target":
         if self.pdf_method is None:
+            # latex_engine should always default to xelatex, so we should always fall into the "if" clause.
             if self.latex_engine is not None:
                 self.pdf_method = PdfMethod(self.latex_engine.value)
             else:

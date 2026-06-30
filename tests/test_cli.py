@@ -115,28 +115,6 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert (project_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
     assert not (project_path / "output" / "web" / "ch-empty.html").exists()
     assert (project_path / "output" / "web" / "ch-first-without-spaces.html").exists()
-    # Also do a subset without assets
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image", "-q"],
-        cwd=project_path,
-    ).success
-    assert not (
-        project_path
-        / "generated-assets"
-        / "latex-image"
-        / "fig_tikz-example-diagram.svg"
-    ).exists()
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image"],
-        cwd=project_path,
-    ).success
-    assert (
-        project_path
-        / "generated-assets"
-        / "latex-image"
-        / "fig_tikz-example-diagram.svg"
-    ).exists()
-
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "build", "web"], cwd=project_path
     ).success
@@ -148,6 +126,42 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     # # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
     # # The path separator varies by platform.
     # assert mapping == DEMO_MAPPING
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+def test_build_latex_images(tmp_path: Path, script_runner: ScriptRunner) -> None:
+    path_with_spaces = "test path with spaces"
+    project_path = tmp_path / path_with_spaces
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces], cwd=tmp_path
+    ).success
+
+    # Build subset without assets: latex-image SVG should not be generated
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image", "-q"],
+        cwd=project_path,
+    ).success
+    assert not (
+        project_path
+        / "generated-assets"
+        / "latex-image"
+        / "fig_tikz-example-diagram.svg"
+    ).exists()
+
+    # Build subset with assets: latex-image SVG should be generated
+    assert script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image"],
+        cwd=project_path,
+    ).success
+    assert (
+        project_path
+        / "generated-assets"
+        / "latex-image"
+        / "fig_tikz-example-diagram.svg"
+    ).exists()
 
 
 def test_build_no_manifest(tmp_path: Path, script_runner: ScriptRunner) -> None:
