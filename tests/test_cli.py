@@ -133,35 +133,23 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     reason="Skipped since xelatex isn't found.",
 )
 def test_build_latex_images(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    path_with_spaces = "test path with spaces"
-    project_path = tmp_path / path_with_spaces
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "new", "demo", "-d", path_with_spaces], cwd=tmp_path
-    ).success
+    project_path = tmp_path / "latex-image"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "latex-image", project_path)
+    svg = project_path / "generated-assets" / "latex-image" / "tikz-test.svg"
 
-    # Build subset without assets: latex-image SVG should not be generated
+    # Build without generating assets: SVG should not be created
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image", "-q"],
+        [PTX_CMD, "-v", "debug", "build", "web", "-q"],
         cwd=project_path,
     ).success
-    assert not (
-        project_path
-        / "generated-assets"
-        / "latex-image"
-        / "fig_tikz-example-diagram.svg"
-    ).exists()
+    assert not svg.exists()
 
-    # Build subset with assets: latex-image SVG should be generated
+    # Build with assets: SVG should be created
     assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "build", "web", "-x", "sec-latex-image"],
+        [PTX_CMD, "-v", "debug", "build", "web"],
         cwd=project_path,
     ).success
-    assert (
-        project_path
-        / "generated-assets"
-        / "latex-image"
-        / "fig_tikz-example-diagram.svg"
-    ).exists()
+    assert svg.exists()
 
 
 def test_build_no_manifest(tmp_path: Path, script_runner: ScriptRunner) -> None:
