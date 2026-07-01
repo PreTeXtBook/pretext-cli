@@ -1312,7 +1312,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             except Exception as e:
                 log.error(f"Unable to generate some GDScript pck archives:\n {e}")
                 log.debug(e, exc_info=True)
-                
+
         if "mermaid" in assets_to_generate:
             try:
                 for outformat in asset_formats["mermaid"]:
