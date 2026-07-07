@@ -1,3 +1,20 @@
+"""
+Tests of the `pretext.project` Python API: the `Project` and `Target`
+models parsed from ``project.ptx`` manifests, and their build/deploy
+behavior.
+
+These tests drive the library directly (no CLI subprocess), using the
+example projects in ``tests/examples/projects``:
+
+- ``project_refactor/simple``     -- minimal v2 manifest (web/print/runestone)
+- ``project_refactor/elaborate``  -- v2 manifest exercising every attribute
+- ``project_refactor/legacy``     -- v1 (legacy) manifest
+- ``project_refactor/assets``     -- targets for asset-table comparison
+- others (``xref``, ``xi_pub``, ...) for specific behaviors
+
+The CLI equivalents of these behaviors are tested in ``test_cli.py``.
+"""
+
 import time
 import json
 from pathlib import Path
@@ -17,16 +34,20 @@ TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 HAS_XELATEX = check_installed(["xelatex", "--version"])
 
 
-# This "test" simply produces a skipped test to inform the developer that xelatex wasn't found, or does nothing if xelatex was found.
 @pytest.mark.skipif(
     not HAS_XELATEX,
     reason="Note: several tests are skipped, since xelatex wasn't installed.",
 )
 def test_note_if_no_xelatex() -> None:
+    """Not a real test: shows up as a *skip* in the report when xelatex is
+    missing, alerting the developer that pdf assertions are being skipped."""
     pass
 
 
 def test_defaults(tmp_path: Path) -> None:
+    """A Project created programmatically (no manifest) uses the documented
+    default paths, and its targets default to the bundled publication file,
+    xelatex pdf generation, and local asymptote generation."""
     # This test fails if there happens to be a publication.ptx in publication/. So, switch to a clean directory to avoid this.
     with utils.working_directory(tmp_path):
         ts = ("web", "html"), ("print", "pdf")
@@ -64,6 +85,8 @@ def test_defaults(tmp_path: Path) -> None:
 
 
 def test_serve(tmp_path: Path) -> None:
+    """Project.server_process() serves the output directory over HTTP,
+    returning 404 before content exists and 200 after."""
     with utils.working_directory(tmp_path):
         port = 12_345
         project = pr.Project(ptx_version="2")
@@ -85,6 +108,8 @@ def test_serve(tmp_path: Path) -> None:
 
 
 def test_manifest_simple(tmp_path: Path) -> None:
+    """Parsing the simple v2 manifest yields its three targets with correct
+    formats/platforms, and unspecified settings fall back to the defaults."""
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
@@ -122,12 +147,20 @@ def test_manifest_simple(tmp_path: Path) -> None:
 
 
 def test_manifest_simple_build(tmp_path: Path) -> None:
+    """Each target of the simple project builds into its own output
+    directory: html (with a CodeChat .mapping.json), runestone (with its
+    manifest), and pdf when xelatex is available."""
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         project.get_target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
+        # html builds produce the source-to-output map used by CodeChat.
+        mapping = json.loads(
+            (prj_path / "output" / "web" / ".mapping.json").read_text()
+        )
+        assert mapping == {"source/main.ptx": ["article-id"]}
         project.get_target("rs").build()
         assert (prj_path / "output" / "rs" / "index.html").exists()
         assert (prj_path / "output" / "rs" / "runestone-manifest.xml").exists()
@@ -137,6 +170,9 @@ def test_manifest_simple_build(tmp_path: Path) -> None:
 
 
 def test_manifest_elaborate(tmp_path: Path) -> None:
+    """Parsing the elaborate manifest picks up every customized project- and
+    target-level attribute (paths, executables, stringparams, asy-method,
+    deploy-dir, output-filename, custom xsl)."""
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
@@ -195,6 +231,8 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
 
 
 def test_manifest_elaborate_build(tmp_path: Path) -> None:
+    """The elaborate project builds into its customized output locations
+    (nested output dir, custom pdf output filename)."""
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
@@ -209,6 +247,8 @@ def test_manifest_elaborate_build(tmp_path: Path) -> None:
 
 
 def test_manifest_legacy() -> None:
+    """A v1 (legacy) manifest is parsed into the modern model: targets,
+    paths, pdf methods, stringparams, and executables all carry over."""
     prj_path = EXAMPLES_DIR / "projects" / "project_refactor" / "legacy"
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
@@ -247,8 +287,10 @@ def test_manifest_legacy() -> None:
         assert project._executables.latex == "latex1"
 
 
-# Repeat the above test with a manifest that has extra, unknown elements. This should still work, but the extra elements should be ignored.
 def test_manifest_legacy_wrong() -> None:
+    """Repeat of test_manifest_legacy with a manifest containing extra,
+    unknown elements: legacy parsing ignores them instead of failing.
+    (Contrast with v2 manifests, where extras raise -- see test_validation.)"""
     prj_path = EXAMPLES_DIR / "projects" / "project_refactor" / "legacy_extra"
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
@@ -288,6 +330,8 @@ def test_manifest_legacy_wrong() -> None:
 
 
 def test_html_build_permissions(tmp_path: Path) -> None:
+    """HTML output is world-readable (0o755+), so it can be served directly
+    from a web root."""
     prj_path = tmp_path / "hello"
     shutil.copytree(TEMPLATES_DIR / "hello", prj_path)
     with utils.working_directory(prj_path):
@@ -299,6 +343,10 @@ def test_html_build_permissions(tmp_path: Path) -> None:
 
 @pytest.mark.skip(reason="Temporarily disabled")
 def test_demo_html_build(tmp_path: Path) -> None:
+    """Full html build of the demo template in a path with spaces, checking
+    the CodeChat mapping of the multi-file source.  Currently skipped: the
+    demo build requires sage/asy assets and is expensive; the mapping logic
+    itself is unit-tested in test_codechat.py."""
     path_with_spaces = "test path with spaces"
     project_path = tmp_path / path_with_spaces
     shutil.copytree(TEMPLATES_DIR / "demo", project_path)
@@ -315,6 +363,7 @@ def test_demo_html_build(tmp_path: Path) -> None:
 
 
 def test_subset_build(tmp_path: Path) -> None:
+    """Building with an xmlid produces output only for that subtree."""
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
@@ -328,6 +377,8 @@ def test_subset_build(tmp_path: Path) -> None:
 
 
 def test_zip_build(tmp_path: Path) -> None:
+    """An html target with zip compression produces a single zip file
+    instead of a website directory."""
     prj_path = tmp_path / "elaborate"
     shutil.copytree(
         EXAMPLES_DIR / "projects" / "project_refactor" / "elaborate", prj_path
@@ -342,6 +393,8 @@ def test_zip_build(tmp_path: Path) -> None:
 
 
 def test_xinclude_publication_build(tmp_path: Path) -> None:
+    """A publication file assembled via xinclude is honored (here it sets a
+    custom external assets directory), and the target still builds."""
     prj_path = tmp_path / "xi_pub"
     shutil.copytree(EXAMPLES_DIR / "projects" / "xi_pub", prj_path)
     with utils.working_directory(prj_path):
@@ -353,6 +406,9 @@ def test_xinclude_publication_build(tmp_path: Path) -> None:
 
 
 def test_asset_table(tmp_path: Path) -> None:
+    """Asset tables (hashes of asset source, used to decide what needs
+    regenerating) are equal exactly when two targets share asset-relevant
+    settings."""
     prj_path = tmp_path / "assets"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "assets", prj_path)
     with utils.working_directory(prj_path):
@@ -365,6 +421,9 @@ def test_asset_table(tmp_path: Path) -> None:
 
 
 def test_deploy(tmp_path: Path) -> None:
+    """The deploy/deploy-dir attribute permutations determine to_deploy()
+    and the deploy directory name; then a staged deployment of the elaborate
+    project lands its deployable target plus the static site landing page."""
     # check permutations of deploy / deploy-dir
     project = pr.Project(ptx_version="2")
 
@@ -437,8 +496,9 @@ def test_deploy(tmp_path: Path) -> None:
 
 
 def test_deploy_path(tmp_path: Path) -> None:
-    # Test that deploy_path() returns the correct path for single-file formats
-    # when output_filename is not specified.
+    """deploy_path() links to the built file for single-file formats
+    (pdf/epub) when one can be found, and to the deploy directory otherwise;
+    an explicit output_filename always wins."""
     prj_path = tmp_path / "test_deploy_path"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     (prj_path / "project.ptx").unlink()
@@ -483,6 +543,9 @@ def test_deploy_path(tmp_path: Path) -> None:
 
 
 def test_validation(tmp_path: Path) -> None:
+    """Invalid target configurations (duplicate server names, output options
+    that conflict with the format/platform, unknown attributes or elements)
+    raise pydantic ValidationErrors instead of being silently accepted."""
     project = pr.Project(ptx_version="2")
     # Verify that repeated server names cause a validation error.
     with pytest.raises(pydantic.ValidationError):
@@ -536,7 +599,36 @@ def test_validation(tmp_path: Path) -> None:
             pr.Project.parse()
 
 
+def test_latex_build(tmp_path: Path) -> None:
+    """A latex-format target builds a .tex file (no LaTeX engine needed,
+    unlike the pdf format)."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.new_target("tex", "latex")
+        target.build()
+        assert (prj_path / "output" / "tex" / "main.tex").exists()
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found (needed for the epub cover).",
+)
+def test_epub_build(tmp_path: Path) -> None:
+    """An epub-format target builds a single .epub file."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.new_target("ebook", "epub")
+        target.build()
+        assert (prj_path / "output" / "ebook" / "main.epub").exists()
+
+
 def test_no_knowls(tmp_path: Path) -> None:
+    """Building with no_knowls=True replaces knowled cross-references with
+    plain hyperlinks (used when previewing individual sections)."""
     prj_path = tmp_path / "xref"
     shutil.copytree(EXAMPLES_DIR / "projects" / "xref", prj_path)
     with utils.working_directory(prj_path):
@@ -552,6 +644,10 @@ def test_no_knowls(tmp_path: Path) -> None:
 
 
 def test_stage(tmp_path: Path) -> None:
+    """stage_deployment() picks the right strategy as the project changes:
+    a lone default target stages directly; marking targets deployable adds a
+    pelican-generated landing page; a site/ directory switches to static;
+    and a site.ptx there switches to a pelican_custom site."""
     prj_path = tmp_path / "test_stage"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     (prj_path / "project.ptx").unlink()

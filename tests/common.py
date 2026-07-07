@@ -1,7 +1,14 @@
+"""
+Shared helpers for the test suite: the location of the example fixture
+projects, the expected CodeChat mapping for the demo template, and a check
+for the presence of external executables (xelatex, asy, sage, ...).
+"""
+
 from pathlib import Path
 import subprocess
 from typing import List
 
+# The example projects used as build fixtures throughout the suite.
 EXAMPLES_DIR = Path(__file__).parent.resolve() / "examples"
 
 DEMO_MAPPING = {
