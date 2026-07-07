@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.43.2] - 2026-07-07
+
+Includes updates to core through commit: [ad605bb](https://github.com/PreTeXtBook/pretext/commit/ad605bb27faf9f12c2bcb3b98ea953533f1aacb4)
+
 ### Fixed
 - Webwork task heading level bug
 - Multi-paragraph introductions and conclusions in exercises and related now have spacing.
