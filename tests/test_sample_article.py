@@ -1,3 +1,14 @@
+"""
+Full-stack smoke test: build core PreTeXt's own sample article.
+
+The sample article (vendored under ``tests/examples/core``) exercises nearly
+every PreTeXt feature -- sage cells, asymptote and latex-image graphics,
+webwork, interactives -- so this single build touches far more of the
+toolchain than the small fixture projects.  It requires xelatex, asy, and
+sage, and is the longest-running test in the suite; it is skipped entirely
+when those executables are missing.
+"""
+
 import shutil
 import pytest
 from pathlib import Path
@@ -24,6 +35,9 @@ HAS_SAGE = check_installed(["sage", "--version"])
     reason="Skipped since sage isn't found.",
 )
 def test_sample_article(tmp_path: Path) -> None:
+    """The sample article builds without a single logged error (an
+    errorhandler on the pretext logger turns any log.error into a failure,
+    even ones the build would otherwise swallow)."""
     error_checker = errorhandler.ErrorHandler(logger="ptxlogger")
     prj_path = tmp_path / "sample"
     shutil.copytree(EXAMPLES_DIR / "core" / "examples" / "sample-article", prj_path)

@@ -88,9 +88,17 @@ def map_path_to_xml_id(
     # Load the XML, performing xincludes using this loader.
     huge_parser = ET.XMLParser(huge_tree=True)
     src_tree = ET.parse(_xml, parser=huge_parser)
-    # Previously, we used the following line instead of .xinclude(), but that no longer seems to work in 6.0 lxml.
-    # lxml.ElementInclude.include(src_tree, loader=my_loader)
-    src_tree.xinclude()
+    try:
+        # ``max_depth=None`` lifts ElementInclude's default 6-level inclusion
+        # limit, which deeply divided books can exceed. Cyclic includes still
+        # raise, so this cannot loop forever.
+        lxml.ElementInclude.include(src_tree, loader=my_loader, max_depth=None)
+    except Exception:
+        # ``tree.xinclude()`` also performs the inclusions, but libxml2 >= 2.13
+        # no longer records ``xml:base`` on included elements, so every xml:id
+        # gets attributed to the root source file. Acceptable as a fallback:
+        # the mapping stays complete, only its per-file granularity is lost.
+        src_tree.xinclude()
 
     # Walk though every element with an xml ID. Note: the type stubs don't have the ``iterfind`` method, hence the ignore in the next line.
     for elem in src_tree.iterfind(f".//*[@{xml_id_attrib}]"):  # type: ignore

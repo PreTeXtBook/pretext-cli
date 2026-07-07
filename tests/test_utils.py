@@ -1,3 +1,12 @@
+"""
+Unit tests for `pretext.utils`.
+
+These cover the pure helper functions of the CLI: project discovery,
+version handling, schema validation plumbing, resource-modification
+detection, and small string/path utilities.  Anything requiring a real
+`pretext build` lives in ``test_project.py`` / ``test_cli.py`` instead.
+"""
+
 import fnmatch
 import os
 import sys
@@ -43,10 +52,29 @@ def test_parse_git_remote() -> None:
 
 
 def test_is_unmodified() -> None:
+    """A resource file containing the legacy magic comment is always treated
+    as unmodified (i.e. safe for `pretext update` to overwrite)."""
     magic_comment = (
         b"foo\n<!-- Managed automatically by PreTeXt authoring tools -->\nbar"
     )
     assert utils.is_unmodified("foo", magic_comment)
+
+
+def test_is_unmodified_edited_file_returns_false() -> None:
+    """A resource file without the magic comment or a known version header
+    is treated as user-modified, so `pretext update` must not overwrite it."""
+    assert not utils.is_unmodified("foo", b"user wrote this themselves\n")
+    # A version header whose hash doesn't match any known resource hash is
+    # also considered modified.
+    versioned = b"# File automatically generated with PreTeXt 0.0.1.\nedited\n"
+    assert not utils.is_unmodified(".gitignore", versioned)
+
+
+def test_is_unmodified_requirements_with_version_header() -> None:
+    """requirements.txt is special-cased: any version header marks it
+    unmodified, since its content is just the pinned pretext version."""
+    contents = b"# automatically generated with PreTeXt 2.36.0\npretext == 2.36.0\n"
+    assert utils.is_unmodified("requirements.txt", contents)
 
 
 def test_requirements_version(tmp_path: Path) -> None:
@@ -275,6 +303,70 @@ def test_run_schema_validation_all_unavailable_returns_none(
 
 
 def test_schema_path_selects_stable_or_dev() -> None:
+    """schema_path() returns the stable schema by default, or the dev schema
+    (which allows experimental elements) when dev=True."""
     assert utils.schema_path(dev=False).name == "pretext.rng"
     assert utils.schema_path(dev=True).name == "pretext-dev.rng"
     assert utils.schema_path().name == "pretext.rng"
+
+
+def test_clean_asset_table() -> None:
+    """clean_asset_table drops asset *types* that disappeared from the source
+    (the clean table), keeping the remaining types' cached hashes intact."""
+    dirty = {
+        "asymptote": {"id1": b"hash1", "id2": b"hash2"},
+        "sageplot": {"id3": b"hash3"},
+    }
+    clean = {"asymptote": {"id1": b"hash1"}}
+    result = utils.clean_asset_table(dirty, clean)  # type: ignore[arg-type]
+    # sageplot is gone from the source, so it is purged...
+    assert "sageplot" not in result
+    # ...but surviving asset types keep all their entries.
+    assert result["asymptote"] == {"id1": b"hash1", "id2": b"hash2"}
+
+
+def test_latest_version_reads_pypi_json(monkeypatch: pytest.MonkeyPatch) -> None:
+    """latest_version() extracts the version from the PyPI JSON API response,
+    and returns None (rather than raising) when the request fails."""
+    import requests
+
+    class FakeResponse:
+        @staticmethod
+        def json() -> dict:
+            return {"info": {"version": "9.9.9"}}
+
+    monkeypatch.setattr(requests, "get", lambda url, timeout: FakeResponse())
+    assert utils.latest_version() == "9.9.9"
+
+    def raise_error(url: str, timeout: int) -> None:
+        raise requests.ConnectionError("no network")
+
+    monkeypatch.setattr(requests, "get", raise_error)
+    assert utils.latest_version() is None
+
+
+def test_url_for_access(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Private access yields a localhost URL (unless running in a GitHub
+    codespace, where the forwarded-port domain is used instead)."""
+    monkeypatch.delenv("CODESPACES", raising=False)
+    assert utils.url_for_access("private", 8000) == "http://localhost:8000"
+
+    monkeypatch.setenv("CODESPACES", "true")
+    monkeypatch.setenv("CODESPACE_NAME", "mybox")
+    monkeypatch.setenv("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN", "app.github.dev")
+    assert utils.url_for_access("private", 8000) == "https://mybox-8000.app.github.dev"
+
+
+def test_binding_for_access() -> None:
+    """Private access binds to localhost; public access to all interfaces."""
+    assert utils.binding_for_access("private") == "localhost"
+    assert utils.binding_for_access("public") == "0.0.0.0"
+
+
+def test_cannot_find_project(tmp_path: Path) -> None:
+    """cannot_find_project() is True (and logs help) only when no project.ptx
+    exists in the working directory or any of its ancestors."""
+    with utils.working_directory(tmp_path):
+        assert utils.cannot_find_project(task="build")
+        (tmp_path / "project.ptx").write_text("")
+        assert not utils.cannot_find_project(task="build")
