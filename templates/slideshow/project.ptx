@@ -7,5 +7,10 @@
         format="revealjs"
         output-filename="index.html"
         />
+    <target 
+        name="beamer" 
+        format="beamer" 
+        output-filename="slides.pdf"
+        />
   </targets>
 </project>

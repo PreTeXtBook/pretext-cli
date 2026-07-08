@@ -2,15 +2,19 @@
 
 <!--********************************************************************
 Copyright 2019 Robert A. Beezer
+
 This file is part of PreTeXt.
+
 PreTeXt is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 or version 3 of the
 License (at your option).
+
 PreTeXt is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
+
 You should have received a copy of the GNU General Public License
 along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************-->
@@ -20,6 +24,10 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <macros>
         \newcommand{\definiteintegral}[4]{\int_{#1}^{#2}\,#3\,d#4}
         </macros>
+        <latex-image-preamble>
+            \usepackage{tikz}
+            \usepackage{nicematrix}             % for multi-run latex-image (label="latex-three-pass")
+        </latex-image-preamble>
     </docinfo>
 
     <slideshow>
@@ -27,13 +35,16 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <subtitle>A Slideshow</subtitle>
 
         <frontmatter>
-            <titlepage>
+            <bibinfo>
                 <author>
                     <personname>Robert A. Beezer</personname>
                     <institution>University of Puget Sound</institution>
                 </author>
                 <event>At a Test Conference</event>
                 <date><today/></date>
+            </bibinfo>
+            <titlepage>
+                <titlepage-items/>
             </titlepage>
 
             <abstract>
@@ -177,6 +188,10 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                     </li>
                 </dl></p>
             </slide>
+        </section>
+
+        <section>
+            <title>Blocks and code</title>
 
             <slide>
                 <title>Blocks: <tag>definition</tag></title>
@@ -188,7 +203,7 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                         <description>indefinite integral of <m>f(x)</m></description>
                     </notation>
                     <statement>
-                        <p>Suppose that <m>\frac{d}{dx}F(x)=f(x)</m>.  Then the <term>indefinite integral</term> of <m>f(x)</m> is <m>F(x)</m> and is written as <me>\int\,f(x)\,dx=F(x)</me>.</p>
+                        <p>Suppose that <m>\frac{d}{dx}F(x)=f(x)</m>.  Then the <term>indefinite integral</term> of <m>f(x)</m> is <m>F(x)</m> and is written as <md>\int\,f(x)\,dx=F(x)</md>.</p>
                     </statement>
                 </definition>
             </slide>
@@ -203,12 +218,39 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                     <idx><h>Fundamental Theorem of Calculus</h></idx>
 
                     <statement>
-                        <p>If <m>f(x)</m> is continuous, and the derivative of <m>F(x)</m> is <m>f(x)</m>, then <me>\definiteintegral{a}{b}{f(x)}{x}=F(b)-F(a)</me><idx><h>test: buried in theorem/statement/p</h></idx></p>
+                        <p>If <m>f(x)</m> is continuous, and the derivative of <m>F(x)</m> is <m>f(x)</m>, then <md>\definiteintegral{a}{b}{f(x)}{x}=F(b)-F(a)</md><idx><h>test: buried in theorem/statement/p</h></idx></p>
                     </statement>
                     <proof>
                         <p>Left to the reader.</p>
                     </proof>
                 </theorem>
+            </slide>
+
+            <slide>
+                <title>Code</title>
+
+                <p>Here is an inline bit of code with surrounding text. <c>print("hello world")</c>. Here is a more text. And some more. And yet more. And a full program... with Prism support.</p>
+                <program language="python" line-numbers="yes">
+                    <title>A simple program</title>
+                    <code>
+                        def f(x):
+                            return x**2
+                        
+                        # many intentional blank lines below...
+                        # you may to zoom out, but at some point better to scroll a long listing
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        print(f(3))
+                    </code>
+                </program>
             </slide>
 
         </section>
@@ -219,9 +261,9 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
             <slide>
                 <title>Ramanujan and Integration</title>
 
-                <p>This Sage Cell should execute properly, but some extra CSS is being applied.  It is also difficult to edit properly.  Perhaps the two are related.  You may need to zoom out your browser to see all the content, especially after running the cell.</p>
+                <p>This Sage Cell is testing styling.</p>
 
-                <p>We have some mathematics on the page, to look for Javascript interference with MathJax.  An identity due to Ramanujan:<me>\frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} = 1+\frac{e^{-2\pi}} {1+\frac{e^{-4\pi}} {1+\frac{e^{-6\pi}} {1+\frac{e^{-8\pi}} {1+\ldots} } } }</me>.</p>
+                <p>We have some mathematics on the page, to look for Javascript interference with MathJax.  An identity due to Ramanujan:<md>\frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} = 1+\frac{e^{-2\pi}} {1+\frac{e^{-4\pi}} {1+\frac{e^{-6\pi}} {1+\frac{e^{-8\pi}} {1+\ldots} } } }</md>.</p>
 
                 <sage>
                     <input>numerical_integral(sin(x)^2, (0, 2))</input>
@@ -229,7 +271,89 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                     <output>(1.189200623826982, 1.320277913471315e-14)</output>
                 </sage>
 
-                <p>And some more mathematics.  An identity due to Ramanujan:<me>\frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} = 1+\frac{e^{-2\pi}} {1+\frac{e^{-4\pi}} {1+\frac{e^{-6\pi}} {1+\frac{e^{-8\pi}} {1+\ldots} } } }</me>.</p>
+                <p>And some more mathematics.  An identity due to Ramanujan:<md>\frac{1}{\Bigl(\sqrt{\phi \sqrt{5}}-\phi\Bigr) e^{\frac25 \pi}} = 1+\frac{e^{-2\pi}} {1+\frac{e^{-4\pi}} {1+\frac{e^{-6\pi}} {1+\frac{e^{-8\pi}} {1+\ldots} } } }</md>.</p>
+            </slide>
+        </section>
+
+        <section>
+            <title>More Elements</title>
+
+            <slide>
+                <title>Displayed Mathematics</title>
+
+                <p>A single displayed equation, unnumbered on a slide.<md>
+                    <mrow>\definiteintegral{0}{\pi}{\sin(x)}{x} = 2</mrow>
+                </md></p>
+
+                <p>And a multi-line display, with alignment on the equals signs.<md>
+                    <mrow>(a+b)^2 \amp= (a+b)(a+b)</mrow>
+                    <mrow>\amp= a^2 + ab + ba + b^2</mrow>
+                    <mrow>\amp= a^2 + 2ab + b^2</mrow>
+                </md></p>
+            </slide>
+
+            <slide>
+                <title>A Table</title>
+
+                <p>A <tag>tabular</tag> inside a <tag>table</tag>, whose title serves as a caption.</p>
+
+                <table>
+                    <title>Conversions of a slideshow</title>
+                    <tabular halign="center" top="major" bottom="major">
+                        <col halign="left"/>
+                        <col/>
+                        <col/>
+                        <row bottom="minor">
+                            <cell>Format</cell>
+                            <cell>Engine</cell>
+                            <cell>Output</cell>
+                        </row>
+                        <row>
+                            <cell>reveal.js</cell>
+                            <cell>browser</cell>
+                            <cell><init>HTML</init></cell>
+                        </row>
+                        <row>
+                            <cell>Beamer</cell>
+                            <cell><latex/></cell>
+                            <cell><init>PDF</init></cell>
+                        </row>
+                    </tabular>
+                </table>
+            </slide>
+
+            <slide>
+                <title>Console Sessions</title>
+
+                <p>A <tag>console</tag> reproduces an interactive command-line session, input distinguished from output.</p>
+
+                <console>
+                    <input prompt="$ ">date</input>
+                    <output>Thu Jul  2 10:00:00 PDT 2026</output>
+                    <input prompt="$ ">echo "PreTeXt"</input>
+                    <output>PreTeXt</output>
+                </console>
+            </slide>
+
+            <slide>
+                <title>Quotations</title>
+
+                <blockquote>
+                    <p>The problem with quotes on the Internet is that it is hard to verify their authenticity.</p>
+                    <attribution>Abraham Lincoln</attribution>
+                </blockquote>
+
+                <p>A <tag>blockquote</tag> can carry an <tag>attribution</tag>, as above.</p>
+            </slide>
+
+            <slide>
+                <title>Cross-References and URLs</title>
+
+                <p>A cross-reference to a block on another slide renders as static text, since a <init>PDF</init> slideshow has no knowls: see <xref ref="definition-indefinite-integral"/>.</p>
+
+                <p>One with text from the target's title: <xref ref="theorem-FTC" text="title"/>.</p>
+
+                <p>An external reference is live in capable outputs: <url href="https://pretextbook.org" visual="pretextbook.org"/>.</p>
             </slide>
         </section>
 
@@ -260,6 +384,260 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
                 </subslide>
 
                 <p>But this is still visible from the outset.</p>
+            </slide>
+
+            <slide>
+                <title>Images, from an external source</title>
+
+                <p>
+                    Images can be included from external sources.
+                    As with other <pretext/> formats,
+                    you can specify the location of your exteral images in the publication file.
+                    The image below also appears in the <pretext/> Sample Article,
+                    and originated at <c>www.texample.net</c>.
+                </p>
+
+                <image source="images/complete-graph" width="65%"/>
+                <p>
+                    You will want to ensure your image has an <attr>width</attr> if you want it to fit correctly in your slide.
+                </p>
+            </slide>
+
+            <slide>
+                <title>Images, from source</title>
+
+                <p>
+                    Images can also be generated from source. TikZ works well, and Asymptote.
+                    They can be placed in a <tag>sidebyside</tag>, and inside a <tag>figure</tag> (or both).
+                </p>
+
+                <p>
+                    Common formatting macros for TikZ and Asymptote (which you expect to use repeatedly)
+                    can be placed in <tag>docinfo</tag>, using <tag>latex-image-preamble</tag>
+                    and <tag>asymptote-preamble</tag>, respectively.
+                </p>
+
+                <p>
+                    Note that 3D Asymptote images will be rendered in WebGL, and will be interactive within your slide.
+                </p>
+
+                <figure xml:id="fig-image-demo">
+                    <caption>Two cone images borrowed from the <pretext /> Sample Article. The one on the left is written in TiZ, and the one on the right is written in Asymptote</caption>
+                    <sidebyside widths="47% 47%">
+                        <!-- <figure xml:id="fig-tikz-cone"> -->
+                            <!-- <caption>The cone from <url href="http://www.frontiernet.net/~eugene.ressler/" visual="www.frontiernet.net/~eugene.ressler/">Sketch</url> used in the Sample Article</caption> -->
+                            <image>
+                                <shortdescription></shortdescription>
+                                <latex-image label="img-tikz">
+                                    \begin{tikzpicture}[join=round]
+                                    \tikzstyle{conefill} = [fill=blue!20,fill opacity=0.8]
+                                    \tikzstyle{ann} = [fill=white,font=\footnotesize,inner sep=1pt]
+                                    \tikzstyle{ghostfill} = [fill=white]
+                                        \tikzstyle{ghostdraw} = [draw=black!50]
+                                    \filldraw[conefill](-.775,1.922)--(-1.162,.283)--(-.274,.5)
+                                                        --(-.183,2.067)--cycle;
+                                    \filldraw[conefill](-.183,2.067)--(-.274,.5)--(.775,.424)
+                                                        --(.516,2.016)--cycle;
+                                    \filldraw[conefill](.516,2.016)--(.775,.424)--(1.369,.1)
+                                                        --(.913,1.8)--cycle;
+                                    \filldraw[conefill](-.913,1.667)--(-1.369,-.1)--(-1.162,.283)
+                                                        --(-.775,1.922)--cycle;
+                                    \draw(1.461,.107)--(1.734,.127);
+                                    \draw[arrows=&lt;-&gt;](1.643,1.853)--(1.643,.12);
+                                    \filldraw[conefill](.913,1.8)--(1.369,.1)--(1.162,-.283)
+                                                        --(.775,1.545)--cycle;
+                                    \draw[arrows=-&gt;,line width=.4pt](.274,-.5)--(0,0)--(0,2.86);
+                                    \draw[arrows=-,line width=.4pt](0,0)--(-1.369,-.1);
+                                    \draw[arrows=-&gt;,line width=.4pt](-1.369,-.1)--(-2.1,-.153);
+                                    \filldraw[conefill](-.516,1.45)--(-.775,-.424)--(-1.369,-.1)
+                                                        --(-.913,1.667)--cycle;
+                                    \draw(-1.369,.073)--(-1.369,2.76);
+                                    \draw(1.004,1.807)--(1.734,1.86);
+                                    \filldraw[conefill](.775,1.545)--(1.162,-.283)--(.274,-.5)
+                                                        --(.183,1.4)--cycle;
+                                    \draw[arrows=&lt;-&gt;](0,2.34)--(-.913,2.273);
+                                    \draw(-.913,1.84)--(-.913,2.447);
+                                    \draw[arrows=&lt;-&gt;](0,2.687)--(-1.369,2.587);
+                                    \filldraw[conefill](.183,1.4)--(.274,-.5)--(-.775,-.424)
+                                                        --(-.516,1.45)--cycle;
+                                    \draw[arrows=&lt;-,line width=.4pt](.42,-.767)--(.274,-.5);
+                                    \node[ann] at (-.456,2.307) {$r_0$};
+                                    \node[ann] at (-.685,2.637) {$r_1$};
+                                    \node[ann] at (1.643,.987) {$h$};
+                                    \path (.42,-.767) node[below] {$x$}
+                                        (0,2.86) node[above] {$y$}
+                                        (-2.1,-.153) node[left] {$z$};
+                                    % Second version of the cone
+                                    \begin{scope}[xshift=3.5cm]
+                                    \filldraw[ghostdraw,ghostfill](-.775,1.922)--(-1.162,.283)--(-.274,.5)
+                                                                --(-.183,2.067)--cycle;
+                                    \filldraw[ghostdraw,ghostfill](-.183,2.067)--(-.274,.5)--(.775,.424)
+                                                                --(.516,2.016)--cycle;
+                                    \filldraw[ghostdraw,ghostfill](.516,2.016)--(.775,.424)--(1.369,.1)
+                                                                --(.913,1.8)--cycle;
+                                    \filldraw[ghostdraw,ghostfill](-.913,1.667)--(-1.369,-.1)--(-1.162,.283)
+                                                                --(-.775,1.922)--cycle;
+                                    \filldraw[ghostdraw,ghostfill](.913,1.8)--(1.369,.1)--(1.162,-.283)
+                                                                --(.775,1.545)--cycle;
+                                    \filldraw[ghostdraw,ghostfill](-.516,1.45)--(-.775,-.424)--(-1.369,-.1)
+                                                                --(-.913,1.667)--cycle;
+                                    \filldraw[ghostdraw,ghostfill](.775,1.545)--(1.162,-.283)--(.274,-.5)
+                                                                --(.183,1.4)--cycle;
+                                    \filldraw[fill=red,fill opacity=0.5](-.516,1.45)--(-.775,-.424)--(.274,-.5)
+                                                                        --(.183,1.4)--cycle;
+                                    \fill(-.775,-.424) circle (2pt);
+                                    \fill(.274,-.5) circle (2pt);
+                                    \fill(-.516,1.45) circle (2pt);
+                                    \fill(.183,1.4) circle (2pt);
+                                    \path[font=\footnotesize]
+                                            (.913,1.8) node[right] {$i\hbox{$=$}0$}
+                                            (1.369,.1) node[right] {$i\hbox{$=$}1$};
+                                    \path[font=\footnotesize]
+                                            (-.645,.513) node[left] {$j$}
+                                            (.228,.45) node[right] {$j\hbox{$+$}1$};
+                                    \draw (-.209,.482)+(-60:.25) [yscale=1.3,-&gt;] arc(-60:240:.25);
+                                    \fill[black,font=\footnotesize]
+                                                    (-.516,1.45) node [above] {$P_{00}$}
+                                                    (-.775,-.424) node [below] {$P_{10}$}
+                                                    (.183,1.4) node [above] {$P_{01}$}
+                                                    (.274,-.5) node [below] {$P_{11}$};
+                                    \end{scope}
+                                    \end{tikzpicture}
+                                </latex-image>
+                            </image>
+                        <!-- </figure> -->
+
+                        <!-- <figure xml:id="asy-cone"> -->
+                            <!-- <caption>A 3D cone from the <url href="https://asymptote.sourceforge.io/" visual="asymptote.sourceforge.io/">Asymptote website</url>, which also appears in the Sample Article</caption> -->
+                            <image>
+                                <shortdescription></shortdescription>
+
+                                <asymptote label="img-asymptote">
+                                    import solids;
+                                    size(0,150);
+                                    currentprojection=orthographic(0,-30,5);
+
+                                    real r=4;
+                                    real h=10;
+                                    real s=8;
+                                    real x=r*s/h;
+
+                                    real sr=5;
+                                    real xr=r*sr/h;
+
+                                    real s1=sr-0.1;
+                                    real x1=r*s1/h;
+
+                                    real s2=sr+0.2;
+                                    real x2=r*s2/h;
+
+                                    render render=render(compression=0,merge=true);
+
+                                    draw(scale(x1,x1,-s1)*shift(-Z)*unitcone,lightblue+opacity(0.5),render);
+
+                                    path3 p=(x2,0,s2)--(x,0,s+0.005);
+                                    revolution a=revolution(p,Z);
+                                    draw(surface(a),lightblue+opacity(0.5),render);
+
+                                    path3 q=(x,0,s)--(r,0,h);
+                                    revolution b=revolution(q,Z);
+                                    draw(surface(b),white+opacity(0.5),render);
+
+                                    draw((-r-1,0,0)--(r+1,0,0));
+                                    draw((0,0,0)--(0,0,h+1),dashed);
+
+                                    path3 w=(x1,0,s1)--(x2,0,s2)--(0,0,s2);
+                                    revolution b=revolution(w,Z);
+                                    draw(surface(b),blue+opacity(0.5),render);
+                                    draw(circle((0,0,s2),x2));
+                                    draw(circle((0,0,s1),x1));
+
+                                    draw("$x$",(xr,0,0)--(xr,0,sr),red,Arrow3,PenMargin3);
+                                    draw("$r$",(0,0,sr)--(xr,0,sr),N,red);
+                                    draw((string) r,(0,0,h)--(r,0,h),N,red);
+                                    draw((string) h,(r,0,0)--(r,0,h),red,Arrow3,PenMargin3);
+                                    draw((string) s,(-x,0,0)--(-x,0,s),W,red,Arrow3,Bar3,PenMargin3);
+                                </asymptote>
+                            </image>
+                        <!-- </figure> -->
+                    </sidebyside>
+                </figure>
+            </slide>
+
+            <slide>
+                <title>Annotated <prefigure/> diagrams</title>
+
+                <p>Annotated <prefigure/> diagrams also work well by including them in the usual way.</p>
+
+                <figure>
+                    <caption>An annotated <prefigure/> diagram that can be explored with a screenreader</caption>
+                    <image width="50%">
+                        <prefigure xmlns="https://prefigure.org"
+                                   label="annotated-prefigure-network">
+
+                            <diagram dimensions="(500,400)" margins="5">
+                                <definition>graph={1:[3,4,5],2:[4,5],3:[4,5],6:[2,4]}</definition>
+                                <coordinates bbox="(-1,-1,1,1)">
+                                    <network graph="graph" scale="0.8"
+	                                     node-fill="#fcf" node-stroke="black"
+	                                     seed="1" labels="yes" node-style="box"
+	                                     tactile-node-size="40">
+                                        <edge vertices="[3,5]" dash="9 9"/>
+                                        <edge vertices="[1,4]" dash="9 9"/>
+                                        <edge vertices="[4,6]" dash="9 9"/>
+                                        <edge vertices="[2,4]" dash="9 9"/>
+                                    </network>
+                                </coordinates>
+
+                                <annotations text="A network with six nodes and nine edges.  We will remove four edges to form a spanning tree.">
+                                    <annotation ref="nodes"
+                                                text="The six nodes are labeled from one to six.">
+                                        <annotation ref="node-1"
+                                                    text="The node 1"/>
+                                        <annotation ref="node-2"
+                                                    text="The node 2"/>
+                                        <annotation ref="node-3"
+                                                    text="The node 3"/>
+                                        <annotation ref="node-4"
+                                                    text="The node 4"/>
+                                        <annotation ref="node-5"
+                                                    text="The node 5"/>
+                                        <annotation ref="node-6"
+                                                    text="The node 6"/>
+                                    </annotation>
+                                    <annotation ref="edges"
+                                                text="There are nine edges, four of which will be removed to form a spanning tree">
+                                        <annotation ref="kept-edges"
+                                                    text="We will keep five edges">
+                                            <annotation ref="edge-1-3"
+                                                        text="We keep the edge connecting nodes 1 and 3"/>
+                                            <annotation ref="edge-1-5"
+                                                        text="We keep the edge connecting nodes 1 and 5"/>
+                                            <annotation ref="edge-2-5"
+                                                        text="We keep the edge connecting nodes 2 and 5"/>
+                                            <annotation ref="edge-6-2"
+                                                        text="We keep the edge connecting nodes 2 and 6"/>
+                                            <annotation ref="edge-3-4"
+                                                        text="We keep the edge connecting nodes 3 and 4"/>
+                                        </annotation>
+                                        <annotation ref="removed-edges"
+                                                    text="We will remove four edges">
+                                            <annotation ref="edge-1-4"
+                                                        text="We remove the edge connecting nodes 1 and 4"/>
+                                            <annotation ref="edge-2-4"
+                                                        text="We remove the edge connecting nodes 2 and 4"/>
+                                            <annotation ref="edge-3-5"
+                                                        text="We remove the edge connecting nodes 3 and 5"/>
+                                            <annotation ref="edge-6-4"
+                                                        text="We remove the edge connecting nodes 4 and 6"/>
+                                        </annotation>
+                                    </annotation>
+                                </annotations>
+
+                            </diagram>
+                        </prefigure>
+                    </image>
+                </figure>
             </slide>
 
         </section>
