@@ -56,6 +56,7 @@ class Format(str, Enum):
     KINDLE = "kindle"
     BRAILLE = "braille"
     REVEALJS = "revealjs"
+    BEAMER = "beamer"
     WEBWORK = "webwork"
     CUSTOM = "custom"
 
@@ -67,6 +68,7 @@ _SINGLE_FILE_FORMAT_EXTENSIONS: t.Dict["Format", str] = {
     Format.EPUB: ".epub",
     Format.KINDLE: ".epub",
     Format.BRAILLE: ".brl",
+    Format.BEAMER: ".pdf",
 }
 
 
@@ -874,6 +876,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         dest_dir=self.output_dir_abspath().as_posix(),
                         method=self.pdf_method,
                         outputs="all" if latex else "pdf-only",
+                        format_xsl=None,
                     )
             elif self.format == Format.LATEX:
                 core.pdf(
@@ -885,6 +888,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.pdf_method,
                     outputs="prebuild",
+                    format_xsl=None,
                 )
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
@@ -929,6 +933,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
+                )
+            elif self.format == Format.BEAMER:
+                core.beamer(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    extra_xsl=custom_xsl,
+                    out_file=out_file,
+                    dest_dir=self.output_dir_abspath().as_posix(),
+                    method=self.pdf_method,
+                    outputs="all" if latex else "pdf-only",
                 )
             elif self.format == Format.BRAILLE:
                 log.warning(

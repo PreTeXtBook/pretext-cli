@@ -12,6 +12,7 @@ FORMATS = [
     "kindle",
     "braille",
     "revealjs",
+    "beamer",
     "webwork",
     "custom",
 ]
@@ -122,6 +123,20 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "myopenmath",
+    ],
+    "beamer": [
+        "webwork",
+        "sageplot",
+        "asymptote",
+        "prefigure",
+        "youtube",
+        "codelens",
+        "datafile",
+        "interactive",
+        "qrcode",
+        "mermaid",
+        "myopenmath",
+        "dynamic-subs",
     ],
     "webwork": [
         "webwork",
@@ -238,6 +253,13 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "latex-image": ["svg"],
         "sageplot": ["html", "svg"],
         "prefigure": ["svg"],
+    },
+    "beamer": {
+        "asymptote": ["pdf"],
+        "latex-image": [],
+        "sageplot": ["pdf", "png"],
+        "prefigure": ["pdf"],
+        "mermaid": ["png"],
     },
     "webwork": {
         "asymptote": [],

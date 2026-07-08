@@ -74,13 +74,14 @@
 command line when building via the `pretext` CLI.</a:documentation>
       </attribute>
       <choice>
-        <a:documentation>the required format can be `html`, `pdf`, `latex`, `epub`, `kindle`, `braille`, `revealjs`, `webwork`, or `custom`.</a:documentation>
+        <a:documentation>the required format can be `html`, `pdf`, `latex`, `epub`, `kindle`, `braille`, `revealjs`, `beamer`, `webwork`, or `custom`.</a:documentation>
         <ref name="HtmlAttributes"/>
         <ref name="PdfAttributes"/>
         <ref name="LatexAttributes"/>
         <ref name="EpubAttributes"/>
         <ref name="BrailleAttributes"/>
         <ref name="RevealjsAttributes"/>
+        <ref name="BeamerAttributes"/>
         <ref name="WebworkAttributes"/>
         <ref name="CustomAttributes"/>
       </choice>
@@ -159,6 +160,16 @@ These parameters are rarely used by content authors.</a:documentation>
       <value>pdf</value>
     </attribute>
     <optional>
+      <attribute name="pdf-method">
+        <choice>
+          <value>xelatex</value>
+          <value>pdflatex</value>
+          <value>latex</value>
+          <value>pdf-fo</value>
+        </choice>
+      </attribute>
+    </optional>
+    <optional>
       <attribute name="latex-engine">
         <choice>
           <value>xelatex</value>
@@ -206,6 +217,14 @@ These parameters are rarely used by content authors.</a:documentation>
   <define name="RevealjsAttributes">
     <attribute name="format">
       <value>revealjs</value>
+    </attribute>
+    <optional>
+      <attribute name="output-filename"/>
+    </optional>
+  </define>
+  <define name="BeamerAttributes">
+    <attribute name="format">
+      <value>beamer</value>
     </attribute>
     <optional>
       <attribute name="output-filename"/>

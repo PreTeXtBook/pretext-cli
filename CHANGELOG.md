@@ -9,6 +9,13 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+- Experimental support for beamer format builds (from a `<slideshow>`).  Use `<target name="slides" format="beamer"/>` in the manifest to build a beamer PDF. 
+- Publication variable to use cdn javascript/css for HTML output instead of local copies.
+
+### Fixed
+- Better heading levels for HTML output to improve accessibility.
+
 ## [2.43.2] - 2026-07-07
 
 Includes updates to core through commit: [ad605bb](https://github.com/PreTeXtBook/pretext/commit/ad605bb27faf9f12c2bcb3b98ea953533f1aacb4)

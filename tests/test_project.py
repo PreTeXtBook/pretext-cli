@@ -626,6 +626,34 @@ def test_epub_build(tmp_path: Path) -> None:
         assert (prj_path / "output" / "ebook" / "main.epub").exists()
 
 
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+@pytest.mark.skip(reason="Temporarily disabled until docker image gets beamer.cls")
+def test_beamer_build(tmp_path: Path) -> None:
+    """A beamer-format target converts a `<slideshow>` source (the
+    slideshow template's `beamer` target) into a LaTeX/Beamer PDF, using
+    the same source as the revealjs `slides` target.
+
+    Unlike the CLI (see the skipped `test_slideshow_beamer` in
+    `test_cli.py`), calling `Target.build()` directly does not raise just
+    because the build logged an error, so this passes even though core
+    currently logs a `PTX:ERROR: Table of Contents level ... not
+    determined` for `<slideshow>` roots (a known gap in
+    `pretext-latex-common.xsl`; see the comment above `test_slideshow` in
+    `test_cli.py`).
+    """
+    prj_path = tmp_path / "slideshow"
+    shutil.copytree(TEMPLATES_DIR / "slideshow", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.get_target("beamer")
+        assert target.format == "beamer"
+        target.build()
+        assert (prj_path / "output" / "beamer" / "slides.pdf").exists()
+
+
 def test_no_knowls(tmp_path: Path) -> None:
     """Building with no_knowls=True replaces knowled cross-references with
     plain hyperlinks (used when previewing individual sections)."""
