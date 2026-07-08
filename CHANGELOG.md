@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.44.0] - 2026-07-08
+
+Includes updates to core through commit: [07c8b5c](https://github.com/PreTeXtBook/pretext/commit/07c8b5c9a9a55e95ec27073e88bd5c9c61b9c161)
+
 ### Added
 - Experimental support for beamer format builds (from a `<slideshow>`).  Use `<target name="slides" format="beamer"/>` in the manifest to build a beamer PDF. 
 - Publication variable to use cdn javascript/css for HTML output instead of local copies.
