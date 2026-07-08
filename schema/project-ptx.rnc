@@ -44,7 +44,7 @@ Target = element target {
 	## Unique identifier for this build target. This is the name you pass on the
 	## command line when building via the `pretext` CLI.
 	attribute name { text },
-	## the required format can be `html`, `pdf`, `latex`, `epub`, `kindle`, `braille`, `revealjs`, `webwork`, or `custom`.
+	## the required format can be `html`, `pdf`, `latex`, `epub`, `kindle`, `braille`, `revealjs`, `beamer`, `webwork`, or `custom`.
 	(
 		HtmlAttributes
 		| PdfAttributes
@@ -52,6 +52,7 @@ Target = element target {
 		| EpubAttributes
 		| BrailleAttributes
 		| RevealjsAttributes
+		| BeamerAttributes
 		| WebworkAttributes
 		| CustomAttributes
 	),
@@ -81,6 +82,7 @@ HtmlAttributes = (
 
 PdfAttributes = (
 	attribute format { "pdf" },
+	attribute pdf-method { "xelatex" | "pdflatex" | "latex" | "pdf-fo"}?,
 	attribute latex-engine { "xelatex" | "pdflatex" | "latex" }?,
 	attribute output-filename { text }?
 )
@@ -102,6 +104,11 @@ BrailleAttributes = (
 
 RevealjsAttributes = (
 	attribute format { "revealjs" },
+	attribute output-filename { text }?
+)
+
+BeamerAttributes = (
+	attribute format { "beamer" },
 	attribute output-filename { text }?
 )
 
