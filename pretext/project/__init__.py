@@ -888,7 +888,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.pdf_method,
                     outputs="prebuild",
-                    format_xsl=None
+                    format_xsl=None,
                 )
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
