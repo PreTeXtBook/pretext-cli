@@ -12,8 +12,8 @@ def main() -> None:
     fetch_core.main(arguments, update_templates=True)
 
     # Build package
-    subprocess.run(["poetry", "build"], shell=True)
-    print("Completed poetry build of pretext")
+    subprocess.run(["uv", "build"], shell=True)
+    print("Completed uv build of pretext")
 
 
 if __name__ == "__main__":

@@ -47,17 +47,11 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
 
-      # Sets up python3
-      - uses: actions/setup-python@v6
+      # Setup uv
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: 3.12
-
-      # Setup poetry
-      - name: Install poetry 1.8.4
-        run: |
-          python -m ensurepip
-          python -m pip install --upgrade pip
-          python -m pip install poetry==1.8.4
+          python-version: "3.12"
 
       - name: Install build dependencies
         run: |
@@ -66,33 +60,33 @@ jobs:
 
       - name: Install dependencies
         shell: bash
-        run: poetry install --all-extras
+        run: uv sync --all-extras
 
       - name: Update version if needed
         if: ${{ inputs.level != 'patch' }}
-        run: poetry version ${{ inputs.level }}
+        run: uv version --bump ${{ inputs.level }}
 
       - name: Build package
-        run: poetry run python scripts/build_package.py ${{ inputs.core-repo }}
+        run: uv run python scripts/build_package.py ${{ inputs.core-repo }}
 
       - name: Discover current version
         run: |
-          poetry run pretext --version
-          echo "VERSION=$(poetry run pretext --version)" >> $GITHUB_ENV
+          uv run pretext --version
+          echo "VERSION=$(uv run pretext --version)" >> $GITHUB_ENV
 
       - name: Publish
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish --build
+          uv build
+          uv publish
 
       - name: update changelog
         run: |
-          poetry run python scripts/update_changelog.py
+          uv run python scripts/update_changelog.py
 
       - name: Update version for next dev release
-        run: poetry version patch
+        run: uv version --bump patch
 
       - name: setup git config
         run: |
@@ -105,7 +99,7 @@ jobs:
           git checkout -b ${{ env.VERSION }}-deploy
           git add CHANGELOG.md
           git commit -m "update changelog for release"
-          git add pyproject.toml
+          git add pyproject.toml uv.lock
           git commit -m "bump version to next patch level for nightly releases"
           git add pretext/resources/resource_hash_table.json
           git commit --allow-empty -m "commit changes to resource_hash_table.json"

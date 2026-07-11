@@ -5,7 +5,7 @@
 Run the suite from the repository root with:
 
 ```bash
-poetry run pytest          # or: pytest -n auto if you install pytest-xdist
+uv run pytest          # or: pytest -n auto if you install pytest-xdist
 ```
 
 Tests that need external executables (`xelatex`, `asy`, `sage`) skip

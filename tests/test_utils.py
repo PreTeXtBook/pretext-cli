@@ -164,7 +164,7 @@ def test_core_modules_included_in_package() -> None:
     with opener(root / "pyproject.toml") as f:
         config = loader(f)
 
-    includes: list[str] = config["tool"]["poetry"]["include"]
+    includes: list[str] = config["tool"]["hatch"]["build"]["artifacts"]
 
     core_dir = root / "pretext" / "core"
     core_files = [
@@ -176,7 +176,7 @@ def test_core_modules_included_in_package() -> None:
     for rel_path in core_files:
         covered = any(fnmatch.fnmatch(rel_path, pat) for pat in includes)
         assert covered, (
-            f"{rel_path} is not covered by any entry in pyproject.toml [tool.poetry] include.\n"
+            f"{rel_path} is not covered by any entry in pyproject.toml [tool.hatch.build] artifacts.\n"
             f"Add it explicitly or use a glob like 'pretext/core/*.py'."
         )
 

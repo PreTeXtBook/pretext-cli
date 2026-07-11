@@ -23,7 +23,7 @@ First, navigate to the pretext-cli directory and install the CLI with the follow
 
 ```bash
 cd pretext-cli
-poetry install
+uv sync --all-extras
 python ./scripts/fetch_core.py
 ```
 
@@ -31,16 +31,16 @@ You should now be able to test that everything worked by running the following c
 
 ```bash
 pretext --version # You should get the version installed with PIP
-poetry run pretext --version # You should get the newer version installed with poetry
+uv run pretext --version # You should get the newer version installed with uv
 ```
 
-At this point, it is probably easiest to start a `poetry shell` so you don't have to prefix every command with `poetry run`.
+At this point, it is probably easiest to activate the virtual environment `uv sync` created at `.venv` so you don't have to prefix every command with `uv run`.
 
 ```bash
-poetry shell
+source .venv/bin/activate # on Windows: .venv\Scripts\activate
 ```
 
-Now when you run `pretext --version` you should get the version installed with poetry.
+Now when you run `pretext --version` you should get the version installed with uv.
 </details>
 
 ## Linking the core resources
@@ -59,7 +59,7 @@ If you have the pretext repository elsewhere, you can specify the path to the pr
 python ./scripts/symlink_core.py /path/to/pretext
 ```
 
-Now any changes you make the python script, xsl, css, js, or schema in the pretext repository will be reflected in the CLI (just stay in the `poetry shell`).
+Now any changes you make the python script, xsl, css, js, or schema in the pretext repository will be reflected in the CLI (just stay in the activated virtual environment).
 
 ## Unlinking the core resources
 

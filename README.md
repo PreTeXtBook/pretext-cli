@@ -152,79 +152,62 @@ cd pretext-cli
 
 ### Using a valid Python installation
 
-Developers and contributors must install a
-version of Python that matching the requirements in `pyproject.toml`.
-
+Developers and contributors need a version of Python matching the requirements
+in `pyproject.toml`. You don't need to install this yourself: [uv](https://docs.astral.sh/uv/),
+this project's package/environment manager, can install and manage Python
+versions for you (see below).
 
 ### Installing dependencies
-<details>
-<summary><b>Optional</b>: use pyenv as a virtual environment</summary>
-
-The `pyenv` tool for Linux automates the process of running the correct
-version of Python when working on this project (even if you have
-other versions of Python installed on your system).
-
--   https://github.com/pyenv/pyenv#installation
-
-Run the following, replacing `PYTHON_VERSION` with your desired version.
-
-```
-pyenv install PYTHON_VERSION
-```
-#### Steps on Windows
-
-In windows, you can either use the bash shell and follow the directions above,
-or try [pyenv-win](https://github.com/pyenv-win/pyenv-win#installation). In
-the latter case, make sure to follow all the installation instructions, including
-the **Finish the installation**. Then proceed to follow the directions above to
-install a version of python matching `pyproject.toml`. Finally, you may then need
-to manually add that version of python to your path.
-
-</details>
-
-<br/>
 
 The first time you set up your development environment, you should follow these steps:
 
-1. Follow these instructions to install `poetry`.
+1. Install `uv`.
 
-    -   https://python-poetry.org/docs/#installation
-        -   Note 2022/06/21: you may ignore "This installer is deprecated". See
-            [python-poetry/poetry/issues/4128](https://github.com/python-poetry/poetry/issues/4128)
+    -   https://docs.astral.sh/uv/getting-started/installation/
 
-2. Install dependencies into a virtual environment with this command.
+2. Install dependencies into a virtual environment with this command. `uv` will
+    automatically download and use a Python version matching `pyproject.toml`
+    if one isn't already available on your system&mdash;no separate `pyenv`
+    install required.
 
     ```
-    poetry install
+    uv sync --all-extras
     ```
 
 3. Fetch a copy of the core pretext library and bundle templates by running
 
     ```
-    poetry run python scripts/fetch_core.py
+    uv run python scripts/fetch_core.py
     ```
 
 The last command above should also be run when returning to development after some time, since the core commit you develop against might have changed.
 
 
-Make sure you are in a `poetry shell` during development mode so that you
+Prefix commands with `uv run` during development mode so that you
 execute the development version of `pretext-cli` rather than the system-installed
 version.
 
 ```
 pretext --version # returns system version
-poetry shell
-pretext --version # returns version being developed
+uv run pretext --version # returns version being developed
 ```
 
-When inside a `poetry shell` you can navigate to other folders and run pretext commands.  Doing so will use the current development environment version of pretext.
-In newer versions of `poetry`, the `shell` command is not avaiable anymore and is a [plugin](https://github.com/python-poetry/poetry-plugin-shell) instead. Alternatively, the command `poetry env activate` will print a line that you can then run to activate the virtual environment:
+Alternatively, you can activate the virtual environment that `uv sync` creates
+at `.venv` directly, so you don't have to prefix every command with `uv run`:
 
 ```
 pretext --version # returns system version
-poetry env activate # returns something like `source ./venv/bin/activate`, which you should now run
-source .venv/bin/activate
+source .venv/bin/activate # on Windows: .venv\Scripts\activate
 pretext --version # returns version being developed
+```
+
+If you want to develop against a specific Python version (for example, to
+reproduce a bug reported against an older version), you can ask `uv` to use
+it directly:
+
+```
+uv python install 3.11   # downloads the interpreter if you don't have it
+uv sync --all-extras --python 3.11
 ```
 
 ### Updating dependencies
@@ -233,13 +216,13 @@ pretext --version # returns version being developed
 To add dependencies for the package, run
 
 ```
-poetry add DEPENDENCY-NAME
+uv add DEPENDENCY-NAME
 ```
 
 If someone else has added a dependency:
 
 ```
-poetry install
+uv sync --all-extras
 ```
 </details>
 
@@ -260,8 +243,8 @@ passes `flake8` by running the following commands (on linux or mac)
 from the _root_ project folder (most likely `pretext-cli`).
 
 ```
-poetry run black .
-poetry run flake8
+uv run black .
+uv run flake8
 ```
 
 ### Testing
@@ -269,13 +252,13 @@ poetry run flake8
 Sets are contained in `tests/`. To run all tests:
 
 ```
-poetry run pytest
+uv run pytest
 ```
 
 To run a specific test, say `test_name` inside `test_file.py`:
 
 ```
-poetry run pytest -k name
+uv run pytest -k name
 ```
 
 Tests are automatically run by GitHub Actions when pushing to identify
@@ -286,24 +269,13 @@ regressions.
 To check if a successful build is possible:
 
 ```
-poetry run python scripts/build_package.py
+uv run python scripts/build_package.py
 ```
 
-To publish a new alpha release, first add/commit any changes. Then
-the following handles bumping versions, publishing to PyPI,
-and associated Git management.
-
-```
-poetry run python scripts/release_alpha.py
-```
-
-Publishing a stable release is similar:
-
-```
-poetry run python scripts/release_stable.py # patch +0.+0.+1
-poetry run python scripts/release_stable.py minor # +0.+1.0
-poetry run python scripts/release_stable.py major # +1.0.0
-```
+Releases (both nightly and stable) are handled by the `deploy-nightly` and
+`deploy-stable` GitHub Actions workflows, which bump the version, build the
+package with `uv build`, and publish with `uv publish`. Trigger `deploy-stable`
+manually from the Actions tab to cut a release.
 
 ### Asset generation
 
