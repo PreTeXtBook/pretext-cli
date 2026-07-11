@@ -280,8 +280,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "docutils" },
     { name = "lxml" },
-    { name = "pygments", version = "2.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pygments", version = "2.19.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pygments" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/67/71/4f422117f793620b426e7ddfc39762eda067763cee43b565470775a34d76/CodeChat-1.9.4.tar.gz", hash = "sha256:f627588d27032728c86396d227a847a9d1cc0fd8da723345bb7510c72726fa61", size = 61498, upload-time = "2023-10-07T03:26:40.183Z" }
 wheels = [
@@ -457,7 +456,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -1279,60 +1278,24 @@ sdist = { url = "https://files.pythonhosted.org/packages/24/d9/d9bb0286d9c8e0aa2
 
 [[package]]
 name = "pelican"
-version = "4.11.0.post0"
+version = "4.10.2"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version < '3.11'",
-]
 dependencies = [
     { name = "blinker" },
     { name = "docutils" },
     { name = "feedgenerator" },
     { name = "jinja2" },
     { name = "ordered-set" },
-    { name = "pygments", version = "2.18.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "pygments" },
     { name = "python-dateutil" },
     { name = "rich" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
     { name = "unidecode" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/ab/a5e863de66054c561e111687b4c1f7cb2ad5f2d4805d2bb12863f0f637cd/pelican-4.11.0.post0.tar.gz", hash = "sha256:0d5e9c0cc9c6713ab6c25b2c4b64844f34d9be8c8c8cc7f42c3a8aa6b3bbbe33", size = 1547126, upload-time = "2025-10-30T10:21:34.396Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/3e/9ae7aafe3386465467dbb462c1fca2e3e9a6d80b9cca2aee3958ca1d9449/pelican-4.10.2.tar.gz", hash = "sha256:04932e82dc7542bae7f1830710978836ca00608aa4ece7206dc13185a08c4562", size = 1243855, upload-time = "2024-11-27T19:53:49.66Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/30/c3/a6bf5a88ec27887d31c740117b72df4f7a66910552ae3f6ccadaba5ae934/pelican-4.11.0.post0-py3-none-any.whl", hash = "sha256:522a26598d3555a48b8392a582843f96bc9dafd5efe16b8f6a0b292441290620", size = 1351261, upload-time = "2025-10-30T10:21:29.688Z" },
-]
-
-[package.optional-dependencies]
-markdown = [
-    { name = "markdown" },
-]
-
-[[package]]
-name = "pelican"
-version = "4.12.0"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.15'",
-    "python_full_version >= '3.13' and python_full_version < '3.15'",
-    "python_full_version == '3.12.*'",
-    "python_full_version == '3.11.*'",
-]
-dependencies = [
-    { name = "blinker" },
-    { name = "docutils" },
-    { name = "feedgenerator" },
-    { name = "jinja2" },
-    { name = "ordered-set" },
-    { name = "pygments", version = "2.19.2", source = { registry = "https://pypi.org/simple" } },
-    { name = "python-dateutil" },
-    { name = "rich" },
-    { name = "tzdata", marker = "sys_platform == 'win32'" },
-    { name = "unidecode" },
-    { name = "watchfiles" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/8d/da26b77f0d9827d341bdedea357ccb5670717e3a9b4142e3e44c7f34db44/pelican-4.12.0.tar.gz", hash = "sha256:3983b5d2dc84c7bdf967154359077a2b78c0bbd2f7dcc55292133a7779609458", size = 1252907, upload-time = "2026-04-20T15:30:17.322Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/6e/55/4adcce41a45f8f77e69d7e84ea447819dae1a78b4b9762a104599e5ec811/pelican-4.12.0-py3-none-any.whl", hash = "sha256:3697230f56cfcca9e98d3ac9ac26f655bb20cad807f7eacf156601e241f69ad8", size = 1358275, upload-time = "2026-04-20T15:30:15.383Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/eb/b959487fa45d107ce388c77d0c694cdab42a6be9e2149f44cba1fe6a08c7/pelican-4.10.2-py3-none-any.whl", hash = "sha256:534b3c279b9630a006b5687ea6e8e6113ca17c64ac45f4328cf66bf0be367bdf", size = 1347714, upload-time = "2024-11-27T19:53:47.806Z" },
 ]
 
 [package.optional-dependencies]
@@ -1573,13 +1536,11 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
-    { name = "pelican", version = "4.11.0.post0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version < '3.11'" },
-    { name = "pelican", version = "4.12.0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version >= '3.11'" },
+    { name = "pelican", extra = ["markdown"] },
     { name = "prefig", extra = ["text"] },
 ]
 homepage = [
-    { name = "pelican", version = "4.11.0.post0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version < '3.11'" },
-    { name = "pelican", version = "4.12.0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version >= '3.11'" },
+    { name = "pelican", extra = ["markdown"] },
 ]
 prefigure = [
     { name = "prefig", extra = ["text"] },
@@ -1875,29 +1836,11 @@ wheels = [
 
 [[package]]
 name = "pygments"
-version = "2.18.0"
+version = "2.20.0"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version < '3.11'",
-]
-sdist = { url = "https://files.pythonhosted.org/packages/8e/62/8336eff65bcbc8e4cb5d05b55faf041285951b6e80f33e2bff2024788f31/pygments-2.18.0.tar.gz", hash = "sha256:786ff802f32e91311bff3889f6e9a86e81505fe99f2735bb6d60ae0c5004f199", size = 4891905, upload-time = "2024-05-04T13:42:02.013Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/b2/bc9c9196916376152d655522fdcebac55e66de6603a76a02bca1b6414f6c/pygments-2.20.0.tar.gz", hash = "sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f", size = 4955991, upload-time = "2026-03-29T13:29:33.898Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f7/3f/01c8b82017c199075f8f788d0d906b9ffbbc5a47dc9918a945e13d5a2bda/pygments-2.18.0-py3-none-any.whl", hash = "sha256:b8e6aca0523f3ab76fee51799c488e38782ac06eafcf95e7ba832985c8e7b13a", size = 1205513, upload-time = "2024-05-04T13:41:57.345Z" },
-]
-
-[[package]]
-name = "pygments"
-version = "2.19.2"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.15'",
-    "python_full_version >= '3.13' and python_full_version < '3.15'",
-    "python_full_version == '3.12.*'",
-    "python_full_version == '3.11.*'",
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl", hash = "sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176", size = 1231151, upload-time = "2026-03-29T13:29:30.038Z" },
 ]
 
 [[package]]
@@ -1945,8 +1888,7 @@ dependencies = [
     { name = "iniconfig" },
     { name = "packaging" },
     { name = "pluggy" },
-    { name = "pygments", version = "2.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pygments", version = "2.19.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pygments" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e4/47/b9efed96c114afcfa3c9d3fe98a76a1d14c74a9e266d397cf6eb64be5e01/pytest-9.1.1.tar.gz", hash = "sha256:1088fbde8f2b49d95a549a195707afa7a76a3ce9bcadc26b6d71f0ffda5fe313", size = 1636369, upload-time = "2026-06-19T10:58:32.857Z" }
@@ -2198,8 +2140,7 @@ version = "15.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py" },
-    { name = "pygments", version = "2.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "pygments", version = "2.19.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pygments" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c0/8f/0722ca900cc807c13a6a0c696dacf35430f72e0ec571c4275d2371fca3e9/rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36", size = 230680, upload-time = "2026-04-12T08:24:00.75Z" }
 wheels = [
@@ -2214,7 +2155,7 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0f/37/6964b830433e654ec7485e45a00fc9a27cf868d622838f6b6d9c5ec0d532/scipy-1.15.3.tar.gz", hash = "sha256:eae3cf522bc7df64b42cad3925c876e1b0b6c35c1337c93e12c0f366f55b0eaf", size = 59419214, upload-time = "2025-05-08T16:13:05.955Z" }
 wheels = [
@@ -2274,7 +2215,7 @@ resolution-markers = [
     "python_full_version == '3.11.*'",
 ]
 dependencies = [
-    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "1.26.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11' and python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/7a/97/5a3609c4f8d58b039179648e62dd220f89864f56f7357f5d4f45c29eb2cc/scipy-1.17.1.tar.gz", hash = "sha256:95d8e012d8cb8816c226aef832200b1d45109ed4464303e997c5b13122b297c0", size = 30573822, upload-time = "2026-02-23T00:26:24.851Z" }
 wheels = [
@@ -2349,7 +2290,7 @@ resolution-markers = [
     "python_full_version >= '3.13' and python_full_version < '3.15'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" } },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a7/25/c2700dfaf6442b4effaa91af24ebce5dc9d31bb4a69706313aae70d72cd0/scipy-1.18.0.tar.gz", hash = "sha256:67b2ad2ad54c72ca6d04975a9b2df8c3638c34ddd5b28738e94fc2b57929d378", size = 30774447, upload-time = "2026-06-19T15:01:43.456Z" }
 wheels = [
