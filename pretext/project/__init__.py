@@ -876,7 +876,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         dest_dir=self.output_dir_abspath().as_posix(),
                         method=self.pdf_method,
                         outputs="all" if latex else "pdf-only",
-                        format_xsl=None,
+                        latex_format="latex",
                     )
             elif self.format == Format.LATEX:
                 core.pdf(
@@ -888,7 +888,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.pdf_method,
                     outputs="prebuild",
-                    format_xsl=None,
+                    latex_format="latex",
                 )
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
@@ -935,7 +935,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
             elif self.format == Format.BEAMER:
-                core.beamer(
+                core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
                     stringparams=stringparams_copy,
@@ -944,6 +944,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     method=self.pdf_method,
                     outputs="all" if latex else "pdf-only",
+                    latex_format="beamer",
                 )
             elif self.format == Format.BRAILLE:
                 log.warning(
