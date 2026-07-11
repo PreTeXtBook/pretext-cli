@@ -2,6 +2,7 @@ import datetime
 from pathlib import Path
 import sys
 import logging
+import logging.handlers
 import click_log
 
 log = logging.getLogger("ptxlogger")
