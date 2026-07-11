@@ -65,6 +65,9 @@ dev = [
     "flake8>=6,<7",
     "lxml-stubs>=0,<1",
     "mypy>=1,<2",
+    # mypy --install-types shells out to `python -m pip`; uv-managed venvs
+    # don't include pip by default, so it needs to be present explicitly.
+    "pip",
     "pytest>=7,<10",
     "pytest-console-scripts>=1,<2",
     "pytest-cov>=4,<5",
