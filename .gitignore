@@ -136,14 +136,12 @@ cython_debug/
 # Hide PyPI token
 .pypitoken
 
-#pretext-core
-pretext/core/pretext.py
-pretext/core/braille_format.py
-pretext/core/common.py
-pretext/core/stack.py
-pretext/core/webwork.py
+#pretext-core: almost everything...
+pretext/core/*
+# ... but not the __init__.py file
+!pretext/core/__init__.py
 tests/examples/core
-#zipped resources
+#zipped resourcescd
 pretext/resources/*.zip
 #xml resources (rs_file)
 pretext/resources/*.xml

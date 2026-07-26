@@ -9,6 +9,21 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- SCORM with assessment tracking now works with Blackboard.
+
+### Added
+
+- Improvements to the Braille output format.
+- Improvements to the EPUB output format.
+- Improvements to the Jupyter notebook output format.
+- Upgrade to latest release of revealjs for slideshow targets.  Includes support of single-file, offline slideshows and other slideshow improvements.
+- Improvements to Fill-In-The-Blank questions.
+- Asymptote support for offscreen rendering of images.
+- Hypothesis.is support via publication file setting.
+
+
 ## [2.44.0] - 2026-07-08
 
 Includes updates to core through commit: [07c8b5c](https://github.com/PreTeXtBook/pretext/commit/07c8b5c9a9a55e95ec27073e88bd5c9c61b9c161)
