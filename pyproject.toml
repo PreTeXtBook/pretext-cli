@@ -11,7 +11,7 @@
 # ----------------
 [project]
 name = "pretext"
-version = "2.44.1"
+version = "2.45.1"
 description = "A package to author, build, and deploy PreTeXt projects."
 readme = "README.md"
 license = "GPL-3.0-or-later"
