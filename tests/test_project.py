@@ -618,12 +618,17 @@ def test_latex_build(tmp_path: Path) -> None:
 def test_epub_build(tmp_path: Path) -> None:
     """An epub-format target builds a single .epub file."""
     prj_path = tmp_path / "simple"
-    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    shutil.copytree(EXAMPLES_DIR / "core" / "examples" / "epub", prj_path)
     with utils.working_directory(prj_path):
-        project = pr.Project.parse()
-        target = project.new_target("ebook", "epub")
+        project = pr.Project(ptx_version="2", source=Path(""), publication=Path(""))
+        target = project.new_target(
+            "ebook",
+            "epub",
+            source=Path("epub-sampler.xml"),
+            publication=Path("publication.xml"),
+        )
         target.build()
-        assert (prj_path / "output" / "ebook" / "main.epub").exists()
+        assert (prj_path / "output" / "ebook" / "epub-sampler.epub").exists()
 
 
 @pytest.mark.skipif(

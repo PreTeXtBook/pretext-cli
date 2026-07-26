@@ -141,7 +141,7 @@ pretext/core/*
 # ... but not the __init__.py file
 !pretext/core/__init__.py
 tests/examples/core
-#zipped resources
+#zipped resourcescd
 pretext/resources/*.zip
 #xml resources (rs_file)
 pretext/resources/*.xml

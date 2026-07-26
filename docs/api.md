@@ -1,12 +1,49 @@
-# Using PreTeXt as a library
+# Using pretext-cli as a Python library
 
-The PreTeXt-CLI includes `Project` and `Target` classes which can be used when this package is imported as a library.
+The `pretext-cli` package can be used directly from Python, without spawning
+CLI subprocesses.
 
-More details are coming soon.
+The two main entry points are:
+
+- `Project.parse(...)`: load an existing `project.ptx` manifest.
+- `Project(...)` + `new_target(...)`: build projects programmatically when no
+  manifest exists.
+
+## Quick start
+
+```python
+from pathlib import Path
+from pretext import project as pr
+
+# Case 1: You already have project.ptx
+project = pr.Project.parse(Path("."))
+project.get_target("web").build()
+
+# Case 2: No project.ptx (for example, core/examples/epub)
+project = pr.Project(ptx_version="2", source=Path(""), publication=Path(""))
+target = project.new_target(
+    "ebook",
+    "epub",
+    source=Path("epub-sampler.xml"),
+    publication=Path("publication.xml"),
+)
+target.build()
+```
+
+## Why set `source` and `publication` to `Path("")`?
+
+`Project` prepends its own base paths to each target's `source` and
+`publication` paths.
+
+- Default `Project.source` is `source/`.
+- Default `Project.publication` is `publication/`.
+
+When your files live directly in the project root (as in the core EPUB
+example), setting both to `Path("")` makes target paths resolve from that root.
 
 ## Logging
 
-This package uses python's logging library and implements a logger with name `"ptxlogger"`.  To get the same messages as the CLI gives (with default level of `INFO`), you can include the following.
+To mirror CLI-style log output in library usage:
 
 ```python
 import logging
@@ -17,12 +54,15 @@ logger.add_log_stream_handler()
 log.setLevel(logging.INFO)
 ```
 
-The `logger.add_log_stream_handler()` function simply creates a stream-handler that outputs to stdout.  You could set up `log` however you like using the options provided by the `logging` library.  If you would like to get spit out the logs to a file as the CLI does, you could include the line
+To also log to files:
 
 ```python
 logger.add_log_file_handler(path_to_log_directory)
 ```
 
-## Report pretext version
+## Version reporting
 
-If you want to include the current running version of PreTeXt in your app, you can call `utils.report_version` to get a info-level log report of the version, or import `VERSION` from the base of the project and use that in your own log message.
+If you want the running CLI version in your app logs, either:
+
+- call `utils.report_version()` for the built-in message, or
+- import `VERSION` and log it yourself.
