@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.45.0] - 2026-07-26
+
+Includes updates to core through commit: [eec7477](https://github.com/PreTeXtBook/pretext/commit/eec74773ac46acb74bb423b7b216d64b2416ee27)
+
 ### Fixed
 
 - SCORM with assessment tracking now works with Blackboard.
