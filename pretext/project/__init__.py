@@ -72,12 +72,12 @@ _SINGLE_FILE_FORMAT_EXTENSIONS: t.Dict["Format", str] = {
 }
 
 
-# The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
+# The CLI only needs one value from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only the relevant subset.
+# Note that as of 2026-07-30, the external directory has moved to the docinfo element.
 # Since we will want to hash the baseurl for generating qr codes, we also load it here.
 class PublicationSubset(
     pxml.BaseXmlModel, tag="publication", search_mode=SearchMode.UNORDERED
 ):
-    external: Path = pxml.wrapped("source/directories", pxml.attr())
     generated: Path = pxml.wrapped("source/directories", pxml.attr())
     baseurl: t.Optional[str] = pxml.wrapped(
         "html/baseurl", pxml.attr(name="href", default=None)
@@ -518,14 +518,21 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         p_bytes = ET.tostring(p_et)
         return PublicationSubset.from_xml(p_bytes)
 
+    def _get_managed_directories(self) -> t.Dict[Path, Path]:
+        generated, external = core.get_managed_directories(
+            xml_source=self.source_abspath(),
+            pub_file=self.publication_abspath().as_posix(),
+        )
+        return {"generated": generated, "external": external}
+
     def external_dir(self) -> Path:
-        return self._read_publication_file_subset().external
+        return self._get_managed_directories()["external"]
 
     def external_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.external_dir()).resolve()
 
     def generated_dir(self) -> Path:
-        return self._read_publication_file_subset().generated
+        return self._get_managed_directories()["generated"]
 
     def generated_dir_abspath(self) -> Path:
         return (self.source_abspath().parent / self.generated_dir()).resolve()
