@@ -1,8 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- This is the publication file for a newly generated PreTeXt article.  -->
+<!-- Only a few of the many available options are shown below.  For the   -->
+<!-- complete documentation of publication-file options, see              -->
+<!-- https://pretextbook.org/doc/guide/html/publisher-file-reference.html -->
+
+<!-- Unless a comment says otherwise, the value shown in a commented      -->
+<!-- entry is PreTeXt's default, and the comment above it lists the other -->
+<!-- values you may use.                                                  -->
+
 <publication>
-    <!-- directories are relative to the main source PreTeXt file -->
+    <!-- directories are relative to the main source PreTeXt file.  The   -->
+    <!-- companion external directory is a fact of your source and is     -->
+    <!-- declared with directories/@external inside docinfo, not here.    -->
     <source>
-        <directories external="../assets" generated="../generated-assets"/>
+        <directories generated="../generated-assets"/>
+
+        <!-- Set which marked elements are included in this version.  The -->
+        <!-- value is a space-separated list of component names of your   -->
+        <!-- own choosing.                                                -->
+        <!--<version include="videos labs"/>-->
     </source>
 
     <common>
@@ -12,5 +29,58 @@
           https://pretextbook.org/doc/guide/html/appendix-journals.html#appendix-journals -->
 
         <!--<journal name="ams" /> -->
+
+        <!-- Level at which html output is split into separate pages: 0 -->
+        <!-- gives a single page, 1 is section, 2 is subsection, and so  -->
+        <!-- on.  The default depends on the type of document.           -->
+        <!--<chunking level="1" />-->
+
+        <!-- Depth of the table of contents, from 0 through 6.  A value -->
+        <!-- of 0 means no table of contents.                           -->
+        <!--<tableofcontents level="1" />-->
+
+        <!-- Visibility of exercise components where they first appear.  -->
+        <!-- There are four components (statement/hint/answer/solution)  -->
+        <!-- for each of five exercise types (inline/divisional/         -->
+        <!-- worksheet/reading/project).  Each attribute takes "yes" or  -->
+        <!-- "no", and every one of them defaults to "yes".              -->
+        <!--<exercise-inline statement="yes" hint="yes" answer="no" solution="no" />-->
+        <!--<exercise-divisional statement="yes" hint="yes" answer="no" solution="yes" />-->
+
+        <!-- You can set a watermark.  The text is the content of the -->
+        <!-- element; @scale is a positive number, default 0.5.       -->
+        <!--<watermark scale="0.5">DRAFT</watermark>-->
     </common>
+
+    <!-- LaTeX (and therefore PDF) specific options.                     -->
+    <!-- @print is "no" (an electronic PDF, the default) or "yes".       -->
+    <!-- @sides is "one" or "two"; the default follows @print.           -->
+    <!-- @pageref is "yes" or "no", controlling whether page numbers     -->
+    <!--   appear in cross-references; the default follows @print.       -->
+    <!-- @font-size is 8, 9, 10, 11, 12, 14, 17, or 20 points; the       -->
+    <!--   default is 10.                                                -->
+    <!-- @draft is "no" (the default) or "yes" for LaTeX draft mode.     -->
+    <!-- @link-highlight is "none" (the default) or "underline".         -->
+    <!-- @latex-style selects one of a few provided styles: AIM, chaos,  -->
+    <!--   CLP, dyslexic-font, guide, texstyle.                          -->
+    <!--
+      <latex print="no" sides="one" pageref="no" font-size="10"
+             draft="no" link-highlight="none">
+        <page right-alignment="flush" bottom-alignment="ragged">
+          <geometry></geometry>
+        </page>
+      </latex>
+    -->
+
+    <!-- Options for html output.  The theme controls the look of the     -->
+    <!-- pages; default-modern is the default, and tacoma, greeley,       -->
+    <!-- boulder, salem, and denver are also available, each with its own -->
+    <!-- color attributes.  See                                           -->
+    <!-- https://pretextbook.org/doc/guide/html/publication-file-online.html#online-style-options -->
+    <!--
+      <html>
+        <css theme="default-modern"/>
+        <baseurl href="https://changetomywebsite.org/"/>
+      </html>
+    -->
 </publication>

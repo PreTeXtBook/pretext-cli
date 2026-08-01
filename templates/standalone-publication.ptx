@@ -5,7 +5,7 @@ This is a publication file for standalone documents.  It should only exist in `~
 <publication>
     <!-- directories are relative to the main source PreTeXt file -->
     <source>
-        <directories external="./assets" generated="./generated-assets"/>
+        <directories generated="./generated-assets"/>
     </source>
 
     <html>

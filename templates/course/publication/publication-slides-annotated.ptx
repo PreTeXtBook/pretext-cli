@@ -4,21 +4,32 @@
 <!-- Adapted from work of Mitch Keller -->
 <publication>
     <source>
-        <directories external="../assets" generated="../generated-assets"/>
+        <directories generated="../generated-assets"/>
         <!-- add component="a" to parts of the slides that should show up in the "annotated" version.  The next line makes sure this is included. -->
         <version include="a" />
     </source>
 
     <revealjs>
+        <!-- @theme is the base name of a reveal.js theme file; the      -->
+        <!--   default is "simple".  See https://revealjs.com/themes/    -->
+        <!-- @custom-css is a comma-separated list of extra css files to -->
+        <!--   load after the theme, either local files (best kept in    -->
+        <!--   your external files directory) or remote URLs.            -->
         <appearance theme="white"/>
-        <!-- these are "resources" defaults, but best for a sample -->
-        <!-- @minified is not even necessary with @host = 'cdn'    -->
+        <!-- @host says where reveal.js css and javascript come from:  -->
+        <!--   "local" (the default) beside the slideshow html, "cdn"  -->
+        <!--   from a content delivery network, or "embedded" to fold  -->
+        <!--   them into a single self-contained html file.            -->
+        <!-- @math is "online" (the default), which loads MathJax in    -->
+        <!--   the browser, or "embedded", which replaces mathematics   -->
+        <!--   with SVG built at build time.  host="embedded" implies   -->
+        <!--   math="embedded" unless you say otherwise.                -->
         <resources host="cdn"/>
         <!-- display="yes" is the default so we can see arrows          -->
         <!-- tutorial="yes" is the default                              -->
         <!-- layout="bottom-right" is the default, "edges" is an option -->
         <!-- backarrows="faded" is the default,                         -->
-        <!--     "hidden and "visible" are options                      -->
+        <!--     "hidden" and "visible" are options                     -->
         <controls display="yes" tutorial="yes" layout="bottom-right" backarrows="faded"/>
         <!-- mode="default" is horizontal/vertical two-level navigation              -->
         <!--   mode="grid" allows direct movement between adjacent vertical segments -->
