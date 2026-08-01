@@ -11,10 +11,15 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Added
 
-- The `jing` executable can now be set in `executables.ptx`, so `pretext validate` can use a jing that isn't on your search path (including a command with options, such as `java -jar /usr/share/java/jing.jar`).
+- The `jing` executable can now be set in `executables.ptx`, so validation can use a jing that isn't on your search path (including a command with options, such as `java -jar /usr/share/java/jing.jar`).
+- `pretext validate --method` chooses how to validate: `local` (an installed jing, the default), `local-dev` (the development schema, same as `--dev`), `server` (jing as a remote service, needing no local install), or `terse` (machine-readable, one tab-separated message per line).
+- `pretext validate --engine salve` (EXPERIMENTAL) runs the RelaxNG check with the salve-annos validator from the pretext-tools VS Code extension instead of jing, needing no Java. It installs itself with npm on first use, and needs node. It finds the same problems as jing, but words them differently and does not repeat follow-on messages, so a report from it is not comparable to jing's line for line. Please try it and report differences.
 
 ### Changed
 
+- `pretext validate` now produces core's consolidated validation report, written to `logs/`. Alongside the schema messages from jing it includes the "validation-plus" checks that no schema can express, and every message names the source file, path, line, and an excerpt of the offending text -- rather than line numbers of an assembled file you never see.
+- Schema validation during a build or generate now warns with a count and writes the messages to `logs/schema-errors.log` (with the assembled source they refer to alongside), instead of putting them on the terminal. It is skipped when jing isn't installed, and never blocks a build.
+- Validation now uses jing exclusively; lxml is no longer tried, since it cannot compile the PreTeXt schema (which incorporates PreFigure's).
 - External directory specification should now go in the `<docinfo>` element rather than the publication file.
 - The `liblouis`, `pdfsvg`, and `pdfpng` executables are no longer used (braille goes through the `louis` Python bindings, and PDF conversion through pyMuPDF). They are still accepted in `executables.ptx`, with a warning, so existing projects keep working.
 

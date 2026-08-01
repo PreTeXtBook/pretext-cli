@@ -377,6 +377,52 @@ def test_executables_jing_from_manifest(tmp_path: Path) -> None:
         assert project._executables.model_dump()["jing"] == "java -jar /opt/jing.jar"
 
 
+def test_validate_source_salve_engine_swaps_and_restores_jing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The salve engine reaches core by standing in for the `jing` executable,
+    and the project's own executables are restored once validation is done (so
+    a later build isn't left pointing at the shim)."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.get_target()
+
+        handed_to_core = []
+        monkeypatch.setattr(
+            pr.utils, "salve_shim_command", lambda: ["node", "/x/shim.mjs"]
+        )
+        monkeypatch.setattr(
+            pr.core, "set_executables", lambda d: handed_to_core.append(dict(d))
+        )
+        monkeypatch.setattr(pr.core, "validate", lambda **kwargs: None)
+
+        target.validate_source(engine="salve")
+
+        assert handed_to_core[0]["jing"] == "node /x/shim.mjs"
+        assert handed_to_core[-1]["jing"] == "jing"
+
+
+def test_validate_source_salve_unavailable_returns_none(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With no usable shim, validation reports that it could not run (exit 2 at
+    the CLI) instead of falling back to jing and quietly testing the wrong thing."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+
+        monkeypatch.setattr(pr.utils, "salve_shim_command", lambda: None)
+
+        def _unreachable(**kwargs: object) -> None:
+            raise AssertionError("core.validate should not be called")
+
+        monkeypatch.setattr(pr.core, "validate", _unreachable)
+        assert project.get_target().validate_source(engine="salve") is None
+
+
 def test_executables_deprecated_and_unknown() -> None:
     """Executables core no longer uses are accepted (older `executables.ptx`
     files must keep parsing) but withheld from core; genuinely unknown ones

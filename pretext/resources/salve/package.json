@@ -1,0 +1,10 @@
+{
+  "name": "ptx-salve-validator",
+  "version": "1.0.0",
+  "description": "Runs @pretextbook/schema behind a jing-compatible command-line interface, so core's validate() can use it in place of jing.",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@pretextbook/schema": "^0.2.0"
+  }
+}

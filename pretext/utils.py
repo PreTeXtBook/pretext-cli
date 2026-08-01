@@ -1,6 +1,7 @@
 import datetime
 from hashlib import sha256
 import hashlib
+import importlib.resources
 import os
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -12,7 +13,6 @@ import shutil
 import socketserver
 import socket
 import subprocess
-import tempfile
 import time as time
 import logging
 import logging.handlers
@@ -207,28 +207,56 @@ def xml_syntax_is_valid(xmlfile: Path, root_tag: str = "pretext") -> bool:
     return True
 
 
-def xml_validates_against_schema(etree: _Element) -> bool:
-    schemarngfile = schema_path()
-    log.debug(f"Validating PreTeXt source against schema {schemarngfile}")
-    # Build-time validation stays lxml-first (fast) and warn-only.
-    is_valid, error_text = run_schema_validation(
-        etree, schemarngfile, order=("lxml", "jing")
+def warn_on_schema_errors(etree: _Element, log_dir: Path) -> Optional[bool]:
+    """A quick, warn-only schema check to accompany a build or generate.
+
+    Runs jing over the assembled source when jing is available, and otherwise
+    checks nothing (returning `None`) -- a build should not depend on having a
+    validator installed. Messages are written to a log file rather than the
+    terminal: they are numerous, they refer to lines of the *assembled* source
+    (deposited alongside the log so those numbers mean something), and the
+    consolidated report from `pretext validate` is the better place to read
+    them. Returns whether the source validated.
+    """
+    schema_file = schema_path()
+    log.debug(f"Validating PreTeXt source against schema {schema_file}")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    assembled_source = log_dir / "schema-assembled-source.xml"
+    error_log = log_dir / "schema-errors.log"
+    etree.getroottree().write(
+        str(assembled_source), encoding="utf-8", xml_declaration=True
     )
-    if is_valid:
-        log.info("PreTeXt source passed schema validation.")
-        return True
-    if is_valid is None:
-        log.warning(error_text + " Continuing with build.")
-    else:
+
+    def _discard() -> None:
+        # Leave nothing behind to be mistaken for the result of this run.
+        assembled_source.unlink(missing_ok=True)
+        error_log.unlink(missing_ok=True)
+
+    result = validate_with_jing(assembled_source, schema_file)
+    if result is None:
         log.debug(
-            "PreTeXt document did not pass schema validation; unexpected output "
-            "may result. See .error_schema.log for hints. Continuing with build."
+            "No jing executable available, so the source was not checked against "
+            "the schema. Install jing (or set it in executables.ptx) to have "
+            "builds report schema errors."
         )
-    log.debug(
-        "---- Schema validation error details: ----\n"
-        + error_text
-        + "\n---- End schema validation error details. ----"
+        _discard()
+        return None
+
+    is_valid, output = result
+    if is_valid:
+        log.debug("PreTeXt source passed schema validation.")
+        _discard()
+        return True
+
+    error_log.write_text(output, encoding="utf-8")
+    message_count = len([line for line in output.splitlines() if line.strip()])
+    log.warning(
+        f"PreTeXt source did not pass schema validation ({message_count} messages); "
+        "unexpected output may result. Continuing anyway."
     )
+    log.warning(f"  Messages: {error_log}")
+    log.warning(f"  Line numbers refer to the assembled source: {assembled_source}")
+    log.warning("  Run `pretext validate` for a report that names the source files.")
     return False
 
 
@@ -252,78 +280,84 @@ def _jing_command() -> Optional[List[str]]:
     return [jing_executable] if jing_executable is not None else None
 
 
-def _validate_with_jing(
-    etree: _Element, schema_file: Path
+def salve_shim_command() -> Optional[List[str]]:
+    """The command that runs the salve-annos validator as a stand-in for jing.
+
+    An experimental alternative engine, so that it can be compared with jing
+    without anyone having to install jing at all. The shim presents a
+    jing-compatible interface, so it drops into core's `validate()` as the
+    `jing` executable. Returns `None` (with a warning) if it can't be set up.
+
+    Its npm dependencies are installed on first use into the CLI's resource
+    directory -- the same pattern as the other node packages the CLI needs.
+    """
+    node_cmd = shutil.which("node")
+    if node_cmd is None:
+        log.warning("The salve validator needs node, which could not be found.")
+        return None
+
+    shim_dir = resources.resource_base_path() / "salve"
+    shim = shim_dir / "ptx-jing-shim.mjs"
+
+    if not (shim_dir / "node_modules").exists():
+        npm_cmd = shutil.which("npm")
+        if npm_cmd is None:
+            log.warning("The salve validator needs npm to install itself on first use.")
+            return None
+        log.info(f"Installing the salve validator into {shim_dir} (first use only).")
+        shim_dir.mkdir(parents=True, exist_ok=True)
+        for name in ("ptx-jing-shim.mjs", "package.json"):
+            with importlib.resources.path("pretext.resources.salve", name) as src:
+                shutil.copy2(src, shim_dir / name)
+        try:
+            result = subprocess.run(
+                [npm_cmd, "install"], cwd=shim_dir, capture_output=True, text=True
+            )
+        except OSError as e:
+            log.warning(f"Could not install the salve validator: {e}")
+            return None
+        if result.returncode != 0:
+            log.warning("Could not install the salve validator with npm:")
+            log.warning(result.stderr.strip())
+            return None
+
+    if not shim.exists():
+        log.warning(f"The salve validator is missing from {shim_dir}.")
+        return None
+    return [node_cmd, str(shim)]
+
+
+def validate_with_jing(
+    source_file: Path, schema_file: Path
 ) -> Optional[tuple[bool, str]]:
+    """Check an XML file against a RELAX-NG schema with jing.
+
+    Returns `(is_valid, messages)`, or `None` when jing isn't available. jing is
+    the only engine: lxml cannot compile the PreTeXt schema, which incorporates
+    PreFigure's schema in a way libxml2 won't accept.
+    """
     jing_command = _jing_command()
     if jing_command is None:
         return None
 
-    tmp_path: Optional[Path] = None
     try:
-        xml_payload = ET.tostring(
-            etree.getroottree(), encoding="utf-8", xml_declaration=True
-        )
-        with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as tmp:
-            tmp.write(xml_payload)
-            tmp_path = Path(tmp.name)
-
         result = subprocess.run(
-            jing_command + [str(schema_file), str(tmp_path)],
+            jing_command + [str(schema_file), str(source_file)],
             check=False,
             capture_output=True,
             text=True,
         )
-        output = "\n".join(
-            chunk for chunk in [result.stdout.strip(), result.stderr.strip()] if chunk
-        )
-        return result.returncode == 0, output
     except OSError:
         return None
-    finally:
-        if tmp_path is not None:
-            tmp_path.unlink(missing_ok=True)
-
-
-def _validate_with_lxml(
-    etree: _Element, schema_file: Path
-) -> Optional[tuple[bool, str]]:
-    # Returns None when lxml cannot compile the schema (the known
-    # "no define for ref" bug on some libxml2 builds), so the caller can
-    # fall back to another engine.
-    try:
-        relaxng = ET.RelaxNG(file=str(schema_file))
-    except ET.RelaxNGParseError:
-        log.debug(
-            "lxml could not compile the RelaxNG schema; trying the next validator."
-        )
-        return None
-    try:
-        relaxng.assertValid(etree)
-        return True, ""
-    except ET.DocumentInvalid as err:
-        return False, str(err.error_log)
-
-
-def run_schema_validation(
-    etree: _Element,
-    schema_file: Path,
-    order: t.Sequence[str] = ("lxml", "jing"),
-) -> tuple[Optional[bool], str]:
-    # Engines are looked up by name here (not captured at import time) so tests
-    # can monkeypatch `utils._validate_with_jing` / `utils._validate_with_lxml`.
-    engines = {
-        "lxml": _validate_with_lxml,
-        "jing": _validate_with_jing,
-    }
-    for engine_name in order:
-        result = engines[engine_name](etree, schema_file)
-        if result is not None:
-            return result
-    return None, (
-        "Schema validation could not be completed: no validator was available "
-        "(jing is not installed and lxml could not compile the schema)."
+    output = "\n".join(
+        chunk for chunk in [result.stdout.strip(), result.stderr.strip()] if chunk
     )
+    # jing exits 0 when the document is valid and 1 when it has messages;
+    # anything more means jing itself failed, so nothing was checked.
+    if result.returncode > 1:
+        log.debug(f"The jing program failed (code {result.returncode}): {output}")
+        return None
+    return result.returncode == 0, output
 
 
 def schema_path(dev: bool = False) -> Path:
