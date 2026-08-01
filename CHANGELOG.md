@@ -9,9 +9,18 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- The `jing` executable can now be set in `executables.ptx`, so `pretext validate` can use a jing that isn't on your search path (including a command with options, such as `java -jar /usr/share/java/jing.jar`).
+
 ### Changed
 
 - External directory specification should now go in the `<docinfo>` element rather than the publication file.
+- The `liblouis`, `pdfsvg`, and `pdfpng` executables are no longer used (braille goes through the `louis` Python bindings, and PDF conversion through pyMuPDF). They are still accepted in `executables.ptx`, with a warning, so existing projects keep working.
+
+### Fixed
+
+- Legacy (v1) `project.ptx` manifests now supply the full set of executables to core, instead of omitting `mermaid`, `perl`, `fop`, and `jing`.
 
 ## [2.45.0] - 2026-07-26
 

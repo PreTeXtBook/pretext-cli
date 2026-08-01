@@ -262,6 +262,72 @@ def test_validate_with_lxml_uncompilable_schema_returns_none(
     )
 
 
+def test_jing_command_prefers_configured_executable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A `jing` configured in executables.ptx wins over one on the PATH, and
+    keeps its options (jing is a Java program, so it may be a whole command)."""
+    configured = ["/opt/java", "-jar", "/opt/jing.jar"]
+    monkeypatch.setattr(utils.core, "get_executable_cmd", lambda name: configured)
+    monkeypatch.setattr(utils.shutil, "which", lambda name: "/usr/bin/jing")
+    assert utils._jing_command() == configured
+
+
+@pytest.mark.parametrize("error", [KeyError("jing"), TypeError(), OSError("missing")])
+def test_jing_command_falls_back_to_path(
+    monkeypatch: pytest.MonkeyPatch, error: Exception
+) -> None:
+    """With no usable configured jing -- no `jing` key, no project loaded, or a
+    command that isn't installed -- fall back to a jing on the PATH."""
+
+    def _raise(name: str) -> object:
+        raise error
+
+    monkeypatch.setattr(utils.core, "get_executable_cmd", _raise)
+    monkeypatch.setattr(utils.shutil, "which", lambda name: "/usr/bin/jing")
+    assert utils._jing_command() == ["/usr/bin/jing"]
+
+
+def test_jing_command_none_when_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _raise(name: str) -> object:
+        raise OSError("missing")
+
+    monkeypatch.setattr(utils.core, "get_executable_cmd", _raise)
+    monkeypatch.setattr(utils.shutil, "which", lambda name: None)
+    assert utils._jing_command() is None
+    # And the engine reports itself unavailable, so the caller can try another.
+    assert utils._validate_with_jing(ET.fromstring("<pretext/>"), Path("s.rng")) is None
+
+
+def test_validate_with_jing_invokes_configured_command(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """The configured command line, options and all, is what gets run."""
+    recorded: list[list[str]] = []
+
+    class _Result:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def _run(cmd: list[str], **kwargs: object) -> _Result:
+        recorded.append(cmd)
+        return _Result()
+
+    monkeypatch.setattr(
+        utils, "_jing_command", lambda: ["java", "-jar", "/opt/jing.jar"]
+    )
+    monkeypatch.setattr(utils.subprocess, "run", _run)
+
+    schema_file = tmp_path / "mini.rng"
+    assert utils._validate_with_jing(ET.fromstring("<pretext/>"), schema_file) == (
+        True,
+        "",
+    )
+    assert recorded[0][:3] == ["java", "-jar", "/opt/jing.jar"]
+    assert recorded[0][3] == str(schema_file)
+
+
 def test_run_schema_validation_uses_first_available_engine(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

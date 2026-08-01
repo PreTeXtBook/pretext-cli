@@ -232,11 +232,31 @@ def xml_validates_against_schema(etree: _Element) -> bool:
     return False
 
 
+def _jing_command() -> Optional[List[str]]:
+    """The `jing` invocation to use, or `None` when jing is unavailable.
+
+    Prefers the project's configured `jing` executable (from `executables.ptx`),
+    which lets a user point at a jing outside the search path; falls back to a
+    `jing` on the PATH when no project has been loaded. The configured value may
+    carry options (e.g. `java -jar /usr/share/java/jing.jar`), so the whole
+    command line is returned rather than just the executable.
+    """
+    try:
+        return core.get_executable_cmd("jing")
+    except (KeyError, TypeError, OSError) as e:
+        # In turn: core's executables have no `jing` key (a manifest read by an
+        # older CLI), no project has been loaded so core has no executables at
+        # all, or the configured command isn't on the PATH.
+        log.debug(f"Could not use a configured jing command: {e}")
+    jing_executable = shutil.which("jing")
+    return [jing_executable] if jing_executable is not None else None
+
+
 def _validate_with_jing(
     etree: _Element, schema_file: Path
 ) -> Optional[tuple[bool, str]]:
-    jing_executable = shutil.which("jing")
-    if jing_executable is None:
+    jing_command = _jing_command()
+    if jing_command is None:
         return None
 
     tmp_path: Optional[Path] = None
@@ -249,7 +269,7 @@ def _validate_with_jing(
             tmp_path = Path(tmp.name)
 
         result = subprocess.run(
-            [jing_executable, str(schema_file), str(tmp_path)],
+            jing_command + [str(schema_file), str(tmp_path)],
             check=False,
             capture_output=True,
             text=True,
@@ -442,27 +462,15 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
     # Create list of executables needed based on output format
     required_execs = []
     if element == "latex-image":
+        # svg and png conversions go through the pyMuPDF library, so they need no
+        # executable beyond the LaTeX engine itself.
         required_execs = ["xelatex"]
-        if "svg" in outformats or "all" in outformats:
-            required_execs.append("pdfsvg")
-        if "png" in outformats or "all" in outformats:
-            required_execs.append("pdfpng")
         if "eps" in outformats or "all" in outformats:
             required_execs.append("pdfeps")
     if element == "sageplot":
         required_execs = ["sage"]
     install_hints = {
         "xelatex": {
-            "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
-            "Darwin": "",
-            "Linux": "",
-        },
-        "pdfsvg": {
-            "Windows": "Follow the instructions at https://pretextbook.org/doc/guide/html/section-installing-pdf2svg.html to install pdf2svg",
-            "Darwin": "",
-            "Linux": "You should be able to install pdf2svg with your package manager (e.g., `sudo apt install pdf2svg`.  See https://github.com/dawbarton/pdf2svg#pdf2svg.",
-        },
-        "pdfpng": {
             "Windows": "See https://pretextbook.org/doc/guide/html/windows-cli-software.html",
             "Darwin": "",
             "Linux": "",

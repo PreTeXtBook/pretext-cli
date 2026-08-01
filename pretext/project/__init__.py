@@ -1585,7 +1585,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             d = legacy_project.model_dump()
             d["targets"] = new_targets
             # Rename from `executables` to `_executables` when moving from the old to new project format.
-            d["_executables"] = legacy_project.executables
+            # The conversion matters: the legacy element names only a subset of the
+            # executables core needs, so the rest (`mermaid`, `perl`, `fop`, `jing`)
+            # must come from the modern model's defaults.
+            d["_executables"] = Executables.from_legacy(legacy_project.executables)
             d.pop("executables")
             p = Project(
                 ptx_version="2",
