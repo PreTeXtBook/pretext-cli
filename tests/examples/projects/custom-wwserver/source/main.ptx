@@ -1,5 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <pretext>
+  <docinfo>
+    <directories external="../assets"/>
+  </docinfo>
   <article>
     <title>Hello World!</title>
     <p>This is a PreTeXt document.</p>

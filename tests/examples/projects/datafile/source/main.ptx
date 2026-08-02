@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <pretext xmlns:xi="http://www.w3.org/2001/XInclude">
+  <docinfo>
+    <directories external="../assets"/>
+  </docinfo>
   <book xml:id="datafile-test-book">
     <title>Datafile Test</title>
     <chapter xml:id="ch-data">
