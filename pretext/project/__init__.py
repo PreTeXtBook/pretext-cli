@@ -550,14 +550,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         src_tree = ET.parse(self.source_abspath())
         # docinfo is very often xincluded, so includes must be processed.
         src_tree.xinclude()
-        for directories in src_tree.xpath("/pretext/docinfo/directories"):
-            if "external" in directories.attrib:
-                return str(directories.attrib["external"])
+        src_root = src_tree.getroot()
+        src_external = src_root.xpath("./docinfo/directories/@external")
+        if src_external:
+            return str(src_external)
         pub_tree = ET.parse(self.publication_abspath())
         pub_tree.xinclude()
-        for directories in pub_tree.xpath("/publication/source/directories"):
-            if "external" in directories.attrib:
-                return str(directories.attrib["external"])
+        pub_root = pub_tree.getroot()
+        pub_external = pub_root.xpath("./source/directories/@external")
+        if pub_external:
+            return str(pub_external)
         return None
 
     def _declared_managed_directories(self) -> t.Tuple[Path, t.Optional[Path]]:
