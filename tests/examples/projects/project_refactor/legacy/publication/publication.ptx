@@ -2,6 +2,6 @@
 <publication>
     <!-- directories are relative to the main source PreTeXt file -->
     <source>
-        <directories external="../assets" generated="../generated-assets"/>
+        <directories generated="../generated-assets"/>
     </source>
 </publication>

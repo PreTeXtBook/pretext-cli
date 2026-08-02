@@ -141,6 +141,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     source: Path = pxml.attr(default=Path("main.ptx"))
     # Cache of assembled "version only" source element.
     _source_element: t.Optional[ET._Element] = None
+    # Cache of the declared (generated, external) managed directories.  Reading
+    # the external directory means an xinclude-processing parse of the source,
+    # so it is worth doing only once per target.
+    _declared_dirs: t.Optional[t.Tuple[Path, t.Optional[Path]]] = None
     # Whether the warn-only schema check has already run for this target, so a
     # build doesn't repeat it when it generates assets.
     _schema_checked: bool = False
@@ -532,27 +536,66 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         p_bytes = ET.tostring(p_et)
         return PublicationSubset.from_xml(p_bytes)
 
-    def _get_managed_directories(self) -> t.Dict[str, Path]:
-        generated, external = core.get_managed_directories(
-            xml_source=self.source_abspath(),
-            pub_file=self.publication_abspath().as_posix(),
-        )
-        return {"generated": generated, "external": external}
+    def _declared_external_dir(self) -> t.Optional[str]:
+        """
+        The raw value of the external directory attribute, as declared, or None.
 
-    def external_dir(self) -> Path:
-        return self._get_managed_directories()["external"]
+        As of core's 2026-07-30 change the external directory is a fact of the
+        source, declared as `directories/@external` within `docinfo`.  A
+        publication file `source/directories/@external` is deprecated but still
+        honored while the docinfo is silent, so we check both, in that order.
+        Core issues the deprecation warning when it reads the same values, so
+        this stays quiet.
+        """
+        src_tree = ET.parse(self.source_abspath())
+        # docinfo is very often xincluded, so includes must be processed.
+        src_tree.xinclude()
+        for directories in src_tree.xpath("/pretext/docinfo/directories"):
+            if "external" in directories.attrib:
+                return str(directories.attrib["external"])
+        pub_tree = ET.parse(self.publication_abspath())
+        pub_tree.xinclude()
+        for directories in pub_tree.xpath("/publication/source/directories"):
+            if "external" in directories.attrib:
+                return str(directories.attrib["external"])
+        return None
 
-    def external_dir_abspath(self) -> Path:
-        return (self.source_abspath().parent / self.external_dir()).resolve()
+    def _declared_managed_directories(self) -> t.Tuple[Path, t.Optional[Path]]:
+        """
+        The (generated, external) managed directories as *declared*, in absolute
+        form, without checking whether they exist.  `external` is None when no
+        external directory is declared at all.
 
-    def generated_dir(self) -> Path:
-        return self._get_managed_directories()["generated"]
+        This deliberately duplicates the reading half of
+        `core.get_managed_directories`, which the CLI cannot use for this
+        purpose: that function also verifies the directories exist and raises
+        if they do not, but creating them is precisely the CLI's job here.
+        Anything invalid but existence-independent (an absolute path, say) is
+        still caught by core when it reads the same declarations later, so we
+        do not re-check it.
+        """
+        if self._declared_dirs is None:
+            source_dir = self.source_abspath().parent
+            generated = self._read_publication_file_subset().generated
+            external = self._declared_external_dir()
+            self._declared_dirs = (
+                (source_dir / generated).resolve(),
+                None if external is None else (source_dir / external).resolve(),
+            )
+        return self._declared_dirs
+
+    def external_dir_abspath(self) -> t.Optional[Path]:
+        return self._declared_managed_directories()[1]
 
     def generated_dir_abspath(self) -> Path:
-        return (self.source_abspath().parent / self.generated_dir()).resolve()
+        return self._declared_managed_directories()[0]
 
     def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
-        self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
+        # Only the generated directory is ours to create.  The external
+        # directory holds files the author supplies, so core is left to object
+        # when a declared one is missing: that way a mistyped path is reported
+        # as the error it is, rather than silently becoming an empty directory.
+        # An author with no external assets should drop the attribute entirely.
         self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
         if asset is not None:
             # make directories for each asset type that would be generated from "asset":

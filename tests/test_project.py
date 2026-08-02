@@ -507,7 +507,7 @@ def test_xinclude_publication_build(tmp_path: Path) -> None:
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         target = project.get_target("web")
-        assert target.external_dir() == Path("../assets")
+        assert target.external_dir_abspath() == (prj_path / "assets").resolve()
         target.build()
         assert (target.output_dir_abspath() / "index.html").exists()
 
