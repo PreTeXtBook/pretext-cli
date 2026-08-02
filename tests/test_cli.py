@@ -34,7 +34,6 @@ from pathlib import Path
 from contextlib import contextmanager
 import requests
 import pretext
-from lxml import etree as ET  # noqa: N812
 from pretext import constants, resources, server, utils
 from typing import cast, Generator, List
 import pytest
