@@ -532,7 +532,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         p_bytes = ET.tostring(p_et)
         return PublicationSubset.from_xml(p_bytes)
 
-    def _get_managed_directories(self) -> t.Dict[Path, Path]:
+    def _get_managed_directories(self) -> t.Dict[str, Path]:
         generated, external = core.get_managed_directories(
             xml_source=self.source_abspath(),
             pub_file=self.publication_abspath().as_posix(),
