@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.46.0] - 2026-08-03
+
+Includes updates to core through commit: [ea9c025](https://github.com/PreTeXtBook/pretext/commit/ea9c025222639b69dd7bf87dd3b9a48b507b8418)
+
 ### Added
 
 - The `jing` executable can now be set in `executables.ptx`, so validation can use a jing that isn't on your search path (including a command with options, such as `java -jar /usr/share/java/jing.jar`).
