@@ -711,12 +711,12 @@ def build(
         # Otherwise, we can report success.
         log.info("\nSuccess!  Built requested target(s) without errors.\n")
     except ValidationError as e:
-        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        # A validation error at this point must be because the project or publication file failed to validate against the model the CLI builds from.
         log.critical(
-            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+            "It appears there is an error with your project.ptx or publication file.  See the details below."
         )
+        log.critical(e)
         log.critical("Failed to build without errors.  Exiting...")
-        log.debug(e)
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,
@@ -935,12 +935,12 @@ def generate(
         # Otherwise, we can report success.
         log.info("Finished generating assets successfully.\n")
     except ValidationError as e:
-        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        # A validation error at this point must be because the project or publication file failed to validate against the model the CLI builds from.
         log.critical(
-            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+            "It appears there is an error with your project.ptx or publication file.  See the details below."
         )
+        log.critical(e)
         log.critical("Failed to build.  Exiting...")
-        log.debug(e)
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,

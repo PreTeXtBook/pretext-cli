@@ -72,13 +72,15 @@ _SINGLE_FILE_FORMAT_EXTENSIONS: t.Dict["Format", str] = {
 }
 
 
-# The CLI only needs one value from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only the relevant subset.
-# Note that as of 2026-07-30, the external directory has moved to the docinfo element.
-# Since we will want to hash the baseurl for generating qr codes, we also load it here.
+# The CLI only needs one value from the publication file: the baseurl, which is
+# hashed when generating qr codes.  Therefore, this class ignores the vast
+# majority of a publication file's contents, loading and validating only that.
+# The managed directories are read by core (see `Target._managed_directories`):
+# as of 2026-07-30 the external directory is declared in `docinfo`, and the
+# publication file's `source/directories/@generated` is optional.
 class PublicationSubset(
     pxml.BaseXmlModel, tag="publication", search_mode=SearchMode.UNORDERED
 ):
-    generated: Path = pxml.wrapped("source/directories", pxml.attr())
     baseurl: t.Optional[str] = pxml.wrapped(
         "html/baseurl", pxml.attr(name="href", default=None)
     )
@@ -141,10 +143,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     source: Path = pxml.attr(default=Path("main.ptx"))
     # Cache of assembled "version only" source element.
     _source_element: t.Optional[ET._Element] = None
-    # Cache of the declared (generated, external) managed directories.  Reading
-    # the external directory means an xinclude-processing parse of the source,
-    # so it is worth doing only once per target.
-    _declared_dirs: t.Optional[t.Tuple[Path, t.Optional[Path]]] = None
+    # Cache of the (generated, external) managed directories.  Core reads the
+    # external directory from the source, which means an xinclude-processing
+    # parse, so it is worth doing only once per target.
+    _managed_dirs: t.Optional[t.Tuple[Path, t.Optional[Path]]] = None
     # Whether the warn-only schema check has already run for this target, so a
     # build doesn't repeat it when it generates assets.
     _schema_checked: bool = False
@@ -536,63 +538,43 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         p_bytes = ET.tostring(p_et)
         return PublicationSubset.from_xml(p_bytes)
 
-    def _declared_external_dir(self) -> t.Optional[str]:
+    def _managed_directories(self) -> t.Tuple[Path, t.Optional[Path]]:
         """
-        The raw value of the external directory attribute, as declared, or None.
+        The (generated, external) managed directories, in absolute form, as core
+        reads them.  `external` is None when the project declares no external
+        directory at all.
 
-        As of core's 2026-07-30 change the external directory is a fact of the
-        source, declared as `directories/@external` within `docinfo`.  A
-        publication file `source/directories/@external` is deprecated but still
-        honored while the docinfo is silent, so we check both, in that order.
-        Core issues the deprecation warning when it reads the same values, so
-        this stays quiet.
+        Core is the single authority on where these directories are: the
+        external one is a property of the source (`directories/@external` within
+        `docinfo`, with the deprecated publication file entry still honored, and
+        warned about, while the docinfo is silent), while the generated one
+        comes from the publication file and falls back to `generated` beside the
+        source.  Core also enforces the ownership rule that matters to us here:
+        the author-owned external directory must exist when declared, whereas
+        the machine-owned generated directory need not, since creating it is the
+        CLI's job.  A declared external directory that is missing therefore
+        raises, and since both paths come from the one call, that raise reaches
+        `generated_dir_abspath` too: a mistyped directory stops the CLI at the
+        first command that needs either one, which is where the author can still
+        act on it.
         """
-        src_tree = ET.parse(self.source_abspath())
-        # docinfo is very often xincluded, so includes must be processed.
-        src_tree.xinclude()
-        src_root = src_tree.getroot()
-        src_external = src_root.xpath("./docinfo/directories/@external")
-        assert isinstance(src_external, t.List)
-        if src_external:
-            return str(src_external[0])
-        pub_tree = ET.parse(self.publication_abspath())
-        pub_tree.xinclude()
-        pub_root = pub_tree.getroot()
-        pub_external = pub_root.xpath("./source/directories/@external")
-        assert isinstance(pub_external, t.List)
-        if pub_external:
-            return str(pub_external[0])
-        return None
-
-    def _declared_managed_directories(self) -> t.Tuple[Path, t.Optional[Path]]:
-        """
-        The (generated, external) managed directories as *declared*, in absolute
-        form, without checking whether they exist.  `external` is None when no
-        external directory is declared at all.
-
-        This deliberately duplicates the reading half of
-        `core.get_managed_directories`, which the CLI cannot use for this
-        purpose: that function also verifies the directories exist and raises
-        if they do not, but creating them is precisely the CLI's job here.
-        Anything invalid but existence-independent (an absolute path, say) is
-        still caught by core when it reads the same declarations later, so we
-        do not re-check it.
-        """
-        if self._declared_dirs is None:
-            source_dir = self.source_abspath().parent
-            generated = self._read_publication_file_subset().generated
-            external = self._declared_external_dir()
-            self._declared_dirs = (
-                (source_dir / generated).resolve(),
-                None if external is None else (source_dir / external).resolve(),
+        if self._managed_dirs is None:
+            generated, external = core.get_managed_directories(
+                self.source_abspath(), self.publication_abspath().as_posix()
             )
-        return self._declared_dirs
+            # Core normalizes but does not resolve; `Project.abspath()` is fully
+            # resolved, and `clean_assets` compares the two.
+            self._managed_dirs = (
+                Path(generated).resolve(),
+                None if external is None else Path(external).resolve(),
+            )
+        return self._managed_dirs
 
     def external_dir_abspath(self) -> t.Optional[Path]:
-        return self._declared_managed_directories()[1]
+        return self._managed_directories()[1]
 
     def generated_dir_abspath(self) -> Path:
-        return self._declared_managed_directories()[0]
+        return self._managed_directories()[0]
 
     def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
         # Only the generated directory is ours to create.  The external
