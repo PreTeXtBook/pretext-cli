@@ -552,14 +552,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         src_tree.xinclude()
         src_root = src_tree.getroot()
         src_external = src_root.xpath("./docinfo/directories/@external")
+        assert isinstance(src_external, t.List)
         if src_external:
-            return str(src_external)
+            return str(src_external[0])
         pub_tree = ET.parse(self.publication_abspath())
         pub_tree.xinclude()
         pub_root = pub_tree.getroot()
         pub_external = pub_root.xpath("./source/directories/@external")
+        assert isinstance(pub_external, t.List)
         if pub_external:
-            return str(pub_external)
+            return str(pub_external[0])
         return None
 
     def _declared_managed_directories(self) -> t.Tuple[Path, t.Optional[Path]]:
