@@ -1,4 +1,3 @@
-from datetime import datetime
 import importlib
 import importlib.util
 import logging
@@ -712,12 +711,12 @@ def build(
         # Otherwise, we can report success.
         log.info("\nSuccess!  Built requested target(s) without errors.\n")
     except ValidationError as e:
-        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        # A validation error at this point must be because the project or publication file failed to validate against the model the CLI builds from.
         log.critical(
-            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+            "It appears there is an error with your project.ptx or publication file.  See the details below."
         )
+        log.critical(e)
         log.critical("Failed to build without errors.  Exiting...")
-        log.debug(e)
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,
@@ -743,48 +742,84 @@ def build(
     help="Validate against the development schema (pretext-dev.rng) instead of the "
     "stable schema, allowing experimental elements.",
 )
+@click.option(
+    "--method",
+    type=click.Choice(["local", "local-dev", "server", "terse"]),
+    default=None,
+    help='How to validate: "local" (an installed jing, the default), "local-dev" '
+    '(as "local", against the development schema), "server" (jing as a remote '
+    'service, needing no local install), or "terse" (machine-readable, one '
+    "tab-separated message per line).",
+)
+@click.option(
+    "--engine",
+    type=click.Choice(["jing", "salve"]),
+    default="jing",
+    show_default=True,
+    help='Which RelaxNG engine performs the check. EXPERIMENTAL: "salve" uses '
+    "the validator behind the pretext-tools VS Code extension instead of jing, "
+    "and needs no Java (it installs itself with npm on first use). It finds the "
+    "same problems but words them differently, so reports are not comparable "
+    "line for line. Ignored by `--method server`.",
+)
 @click.pass_context
 @nice_errors
-def validate(ctx: click.Context, target_name: Optional[str], dev: bool) -> None:
+def validate(
+    ctx: click.Context,
+    target_name: Optional[str],
+    dev: bool,
+    method: Optional[str],
+    engine: str,
+) -> None:
     """
     Validate the source of TARGET against the PreTeXt RelaxNG schema.
 
-    Reports schema errors and exits with a non-zero status when the document is
-    invalid, so it can gate CI or pre-commit checks. Without TARGET, the first
-    target in project.ptx is used. Exit codes: 0 = valid, 1 = invalid, 2 =
-    validation could not be performed (no validator available).
+    Writes the consolidated validation report: the schema messages from jing
+    together with those of the "validation-plus" stylesheet, each naming the
+    source file, path, and line it came from. Without TARGET, the first target
+    in project.ptx is used. Exit codes: 0 = valid, 1 = invalid, 2 = validation
+    could not be performed (no validator available).
     """
     project = ctx.obj["project"]
     target = project.get_target(target_name)
 
     # Assemble the source (resolves xinclude); surfaces syntax/xinclude errors.
     try:
-        etree = target.source_element()
+        target.source_element()
     except Exception as e:
         log.error(f"Could not assemble source for validation: {e}")
         raise SystemExit(1)
 
-    schema_file = utils.schema_path(dev)
-    log.info(f"Validating source against schema {schema_file.name}.")
-    is_valid, error_text = utils.run_schema_validation(
-        etree, schema_file, order=("jing", "lxml")
+    if method is None:
+        method = "local-dev" if dev else "local"
+    log.info(
+        f"Validating source of target {target.name} "
+        f"(method: {method}, engine: {engine})."
     )
+    if engine == "salve":
+        log.warning(
+            "The salve engine is experimental. Its messages are worded "
+            "differently from jing's, so a report from it will not match a "
+            "report from jing line for line."
+        )
+    result = target.validate_source(method=method, engine=engine)
 
-    if is_valid:
-        log.info(f"PreTeXt source passed schema validation ({schema_file.name}).")
-        return
-    if is_valid is None:
-        log.error(error_text)
+    if result is None:
+        log.error("Validation could not be performed.")
+        log.error(
+            "Install jing and make sure it is on your PATH (or name it in "
+            "executables.ptx), or use `pretext validate --method server` or "
+            "`pretext validate --engine salve`."
+        )
         raise SystemExit(2)
 
-    error_log_path = (
-        Path("logs") / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-schema-errors.log"
-    )
-    with open(error_log_path, "w") as error_log_file:
-        error_log_file.write(error_text)
-    log.error("PreTeXt source did NOT pass schema validation:")
-    log.error(error_text)
-    log.error(f"See {error_log_path} for the full report.")
+    message_count, report = result
+    if message_count == 0:
+        log.info("PreTeXt source passed validation with no messages.")
+        log.info(f"Report: {report}")
+        return
+    log.error(f"PreTeXt source did NOT pass validation ({message_count} messages).")
+    log.error(f"See {report} for the full report.")
     raise SystemExit(1)
 
 
@@ -900,12 +935,12 @@ def generate(
         # Otherwise, we can report success.
         log.info("Finished generating assets successfully.\n")
     except ValidationError as e:
-        # A validation error at this point must be because the publication file is invalid, which only happens if the /source/directories/@generated|@external attributes are missing.
+        # A validation error at this point must be because the project or publication file failed to validate against the model the CLI builds from.
         log.critical(
-            "It appears there is an error with your publication file.  Are you missing the required source/directories/@external and @generated attributes?"
+            "It appears there is an error with your project.ptx or publication file.  See the details below."
         )
+        log.critical(e)
         log.critical("Failed to build.  Exiting...")
-        log.debug(e)
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,

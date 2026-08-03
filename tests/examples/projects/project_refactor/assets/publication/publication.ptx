@@ -1,7 +1,6 @@
 <publication>
     <source>
         <directories
-            external="../assets"
             generated="../generated-assets" />
     </source>
 </publication>

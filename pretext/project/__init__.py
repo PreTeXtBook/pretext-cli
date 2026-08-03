@@ -72,13 +72,15 @@ _SINGLE_FILE_FORMAT_EXTENSIONS: t.Dict["Format", str] = {
 }
 
 
-# The CLI only needs two values from the publication file. Therefore, this class ignores the vast majority of a publication file's contents, loading and validating only a (small) relevant subset.
-# Since we will want to hash the baseurl for generating qr codes, we also load it here.
+# The CLI only needs one value from the publication file: the baseurl, which is
+# hashed when generating qr codes.  Therefore, this class ignores the vast
+# majority of a publication file's contents, loading and validating only that.
+# The managed directories are read by core (see `Target._managed_directories`):
+# as of 2026-07-30 the external directory is declared in `docinfo`, and the
+# publication file's `source/directories/@generated` is optional.
 class PublicationSubset(
     pxml.BaseXmlModel, tag="publication", search_mode=SearchMode.UNORDERED
 ):
-    external: Path = pxml.wrapped("source/directories", pxml.attr())
-    generated: Path = pxml.wrapped("source/directories", pxml.attr())
     baseurl: t.Optional[str] = pxml.wrapped(
         "html/baseurl", pxml.attr(name="href", default=None)
     )
@@ -141,6 +143,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     source: Path = pxml.attr(default=Path("main.ptx"))
     # Cache of assembled "version only" source element.
     _source_element: t.Optional[ET._Element] = None
+    # Cache of the (generated, external) managed directories.  Core reads the
+    # external directory from the source, which means an xinclude-processing
+    # parse, so it is worth doing only once per target.
+    _managed_dirs: t.Optional[t.Tuple[Path, t.Optional[Path]]] = None
+    # Whether the warn-only schema check has already run for this target, so a
+    # build doesn't repeat it when it generates assets.
+    _schema_checked: bool = False
     # Cache of assembled with assembly-ids.
     _source_element_with_ids: t.Optional[ET._Element] = None
     # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
@@ -439,6 +448,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             log.debug(f"Using cached source_element for target {self.name}")
         return self._source_element
 
+    def check_schema(self) -> None:
+        """
+        Warn (once per target) if the assembled source has schema errors, pointing
+        at the log file rather than filling the terminal. Never raises: a missing
+        jing, or an invalid document, must not stop a build.
+        """
+        if self._schema_checked:
+            return
+        self._schema_checked = True
+        utils.warn_on_schema_errors(self.source_element(), self._project.logs_abspath())
+
     def source_element_with_ids(self) -> ET._Element:
         """
         Returns the root element for the assembled source, after processing with assembly-id method. Caches the result for future calls.
@@ -518,20 +538,50 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         p_bytes = ET.tostring(p_et)
         return PublicationSubset.from_xml(p_bytes)
 
-    def external_dir(self) -> Path:
-        return self._read_publication_file_subset().external
+    def _managed_directories(self) -> t.Tuple[Path, t.Optional[Path]]:
+        """
+        The (generated, external) managed directories, in absolute form, as core
+        reads them.  `external` is None when the project declares no external
+        directory at all.
 
-    def external_dir_abspath(self) -> Path:
-        return (self.source_abspath().parent / self.external_dir()).resolve()
+        Core is the single authority on where these directories are: the
+        external one is a property of the source (`directories/@external` within
+        `docinfo`, with the deprecated publication file entry still honored, and
+        warned about, while the docinfo is silent), while the generated one
+        comes from the publication file and falls back to `generated` beside the
+        source.  Core also enforces the ownership rule that matters to us here:
+        the author-owned external directory must exist when declared, whereas
+        the machine-owned generated directory need not, since creating it is the
+        CLI's job.  A declared external directory that is missing therefore
+        raises, and since both paths come from the one call, that raise reaches
+        `generated_dir_abspath` too: a mistyped directory stops the CLI at the
+        first command that needs either one, which is where the author can still
+        act on it.
+        """
+        if self._managed_dirs is None:
+            generated, external = core.get_managed_directories(
+                self.source_abspath(), self.publication_abspath().as_posix()
+            )
+            # Core normalizes but does not resolve; `Project.abspath()` is fully
+            # resolved, and `clean_assets` compares the two.
+            self._managed_dirs = (
+                Path(generated).resolve(),
+                None if external is None else Path(external).resolve(),
+            )
+        return self._managed_dirs
 
-    def generated_dir(self) -> Path:
-        return self._read_publication_file_subset().generated
+    def external_dir_abspath(self) -> t.Optional[Path]:
+        return self._managed_directories()[1]
 
     def generated_dir_abspath(self) -> Path:
-        return (self.source_abspath().parent / self.generated_dir()).resolve()
+        return self._managed_directories()[0]
 
     def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
-        self.external_dir_abspath().mkdir(parents=True, exist_ok=True)
+        # Only the generated directory is ours to create.  The external
+        # directory holds files the author supplies, so core is left to object
+        # when a declared one is missing: that way a mistyped path is reported
+        # as the error it is, rather than silently becoming an empty directory.
+        # An author with no external assets should drop the attribute entirely.
         self.generated_dir_abspath().mkdir(parents=True, exist_ok=True)
         if asset is not None:
             # make directories for each asset type that would be generated from "asset":
@@ -738,6 +788,87 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         )
         log.info(f"Theme built for target '{self.name}'")
 
+    # Not named `validate`: that would shadow pydantic's own (deprecated)
+    # `BaseModel.validate` classmethod.
+    def validate_source(
+        self,
+        method: str = "local",
+        dest_dir: t.Optional[Path] = None,
+        engine: str = "jing",
+    ) -> t.Optional[t.Tuple[int, Path]]:
+        """
+        Validate the source with core's `validate`, which consolidates the RELAX-NG
+        messages from jing with those of the "validation-plus" stylesheet into one
+        report, and deposits the assembled source its line numbers refer to.
+
+        `method` is core's: "local" (the installed jing), "local-dev" (as "local",
+        against the development schema), "server" (jing as a remote service), or
+        "terse" (one tab-separated message per line, for a program).
+
+        `engine` selects what performs the RELAX-NG check: "jing", or the
+        experimental "salve" (the validator behind the pretext-tools VS Code
+        extension, run through a jing-compatible shim). The engine is irrelevant
+        to `method="server"`, which validates remotely.
+
+        Returns the number of messages in the report along with its path, or `None`
+        if validation could not be performed at all.
+        """
+        if dest_dir is None:
+            dest_dir = self._project.logs_abspath()
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        overrides = None
+        if engine == "salve":
+            salve_command = utils.salve_shim_command()
+            if salve_command is None:
+                return None
+            # Core reaches its RELAX-NG engine through the `jing` executable, so
+            # standing in for jing is all it takes to swap the engine.
+            overrides = {"jing": " ".join(salve_command)}
+            self._project.init_core(overrides)
+        try:
+            core.validate(
+                xml_source=self.source_abspath(),
+                pub_file=self.publication_abspath().as_posix(),
+                stringparams=self.stringparams.copy(),
+                out_file=None,
+                dest_dir=dest_dir.as_posix(),
+                method=method,
+            )
+        except OSError as e:
+            # Raised when the configured `jing` can't be found; core has already
+            # logged which command it looked for.
+            log.debug(f"Validation could not run: {e}")
+            return None
+        finally:
+            if overrides is not None:
+                # Put the project's own executables back for anything that follows.
+                self._project.init_core()
+        report = dest_dir / (self.source_abspath().stem + "-validation.txt")
+        if not report.exists():
+            # core returns without a report when it cannot reach a validation server.
+            return None
+        lines = report.read_text(encoding="utf-8").splitlines()
+        if method == "terse":
+            # One message per line, and nothing else in the file.
+            count = len([line for line in lines if line.strip()])
+        else:
+            # Each message in the consolidated report ends with the check that
+            # raised it, so those lines count the messages of both sections. The
+            # report opens with a preamble that describes a message's fields
+            # (including "check:"), so counting starts at the first section
+            # banner to avoid mistaking that description for a message.
+            banner = "=" * 70
+            first_section = lines.index(banner) if banner in lines else 0
+            count = len(
+                [
+                    line
+                    for line in lines[first_section:]
+                    if line.startswith("    check: ")
+                ]
+            )
+        return count, report
+
     def build(
         self,
         clean: bool = False,
@@ -760,7 +891,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if not utils.xml_syntax_is_valid(self.publication_abspath(), "publication"):
             raise RuntimeError("XML syntax for publication file is invalid")
         # Validate xml against schema; continue with warning if invalid:
-        utils.xml_validates_against_schema(self.source_element())
+        self.check_schema()
 
         # Clean output upon request
         if clean:
@@ -1013,6 +1144,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
            - xmlid: optional string to specify the root of the subtree of the xml document to generate assets within.
         """
         log.info("Generating any needed assets.")
+
+        # Warn about schema errors here too, since assets are often generated
+        # without a build.  A no-op when a build already ran the check.
+        self.check_schema()
 
         # To help with debugging, we are temporarily adding a reference generation step here.  The only way this will be called is if `pretext generate references` is called explicitly.
         if requested_asset_types == ("references",):
@@ -1578,7 +1713,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
             d = legacy_project.model_dump()
             d["targets"] = new_targets
             # Rename from `executables` to `_executables` when moving from the old to new project format.
-            d["_executables"] = legacy_project.executables
+            # The conversion matters: the legacy element names only a subset of the
+            # executables core needs, so the rest (`mermaid`, `perl`, `fop`, `jing`)
+            # must come from the modern model's defaults.
+            d["_executables"] = Executables.from_legacy(legacy_project.executables)
             d.pop("executables")
             p = Project(
                 ptx_version="2",
@@ -1689,6 +1827,10 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def site_abspath(self) -> Path:
         return self.abspath() / self.site
 
+    def logs_abspath(self) -> Path:
+        # Where the CLI already writes its own logs; `.gitignore`d in a project.
+        return self.abspath() / "logs"
+
     def deploy_strategy(
         self,
     ) -> t.Literal["default_target", "pelican_default", "pelican_custom", "static"]:
@@ -1723,10 +1865,18 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def get_executables(self) -> Executables:
         return self._executables
 
-    def init_core(self) -> None:
+    def init_core(
+        self, executable_overrides: t.Optional[t.Dict[str, str]] = None
+    ) -> None:
+        # `executable_overrides` swaps in a different command for an executable
+        # for the duration of one operation (calling `init_core()` again with no
+        # overrides restores the project's own). Used to run validation through
+        # an engine other than the configured `jing`.
+        exec_dict = self._executables.model_dump()
+        if executable_overrides is not None:
+            exec_dict.update(executable_overrides)
         # core does not support None as an executable value, so we must
         # adjust accordingly
-        exec_dict = self._executables.model_dump()
         for k in exec_dict:
             if exec_dict[k] is None:
                 exec_dict[k] = "None"

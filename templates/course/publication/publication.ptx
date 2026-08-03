@@ -7,119 +7,247 @@
 <!-- https://pretextbook.org/doc/guide/html/publisher-file-reference.html -->
 
 <!-- Commented settings below illustrate some possible changes you can    -->
-<!-- make from the default values.                                        -->
+<!-- make from the default values.  Unless a comment says otherwise, the  -->
+<!-- value shown in a commented entry is PreTeXt's default, and the       -->
+<!-- comment above it lists the other values you may use.                 -->
 
 <publication>
   <common>
-    <!-- Level at which are html files generated (chapter/section/etc): -->
+    <!-- Level at which html output is split into separate pages: 0 gives -->
+    <!-- a single page, 1 is chapter, 2 is section, and so on through 6.  -->
+    <!-- The default depends on the type of document.                     -->
       <chunking level="2" />
 
-    <!-- Depth for table of contents.  0 means no TOC -->
+    <!-- Depth of the table of contents, from 0 through 6.  A value of 0 -->
+    <!-- means no table of contents.  The default depends on the type of -->
+    <!-- document and the conversion.                                    -->
       <!--<tableofcontents level="1" />-->
 
     <!-- Visibility of exercise components where they first appear.          -->
     <!-- There are four components (statement/hint/answer/solution) for each -->
     <!-- of five exercise types (inline/divisional/worksheet/reading/        -->
-    <!-- project).                                                           -->
+    <!-- project).  Each attribute takes "yes" or "no", and every one of     -->
+    <!-- them defaults to "yes".  The entries below are a plausible example, -->
+    <!-- not the defaults.                                                   -->
       <!--<exercise-inline statement="yes" hint="yes" answer="no" solution="no" />-->
       <!--<exercise-divisional statement="yes" hint="yes" answer="no" solution="yes" />-->
       <!--<exercise-worksheet statement="yes" hint="yes" answer="no" solution="no" />-->
       <!--<exercise-reading statement="yes" hint="yes" answer="no" solution="no" />-->
       <!--<exercise-project statement="yes" hint="yes" answer="yes" solution="yes" />-->
 
-    <!-- Style of fill-in-the-blanks: -->
+    <!-- Style of fill-in-the-blanks.  Each attribute may be "underline", -->
+    <!-- "box", or "shade".  Defaults are shown.                          -->
       <!--<fillin textstyle="underline" mathstyle="shade" />-->
 
-    <!-- You can set a watermark: -->
+    <!-- Spacing around an em dash (the "mdash" element) is set by an -->
+    <!-- attribute on common itself, either "none" (the default) or   -->
+    <!-- "thin", as in <common emdash-space="thin"> -->
+
+    <!-- You can set a watermark.  The text is the content of the -->
+    <!-- element; @scale is a positive number, default 0.5.       -->
       <!-- <watermark scale="0.5">DRAFT</watermark> -->
 
-    <!-- Mermaid diagram themes -->
+    <!-- Mermaid diagrams.  @theme may be "default", "dark", "forest", -->
+    <!-- or "light".                                                   -->
       <!-- <mermaid theme="default" /> -->
 
-    <!-- QR code image: set path to an image to put in center of QR codes -->
+    <!-- QR code image: a square image placed in the center of QR codes -->
+    <!-- for videos and interactives.  The path is relative to your     -->
+    <!-- external assets folder.                                        -->
       <!-- <qrcode image="image.png" /> -->
+
+    <!-- When writing for a specific journal, naming it here controls the -->
+    <!-- format of bibliography entries and of the LaTeX produced.  For a -->
+    <!-- list of valid short names, see                                   -->
+    <!-- https://pretextbook.org/doc/guide/html/appendix-journals.html    -->
+      <!--<journal name="ams" />-->
+
+    <!-- Margins for worksheets and handouts, used by both the LaTeX and  -->
+    <!-- html conversions.  Values must carry units, either "in" or "cm". -->
+    <!-- @margin sets all four sides (default 0.75in) and any of @top,    -->
+    <!-- @right, @bottom, @left override it for that side.                -->
+      <!--<worksheet margin="0.75in" />-->
+
+    <!-- Worksheet headers and footers are children of that worksheet    -->
+    <!-- element, each taking @left, @center, and @right whose values are -->
+    <!-- the text to place in that position.  For example:               -->
+    <!--
+      <worksheet margin="0.75in">
+        <first-page-header left="Name: __________" right="Date: __________"/>
+        <first-page-footer center="Page 1"/>
+        <running-header left="Worksheet"/>
+        <running-footer center="continued"/>
+      </worksheet>
+    -->
   </common>
 
 
-  <!-- Set where external assets and generated assets will be   -->
-  <!-- stored or created.  Directories are relative to the main -->
-  <!-- source PreTeXt file                                      -->
+  <!-- Set where generated assets will be created.  The directory is -->
+  <!-- relative to the main source PreTeXt file.  The companion      -->
+  <!-- external directory is a fact of your source and is declared   -->
+  <!-- with directories/@external inside docinfo, not here.          -->
   <source>
-    <!-- Paths to folders containing external assets and generated assets -->
-    <!-- relative to your main source file.                               -->
-    <directories external="../assets" generated="../generated-assets" />
+    <!-- Path to the folder holding generated assets, relative to -->
+    <!-- your main source file.                                   -->
+    <directories generated="../generated-assets" />
 
-    <!-- Set which marked elements are included in this version: -->
+    <!-- Set which marked elements are included in this version.  The value -->
+    <!-- is a space-separated list of component names of your own choosing. -->
     <!-- See
     https://pretextbook.org/doc/guide/html/publication-file-source.html#publication-file-source-version -->
     <!-- In this example, we include the w1s components from the sample activity to show solutions. -->
       <version include="w1s"/>
 
+    <!-- Optional source files are named by attributes on the source     -->
+    <!-- element itself, as filenames relative to the file holding your  -->
+    <!-- "pretext" element.  @customizations points to a file of         -->
+    <!-- "custom" elements; @private-solutions points to a file of       -->
+    <!-- hint/answer/solution meant for limited distribution.  As in:    -->
+    <!--
+      <source customizations="customizations.xml"
+              private-solutions="private-solutions.xml">
+    -->
   </source>
 
   <numbering>
-    <!-- the divisions element describes the numbering of divisions.  -->
-    <!-- @part-structure should be "decorative" or "structural",      -->
-    <!-- were the latter would restart numbering chapters within each -->
-    <!-- part (this only matters if your book has parts).             -->
-    <!-- The attribute @chapter-start give the number of the first    -->
-    <!-- chapter.  @level says how deep (chapter->section->subsection)-->
-    <!-- numbering should appear.                                     -->
-    <!-- For use with a book organized by part, you can set the -->
-    <!--  @part-structure to "decorative" or "structural" -->
+    <!-- The divisions element describes the numbering of divisions.   -->
+    <!-- @level is the deepest division that gets a number, 0 through  -->
+    <!-- 6 (chapter, section, subsection, and so on); it is also the   -->
+    <!-- maximum for every level below.  The default depends on the    -->
+    <!-- document type.  @chapter-start gives the number of the first  -->
+    <!-- chapter (not available with structural parts).                -->
+    <!-- @part-structure is "decorative" (the default) or              -->
+    <!-- "structural"; the latter restarts chapter numbering within    -->
+    <!-- each part.  Parts only matter if your book has them.          -->
       <divisions level="0"/>
 
-    <!-- The next elements say how the levels deep to break up the    -->
-    <!-- numbering of the respective elements. Can't be more than the -->
-    <!-- @level on divisions above.                                   -->
+    <!-- How many levels deep the numbering of these items runs.  Values -->
+    <!-- may not exceed the divisions @level above.  Defaults depend on  -->
+    <!-- the type of document.                                           -->
       <blocks level="0" />
-      <projects level="0" />
       <equations level="0" />
       <footnotes level="0" />
+
+    <!-- By default the "blocks" sequence above also numbers project-like  -->
+    <!-- items, figure-like items (figure/table/listing/list), inline      -->
+    <!-- exercises, and open problems.  Set @distinct="yes" (the default   -->
+    <!-- is "no") to give one of these groups its own independent sequence -->
+    <!-- of serial numbers, in which case its own @level applies.  While a -->
+    <!-- group shares the blocks count, its @level is ignored, which is    -->
+    <!-- why the "projects" entry below has no effect as written.          -->
+      <projects level="0" />
+      <!--<figures distinct="no" level="0" />-->
+      <!--<exercises distinct="no" level="0" />-->
+      <!--<openproblems distinct="no" level="0" />-->
   </numbering>
 
-  <!-- LaTeX specific options: set @print="yes" to get pdf set up   -->
-  <!-- for printing; set @sides="two" if the printing would be two- -->
-  <!-- sided.  @pageref="yes/no" controls whether page number are   -->
-  <!-- included in cross-references                                 -->
+  <!-- LaTeX (and therefore PDF) specific options.                     -->
+  <!-- @print is "no" (an electronic PDF, the default) or "yes" (a PDF -->
+  <!--   set up for printing).                                         -->
+  <!-- @sides is "one" or "two"; the default follows @print.           -->
+  <!-- @open-odd applies only to one-sided output and keeps its page   -->
+  <!--   numbers in sync with the two-sided version; it is "no" (the   -->
+  <!--   default), "add-blanks", or "skip-pages".                      -->
+  <!-- @pageref is "yes" or "no", controlling whether page numbers     -->
+  <!--   appear in cross-references; the default follows @print.       -->
+  <!-- @font-size is 8, 9, 10, 11, 12, 14, 17, or 20 points; the       -->
+  <!--   default is 10.                                                -->
+  <!-- @draft is "no" (the default) or "yes" for LaTeX draft mode.     -->
+  <!-- @snapshot is "no" (the default) or "yes" to record the LaTeX    -->
+  <!--   packages in use.                                              -->
+  <!-- @link-highlight is "none" (the default) or "underline" to       -->
+  <!--   underline hyperlinks in the PDF.                              -->
+  <!-- @latex-style selects one of a few provided styles: AIM, chaos,  -->
+  <!--   CLP, dyslexic-font, guide, texstyle.  Some are demos only.    -->
   <latex>
   <!-- Replace the <latex> tag above with the one below to try these-->
-  <!--<latex
+  <!--
+    <latex
           print="no"
           sides="one"
           open-odd="no"
           pageref="no"
           font-size="10"
           draft="no"
+          snapshot="no"
+          link-highlight="none"
           latex-style="dyslexic-font"
-      > -->
-    <!-- Control text justification and bottom page behavior: -->
-      <!--<page right-alignment="flush" bottom-alignment="ragged" crop-marks="letter"/>-->
+      >
+  -->
 
-    <!-- Add content to \geometry{}: -->
-      <!--<geometry></geometry>-->
+    <!-- Page shape.  @right-alignment is "flush" (default) or "ragged"; -->
+    <!-- @bottom-alignment is "ragged" (default) or "flush".             -->
+    <!-- @crop-marks is "none" (default) or a paper size, which centers  -->
+    <!-- the logical page on that physical page and marks the corners:   -->
+    <!--   a0 a1 a2 a3 a4 a5 a6, b0 b1 b2 b3 b4 b5 b6,                   -->
+    <!--   letter, legal, executive                                      -->
+    <!-- Content placed inside the geometry element feeds directly into  -->
+    <!-- a LaTeX \geometry{} command, unchanged.                         -->
+    <!--
+      <page right-alignment="flush" bottom-alignment="ragged" crop-marks="none">
+        <geometry></geometry>
+      </page>
+    -->
 
-    <!-- The asymptote/@links set to "yes" would produce  -->
-    <!-- links the html version of asymptote graphics.    -->
+    <!-- The asymptote/@links set to "yes" would produce links to the -->
+    <!-- html version of asymptote graphics.  Requires html/baseurl   -->
+    <!-- to be set.  The default is "no".                             -->
       <!--<asymptote links="no" />-->
 
-    <!-- Covers: provide paths to pdfs for front and back covers: -->
+    <!-- Covers: paths to pdfs for the front and back covers, relative -->
+    <!-- to your external assets directory.                            -->
       <!--<cover front="cover-front.pdf" back="cover-back.pdf" />-->
-    <!-- Set @formatted to "no" to remove formatting on worksheets: -->
-      <!--<worksheets formatted="yes" />-->
+
+    <!-- Set @formatted to "no" to give worksheets no special formatting -->
+    <!-- and treat them like any other division.  The default is "yes".  -->
+      <!--<worksheet formatted="yes" />-->
+
+    <!-- Force a page break before the elements with the listed xml:id    -->
+    <!-- values, given as a whitespace-separated list.  This is only      -->
+    <!-- valid for certain element types.  You may repeat the insertions  -->
+    <!-- element to organize page breaks by chapter, and so on.           -->
+      <!--<insertions pagebreaks="my-first-id my-second-id" />-->
   </latex>
 
-  <!-- The embed-button makes it easy to copy the code for an iframe into your LMS -->
+  <!-- Options for the experimental conversion that produces PDF directly -->
+  <!-- from XSL-FO, with no LaTeX stage.  @font selects the text and      -->
+  <!-- monospace fonts; "latin-modern" is the only value at present.      -->
+    <!--<pdf font="latin-modern" />-->
+
+  <!-- Options for html output.                                        -->
+  <!-- @short-answer-responses is "graded" (the default, show a         -->
+  <!--   response area only when it can be scored) or "always".         -->
+  <!-- @favicon is "none" (the default) or "simple".                    -->
+  <!-- @embed-button is "no" (the default) or "yes" to offer a button   -->
+  <!--   that copies an iframe snippet for your website or LMS.         -->
+  <!-- @design-width is an integer, default 600, used as the base when  -->
+  <!--   a percentage width for an interactive must become pixels.      -->
+  <!-- The embed-button below makes it easy to copy the code for an     -->
+  <!-- iframe into your LMS.                                            -->
   <html embed-button="yes">
+  <!-- Replace the <html> tag above with the one below to try these-->
+  <!--
+    <html
+          short-answer-responses="graded"
+          favicon="none"
+          embed-button="yes"
+          design-width="600"
+      >
+  -->
 
-    <!-- A possible attribute for the html tag above is @short-answer-responses, with values either "always" or "graded".  As in: -->
-    <!--<html short-answer-responses="always">-->
+    <!-- The platform host can be "web" (the default) or "runestone".   -->
+    <!-- Setting @portable to "yes" (default "no") produces a single    -->
+    <!-- html file with hosted css and javascript and embedded svgs.    -->
+      <!--<platform host="web" portable="no"/>-->
 
-    <!--The platform host can be "web" or "runestone"-->
-      <!--<platform host="runestone"/>-->
+    <!-- Where css and javascript come from: "local" (the default) puts -->
+    <!-- them in the output directory, "cdn" loads them remotely.  With -->
+    <!-- "cdn" only the basic themes are available, so the color        -->
+    <!-- customizations below will not apply.                           -->
+      <!--<resources host="local"/>-->
 
-    <!-- Whether to knowl a particular elements is set here    -->
-    <!-- Lots of elements have this possibility; see the guide -->
+    <!-- Whether a particular element is born in a knowl is set here.  -->
+    <!-- Each attribute is "yes" or "no"; the defaults are shown.      -->
       <!--<knowl
         theorem="no"
         proof="yes"
@@ -141,9 +269,23 @@
         exercise-readingquestion="no"
       />-->
 
-    <!-- Specify the theme for the html by giving names to     -->
-    <!-- override defaults.  Ex:<css theme="denver"/>          -->
-    <!-- See also                                              -->
+    <!-- The theme controls the look of the html.  Which extra attributes -->
+    <!-- apply depends on the theme you choose:                           -->
+    <!--   default-modern (the default): @palette is one of blue-red,     -->
+    <!--     blue-green, green-blue, greens, blues; also @primary-color,  -->
+    <!--     @secondary-color, @primary-color-dark, @provide-dark-mode    -->
+    <!--   tacoma, greeley, boulder: @primary-color, @primary-color-dark, -->
+    <!--     @provide-dark-mode                                           -->
+    <!--   salem, denver: @palette is one of bold, bold2, primaries,      -->
+    <!--     primaries2, ice-fire, earth-sea, leaves, slate; also         -->
+    <!--     @color-main, @color-do, @color-fact, @color-meta,            -->
+    <!--     @primary-color-dark, @provide-dark-mode                      -->
+    <!--   custom: also set @entry-point to an SCSS file, path relative   -->
+    <!--     to your document root, to develop a theme of your own        -->
+    <!-- Color attributes accept any CSS color (hex, rgb, hsl, and so     -->
+    <!-- on) and @provide-dark-mode is "yes" (the default) or "no".       -->
+    <!-- Legacy stylesheets remain available through @style, but without  -->
+    <!-- the full range of configuration.  See                            -->
     <!-- https://pretextbook.org/doc/guide/html/publication-file-online.html#online-style-options -->
     <css
         theme="denver"
@@ -152,52 +294,117 @@
         provide-dark-mode="yes"
     />
 
-    <!-- Search can be default or none, or you can use a Google-cx number to use google's search
-    feature (but then variant should be set to none to avoid conflict) -->
-      <!--<search variant="default" />-->
+    <!-- Search.  @variant is "textbook" (the default; the value          -->
+    <!-- "default" is a synonym), "reference", or "none".  @google-cx is  -->
+    <!-- a Google cx number, and setting it adds a Google search box.  If -->
+    <!-- you use Google search, set @variant to "none", since two search  -->
+    <!-- boxes would overlay each other.                                  -->
+      <!--<search variant="textbook" />-->
 
-    <!-- Table of Contents: focused="yes" enables expand/collapse functionality. -->
-    <!-- @preexpanded-levels controls how deep to expend toc initially.          -->
-      <!--<toc focused="yes" preexpanded-levels="1" />-->
+    <!-- Table of contents in html.  @focused="yes" makes the table of   -->
+    <!-- contents expandable and collapsible and initially hides entries -->
+    <!-- not on the path to the current page; the default is "no".       -->
+    <!-- @preexpanded-levels, 0 through 6 (default 0), says how many     -->
+    <!-- levels are expanded initially away from that path.              -->
+      <!--<tableofcontents focused="no" preexpanded-levels="0" />-->
 
-    <!-- Navigation options: linear or tree, and whether there is an "up" button -->
-      <!--<navigation logic="tree" upbutton="no" />-->
+    <!-- Navigation.  @logic is "linear" (the default) or "tree"; -->
+    <!-- @upbutton is "yes" (the default) or "no".                -->
+      <!--<navigation logic="linear" upbutton="yes" />-->
 
-    <!-- xref options: control whether cross-references are knowls or links -->
-      <!--<cross-references knowled="cross-page" />-->
+    <!-- Whether cross-references become knowls or plain links.       -->
+    <!-- @knowled is "maximum" (the default; structural targets are   -->
+    <!-- links, smaller targets are knowls), "never" (always links),  -->
+    <!-- or "cross-page" (a link when the target is on the same page, -->
+    <!-- otherwise as in "maximum").                                  -->
+      <!--<cross-references knowled="maximum" />-->
 
-    <!-- Embedded calculators.  For math, this could be geogebra-classic, geogebra-graphing,
-    geogebra-geometry, and geogebra-3d.  For ActiveCode, you can specify a language (python,
-    javascript, etc).  -->
-      <!--<calculator model="geogebra-classic" activecode="python" />-->
+    <!-- Embedded calculator, available on every page.  @model may be   -->
+    <!-- "none" (the default), geogebra-classic, geogebra-graphing,     -->
+    <!-- geogebra-geometry, or geogebra-3d.  @activecode opens an       -->
+    <!-- ActiveCode window for a language: python, javascript, html,    -->
+    <!-- sql, or (on a Runestone server only) c, cpp, java, kotlin,     -->
+    <!-- python3, octave.  The default is "none", except that "python"  -->
+    <!-- is the default when hosting on a Runestone server.             -->
+      <!--<calculator model="none" activecode="none" />-->
 
-    <!-- Set the base URL of where the online version is hosted to have links in other formats -->
-      <!-- <baseurl href="https://changetomywebsite.org"/> -->
+    <!-- A third-party annotation service on every page.  @platform is -->
+    <!-- "none" (the default) or "hypothesis".                         -->
+      <!--<annotation platform="none" />-->
 
-    <!-- Control behavior of online WeBWorK, per type: -->
+    <!-- Set the base URL of where the online version is hosted to have -->
+    <!-- links in other formats.  The value is a directory, so it       -->
+    <!-- should end with a slash.                                       -->
+      <!-- <baseurl href="https://changetomywebsite.org/"/> -->
+
+    <!-- An image in the upper-left corner of every page's banner.       -->
+    <!-- @source (required) locates the image in your external assets    -->
+    <!-- directory; the optional @url makes the image a link.            -->
+      <!--<brandlogo source="logo.png" url="https://mywebsite.org/"/>-->
+
+    <!-- Whether the subtitle and author byline appear in the banner. -->
+    <!-- Each is "yes" (the default) or "no".                         -->
+      <!--<banner subtitle="yes" byline="yes"/>-->
+
+    <!-- Create an index.html that redirects immediately to the page for -->
+    <!-- the division with this xml:id.  The table of contents or the    -->
+    <!-- frontmatter are common choices.                                 -->
+      <!--<index-page ref="frontmatter"/>-->
+
+    <!-- Offer download links below images.  The content of an archive  -->
+    <!-- element is a space-separated list of file formats, one link    -->
+    <!-- each, and you supply the files yourself.  The element is       -->
+    <!-- repeatable, and the optional @from names the xml:id of an      -->
+    <!-- element to restrict that request to images within it.          -->
+      <!--<images>
+        <archive>pdf svg</archive>
+        <archive from="chapter-graphs">png</archive>
+      </images>-->
+
+    <!-- How interactives respond to window resizing.  @resize-behavior -->
+    <!-- is "fixed-height" (the default; a horizontal scrollbar appears -->
+    <!-- when content is too wide) or "responsive" (resizes to keep its -->
+    <!-- aspect ratio).  Child elements named for an interactive type   -->
+    <!-- override the global setting; the known types are calcplot3d,   -->
+    <!-- circuitjs, d3, desmos, doenetml, geogebra, iframe, javascript, -->
+    <!-- jsxgraph, and sage.                                            -->
+      <!--<interactives resize-behavior="fixed-height">
+        <geogebra resize-behavior="responsive"/>
+      </interactives>-->
+
+    <!-- Control behavior of online WeBWorK, per type.  Each attribute -->
+    <!-- is "static" or "dynamic"; the defaults are shown.             -->
       <!--<webwork
         inline="dynamic"
-        divisional="dynamic"
+        divisional="static"
         reading="static"
         worksheet="static"
         project="dynamic"
       />-->
 
-    <!-- Use the tabbed viewer for tasks in exercises. "project" and "reading" can be added to the list of types in the @tabbed-tasks attribute (but not worksheet). -->
+    <!-- Use the tabbed viewer for tasks in exercises.  @tabbed-tasks is a -->
+    <!-- space-separated (or comma-separated) list drawn from inline,      -->
+    <!-- divisional, reading, and project.  Exercises inside a worksheet   -->
+    <!-- are not eligible.                                                 -->
       <!--<exercises tabbed-tasks="inline divisional"/>-->
 
-    <!-- Video privacy: the default value of "yes" disables certain tracking cookies for embedded videos. -->
+    <!-- Video privacy: the default value of "yes" disables certain -->
+    <!-- tracking cookies for embedded videos.                      -->
       <!--<video privacy="yes"/>-->
 
-    <!-- Asymptote Click to Enlarge links -->
-      <!--<asymptote links="yes"/>-->
+    <!-- Asymptote "Link to full-sized image" links below each graphic. -->
+    <!-- Requires baseurl above.  The default is "no".                  -->
+      <!--<asymptote links="no"/>-->
 
-    <!-- Feedback button can be added with a link to an email or form -->
+    <!-- Feedback button, with a link to an email or form.  @href is  -->
+    <!-- required; optional text content replaces the default label   -->
+    <!-- on the button and should contain no markup.                  -->
       <!--<feedback href="mailto:youraddress@yourUni.edu"/>-->
 
-    <!-- Magic IDs identify HTML pages to analytics services   -->
-    <!-- Presence implies relevant Javascript will be added    -->
-    <!-- StatCounter requires both values to be set            -->
+    <!-- Magic IDs identify HTML pages to analytics services.       -->
+    <!-- Presence implies relevant Javascript will be added.        -->
+    <!-- StatCounter requires both of its values to be set.  Obtain -->
+    <!-- your own identifiers; do not copy them from a project.     -->
       <!-- <analytics
               google-gst="UA-0123456-1"
               statcounter-project="0123456"
@@ -206,14 +413,39 @@
   </html>
 
   <epub>
-    <!-- The cover tag can have a @front attribute to specify a cover image. -->
-      <!-- <cover front="cover.jpg"> -->
+    <!-- The cover element takes a @front attribute naming a cover image, -->
+    <!-- as a path relative to your external assets directory.            -->
+      <!-- <cover front="cover.jpg"/> -->
   </epub>
 
+  <!-- Conversion to Jupyter notebooks.  @kernel names the kernel that -->
+  <!-- runs the code cells: "sagemath" (the default) or "python3".     -->
+    <!--<jupyter kernel="sagemath" />-->
 
-  <!-- To use WeBWorK, you need a server.  -->
-    <!-- <webwork server="https://webwork-ptx.aimath.org" /> -->
-    <!-- @course, @coursepassword, @user, and @userpassword can also be set. -->
-    <!-- You can also set how tasks are revealed for webwork problems using the @task-reveal attribute on the above-->
+  <!-- Plain text and markdown conversions.  @characters is "unicode" -->
+  <!-- (the default, using curly quotes and em dashes) or "ascii".    -->
+    <!--<text characters="unicode" />-->
+
+  <!-- To use WeBWorK you need either a webwork2 server or a local copy  -->
+  <!-- of pg.                                                            -->
+  <!-- @static-processing is "webwork2" (the default) or "local"; local  -->
+  <!--   is the faster of the two.                                       -->
+  <!-- @pg-location is the absolute path to a local pg repository, used  -->
+  <!--   when static processing is local; the default is /opt/webwork/pg -->
+  <!-- @server is the URL of the webwork2 server, including the protocol -->
+  <!--   and with no trailing slash; version 2.19 or later.              -->
+  <!-- @course, @user, and @password all default to "anonymous".  The    -->
+  <!--   older @coursepassword and @userpassword are deprecated.         -->
+  <!-- @task-reveal controls how tasks in a multi-task exercise become   -->
+  <!--   available: "all" (the default) or "preceding-correct".          -->
+    <!-- <webwork
+            static-processing="webwork2"
+            pg-location="/opt/webwork/pg"
+            server="https://webwork-ptx.aimath.org"
+            course="anonymous"
+            user="anonymous"
+            password="anonymous"
+            task-reveal="all"
+          /> -->
 
 </publication>

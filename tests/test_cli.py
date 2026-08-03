@@ -34,9 +34,8 @@ from pathlib import Path
 from contextlib import contextmanager
 import requests
 import pretext
-from lxml import etree as ET  # noqa: N812
-from pretext import constants, server, utils
-from typing import cast, Generator
+from pretext import constants, resources, server, utils
+from typing import cast, Generator, List
 import pytest
 from pytest_console_scripts import ScriptRunner
 
@@ -734,17 +733,17 @@ def test_custom_webwork_server(tmp_path: Path, script_runner: ScriptRunner) -> N
 # ---------------------------------------------------------------------------
 # 5. Validate
 #
+# `pretext validate` runs core's `validate`, which writes a consolidated report
+# (jing's schema messages plus the "validation-plus" stylesheet's) into `logs/`.
 # Exit code contract (see the validate command's docstring in pretext/cli.py):
-# 0 = valid, 1 = invalid or malformed, 2 = no validator available.
+# 0 = valid, 1 = invalid or malformed, 2 = validation could not be performed.
 # ---------------------------------------------------------------------------
 
 
 def _validator_available() -> bool:
-    """True if either lxml or jing can run against the bundled schema."""
-    result = utils.run_schema_validation(
-        ET.fromstring("<pretext/>"), utils.schema_path(), order=("lxml", "jing")
-    )
-    return result[0] is not None
+    """True if jing can run: it is the only engine, since lxml cannot compile
+    the PreTeXt schema (it incorporates PreFigure's)."""
+    return utils._jing_command() is not None
 
 
 def _make_project(tmp_path: Path, script_runner: ScriptRunner) -> Path:
@@ -753,9 +752,7 @@ def _make_project(tmp_path: Path, script_runner: ScriptRunner) -> Path:
     return tmp_path / "new-pretext-project"
 
 
-@pytest.mark.skipif(
-    not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
-)
+@pytest.mark.skipif(not _validator_available(), reason="jing is not available")
 def test_validate_invalid_source_is_nonzero(
     tmp_path: Path, script_runner: ScriptRunner
 ) -> None:
@@ -781,9 +778,7 @@ def test_validate_malformed_xml_is_nonzero(
     assert ret.returncode == 1
 
 
-@pytest.mark.skipif(
-    not _validator_available(), reason="no RelaxNG validator (lxml/jing) available"
-)
+@pytest.mark.skipif(not _validator_available(), reason="jing is not available")
 def test_validate_dev_schema_runs(tmp_path: Path, script_runner: ScriptRunner) -> None:
     """`pretext validate --dev` validates against the dev schema; a fresh
     template project passes."""
@@ -795,23 +790,92 @@ def test_validate_dev_schema_runs(tmp_path: Path, script_runner: ScriptRunner) -
 def test_validate_could_not_validate_exits_2(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, script_runner: ScriptRunner
 ) -> None:
-    """When no validation engine is available at all, `pretext validate`
-    exits 2 to distinguish "could not check" from "invalid"."""
+    """With no jing to run, `pretext validate` exits 2 to distinguish
+    "could not check" from "invalid"."""
+    from click.testing import CliRunner
+    from pretext import cli
+    from pretext import utils as putils
+    from pretext.core import common as core_common
+
+    project = _make_project(tmp_path, script_runner)
+    monkeypatch.chdir(project)
+    # Avoid the network update check, and make jing (and only jing) unavailable,
+    # as core sees it.
+    monkeypatch.setattr(putils, "check_for_updates", lambda *a, **k: None)
+    real_get_executable_cmd = core_common.get_executable_cmd
+
+    def _no_jing(exec_name: str) -> List[str]:
+        if exec_name == "jing":
+            raise OSError("cannot locate executable with configuration name `jing`")
+        return real_get_executable_cmd(exec_name)
+
+    monkeypatch.setattr(core_common, "get_executable_cmd", _no_jing)
+    result = CliRunner().invoke(cli.main, ["validate"])
+    assert result.exit_code == 2
+
+
+def test_validate_engine_salve_unavailable_exits_2(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, script_runner: ScriptRunner
+) -> None:
+    """Asking for the salve engine when it can't be set up exits 2, rather than
+    silently validating with jing and reporting on the wrong engine."""
     from click.testing import CliRunner
     from pretext import cli
     from pretext import utils as putils
 
     project = _make_project(tmp_path, script_runner)
     monkeypatch.chdir(project)
-    # Avoid the network update check and force the "no validator available" result.
     monkeypatch.setattr(putils, "check_for_updates", lambda *a, **k: None)
-    monkeypatch.setattr(
-        putils,
-        "run_schema_validation",
-        lambda *a, **k: (None, "no validator available"),
-    )
-    result = CliRunner().invoke(cli.main, ["validate"])
+    monkeypatch.setattr(putils, "salve_shim_command", lambda: None)
+    result = CliRunner().invoke(cli.main, ["validate", "--engine", "salve"])
     assert result.exit_code == 2
+
+
+@pytest.mark.skipif(
+    not (resources.resource_base_path() / "salve" / "node_modules").exists(),
+    reason="the salve engine has not been installed (run `pretext validate --engine salve` once)",
+)
+def test_validate_engine_salve_end_to_end(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, script_runner: ScriptRunner
+) -> None:
+    """A template project validates cleanly through the salve engine too. Skipped
+    until a developer has installed it, since first use needs npm and a network."""
+    from click.testing import CliRunner
+    from pretext import cli
+    from pretext import utils as putils
+
+    project = _make_project(tmp_path, script_runner)
+    monkeypatch.chdir(project)
+    monkeypatch.setattr(putils, "check_for_updates", lambda *a, **k: None)
+    # `cli.error_flush_handler` is a module global, so errors logged by an
+    # earlier in-process invocation would make this run exit 1 on their account.
+    # A real run is a fresh process; here the buffer has to be emptied by hand.
+    cli.error_flush_handler.buffer.clear()
+    result = CliRunner().invoke(cli.main, ["validate", "--engine", "salve"])
+    assert result.exit_code == 0
+    assert (project / "logs" / "main-validation.txt").exists()
+
+
+@pytest.mark.skipif(not _validator_available(), reason="jing is not available")
+def test_validate_terse_method_is_machine_readable(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    """`--method terse` writes core's tab-separated report: one message per
+    line, each naming the source file it came from."""
+    project = _make_project(tmp_path, script_runner)
+    main_src = project / "source" / "main.ptx"
+    main_src.write_text(
+        '<?xml version="1.0"?>\n<pretext><article><section>Text outside of element.</section></article></pretext>\n'
+    )
+    ret = script_runner.run([PTX_CMD, "validate", "--method", "terse"], cwd=project)
+    assert ret.returncode == 1
+    report = (project / "logs" / "main-validation.txt").read_text()
+    lines = [line for line in report.splitlines() if line.strip()]
+    assert len(lines) > 0
+    for line in lines:
+        fields = line.split("\t")
+        assert len(fields) == 5
+        assert fields[0] == "main.ptx"
 
 
 # ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ detection, and small string/path utilities.  Anything requiring a real
 import fnmatch
 import os
 import sys
+import typing as t
 import pytest
 from pathlib import Path
 from lxml import etree as ET  # noqa: N812
@@ -233,73 +234,172 @@ def test_xml_syntax_is_valid(tmp_path: Path) -> None:
         utils.xml_syntax_is_valid(tmp_path / "nonexistent.ptx")
 
 
-def test_validate_with_lxml_valid_and_invalid(tmp_path: Path) -> None:
-    schema_file = tmp_path / "mini.rng"
-    schema_file.write_text(
-        '<grammar xmlns="http://relaxng.org/ns/structure/1.0">'
-        '<start><element name="pretext"><empty/></element></start></grammar>'
-    )
-
-    ok = utils._validate_with_lxml(ET.fromstring("<pretext/>"), schema_file)
-    assert ok == (True, "")
-
-    bad = utils._validate_with_lxml(ET.fromstring("<nope/>"), schema_file)
-    assert bad is not None
-    assert bad[0] is False
-    assert bad[1] != ""
+def test_jing_command_prefers_configured_executable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A `jing` configured in executables.ptx wins over one on the PATH, and
+    keeps its options (jing is a Java program, so it may be a whole command)."""
+    configured = ["/opt/java", "-jar", "/opt/jing.jar"]
+    monkeypatch.setattr(utils.core, "get_executable_cmd", lambda name: configured)
+    monkeypatch.setattr(utils.shutil, "which", lambda name: "/usr/bin/jing")
+    assert utils._jing_command() == configured
 
 
-def test_validate_with_lxml_uncompilable_schema_returns_none(
+@pytest.mark.parametrize("error", [KeyError("jing"), TypeError(), OSError("missing")])
+def test_jing_command_falls_back_to_path(
+    monkeypatch: pytest.MonkeyPatch, error: Exception
+) -> None:
+    """With no usable configured jing -- no `jing` key, no project loaded, or a
+    command that isn't installed -- fall back to a jing on the PATH."""
+
+    def _raise(name: str) -> object:
+        raise error
+
+    monkeypatch.setattr(utils.core, "get_executable_cmd", _raise)
+    monkeypatch.setattr(utils.shutil, "which", lambda name: "/usr/bin/jing")
+    assert utils._jing_command() == ["/usr/bin/jing"]
+
+
+def test_jing_command_none_when_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _raise(name: str) -> object:
+        raise OSError("missing")
+
+    monkeypatch.setattr(utils.core, "get_executable_cmd", _raise)
+    monkeypatch.setattr(utils.shutil, "which", lambda name: None)
+    assert utils._jing_command() is None
+    # And the engine reports itself unavailable, rather than "invalid".
+    assert utils.validate_with_jing(Path("source.xml"), Path("s.rng")) is None
+
+
+def test_validate_with_jing_invokes_configured_command(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    def _raise(*args: object, **kwargs: object) -> object:
-        raise ET.RelaxNGParseError("boom")
+    """The configured command line, options and all, is what gets run."""
+    recorded: list[list[str]] = []
 
-    monkeypatch.setattr(utils.ET, "RelaxNG", _raise)
-    assert (
-        utils._validate_with_lxml(ET.fromstring("<pretext/>"), tmp_path / "x.rng")
-        is None
-    )
+    class _Result:
+        returncode = 0
+        stdout = ""
+        stderr = ""
 
+    def _run(cmd: list[str], **kwargs: object) -> _Result:
+        recorded.append(cmd)
+        return _Result()
 
-def test_run_schema_validation_uses_first_available_engine(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: (True, ""))
     monkeypatch.setattr(
-        utils, "_validate_with_lxml", lambda *a: (False, "lxml says no")
+        utils, "_jing_command", lambda: ["java", "-jar", "/opt/jing.jar"]
     )
+    monkeypatch.setattr(utils.subprocess, "run", _run)
 
-    # jing first wins
-    assert utils.run_schema_validation(
-        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("jing", "lxml")
-    ) == (True, "")
-    # lxml first wins
-    assert utils.run_schema_validation(
-        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("lxml", "jing")
-    ) == (False, "lxml says no")
+    schema_file = tmp_path / "mini.rng"
+    source_file = tmp_path / "source.xml"
+    assert utils.validate_with_jing(source_file, schema_file) == (True, "")
+    assert recorded[0] == [
+        "java",
+        "-jar",
+        "/opt/jing.jar",
+        str(schema_file),
+        str(source_file),
+    ]
 
 
-def test_run_schema_validation_skips_unavailable_engine(
+@pytest.mark.parametrize(
+    "returncode, expected",
+    # 0 = valid, 1 = the document has messages, anything more = jing itself
+    # failed, which is "nothing was checked" rather than "invalid".
+    [(0, (True, "boom")), (1, (False, "boom")), (2, None), (127, None)],
+)
+def test_validate_with_jing_maps_exit_codes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    returncode: int,
+    expected: t.Optional[tuple[bool, str]],
+) -> None:
+    class _Result:
+        stdout = "boom"
+        stderr = ""
+
+    _Result.returncode = returncode  # type: ignore[attr-defined]
+
+    monkeypatch.setattr(utils, "_jing_command", lambda: ["jing"])
+    monkeypatch.setattr(utils.subprocess, "run", lambda *a, **k: _Result())
+    assert utils.validate_with_jing(tmp_path / "s.xml", tmp_path / "s.rng") == expected
+
+
+def test_salve_shim_command_needs_node(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without node there is no salve engine -- and asking for it must not have
+    the side effect of installing the CLI's resources."""
+    monkeypatch.setattr(utils.shutil, "which", lambda name: None)
+
+    def _no_resources() -> Path:
+        raise AssertionError("resource_base_path() should not be reached")
+
+    monkeypatch.setattr(utils.resources, "resource_base_path", _no_resources)
+    assert utils.salve_shim_command() is None
+
+
+def test_salve_shim_command_needs_npm_on_first_use(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: None)
-    monkeypatch.setattr(utils, "_validate_with_lxml", lambda *a: (True, ""))
-    assert utils.run_schema_validation(
-        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("jing", "lxml")
-    ) == (True, "")
+    """The shim installs itself with npm the first time; without npm, the engine
+    is simply unavailable rather than half installed."""
+    monkeypatch.setattr(
+        utils.shutil, "which", lambda name: "/usr/bin/node" if name == "node" else None
+    )
+    monkeypatch.setattr(utils.resources, "resource_base_path", lambda: tmp_path)
+    assert utils.salve_shim_command() is None
+    assert not (tmp_path / "salve" / "node_modules").exists()
 
 
-def test_run_schema_validation_all_unavailable_returns_none(
+def test_salve_shim_command_when_installed(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(utils, "_validate_with_jing", lambda *a: None)
-    monkeypatch.setattr(utils, "_validate_with_lxml", lambda *a: None)
-    result = utils.run_schema_validation(
-        ET.fromstring("<pretext/>"), tmp_path / "s.rng", order=("jing", "lxml")
+    """Once installed, the command is `node <shim>` -- the shape core needs for
+    an executable it will call with a schema and a source file."""
+    shim_dir = tmp_path / "salve"
+    (shim_dir / "node_modules").mkdir(parents=True)
+    (shim_dir / "ptx-jing-shim.mjs").write_text("// shim")
+    monkeypatch.setattr(utils.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(utils.resources, "resource_base_path", lambda: tmp_path)
+    assert utils.salve_shim_command() == [
+        "/usr/bin/node",
+        str(shim_dir / "ptx-jing-shim.mjs"),
+    ]
+
+
+def test_warn_on_schema_errors_writes_log_not_terminal(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A build's schema check leaves the messages in a log file, alongside the
+    assembled source their line numbers refer to."""
+    monkeypatch.setattr(
+        utils, "validate_with_jing", lambda source, schema: (False, "line 4: bad")
     )
-    assert result[0] is None
-    assert "could not be completed" in result[1]
+    assert utils.warn_on_schema_errors(ET.fromstring("<pretext/>"), tmp_path) is False
+    assert (tmp_path / "schema-errors.log").read_text() == "line 4: bad"
+    assert (tmp_path / "schema-assembled-source.xml").exists()
+
+
+def test_warn_on_schema_errors_cleans_up_when_valid(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A clean run clears the artifacts of an earlier failed one, so no stale
+    log is left to be read as the result of this build."""
+    (tmp_path / "schema-errors.log").write_text("errors from a previous build")
+    monkeypatch.setattr(utils, "validate_with_jing", lambda source, schema: (True, ""))
+    assert utils.warn_on_schema_errors(ET.fromstring("<pretext/>"), tmp_path) is True
+    assert not (tmp_path / "schema-errors.log").exists()
+    assert not (tmp_path / "schema-assembled-source.xml").exists()
+
+
+def test_warn_on_schema_errors_without_jing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """No jing means nothing was checked -- which must not look like success."""
+    monkeypatch.setattr(utils, "validate_with_jing", lambda source, schema: None)
+    assert utils.warn_on_schema_errors(ET.fromstring("<pretext/>"), tmp_path) is None
+    assert not (tmp_path / "schema-errors.log").exists()
+    assert not (tmp_path / "schema-assembled-source.xml").exists()
 
 
 def test_schema_path_selects_stable_or_dev() -> None:

@@ -188,7 +188,9 @@ def test_manifest_elaborate(tmp_path: Path) -> None:
         assert project.site == Path("my-great-site")
         assert project.xsl == Path("customizations")
         assert project._executables.xelatex == "xelatex"
+        # Deprecated executables still parse, but are never handed to core.
         assert project._executables.liblouis == "foobar"
+        assert "liblouis" not in project._executables.model_dump()
         assert project.asy_method == "local"
 
         t_web = project.get_target("web")
@@ -255,7 +257,13 @@ def test_manifest_legacy() -> None:
         assert len(project.targets) == 3
 
         assert project._executables.xelatex == "xelatex"
+        # Deprecated executables still parse, but are never handed to core.
         assert project._executables.liblouis == "foobar"
+        assert "liblouis" not in project._executables.model_dump()
+        # Executables the legacy format has no element for fall back to their
+        # modern defaults, so core is never handed a short dict.
+        assert project._executables.model_dump()["jing"] == "jing"
+        assert project._executables.model_dump()["mermaid"] == "mmdc"
 
         t_html = project.get_target("html")
         assert t_html is not None
@@ -297,7 +305,13 @@ def test_manifest_legacy_wrong() -> None:
         assert len(project.targets) == 3
 
         assert project._executables.xelatex == "xelatex"
+        # Deprecated executables still parse, but are never handed to core.
         assert project._executables.liblouis == "foobar"
+        assert "liblouis" not in project._executables.model_dump()
+        # Executables the legacy format has no element for fall back to their
+        # modern defaults, so core is never handed a short dict.
+        assert project._executables.model_dump()["jing"] == "jing"
+        assert project._executables.model_dump()["mermaid"] == "mmdc"
 
         t_html = project.get_target("html")
         assert t_html is not None
@@ -327,6 +341,99 @@ def test_manifest_legacy_wrong() -> None:
         assert not project.has_target("foo")
 
         assert project._executables.latex == "latex1"
+
+
+def test_executables_match_core() -> None:
+    """The executables handed to core are exactly the keys the core script's
+    `pretext.cfg` declares -- no missing key (core looks these up in a plain
+    dict) and no vestigial extras."""
+    assert set(pr.Executables().model_dump()) == {
+        "latex",
+        "pdflatex",
+        "xelatex",
+        "asy",
+        "mermaid",
+        "sage",
+        "pdfeps",
+        "node",
+        "perl",
+        "fop",
+        "jing",
+    }
+
+
+def test_executables_jing_from_manifest(tmp_path: Path) -> None:
+    """A `jing` in executables.ptx reaches core, so a user whose jing is off the
+    search path (or is a `java -jar ...` command) can point the CLI at it."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    (prj_path / "executables.ptx").write_text(
+        '<executables jing="java -jar /opt/jing.jar"/>'
+    )
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        assert project._executables.jing == "java -jar /opt/jing.jar"
+        # `model_dump()` is what `init_core()` hands to core, options and all.
+        assert project._executables.model_dump()["jing"] == "java -jar /opt/jing.jar"
+
+
+def test_validate_source_salve_engine_swaps_and_restores_jing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The salve engine reaches core by standing in for the `jing` executable,
+    and the project's own executables are restored once validation is done (so
+    a later build isn't left pointing at the shim)."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.get_target()
+
+        handed_to_core = []
+        monkeypatch.setattr(
+            pr.utils, "salve_shim_command", lambda: ["node", "/x/shim.mjs"]
+        )
+        monkeypatch.setattr(
+            pr.core, "set_executables", lambda d: handed_to_core.append(dict(d))
+        )
+        monkeypatch.setattr(pr.core, "validate", lambda **kwargs: None)
+
+        target.validate_source(engine="salve")
+
+        assert handed_to_core[0]["jing"] == "node /x/shim.mjs"
+        assert handed_to_core[-1]["jing"] == "jing"
+
+
+def test_validate_source_salve_unavailable_returns_none(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With no usable shim, validation reports that it could not run (exit 2 at
+    the CLI) instead of falling back to jing and quietly testing the wrong thing."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+
+        monkeypatch.setattr(pr.utils, "salve_shim_command", lambda: None)
+
+        def _unreachable(**kwargs: object) -> None:
+            raise AssertionError("core.validate should not be called")
+
+        monkeypatch.setattr(pr.core, "validate", _unreachable)
+        assert project.get_target().validate_source(engine="salve") is None
+
+
+def test_executables_deprecated_and_unknown() -> None:
+    """Executables core no longer uses are accepted (older `executables.ptx`
+    files must keep parsing) but withheld from core; genuinely unknown ones
+    are still rejected, so typos don't pass silently."""
+    execs = pr.Executables(liblouis="file2brl", pdfsvg="pdf2svg", pdfpng="convert")
+    assert "liblouis" not in execs.model_dump()
+    assert "pdfsvg" not in execs.model_dump()
+    assert "pdfpng" not in execs.model_dump()
+
+    with pytest.raises(pydantic.ValidationError):
+        pr.Executables(jjing="typo")  # type: ignore[call-arg]
 
 
 def test_html_build_permissions(tmp_path: Path) -> None:
@@ -400,7 +507,7 @@ def test_xinclude_publication_build(tmp_path: Path) -> None:
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         target = project.get_target("web")
-        assert target.external_dir() == Path("../assets")
+        assert target.external_dir_abspath() == (prj_path / "assets").resolve()
         target.build()
         assert (target.output_dir_abspath() / "index.html").exists()
 

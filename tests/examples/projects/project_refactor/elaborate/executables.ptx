@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- `liblouis` is deprecated, and appears only to check that an
+     `executables.ptx` written for an older CLI still parses. -->
 <executables
     liblouis="foobar"
 />

@@ -19,24 +19,50 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
 <!-- Override defaults as much as possible -->
 <publication>
     <source>
-        <directories external="../assets" generated="../generated-assets"/>
+        <directories generated="../generated-assets"/>
     </source>
 
     <revealjs>
+        <!-- @theme is the base name of a reveal.js theme file, so for   -->
+        <!--   css/theme/solarized.css the value is "solarized".  The    -->
+        <!--   default is "simple".  See                                 -->
+        <!--   https://revealjs.com/themes/ for what is available.       -->
+        <!-- @custom-css is a comma-separated list of extra css files to -->
+        <!--   load after the theme.  These may be local files or remote -->
+        <!--   URLs; local files are best kept in your external files    -->
+        <!--   directory so they are copied to the output.               -->
         <appearance theme="solarized"/>
-        <!-- these are "resources" defaults, but best for a sample -->
-        <!-- @minified is not even necessary with @host = 'cdn'    -->
+        <!-- @host says where reveal.js css and javascript come from:  -->
+        <!--   "local" (the default) beside the slideshow html, "cdn"  -->
+        <!--   from a content delivery network, or "embedded" to fold  -->
+        <!--   them (and a theme's fonts) into a single html file that -->
+        <!--   presents with no network connection.                    -->
+        <!-- @math is "online" (the default), which loads MathJax in    -->
+        <!--   the browser, or "embedded", which replaces each piece of -->
+        <!--   mathematics with an SVG built once, at build time, with  -->
+        <!--   a speech string for screen readers.  Note host          -->
+        <!--   "embedded" implies math "embedded" unless you say        -->
+        <!--   otherwise, and host="embedded" with math="online" is a   -->
+        <!--   contradiction that draws an error.                       -->
         <resources host="cdn"/>
         <!-- display="yes" is the default so we can see arrows          -->
         <!-- tutorial="yes" is the default                              -->
         <!-- layout="bottom-right" is the default, "edges" is an option -->
         <!-- backarrows="faded" is the default,                         -->
-        <!--     "hidden and "visible" are options                      -->
+        <!--     "hidden" and "visible" are options                     -->
         <controls display="yes" tutorial="yes" layout="bottom-right" backarrows="faded"/>
         <!-- mode="default" is horizontal/vertical two-level navigation              -->
         <!--   mode="grid" allows direct movement between adjacent vertical segments -->
         <!--   mode="linear" is more traditional left/right movement for all slides  -->
         <navigation mode="default"/>
     </revealjs>
+
+    <!-- Options in "common" also affect a slideshow.  For example, the -->
+    <!-- style of fill-in-the-blanks:                                   -->
+    <!--
+      <common>
+        <fillin textstyle="underline" mathstyle="shade" />
+      </common>
+    -->
 
 </publication>
