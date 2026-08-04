@@ -9,6 +9,16 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Built-in screen reading (read-aloud).
+- Projects with workspace now get print-preview pages.
+- Table notes (footnotes for tables).
+
+### Fixed
+
+- Bug where some math did not render in printouts.
+
 ## [2.46.0] - 2026-08-03
 
 Includes updates to core through commit: [ea9c025](https://github.com/PreTeXtBook/pretext/commit/ea9c025222639b69dd7bf87dd3b9a48b507b8418)

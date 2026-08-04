@@ -53,8 +53,8 @@ pretext = "pretext.cli:main"
 
 [project.optional-dependencies]
 homepage = ["pelican[markdown]>=4.10,<5"]
-prefigure = ["prefig[text]>=0.6.7,<0.7"]
-all = ["pelican[markdown]>=4.10,<5", "prefig[text]>=0.6.7,<0.7"]
+prefigure = ["prefig[text]>=0.7.2,<0.8"]
+all = ["pelican[markdown]>=4.10,<5", "prefig[text]>=0.7.2,<0.8"]
 
 # Development dependencies
 # ------------------------

@@ -1521,7 +1521,7 @@ wheels = [
 
 [[package]]
 name = "prefig"
-version = "0.6.7"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -1536,9 +1536,9 @@ dependencies = [
     { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
     { name = "shapely" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/09/85a912a4ff665de1b3c35e0d0ad4d07d715e29acfaf36a80ee3b4e9c7fb2/prefig-0.6.7.tar.gz", hash = "sha256:6a3664e284dfe9b8a40fa05d84a0a9d45637948c9bd54b29539593d47479025c", size = 139620, upload-time = "2026-07-02T13:38:34.18Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/80/2e913144944de9f1a5c01636f6c7261fe5b0614643449a2025e22aa11fdf/prefig-0.7.2.tar.gz", hash = "sha256:2f282fdfecf77383b74dee9e96dbf8aaa64695713840c52959c5f801e6fe85fc", size = 149175, upload-time = "2026-08-02T13:31:09.498Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/76/b3/8fdc720fe8f41fdc593ddc02e8e52075e0594e421a94aef4ad8c166a5f19/prefig-0.6.7-py3-none-any.whl", hash = "sha256:6a857179fa14bc16c938adbf4ca12ba2f94745f8a788f4b15eb0879fe0f148c3", size = 163780, upload-time = "2026-07-02T13:38:32.854Z" },
+    { url = "https://files.pythonhosted.org/packages/03/ca/992c6555fe1c4ae3ff0a04339161434ce0d595d961c050379090765a1c37/prefig-0.7.2-py3-none-any.whl", hash = "sha256:5c72a38458979bd16205418056ed833386f597ee72e068428ea2855114447494", size = 175783, upload-time = "2026-08-02T13:31:07.894Z" },
 ]
 
 [package.optional-dependencies]
@@ -1617,8 +1617,8 @@ requires-dist = [
     { name = "pelican", extras = ["markdown"], marker = "extra == 'homepage'", specifier = ">=4.10,<5" },
     { name = "plastex", specifier = ">=3,<4" },
     { name = "playwright", specifier = ">=1,<2" },
-    { name = "prefig", extras = ["text"], marker = "extra == 'all'", specifier = ">=0.6.7,<0.7" },
-    { name = "prefig", extras = ["text"], marker = "extra == 'prefigure'", specifier = ">=0.6.7,<0.7" },
+    { name = "prefig", extras = ["text"], marker = "extra == 'all'", specifier = ">=0.7.2,<0.8" },
+    { name = "prefig", extras = ["text"], marker = "extra == 'prefigure'", specifier = ">=0.7.2,<0.8" },
     { name = "psutil", specifier = ">=7,<8" },
     { name = "pydantic-xml", specifier = "==2.14.3" },
     { name = "pymupdf", specifier = ">=1.24,<2" },
