@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.47.0] - 2026-08-04
+
+Includes updates to core through commit: [d308285](https://github.com/PreTeXtBook/pretext/commit/d3082856ff572a27ccd6bfe4d3aae1a1e7dc6cc1)
+
 ### Added
 
 - Built-in screen reading (read-aloud).
