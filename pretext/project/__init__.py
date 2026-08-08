@@ -695,8 +695,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if self.source_element().xpath(".//webwork[@copy|@source|*|text()]"):
             log.debug("Source contains webwork problems")
             # Get list of all assembly-ids for webwork (this will be the assembly-id of the parent of the webwork element).
+            # NB: assembly stamps the id in the "pi" (PreTeXt internal) namespace, so the xpath must be namespace-aware.
+            pi_ns = {"pi": "http://pretextbook.org/2020/pretext/internal"}
             webwork_assembly_ids = self.source_element_with_ids().xpath(
-                ".//webwork[@copy|@source|*|text()]/parent::*/@assembly-id"
+                ".//webwork[@copy|@source|*|text()]/parent::*/@pi:assembly-id",
+                namespaces=pi_ns,
             )
             assert isinstance(webwork_assembly_ids, list)
             for id in webwork_assembly_ids:
