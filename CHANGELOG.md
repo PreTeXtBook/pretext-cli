@@ -9,6 +9,17 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Improvements to Fill-In-The-Blank questions.
+- Headnote element.
+- Support for gdscript activecode.
+
+### Changed
+
+- WeBWorK javascript is no longer versioned.
+
+
 ## [2.47.1] - 2026-08-04
 
 Includes updates to core through commit: [35f8d01](https://github.com/PreTeXtBook/pretext/commit/35f8d01149b0f657cd6fbd8d67865e0f6d487560)
