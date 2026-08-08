@@ -30,6 +30,7 @@ ASSETS_BY_FORMAT = {
         "myopenmath",
         "dynamic-subs",
         "qrcode",
+        "gdscript",
     ],
     "pdf": [
         "webwork",
@@ -123,6 +124,7 @@ ASSETS_BY_FORMAT = {
         "codelens",
         "datafile",
         "myopenmath",
+        "gdscript",
     ],
     "beamer": [
         "webwork",
@@ -155,6 +157,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "gdscript",
     ],
 }
 
@@ -174,6 +177,7 @@ ASSET_TO_XPATH = {
     "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
     "references": ".//biblio",
     "stack": ".//stack",
+    "gdscript": ".//program[@pck]",
 }
 ASSETS = ["ALL"] + list(ASSET_TO_XPATH.keys())
 
@@ -193,6 +197,7 @@ ASSET_TO_DIR = {
     "dynamic-subs": ["dynamic_subs"],
     "references": ["references"],
     "stack": ["stack"],
+    "gdscript": ["gdscript"],
 }
 
 ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {

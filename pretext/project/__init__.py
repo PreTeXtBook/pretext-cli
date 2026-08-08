@@ -1450,6 +1450,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.debug(e, exc_info=True)
             # youtube also requires the play button.
             self.ensure_play_button()
+        if "gdscript" in assets_to_generate:
+            try:
+                core.gdscript_pck(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "gdscript",
+                )
+                successful_assets.append("gdscript")
+            except Exception as e:
+                log.error(f"Unable to generate some GDScript pck archives:\n {e}")
+                log.debug(e, exc_info=True)
+
         if "mermaid" in assets_to_generate:
             try:
                 for outformat in asset_formats["mermaid"]:
