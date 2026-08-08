@@ -15,11 +15,14 @@ log = logging.getLogger("ptxlogger")
 EXIT_LEVEL = 35
 logging.addLevelName(EXIT_LEVEL, "exit")
 
+
 def _log_exit(message, *args, **kwargs):
     if log.isEnabledFor(EXIT_LEVEL):
         log._log(EXIT_LEVEL, message, args, **kwargs)
 
+
 log.exit = _log_exit
+
 
 class ColorFormatter(click_log.ColorFormatter):
     """click_log prefixes a message with its level name, but only for the levels
