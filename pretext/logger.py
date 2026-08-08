@@ -3,9 +3,8 @@ from pathlib import Path
 import sys
 import logging
 import logging.handlers
+from typing import Any, cast
 import click_log
-
-log = logging.getLogger("ptxlogger")
 
 # EXIT is CLI-only: the wrap-up line a command logs right before handing off
 # to `exit_command` (e.g. "Failed to build without errors.  Exiting...").  It
@@ -16,12 +15,20 @@ EXIT_LEVEL = 35
 logging.addLevelName(EXIT_LEVEL, "exit")
 
 
-def _log_exit(message, *args, **kwargs):
-    if log.isEnabledFor(EXIT_LEVEL):
-        log._log(EXIT_LEVEL, message, args, **kwargs)
+class PretextLogger(logging.Logger):
+    """A `Logger` that also knows how to log at EXIT_LEVEL."""
+
+    def exit(self, message: object, *args: Any, **kwargs: Any) -> None:
+        self.log(EXIT_LEVEL, message, *args, **kwargs)
 
 
-log.exit = _log_exit
+logging.setLoggerClass(PretextLogger)
+log = cast(PretextLogger, logging.getLogger("ptxlogger"))
+# Modules elsewhere (including core) fetch "ptxlogger" by name; whichever of
+# them runs first decides the class.  Retag the singleton so `log.exit` exists
+# no matter the import order, then restore the default for everyone else.
+log.__class__ = PretextLogger
+logging.setLoggerClass(logging.Logger)
 
 
 class ColorFormatter(click_log.ColorFormatter):

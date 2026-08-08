@@ -1,7 +1,5 @@
 import importlib
 import importlib.util
-import logging
-import logging.handlers
 import sys
 import click
 import click_log
@@ -32,7 +30,7 @@ from . import (
 
 from .project import Project
 
-log = logging.getLogger("ptxlogger")
+log = logger.log
 logger.add_log_stream_handler()
 error_flush_handler = logger.get_log_error_flush_handler()
 
