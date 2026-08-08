@@ -7,12 +7,26 @@ import click_log
 
 log = logging.getLogger("ptxlogger")
 
+# EXIT is CLI-only: the wrap-up line a command logs right before handing off
+# to `exit_command` (e.g. "Failed to build without errors.  Exiting...").  It
+# announces that the run is stopping; it isn't itself an error, so CRITICAL
+# was too strong, and keeping it below ERROR keeps it out of
+# error_flush_handler's buffer, so it isn't repeated in the flushed report.
+EXIT_LEVEL = 35
+logging.addLevelName(EXIT_LEVEL, "exit")
+
+def _log_exit(message, *args, **kwargs):
+    if log.isEnabledFor(EXIT_LEVEL):
+        log._log(EXIT_LEVEL, message, args, **kwargs)
+
+log.exit = _log_exit
 
 class ColorFormatter(click_log.ColorFormatter):
     """click_log prefixes a message with its level name, but only for the levels
     in its own `colors` table; an unrecognized level gets no label at all.  Core
     PreTeXt renames level 50 to FATAL and adds BUG (45) and FALLBACK (25), so
-    those messages arrived unlabeled.  Extend the table to cover them.
+    those messages arrived unlabeled.  Extend the table to cover them, along
+    with the CLI's own EXIT level above.
     """
 
     colors = {
@@ -20,6 +34,7 @@ class ColorFormatter(click_log.ColorFormatter):
         "fatal": dict(fg="red", bold=True),
         "bug": dict(fg="magenta"),
         "fallback": dict(fg="cyan"),
+        "exit": dict(fg="red"),
     }
 
 

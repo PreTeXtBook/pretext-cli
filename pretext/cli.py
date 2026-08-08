@@ -636,7 +636,7 @@ def build(
     except AssertionError as e:
         log.warning("Assertion error in getting target.")
         utils.show_target_hints(target_name, project, task="build")
-        log.critical("Exiting without completing build.")
+        log.exit("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
 
@@ -716,7 +716,7 @@ def build(
             "It appears there is an error with your project.ptx or publication file.  See the details below."
         )
         log.critical(e)
-        log.critical("Failed to build without errors.  Exiting...")
+        log.exit("Failed to build without errors.  Exiting...")
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,
@@ -726,7 +726,7 @@ def build(
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
-        log.critical("Failed to build without errors.  Exiting...")
+        log.exit("Failed to build without errors.  Exiting...")
         return
 
 
@@ -911,7 +911,7 @@ def generate(
         target = project.get_target(name=target_name)
     except AssertionError as e:
         utils.show_target_hints(target_name, project, task="generating assets for")
-        log.critical("Exiting without completing build.")
+        log.exit("Exiting without completing build.")
         log.debug(e, exc_info=True)
         return
 
@@ -940,7 +940,7 @@ def generate(
             "It appears there is an error with your project.ptx or publication file.  See the details below."
         )
         log.critical(e)
-        log.critical("Failed to build.  Exiting...")
+        log.exit("Failed to build.  Exiting...")
         log.debug(
             "\n------------------------\nException info:\n------------------------\n",
             exc_info=True,
@@ -950,7 +950,7 @@ def generate(
         log.critical(e)
         log.debug("Exception info:\n------------------------\n", exc_info=True)
         log.info("------------------------")
-        log.critical("Generating assets as failed.  Exiting...")
+        log.exit("Generating assets as failed.  Exiting...")
         return
 
 
@@ -1075,7 +1075,7 @@ def view(
         target = project.get_target(name=target_name, log_info_for_none=not stage)
     except AssertionError as e:
         utils.show_target_hints(target_name, project, task="view")
-        log.critical("Exiting.")
+        log.exit("Exiting.")
         log.debug(e, exc_info=True)
         return
 
