@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Bug that prevented building a project that contained dynamic FITB questions.
+- Consistent alignment of slide content.
+
 ## [2.48.0] - 2026-08-08
 
 Includes updates to core through commit: [6f1b557](https://github.com/PreTeXtBook/pretext/commit/6f1b557cb7aed2b86eb40187c21b56009f97ea1b)

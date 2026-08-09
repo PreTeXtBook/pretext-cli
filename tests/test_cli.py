@@ -49,6 +49,7 @@ PY_CMD = sys.executable
 HAS_XELATEX = check_installed(["xelatex", "--version"])
 HAS_ASY = check_installed(["asy", "--version"])
 HAS_SAGE = check_installed(["sage", "--version"])
+HAS_NODE = check_installed(["node", "--version"])
 
 
 @contextmanager
@@ -728,6 +729,43 @@ def test_custom_webwork_server(tmp_path: Path, script_runner: ScriptRunner) -> N
     assert "webwork.runestone.academy" in result.stdout
     result = script_runner.run([PTX_CMD, "-v", "debug", "build"], cwd=custom_path)
     assert result.success
+
+
+@pytest.mark.skipif(
+    not HAS_NODE,
+    reason="Skipped since node isn't found (needed to extract dynamic substitutions).",
+)
+def test_build_webwork_and_dynamic_fillin(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    """A project mixing a WeBWorK exercise with a dynamic (randomized)
+    fill-in-the-blank exercise builds successfully.  The build must generate
+    both the webwork asset (a rendered PG problem, fetched from a webwork
+    server) and the dynamic-subs asset (the substitution file `pretext`
+    extracts via node so that a static rendering shows one consistent, if
+    randomized, version of the question)."""
+    project_path = tmp_path / "dynamic-fillin"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "dynamic-fillin", project_path)
+    result = script_runner.run(
+        [PTX_CMD, "-v", "debug", "build", "web"], cwd=project_path
+    )
+    assert result.success
+
+    assert (
+        project_path / "generated-assets" / "webwork" / "exercise-webwork.xml"
+    ).exists()
+
+    subs_file = (
+        project_path / "generated-assets" / "dynamic_subs" / "dynamic_substitutions.xml"
+    )
+    assert subs_file.exists()
+    assert 'id="exercise-dynamic-fillin"' in subs_file.read_text()
+
+    output_dir = project_path / "output" / "web"
+    combined_html = "\n".join(p.read_text() for p in output_dir.glob("*.html"))
+    assert 'id="exercise-webwork"' in combined_html
+    assert 'id="rs-exercise-dynamic-fillin"' in combined_html
+    assert 'data-component="fillintheblank"' in combined_html
 
 
 # ---------------------------------------------------------------------------

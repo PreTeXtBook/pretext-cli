@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<pretext>
+  <article>
+    <title>Hello World!</title>
+    <p>This is a PreTeXt document.</p>
+    <exercise xml:id="exercise-webwork">
+      <webwork>
+        <pg-code>
+          $a = Compute(random(1, 9, 1));
+          $b = Compute(random(1, 9, 1));
+          $c = $a + $b;
+        </pg-code>
+        <statement>
+          <p>
+            Compute the sum of <m><var name="$a" /></m> and <m><var name="$b" /></m>:
+          </p>
+          <p>
+            <m><var name="$a" /> + <var name="$b" /> =</m> <var name="$c" width="5" />
+          </p>
+        </statement>
+        <hint>
+          <p>
+            Add <m><var name="$a" /></m> and <m><var name="$b" /></m> together.
+          </p>
+        </hint>
+        <solution>
+          <p>
+            <m><var name="$a" /> + <var name="$b" /> = <var name="$c" /></m>.
+          </p>
+        </solution>
+      </webwork>
+    </exercise>
+    <exercise xml:id="exercise-dynamic-fillin">
+      <title>Dynamic Fill-In-The-Blank</title>
+      <statement>
+        <p>
+          What is <m><eval obj="a" /> + <eval obj="b" /></m>?
+          <fillin mode="number" ansobj="sum" width="5" />
+        </p>
+      </statement>
+      <setup seed="42">
+        <de-object name="a" context="number">
+          <de-random distribution="discrete" min="1" max="9" />
+        </de-object>
+        <de-object name="b" context="number">
+          <de-random distribution="discrete" min="1" max="9" />
+        </de-object>
+        <de-object name="sum" context="number">
+          <de-number>a+b</de-number>
+        </de-object>
+      </setup>
+      <evaluation>
+        <evaluate />
+      </evaluation>
+    </exercise>
+  </article>
+</pretext>
