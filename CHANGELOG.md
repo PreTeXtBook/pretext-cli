@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.49.0] - 2026-08-13
+
+Includes updates to core through commit: [ddf48d0](https://github.com/PreTeXtBook/pretext/commit/ddf48d0b0da1ac5eb315f53f3fac3ee56a127fe6)
+
 ### Changes
 
 - Improve printout reflowing, especially on hide solution toggle.
