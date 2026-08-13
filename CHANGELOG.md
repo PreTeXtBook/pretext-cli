@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.49.1] - 2026-08-13
+
+Includes updates to core through commit: [5836dfc](https://github.com/PreTeXtBook/pretext/commit/5836dfcbdc342841acdbe266871a204c8a9dc8cc)
+
 ## [2.49.0] - 2026-08-13
 
 Includes updates to core through commit: [ddf48d0](https://github.com/PreTeXtBook/pretext/commit/ddf48d0b0da1ac5eb315f53f3fac3ee56a127fe6)
