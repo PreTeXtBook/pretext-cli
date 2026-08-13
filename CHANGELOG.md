@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changes
+
+- Improve printout reflowing, especially on hide solution toggle.
+
 ## [2.48.1] - 2026-08-09
 
 Includes updates to core through commit: [94cd93d](https://github.com/PreTeXtBook/pretext/commit/94cd93d9e175822173f5a4d89870b346aedd6717)
