@@ -129,6 +129,14 @@ These parameters are rarely used by content authors.</a:documentation>
         </choice>
       </attribute>
     </optional>
+    <optional>
+      <attribute name="deploy">
+        <choice>
+          <value>yes</value>
+          <value>no</value>
+        </choice>
+      </attribute>
+    </optional>
   </define>
   <define name="HtmlAttributes">
     <attribute name="format">
@@ -180,6 +188,14 @@ These parameters are rarely used by content authors.</a:documentation>
     </optional>
     <optional>
       <attribute name="output-filename"/>
+    </optional>
+    <optional>
+      <attribute name="latex-source">
+        <choice>
+          <value>yes</value>
+          <value>no</value>
+        </choice>
+      </attribute>
     </optional>
   </define>
   <define name="LatexAttributes">

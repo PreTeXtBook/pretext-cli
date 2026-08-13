@@ -70,7 +70,8 @@ CommonAttributes = (
 	attribute site {text}?,
 	attribute xsl { text }?,
 	attribute asy-method { "server" | "local" }?,
-	attribute standalone { "yes" | "no" }?
+	attribute standalone { "yes" | "no" }?,
+	attribute deploy { "yes" | "no" }?
 )
 
 HtmlAttributes = (
@@ -84,7 +85,8 @@ PdfAttributes = (
 	attribute format { "pdf" },
 	attribute pdf-method { "xelatex" | "pdflatex" | "latex" | "pdf-fo"}?,
 	attribute latex-engine { "xelatex" | "pdflatex" | "latex" }?,
-	attribute output-filename { text }?
+	attribute output-filename { text }?,
+	attribute latex-source { "yes" | "no" }?
 )
 
 LatexAttributes = (
