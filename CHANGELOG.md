@@ -9,6 +9,15 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- `pretext validate` now follows core, which checks the source against both schemas in one pass and adds a survey of the experimental constructs in use to the report. An experimental construct is not an error, so it no longer makes validation exit non-zero; it is counted and reported separately, since its markup may change without a deprecation cycle.
+- `pretext validate --method` now selects only where the checks run: `local` (an installed jing, the default) or `server` (jing as a remote service). The shape of the report has moved to `pretext validate --report-form`: `full` (the default) or `terse` (machine-readable, one tab-separated message per line), so `--method terse` becomes `--report-form terse`.
+
+### Removed
+
+- `pretext validate --dev` (and `--method local-dev`), since validation now always consults the development schema and reports what only the production schema rejects as an experimental construct.
+
 ## [2.49.1] - 2026-08-13
 
 Includes updates to core through commit: [5836dfc](https://github.com/PreTeXtBook/pretext/commit/5836dfcbdc342841acdbe266871a204c8a9dc8cc)

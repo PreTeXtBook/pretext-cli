@@ -18,6 +18,7 @@ The CLI equivalents of these behaviors are tested in ``test_cli.py``.
 import time
 import json
 from pathlib import Path
+from typing import Any
 import requests
 import shutil
 
@@ -421,6 +422,77 @@ def test_validate_source_salve_unavailable_returns_none(
 
         monkeypatch.setattr(pr.core, "validate", _unreachable)
         assert project.get_target().validate_source(engine="salve") is None
+
+
+def test_validate_source_counts_experimental_apart(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Core reports the experimental constructs in use alongside the problems,
+    under the check "experimental". Those are not failures, so they are counted
+    separately from the messages that make `pretext validate` exit non-zero."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    banner = "=" * 70
+    report_lines = [
+        "Validation Report",
+        "    check:  a short name for the check (described in the preamble)",
+        banner,
+        'element "p" not allowed here',
+        "    check: schema",
+        "",
+        'element "notation" not allowed here',
+        "    check: experimental",
+        "",
+        "PTX:WARNING: a check no schema can express",
+        "    check: some-plus-check-id",
+        "",
+    ]
+
+    def _fake_validate(**kwargs: Any) -> None:
+        report = Path(kwargs["dest_dir"]) / "main-validation.txt"
+        report.write_text("\n".join(report_lines), encoding="utf-8")
+
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        monkeypatch.setattr(pr.core, "validate", _fake_validate)
+        result = project.get_target().validate_source()
+        assert result is not None
+        message_count, experimental_count, _ = result
+        # The two real messages count; the experimental construct and the
+        # preamble's description of the "check:" field do not.
+        assert (message_count, experimental_count) == (2, 1)
+
+
+def test_validate_source_passes_report_form_to_core(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The report form is core's, and separate from the method: it shapes the
+    report, while the method says where the jing runs happen. A terse report is
+    one tab-separated message per line, counted by its fourth field."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    handed_to_core = {}
+
+    def _fake_validate(**kwargs: Any) -> None:
+        handed_to_core.update(kwargs)
+        report = Path(kwargs["dest_dir"]) / "main-validation.txt"
+        report.write_text(
+            "main.ptx\t/pretext/article[1]\t12\tschema\tnot allowed here\n"
+            "main.ptx\t/pretext/article[1]/notation[1]\t20\texperimental\tnew markup\n",
+            encoding="utf-8",
+        )
+
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        monkeypatch.setattr(pr.core, "validate", _fake_validate)
+        result = project.get_target().validate_source(
+            method="server", report_form="terse"
+        )
+
+    assert handed_to_core["method"] == "server"
+    assert handed_to_core["report_form"] == "terse"
+    assert result is not None
+    assert result[:2] == (1, 1)
 
 
 def test_executables_deprecated_and_unknown() -> None:

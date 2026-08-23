@@ -772,7 +772,8 @@ def test_build_webwork_and_dynamic_fillin(
 # 5. Validate
 #
 # `pretext validate` runs core's `validate`, which writes a consolidated report
-# (jing's schema messages plus the "validation-plus" stylesheet's) into `logs/`.
+# into `logs/`: jing's schema messages, a survey of the experimental constructs
+# in use (not errors), and the "validation-plus" stylesheet's messages.
 # Exit code contract (see the validate command's docstring in pretext/cli.py):
 # 0 = valid, 1 = invalid or malformed, 2 = validation could not be performed.
 # ---------------------------------------------------------------------------
@@ -817,12 +818,17 @@ def test_validate_malformed_xml_is_nonzero(
 
 
 @pytest.mark.skipif(not _validator_available(), reason="jing is not available")
-def test_validate_dev_schema_runs(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    """`pretext validate --dev` validates against the dev schema; a fresh
-    template project passes."""
+def test_validate_experimental_constructs_do_not_fail(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    """Core validates against both schemas, and reports a construct that only
+    the production schema rejects as experimental rather than as an error, so
+    it does not make `pretext validate` exit non-zero."""
     project = _make_project(tmp_path, script_runner)
-    ret = script_runner.run([PTX_CMD, "validate", "--dev"], cwd=project)
+    ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
     assert ret.returncode == 0
+    report = (project / "logs" / "main-validation.txt").read_text(encoding="utf-8")
+    assert "experimental constructs" in report
 
 
 def test_validate_could_not_validate_exits_2(
@@ -895,17 +901,19 @@ def test_validate_engine_salve_end_to_end(
 
 
 @pytest.mark.skipif(not _validator_available(), reason="jing is not available")
-def test_validate_terse_method_is_machine_readable(
+def test_validate_terse_report_form_is_machine_readable(
     tmp_path: Path, script_runner: ScriptRunner
 ) -> None:
-    """`--method terse` writes core's tab-separated report: one message per
-    line, each naming the source file it came from."""
+    """`--report-form terse` writes core's tab-separated report: one message
+    per line, each naming the source file it came from."""
     project = _make_project(tmp_path, script_runner)
     main_src = project / "source" / "main.ptx"
     main_src.write_text(
         '<?xml version="1.0"?>\n<pretext><article><section>Text outside of element.</section></article></pretext>\n'
     )
-    ret = script_runner.run([PTX_CMD, "validate", "--method", "terse"], cwd=project)
+    ret = script_runner.run(
+        [PTX_CMD, "validate", "--report-form", "terse"], cwd=project
+    )
     assert ret.returncode == 1
     report = (project / "logs" / "main-validation.txt").read_text()
     lines = [line for line in report.splitlines() if line.strip()]
