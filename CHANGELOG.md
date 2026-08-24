@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.50.0] - 2026-08-24
+
+Includes updates to core through commit: [5db49ad](https://github.com/PreTeXtBook/pretext/commit/5db49adcff964748dba917941936989e6ca9f09f)
+
 ### Fixed
 
 - Improve custom `ol` markers in HTML output, especially for safari browsers.
