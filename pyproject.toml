@@ -38,7 +38,6 @@ dependencies = [
     "pydantic-xml==2.14.3",
     "qrcode>=7,<8",
     "psutil>=7,<8",
-    "plastex>=3,<4",
     "jinja2>=3,<4",
     "coloraide>=4,<5",
     "citeproc-py>=0,<1",
@@ -53,15 +52,14 @@ pretext = "pretext.cli:main"
 
 [project.optional-dependencies]
 homepage = ["pelican[markdown]>=4.10,<5"]
-prefigure = ["prefig[text]>=0.7.2,<0.8"]
-all = ["pelican[markdown]>=4.10,<5", "prefig[text]>=0.7.2,<0.8"]
+prefigure = ["prefig[text]>=0.7.4,<0.8"]
+all = ["pelican[markdown]>=4.10,<5", "prefig[text]>=0.7.4,<0.8"]
 
 # Development dependencies
 # ------------------------
 [dependency-groups]
 dev = [
     "black>=24.10,<27.0",
-    "codechat-server>=0,<1",
     "flake8>=6,<7",
     "lxml-stubs>=0,<1",
     "mypy>=1,<2",

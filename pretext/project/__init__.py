@@ -33,7 +33,6 @@ from .xml import Executables, LegacyProject, LatexEngine, PdfMethod
 from . import generate
 from .. import constants
 from .. import core
-from .. import codechat
 from .. import utils
 from .. import types as pt  # PreTeXt types
 from .. import resources
@@ -798,23 +797,33 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         method: str = "local",
         dest_dir: t.Optional[Path] = None,
         engine: str = "jing",
-    ) -> t.Optional[t.Tuple[int, Path]]:
+        report_form: str = "full",
+    ) -> t.Optional[t.Tuple[int, int, Path]]:
         """
         Validate the source with core's `validate`, which consolidates the RELAX-NG
         messages from jing with those of the "validation-plus" stylesheet into one
         report, and deposits the assembled source its line numbers refer to.
 
-        `method` is core's: "local" (the installed jing), "local-dev" (as "local",
-        against the development schema), "server" (jing as a remote service), or
-        "terse" (one tab-separated message per line, for a program).
+        Core checks the source against both schemas. A message from the development
+        schema is a genuine problem; a construct that only the production schema
+        rejects is experimental -- not an error, but markup that may change without
+        a deprecation cycle -- and is surveyed in its own section of the report.
+
+        `method` is core's, and says where the jing runs happen: "local" (an
+        installed jing) or "server" (jing as a remote service).
+
+        `report_form` is core's shape for the report: "full" (locations, excerpts,
+        and explanations, meant for an author) or "terse" (one tab-separated
+        message per line, meant for a program).
 
         `engine` selects what performs the RELAX-NG check: "jing", or the
         experimental "salve" (the validator behind the pretext-tools VS Code
         extension, run through a jing-compatible shim). The engine is irrelevant
         to `method="server"`, which validates remotely.
 
-        Returns the number of messages in the report along with its path, or `None`
-        if validation could not be performed at all.
+        Returns the number of problems found, the number of experimental constructs
+        surveyed, and the path of the report; or `None` if validation could not be
+        performed at all.
         """
         if dest_dir is None:
             dest_dir = self._project.logs_abspath()
@@ -837,6 +846,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 out_file=None,
                 dest_dir=dest_dir.as_posix(),
                 method=method,
+                report_form=report_form,
             )
         except OSError as e:
             # Raised when the configured `jing` can't be found; core has already
@@ -852,25 +862,35 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # core returns without a report when it cannot reach a validation server.
             return None
         lines = report.read_text(encoding="utf-8").splitlines()
-        if method == "terse":
-            # One message per line, and nothing else in the file.
-            count = len([line for line in lines if line.strip()])
+        # Every message names the check that raised it, so the checks are the
+        # messages. The survey of experimental constructs shares the report with
+        # the problems, under the check "experimental", and is counted apart:
+        # using an experimental construct is not a validation failure.
+        checks: t.List[str] = []
+        if report_form == "terse":
+            # One message per line, and nothing else in the file: five
+            # tab-separated fields, of which the fourth is the check. A message
+            # core could not locate is passed through whole, so a line without
+            # those fields is still a problem to report.
+            for line in lines:
+                if not line.strip():
+                    continue
+                fields = line.split("\t")
+                checks.append(fields[3] if len(fields) > 3 else "schema")
         else:
-            # Each message in the consolidated report ends with the check that
-            # raised it, so those lines count the messages of both sections. The
-            # report opens with a preamble that describes a message's fields
+            # The report opens with a preamble that describes a message's fields
             # (including "check:"), so counting starts at the first section
             # banner to avoid mistaking that description for a message.
             banner = "=" * 70
             first_section = lines.index(banner) if banner in lines else 0
-            count = len(
-                [
-                    line
-                    for line in lines[first_section:]
-                    if line.startswith("    check: ")
-                ]
-            )
-        return count, report
+            prefix = "    check: "
+            checks = [
+                line[len(prefix) :].strip()
+                for line in lines[first_section:]
+                if line.startswith(prefix)
+            ]
+        experimental = checks.count("experimental")
+        return len(checks) - experimental, experimental, report
 
     def build(
         self,
@@ -973,19 +993,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     ext_rs_methods=utils.rs_methods,
                 )
-                if self.platform != Platform.RUNESTONE:
-                    # On non-runestone builds, we try to create a codechat mapping for authors.
-                    try:
-                        codechat.map_path_to_xml_id(
-                            self.source_abspath(),
-                            self._project.abspath(),
-                            self.output_dir_abspath().as_posix(),
-                        )
-                    except Exception as e:
-                        log.warning(
-                            "Failed to map codechat path to xml id; codechat will not work."
-                        )
-                        log.debug(e, exc_info=True)
             elif self.format == Format.PDF:
                 if self.pdf_method == PdfMethod.PDF_FO:
                     # Experimental support for the new PDF-FO method.
@@ -2057,7 +2064,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         - .gitignore
         - .devcontainer.json
         - .github/workflows/pretext-cli.yml
-        - codechat_config.yaml
         """
 
         for resource in constants.PROJECT_RESOURCES:

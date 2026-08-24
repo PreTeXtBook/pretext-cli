@@ -6,7 +6,7 @@ pytest-console-scripts ``script_runner`` fixture) exactly the way a user
 would, and asserts on exit codes and on files produced on disk.  Tests of
 the underlying Python API (`pretext.project.Project` et al.) live in
 ``test_project.py``; pure-function unit tests live in ``test_utils.py``,
-``test_server.py``, ``test_codechat.py``, and ``test_generate.py``.
+``test_server.py`` and ``test_generate.py``.
 
 The file is organized to mirror the CLI's command surface:
 
@@ -39,7 +39,6 @@ from typing import cast, Generator, List
 import pytest
 from pytest_console_scripts import ScriptRunner
 
-# from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
 from .common import EXAMPLES_DIR, check_installed
 
 PTX_CMD = cast(str, shutil.which("pretext"))
@@ -180,7 +179,7 @@ def test_init_and_update(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "update-project"], cwd=tmp_path
     ).success
-    for resource in ["requirements.txt", "codechat_config.yaml"]:
+    for resource in ["requirements.txt"]:
         resource_path = tmp_path / constants.PROJECT_RESOURCES[resource]
         resource_path.unlink(missing_ok=True)
     assert script_runner.run(
@@ -205,7 +204,7 @@ def test_init_and_update_with_git(tmp_path: Path, script_runner: ScriptRunner) -
         [PTX_CMD, "-v", "debug", "update-project"], cwd=tmp_path
     ).success
     # Remove resources
-    for resource in ["requirements.txt", "codechat_config.yaml", ".gitignore"]:
+    for resource in ["requirements.txt", ".gitignore"]:
         resource_path = tmp_path / constants.PROJECT_RESOURCES[resource]
         resource_path.unlink(missing_ok=True)
     assert script_runner.run(
@@ -311,12 +310,6 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     ).success
     web_path = project_path / "output" / "web"
     assert web_path.exists()
-    # Temporarily disable:
-    # mapping = json.load(open(web_path / ".mapping.json"))
-    # print(mapping)
-    # # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
-    # # The path separator varies by platform.
-    # assert mapping == DEMO_MAPPING
 
 
 @pytest.mark.skipif(
@@ -772,7 +765,8 @@ def test_build_webwork_and_dynamic_fillin(
 # 5. Validate
 #
 # `pretext validate` runs core's `validate`, which writes a consolidated report
-# (jing's schema messages plus the "validation-plus" stylesheet's) into `logs/`.
+# into `logs/`: jing's schema messages, a survey of the experimental constructs
+# in use (not errors), and the "validation-plus" stylesheet's messages.
 # Exit code contract (see the validate command's docstring in pretext/cli.py):
 # 0 = valid, 1 = invalid or malformed, 2 = validation could not be performed.
 # ---------------------------------------------------------------------------
@@ -817,12 +811,17 @@ def test_validate_malformed_xml_is_nonzero(
 
 
 @pytest.mark.skipif(not _validator_available(), reason="jing is not available")
-def test_validate_dev_schema_runs(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    """`pretext validate --dev` validates against the dev schema; a fresh
-    template project passes."""
+def test_validate_experimental_constructs_do_not_fail(
+    tmp_path: Path, script_runner: ScriptRunner
+) -> None:
+    """Core validates against both schemas, and reports a construct that only
+    the production schema rejects as experimental rather than as an error, so
+    it does not make `pretext validate` exit non-zero."""
     project = _make_project(tmp_path, script_runner)
-    ret = script_runner.run([PTX_CMD, "validate", "--dev"], cwd=project)
+    ret = script_runner.run([PTX_CMD, "validate"], cwd=project)
     assert ret.returncode == 0
+    report = (project / "logs" / "main-validation.txt").read_text(encoding="utf-8")
+    assert "experimental constructs" in report
 
 
 def test_validate_could_not_validate_exits_2(
@@ -895,17 +894,19 @@ def test_validate_engine_salve_end_to_end(
 
 
 @pytest.mark.skipif(not _validator_available(), reason="jing is not available")
-def test_validate_terse_method_is_machine_readable(
+def test_validate_terse_report_form_is_machine_readable(
     tmp_path: Path, script_runner: ScriptRunner
 ) -> None:
-    """`--method terse` writes core's tab-separated report: one message per
-    line, each naming the source file it came from."""
+    """`--report-form terse` writes core's tab-separated report: one message
+    per line, each naming the source file it came from."""
     project = _make_project(tmp_path, script_runner)
     main_src = project / "source" / "main.ptx"
     main_src.write_text(
         '<?xml version="1.0"?>\n<pretext><article><section>Text outside of element.</section></article></pretext>\n'
     )
-    ret = script_runner.run([PTX_CMD, "validate", "--method", "terse"], cwd=project)
+    ret = script_runner.run(
+        [PTX_CMD, "validate", "--report-form", "terse"], cwd=project
+    )
     assert ret.returncode == 1
     report = (project / "logs" / "main-validation.txt").read_text()
     lines = [line for line in report.splitlines() if line.strip()]
@@ -970,29 +971,3 @@ def test_deploy(tmp_path: Path, script_runner: ScriptRunner) -> None:
         "hi mom"
         in (custom_path / "build" / "here" / "staging" / "index.html").read_text()
     )
-
-
-# ---------------------------------------------------------------------------
-# 8. Import (LaTeX conversion, experimental)
-# ---------------------------------------------------------------------------
-
-
-def test_import_latex(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    """`pretext import FILE.tex` converts a LaTeX document to PreTeXt source
-    via plastex, producing main.ptx plus one file per sectioning unit."""
-    (tmp_path / "sample.tex").write_text(
-        "\\documentclass{article}\n"
-        "\\title{Imported Document}\n"
-        "\\begin{document}\n"
-        "\\section{First Section}\n"
-        "Some text with math $x^2 + y^2 = z^2$.\n"
-        "\\end{document}\n"
-    )
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "import", "sample.tex", "-o", "converted"],
-        cwd=tmp_path,
-    ).success
-    assert (tmp_path / "converted" / "main.ptx").exists()
-    # The section should have been split into its own source file.
-    section_files = list((tmp_path / "converted").glob("section-*.ptx"))
-    assert len(section_files) == 1

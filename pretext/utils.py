@@ -1153,7 +1153,7 @@ def is_unmodified(
                 # Hash file and compare to hash in resource_hash_table
                 hash = hashlib.sha256()
                 hash.update(contents)
-                if hash.hexdigest() == resource_hash_table[version[0]][resource]:
+                if hash.hexdigest() == resource_hash_table[version[0]].get(resource):
                     log.debug(
                         f"Resource file {resource} is unmodified, compared to hash."
                     )

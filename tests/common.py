@@ -1,7 +1,7 @@
 """
 Shared helpers for the test suite: the location of the example fixture
-projects, the expected CodeChat mapping for the demo template, and a check
-for the presence of external executables (xelatex, asy, sage, ...).
+projects and a check for the presence of external executables (xelatex, asy,
+sage, ...).
 """
 
 from pathlib import Path
@@ -10,34 +10,6 @@ from typing import List
 
 # The example projects used as build fixtures throughout the suite.
 EXAMPLES_DIR = Path(__file__).parent.resolve() / "examples"
-
-DEMO_MAPPING = {
-    "source/main.ptx": ["my-demo-book"],
-    "source/frontmatter.ptx": [
-        "frontmatter",
-        "frontmatter-preface",
-    ],
-    "source/ch-first with spaces.ptx": ["ch-first-without-spaces"],
-    "source/sec-first-intro.ptx": ["sec-first-intro"],
-    "source/sec-first-examples.ptx": ["sec-first-examples"],
-    "source/ex-first.ptx": ["ex-first"],
-    "source/ch-empty.ptx": ["ch-empty"],
-    "source/ch-features.ptx": ["ch-features"],
-    "source/sec-features.ptx": ["sec-features-blocks"],
-    "source/ch-generate.ptx": [
-        "ch-generate",
-        "sec-latex-image",
-        "sec-sageplot",
-        "sec-asymptote",
-        "sec-webwork",
-        "sec-mom",
-        "sec-youtube",
-        "sec-interactive",
-        "interactive-infinity",
-        "sec-codelens",
-    ],
-    "source/backmatter.ptx": ["backmatter"],
-}
 
 
 # Return True if the given binary is installed and exits with a return code of 0; otherwise, return False. This provides an easy way to check that a given binary is installed.

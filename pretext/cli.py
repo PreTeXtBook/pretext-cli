@@ -22,7 +22,6 @@ from . import (
     resources,
     constants,
     logger,
-    plastex,
     server,
     VERSION,
     CORE_COMMIT,
@@ -735,18 +734,20 @@ def build(
 )
 @click.argument("target_name", required=False, metavar="target")
 @click.option(
-    "--dev",
-    is_flag=True,
-    help="Validate against the development schema (pretext-dev.rng) instead of the "
-    "stable schema, allowing experimental elements.",
+    "--method",
+    type=click.Choice(["local", "server"]),
+    default="local",
+    show_default=True,
+    help='Where the schema checks run: "local" (an installed jing) or "server" '
+    "(jing as a remote service, needing no local install).",
 )
 @click.option(
-    "--method",
-    type=click.Choice(["local", "local-dev", "server", "terse"]),
-    default=None,
-    help='How to validate: "local" (an installed jing, the default), "local-dev" '
-    '(as "local", against the development schema), "server" (jing as a remote '
-    'service, needing no local install), or "terse" (machine-readable, one '
+    "--report-form",
+    type=click.Choice(["full", "terse"]),
+    default="full",
+    show_default=True,
+    help='The shape of the report: "full" (locations, excerpts, and '
+    'explanations, meant to be read) or "terse" (machine-readable, one '
     "tab-separated message per line).",
 )
 @click.option(
@@ -765,18 +766,21 @@ def build(
 def validate(
     ctx: click.Context,
     target_name: Optional[str],
-    dev: bool,
-    method: Optional[str],
+    method: str,
+    report_form: str,
     engine: str,
 ) -> None:
     """
     Validate the source of TARGET against the PreTeXt RelaxNG schema.
 
-    Writes the consolidated validation report: the schema messages from jing
-    together with those of the "validation-plus" stylesheet, each naming the
-    source file, path, and line it came from. Without TARGET, the first target
-    in project.ptx is used. Exit codes: 0 = valid, 1 = invalid, 2 = validation
-    could not be performed (no validator available).
+    Writes the consolidated validation report: the schema messages from jing,
+    a survey of the experimental constructs in use, and the messages of the
+    "validation-plus" stylesheet, each naming the source file, path, and line
+    it came from. An experimental construct is not an error, so it does not
+    make validation fail; it is markup whose form may change without a
+    deprecation cycle. Without TARGET, the first target in project.ptx is used.
+    Exit codes: 0 = valid, 1 = invalid, 2 = validation could not be performed
+    (no validator available).
     """
     project = ctx.obj["project"]
     target = project.get_target(target_name)
@@ -788,11 +792,9 @@ def validate(
         log.error(f"Could not assemble source for validation: {e}")
         raise SystemExit(1)
 
-    if method is None:
-        method = "local-dev" if dev else "local"
     log.info(
         f"Validating source of target {target.name} "
-        f"(method: {method}, engine: {engine})."
+        f"(method: {method}, report form: {report_form}, engine: {engine})."
     )
     if engine == "salve":
         log.warning(
@@ -800,7 +802,9 @@ def validate(
             "differently from jing's, so a report from it will not match a "
             "report from jing line for line."
         )
-    result = target.validate_source(method=method, engine=engine)
+    result = target.validate_source(
+        method=method, engine=engine, report_form=report_form
+    )
 
     if result is None:
         log.error("Validation could not be performed.")
@@ -811,7 +815,13 @@ def validate(
         )
         raise SystemExit(2)
 
-    message_count, report = result
+    message_count, experimental_count, report = result
+    if experimental_count:
+        log.info(
+            f"Experimental constructs are in use at {experimental_count} "
+            "locations; the report surveys them. They are not errors, but "
+            "their markup may change without a deprecation cycle."
+        )
     if message_count == 0:
         log.info("PreTeXt source passed validation with no messages.")
         log.info(f"Report: {report}")
@@ -1212,47 +1222,3 @@ def deploy(
         ctx.invoke(view, stage=True)
     else:
         project.deploy(update_source=update_source, skip_staging=True, no_push=no_push)
-
-
-# pretext import
-@main.command(
-    short_help="Experimental: convert a latex file to pretext",
-    context_settings=CONTEXT_SETTINGS,
-    name="import",
-)
-@nice_errors
-@click.pass_context
-@click.argument("latex_file", required=True)
-@click.option("-o", "--output", help="Specify output directory", required=False)
-def import_command(ctx: click.Context, latex_file: str, output: str) -> None:
-    """
-    Experimental: convert a latex file to pretext
-    """
-    latex_file_path = Path(latex_file).resolve()
-    if not latex_file_path.exists():
-        log.error(f"File {latex_file_path} does not exist.")
-        return
-    if output is not None:
-        output_path = Path(output).resolve()
-        if not output_path.exists():
-            log.warning("Output directory does not exist. Creating it.")
-            output_path.mkdir(parents=True)
-    else:
-        output_path = Path.cwd() / "imports" / latex_file_path.stem
-        output_path.mkdir(parents=True, exist_ok=True)
-    # Now we use plastex to convert:
-    log.info(f"Converting {latex_file_path} to PreTeXt.")
-    with tempfile.TemporaryDirectory(prefix="ptxcli_") as tmpdirname:
-        temp_path = Path(tmpdirname) / "import"
-        temp_path.mkdir()
-        log.info(f"Using temporary directory {temp_path}")
-        # change to this directory to run plastex
-        with utils.working_directory(temp_path):
-            try:
-                plastex.convert(latex_file_path, output_path)
-                shutil.copytree(temp_path, output_path, dirs_exist_ok=True)
-                log.debug(f"Conversion done in {temp_path}")
-            except Exception as e:
-                log.error(e)
-                log.debug("Exception info:\n------------------------\n", exc_info=True)
-                return

@@ -8,7 +8,6 @@ When you add a feature to pretext-cli, the test goes in one of these files:
 | A change to `pretext.project.Project` or `pretext.project.Target` | `test_project.py` | Tests the library API directly; faster than CLI, easier to inspect state |
 | A pure helper in `pretext.utils` | `test_utils.py` | Unit tests for string/path/version logic |
 | Registry/server bookkeeping in `pretext.server` | `test_server.py` | Monkeypatch `home_path` so the real `~/.ptx` is never touched |
-| Source-to-output mapping in `pretext.codechat` | `test_codechat.py` | Build a tiny fixture project by hand; fake the HTML output with empty files |
 | Asset generation (individual_* wrappers) | `test_generate.py` | Mock the core conversion; assert the wrapper raises on missing output |
 
 ## General patterns

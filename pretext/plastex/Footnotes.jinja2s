@@ -1,7 +1,0 @@
-name: footnote
-<fn>{{ obj }}</fn>
-
-name: footnotemark
-<fn>{{ obj }}</fn>
-
-name: footnotetext
