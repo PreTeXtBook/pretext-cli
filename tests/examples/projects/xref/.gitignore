@@ -94,6 +94,3 @@ GitHub.sublime-settings
 .dropbox
 .dropbox.attr
 .dropbox.cache
-
-# Don't track codechat config (will be generated automatically)
-codechat_config.yaml

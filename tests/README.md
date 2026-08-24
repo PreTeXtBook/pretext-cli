@@ -23,8 +23,7 @@ meaningful (if smaller) run. CI runs the full suite in the
 | `test_generate.py` | unit (mocked) | The `individual_*` asset-generation wrappers raise when core fails to produce an output file, so failures are never cached as successes. |
 | `test_utils.py` | unit | Pure helpers in `pretext.utils`: project discovery, version comparison, schema-validation engine selection, resource-modification detection, misc string/path utilities. |
 | `test_server.py` | unit | The `~/.ptx/running_servers` registry behind `pretext view`: entry serialization, lookup, purge of dead entries. Uses a temp home dir and fake pids only. |
-| `test_codechat.py` | unit | `map_path_to_xml_id`, the source-file ↔ HTML-output mapping consumed by the CodeChat System, including per-file attribution across xincludes. |
-| `common.py` | — | Shared helpers: `EXAMPLES_DIR`, `check_installed`, `DEMO_MAPPING`. |
+| `common.py` | — | Shared helpers: `EXAMPLES_DIR`, `check_installed`. |
 | `examples/projects/` | fixtures | Small projects copied into `tmp_path` by tests. `project_refactor/simple` (minimal v2 manifest), `project_refactor/elaborate` (every manifest attribute customized), `project_refactor/legacy*` (v1 manifests), plus one-feature projects (`latex-image`, `prefigure`, `graphics`, `datafile`, `interactive`, `custom-xsl`, `custom-wwserver`, `xref`, `xi_pub`). |
 
 Conventions:
@@ -46,9 +45,8 @@ Conventions:
   `pretext new --url-template` (downloads a zip from the network).
 - kindle, braille, and webwork output formats (need kindlegen/liblouis or
   network services).
-- The full demo-template build (`test_cli.py::test_build`,
-  `test_project.py::test_demo_html_build`) is currently skipped: a subset
-  build fails before a full build has generated the qrcode xml files, and
-  the full build is expensive. The pieces are covered separately
-  (subset builds, qrcode/preview generation, codechat mapping).
+- The full demo-template build (`test_cli.py::test_build`) is currently
+  skipped: a subset build fails before a full build has generated the qrcode
+  xml files, and the full build is expensive. The pieces are covered
+  separately (subset builds, qrcode/preview generation).
 - `pretext view`'s browser launching and codespace-specific server path.

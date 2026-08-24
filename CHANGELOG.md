@@ -9,6 +9,13 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Improve custom `ol` markers in HTML output, especially for safari browsers.
+- Doenet loading improvements
+- Workspace and solutions for printouts work better (in the right order).
+- Asymptote rendering recognizes the version of asymptote installed (and reacts accordingly).
+
 ### Changed
 
 - `pretext validate` now follows core, which checks the source against both schemas in one pass and adds a survey of the experimental constructs in use to the report. An experimental construct is not an error, so it no longer makes validation exit non-zero; it is counted and reported separately, since its markup may change without a deprecation cycle.
@@ -16,7 +23,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Removed
 
+- `pretext import` command (LaTeX conversion via plastex) completely removed.  It was an experimental feature that never reached a stable enough state to be useful.
+- CodeChat support has been removed. Builds no longer write the `.mapping.json` source-to-output map, `codechat_config.yaml` is no longer a managed project resource (`pretext update-project` deletes an unmodified one), and the devcontainer template no longer forwards the CodeChat Server ports or installs the CodeChat extension. Neither Codespaces nor the PreTeXt Tools VS Code extension use it.
 - `pretext validate --dev` (and `--method local-dev`), since validation now always consults the development schema and reports what only the production schema rejects as an experimental construct.
+- Ordered-lists as a way to structure multi-part exercises has been deprecated (use `<task>` instead).
 
 ## [2.49.1] - 2026-08-13
 

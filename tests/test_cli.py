@@ -6,7 +6,7 @@ pytest-console-scripts ``script_runner`` fixture) exactly the way a user
 would, and asserts on exit codes and on files produced on disk.  Tests of
 the underlying Python API (`pretext.project.Project` et al.) live in
 ``test_project.py``; pure-function unit tests live in ``test_utils.py``,
-``test_server.py``, ``test_codechat.py``, and ``test_generate.py``.
+``test_server.py`` and ``test_generate.py``.
 
 The file is organized to mirror the CLI's command surface:
 
@@ -39,7 +39,6 @@ from typing import cast, Generator, List
 import pytest
 from pytest_console_scripts import ScriptRunner
 
-# from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
 from .common import EXAMPLES_DIR, check_installed
 
 PTX_CMD = cast(str, shutil.which("pretext"))
@@ -180,7 +179,7 @@ def test_init_and_update(tmp_path: Path, script_runner: ScriptRunner) -> None:
     assert script_runner.run(
         [PTX_CMD, "-v", "debug", "update-project"], cwd=tmp_path
     ).success
-    for resource in ["requirements.txt", "codechat_config.yaml"]:
+    for resource in ["requirements.txt"]:
         resource_path = tmp_path / constants.PROJECT_RESOURCES[resource]
         resource_path.unlink(missing_ok=True)
     assert script_runner.run(
@@ -205,7 +204,7 @@ def test_init_and_update_with_git(tmp_path: Path, script_runner: ScriptRunner) -
         [PTX_CMD, "-v", "debug", "update-project"], cwd=tmp_path
     ).success
     # Remove resources
-    for resource in ["requirements.txt", "codechat_config.yaml", ".gitignore"]:
+    for resource in ["requirements.txt", ".gitignore"]:
         resource_path = tmp_path / constants.PROJECT_RESOURCES[resource]
         resource_path.unlink(missing_ok=True)
     assert script_runner.run(
@@ -311,12 +310,6 @@ def test_build(tmp_path: Path, script_runner: ScriptRunner) -> None:
     ).success
     web_path = project_path / "output" / "web"
     assert web_path.exists()
-    # Temporarily disable:
-    # mapping = json.load(open(web_path / ".mapping.json"))
-    # print(mapping)
-    # # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
-    # # The path separator varies by platform.
-    # assert mapping == DEMO_MAPPING
 
 
 @pytest.mark.skipif(
@@ -978,29 +971,3 @@ def test_deploy(tmp_path: Path, script_runner: ScriptRunner) -> None:
         "hi mom"
         in (custom_path / "build" / "here" / "staging" / "index.html").read_text()
     )
-
-
-# ---------------------------------------------------------------------------
-# 8. Import (LaTeX conversion, experimental)
-# ---------------------------------------------------------------------------
-
-
-def test_import_latex(tmp_path: Path, script_runner: ScriptRunner) -> None:
-    """`pretext import FILE.tex` converts a LaTeX document to PreTeXt source
-    via plastex, producing main.ptx plus one file per sectioning unit."""
-    (tmp_path / "sample.tex").write_text(
-        "\\documentclass{article}\n"
-        "\\title{Imported Document}\n"
-        "\\begin{document}\n"
-        "\\section{First Section}\n"
-        "Some text with math $x^2 + y^2 = z^2$.\n"
-        "\\end{document}\n"
-    )
-    assert script_runner.run(
-        [PTX_CMD, "-v", "debug", "import", "sample.tex", "-o", "converted"],
-        cwd=tmp_path,
-    ).success
-    assert (tmp_path / "converted" / "main.ptx").exists()
-    # The section should have been split into its own source file.
-    section_files = list((tmp_path / "converted").glob("section-*.ptx"))
-    assert len(section_files) == 1

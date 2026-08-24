@@ -16,7 +16,6 @@ The CLI equivalents of these behaviors are tested in ``test_cli.py``.
 """
 
 import time
-import json
 from pathlib import Path
 from typing import Any
 import requests
@@ -29,7 +28,7 @@ from pretext import project as pr
 from pretext import utils
 from pretext.resources import resource_base_path
 
-from .common import DEMO_MAPPING, EXAMPLES_DIR, check_installed
+from .common import EXAMPLES_DIR, check_installed
 
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 HAS_XELATEX = check_installed(["xelatex", "--version"])
@@ -149,19 +148,14 @@ def test_manifest_simple(tmp_path: Path) -> None:
 
 def test_manifest_simple_build(tmp_path: Path) -> None:
     """Each target of the simple project builds into its own output
-    directory: html (with a CodeChat .mapping.json), runestone (with its
-    manifest), and pdf when xelatex is available."""
+    directory: html, runestone (with its manifest), and pdf when xelatex is
+    available."""
     prj_path = tmp_path / "simple"
     shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
     with utils.working_directory(prj_path):
         project = pr.Project.parse()
         project.get_target("web").build()
         assert (prj_path / "output" / "web" / "index.html").exists()
-        # html builds produce the source-to-output map used by CodeChat.
-        mapping = json.loads(
-            (prj_path / "output" / "web" / ".mapping.json").read_text()
-        )
-        assert mapping == {"source/main.ptx": ["article-id"]}
         project.get_target("rs").build()
         assert (prj_path / "output" / "rs" / "index.html").exists()
         assert (prj_path / "output" / "rs" / "runestone-manifest.xml").exists()
@@ -518,27 +512,6 @@ def test_html_build_permissions(tmp_path: Path) -> None:
         p.new_target("web", "html").build()
         assert (prj_path / "output" / "web").exists()
         assert (prj_path / "output" / "web").stat().st_mode % 0o1000 >= 0o755
-
-
-@pytest.mark.skip(reason="Temporarily disabled")
-def test_demo_html_build(tmp_path: Path) -> None:
-    """Full html build of the demo template in a path with spaces, checking
-    the CodeChat mapping of the multi-file source.  Currently skipped: the
-    demo build requires sage/asy assets and is expensive; the mapping logic
-    itself is unit-tested in test_codechat.py."""
-    path_with_spaces = "test path with spaces"
-    project_path = tmp_path / path_with_spaces
-    shutil.copytree(TEMPLATES_DIR / "demo", project_path)
-    with utils.working_directory(project_path):
-        p = pr.Project(ptx_version="2")
-        t_web = p.new_target("web", "html")
-        shutil.rmtree(t_web.generated_dir_abspath(), ignore_errors=True)
-        t_web.build()
-        assert t_web.output_dir_abspath().exists()
-        with open(t_web.output_dir_abspath() / ".mapping.json") as mpf:
-            mapping = json.load(mpf)
-        # This mapping will vary if the project structure produced by ``pretext new`` changes. Be sure to keep these in sync!
-        assert mapping == DEMO_MAPPING
 
 
 def test_subset_build(tmp_path: Path) -> None:

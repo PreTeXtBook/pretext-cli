@@ -33,7 +33,6 @@ from .xml import Executables, LegacyProject, LatexEngine, PdfMethod
 from . import generate
 from .. import constants
 from .. import core
-from .. import codechat
 from .. import utils
 from .. import types as pt  # PreTeXt types
 from .. import resources
@@ -994,19 +993,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                     ext_rs_methods=utils.rs_methods,
                 )
-                if self.platform != Platform.RUNESTONE:
-                    # On non-runestone builds, we try to create a codechat mapping for authors.
-                    try:
-                        codechat.map_path_to_xml_id(
-                            self.source_abspath(),
-                            self._project.abspath(),
-                            self.output_dir_abspath().as_posix(),
-                        )
-                    except Exception as e:
-                        log.warning(
-                            "Failed to map codechat path to xml id; codechat will not work."
-                        )
-                        log.debug(e, exc_info=True)
             elif self.format == Format.PDF:
                 if self.pdf_method == PdfMethod.PDF_FO:
                     # Experimental support for the new PDF-FO method.
@@ -2078,7 +2064,6 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
         - .gitignore
         - .devcontainer.json
         - .github/workflows/pretext-cli.yml
-        - codechat_config.yaml
         """
 
         for resource in constants.PROJECT_RESOURCES:

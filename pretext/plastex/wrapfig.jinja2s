@@ -1,2 +1,0 @@
-name: wrapfigure wraptable
-<!-- wrapfigure/table: float: {{ obj.float }} content: {{ obj }} -->

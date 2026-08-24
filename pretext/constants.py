@@ -282,7 +282,6 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
 
 PROJECT_RESOURCES = {
     "project.ptx": Path("project.ptx"),
-    "codechat_config.yaml": Path("codechat_config.yaml"),
     ".gitignore": Path(".gitignore"),
     "devcontainer.json": Path(".devcontainer/devcontainer.json"),
     "requirements.txt": Path("requirements.txt"),
@@ -292,6 +291,7 @@ PROJECT_RESOURCES = {
 }
 
 DEPRECATED_PROJECT_RESOURCES = {
+    "codechat_config.yaml": Path("codechat_config.yaml"),
     "deploy.yml": Path(".github", "workflows", "deploy.yml"),
     "test-build.yml": Path(".github", "workflows", "test-build.yml"),
     ".devcontainer.json": Path(".devcontainer.json"),
