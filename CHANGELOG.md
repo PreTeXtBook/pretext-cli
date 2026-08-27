@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Better error detection and reporting in case `pretext deploy` is unsuccessful.
+- Improved image zooming in HTML output
+- Footnotes in printouts display correctly in HTML
+- Long lists in printouts now break across pages correctly.
+
+
 ## [2.50.0] - 2026-08-24
 
 Includes updates to core through commit: [5db49ad](https://github.com/PreTeXtBook/pretext/commit/5db49adcff964748dba917941936989e6ca9f09f)
