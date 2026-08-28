@@ -923,15 +923,13 @@ def publish_to_ghpages(
         log.info("")
         log.info("Output committed to the `gh-pages` branch.")
         return
+
     # Otherwise we try to push to GitHub.
-    try:
-        origin.push(refspec=f"{repo.active_branch.name}:{repo.active_branch.name}")
-        origin.push(refspec="gh-pages:gh-pages")
-    except git.exc.GitCommandError as e:  # type: ignore
+    def _report_push_failure(detail: str) -> None:
         log.warning(
             f"There was an issue connecting to GitHub repository located at {repo_url}\n"
         )
-        log.debug(e, exc_info=True)
+        log.debug(detail)
         log.info(
             "Make sure you have set up authentication for GitHub.  For more information, visit:"
         )
@@ -949,6 +947,30 @@ def publish_to_ghpages(
         )
         log.info("")
         log.error("Deploy was unsuccessful.")
+
+    try:
+        branch_push_result = origin.push(
+            refspec=f"{repo.active_branch.name}:{repo.active_branch.name}"
+        )
+        gh_push_result = origin.push(refspec="gh-pages:gh-pages", force=True)
+    except git.exc.GitCommandError as e:  # type: ignore
+        _report_push_failure(str(e))
+        return
+    # `push()` does not raise on a rejected/failed push, so each `PushInfo`
+    # entry's flags must be checked explicitly for errors.
+    error_flags = (
+        git.PushInfo.ERROR  # type: ignore
+        | git.PushInfo.REJECTED  # type: ignore
+        | git.PushInfo.REMOTE_REJECTED  # type: ignore
+        | git.PushInfo.REMOTE_FAILURE  # type: ignore
+    )
+    push_errors = [
+        info.summary.strip()
+        for info in list(branch_push_result) + list(gh_push_result)
+        if info.flags & error_flags
+    ]
+    if push_errors:
+        _report_push_failure("\n".join(push_errors))
         return
     log.info("")
     log.info("Latest build successfully pushed to GitHub!\n")
