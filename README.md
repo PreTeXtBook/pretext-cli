@@ -281,6 +281,13 @@ manually from the Actions tab to cut a release.
 
 Generating assets is complicated.  See [docs/asset-generation.md](docs/asset-generation.md)
 
+### Tagged/accessible PDF (work in progress)
+
+Investigation into LaTeX's native tagged-PDF support (`\DocumentMetadata`,
+lualatex) as a companion to the core `pdf-fo` route. Paused after an initial
+feasibility spike; see [docs/tagged-pdf-roadmap.md](docs/tagged-pdf-roadmap.md)
+before picking this back up.
+
 ---
 
 ## About
