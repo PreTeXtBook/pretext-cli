@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.52.0] - 2026-08-31
+
+Includes updates to core through commit: [a08c973](https://github.com/PreTeXtBook/pretext/commit/a08c973ef798252a395b7bad55de5429c62a6fb7)
+
 ### Added
 
 - Geogebra play button capability.
