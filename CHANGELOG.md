@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Geogebra play button capability.
+
+### Fixed
+
+- Image zooming button now hidden in printouts.
+
 ## [2.51.0] - 2026-08-28
 
 Includes updates to core through commit: [da96691](https://github.com/PreTeXtBook/pretext/commit/da96691159216f7aacab5cc88429ee60233b65b0)
