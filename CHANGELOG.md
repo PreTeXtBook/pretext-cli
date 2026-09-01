@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- latex-images copy correctly for resources host="cdn" builds.
+
 ## [2.52.1] - 2026-09-01
 
 Includes updates to core through commit: [f3edd6a](https://github.com/PreTeXtBook/pretext/commit/f3edd6ab606d81e0f93914ad3ec33ec40acc89a6)
