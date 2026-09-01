@@ -899,11 +899,21 @@ def publish_to_ghpages(
     ghp_import.ghp_import(
         directory, mesg="Latest build deployed.", nojekyll=True, cname=cname
     )
-    log.info(f"Attempting to connect to remote repository at `{origin.url}`...")
-    # log.info("(Your SSH password may be required.)")
-    log.info("")
     try:
         repo_user, repo_name = parse_git_remote(origin.url)
+        # The locally saved remote URL can go stale after a GitHub repo is
+        # renamed. Ask GitHub for the name so the links we print below are correct.
+        try:
+            import requests
+
+            response = requests.get(
+                f"https://api.github.com/repos/{repo_user}/{repo_name}", timeout=5
+            )
+            if response.ok:
+                repo_user, repo_name = response.json()["full_name"].split("/")
+        except Exception as e:
+            log.debug("Could not resolve canonical GitHub repo name.")
+            log.debug(e, exc_info=True)
         repo_url = f"https://github.com/{repo_user}/{repo_name}/"
         # Set pages_url depending on whether project is base pages for the user or a separate repo
         if "github.io" in repo_name:
@@ -915,6 +925,9 @@ def publish_to_ghpages(
         log.error("Deploy unsuccessful")
         log.debug(e, exc_info=True)
         return
+    log.info(f"Attempting to connect to remote repository at `{repo_url}`...")
+    # log.info("(Your SSH password may be required.)")
+    log.info("")
     # Stop here if we are not pushing to GitHub.
     if no_push:
         log.info(
