@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- fix error with entities when building (with newest lxml).
+
 ## [2.52.2] - 2026-09-01
 
 Includes updates to core through commit: [4578f97](https://github.com/PreTeXtBook/pretext/commit/4578f97859d2e08b76b32ca1c487af7716bd0d64)
