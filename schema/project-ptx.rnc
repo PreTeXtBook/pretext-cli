@@ -70,6 +70,9 @@ CommonAttributes = (
 	attribute site {text}?,
 	attribute xsl { text }?,
 	attribute asy-method { "server" | "local" }?,
+	## The engine that compiles `latex-image` assets, for every format, and that
+	## also compiles the document of a `pdf` target taking the `latex` method.
+	attribute latex-engine { "xelatex" | "pdflatex" | "lualatex" | "latex" }?,
 	attribute standalone { "yes" | "no" }?,
 	attribute deploy { "yes" | "no" }?
 )
@@ -83,8 +86,14 @@ HtmlAttributes = (
 
 PdfAttributes = (
 	attribute format { "pdf" },
-	attribute pdf-method { "xelatex" | "pdflatex" | "latex" | "pdf-fo"}?,
-	attribute latex-engine { "xelatex" | "pdflatex" | "latex" }?,
+	## The route to the PDF. `latex` (the default) compiles an assembled LaTeX
+	## document with the engine named by `latex-engine`; `fo` converts to XSL-FO
+	## and renders it with Apache FOP, a LaTeX-free route that needs no TeX
+	## installation for the document itself.
+	attribute method { "latex" | "fo" }?,
+	## Deprecated: superseded by `method` together with `latex-engine`, which
+	## separate the route to the PDF from the engine that compiles it.
+	attribute pdf-method { "xelatex" | "pdflatex" | "lualatex" | "latex" | "pdf-fo"}?,
 	attribute output-filename { text }?,
 	attribute latex-source { "yes" | "no" }?
 )
