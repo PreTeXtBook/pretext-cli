@@ -9,6 +9,23 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- `pdf` targets accept a `method` attribute selecting the route to the PDF: `latex` (the default) or `fo`, the LaTeX-free route through XSL-FO and Apache FOP.
+- `lualatex` is now a usable `latex-engine`, with a matching entry in `executables.ptx`.
+- `latex-engine` is now permitted by the schema on every target, not just `pdf` ones; it has always been the engine that compiles `latex-image` assets for all formats.
+
+### Fixed
+
+- XSL-FO PDF builds now generate their images as SVG, and generate `latex-image` assets at all. Previously they inherited the LaTeX route's asset settings and produced a PDF with every generated image missing.
+- XSL-FO PDF builds now install the MathJax node packages they need to render mathematics and its speech alternate text.
+- A target's `xsl` setting is reported as unsupported on the XSL-FO route rather than being silently ignored.
+- `--all-formats` no longer mutates the shared asset-format table, which leaked into later targets of the same format in the same run.
+
+### Changed
+
+- `pdf-method` is deprecated in favor of `method` together with `latex-engine`, which separate the route to the PDF from the engine that compiles it. Existing manifests keep working and warn.
+
 ## [2.52.3] - 2026-09-04
 
 Includes updates to core through commit: [2c8806b](https://github.com/PreTeXtBook/pretext/commit/2c8806b9988f855e94d185fb145226bf6c0a5b20)

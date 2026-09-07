@@ -280,6 +280,25 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
     },
 }
 
+# The XSL-FO route to a PDF (a target's `method="fo"`) needs a different asset
+# set than the LaTeX route, so these two override the `pdf` entries above.
+#
+# `pretext-fo.xsl` names every generated image with an `.svg` extension, so
+# every asset must be built as SVG rather than the PDF/PNG the LaTeX route
+# embeds.  And `latex-image` is absent from the `pdf` lists because the LaTeX
+# route compiles those inline during its own pass; the FO route has no such
+# pass, so it must generate them here, exactly as the HTML route does.
+ASSETS_BY_FORMAT_FO: t.List[str] = ASSETS_BY_FORMAT["pdf"] + ["latex-image"]
+
+ASSET_FORMATS_FO: t.Dict[str, t.List[str]] = {
+    "asymptote": ["svg"],
+    "latex-image": ["svg"],
+    "sageplot": ["svg"],
+    "prefigure": ["svg"],
+    "mermaid": ["svg"],
+}
+
+
 PROJECT_RESOURCES = {
     "project.ptx": Path("project.ptx"),
     ".gitignore": Path(".gitignore"),

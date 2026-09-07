@@ -487,7 +487,11 @@ def check_executable(exec_name: str) -> Optional[str]:
         return None
 
 
-def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> None:
+def check_asset_execs(
+    element: str,
+    outformats: Optional[List[str]] = None,
+    engine: str = "xelatex",
+) -> None:
     # outformats is assumed to be a list of formats.
     if outformats is None:
         outformats = []
@@ -497,8 +501,9 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
     required_execs = []
     if element == "latex-image":
         # svg and png conversions go through the pyMuPDF library, so they need no
-        # executable beyond the LaTeX engine itself.
-        required_execs = ["xelatex"]
+        # executable beyond the LaTeX engine itself -- whichever one the target's
+        # `latex-engine` names, which is not always xelatex.
+        required_execs = [engine]
         if "eps" in outformats or "all" in outformats:
             required_execs.append("pdfeps")
     if element == "sageplot":
@@ -531,7 +536,7 @@ def check_asset_execs(element: str, outformats: Optional[List[str]] = None) -> N
                 f"In order to generate {element} into formats {outformats}, you must have {required_exec} installed, but this appears to be missing or configured incorrectly in pretext.ptx"
             )
             # print installation hints based on operating system and missing program.
-            log.info(install_hints[required_exec][platform.system()])
+            log.info(install_hints.get(required_exec, {}).get(platform.system(), ""))
 
 
 def clean_asset_table(

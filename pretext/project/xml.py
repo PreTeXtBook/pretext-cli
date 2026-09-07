@@ -29,6 +29,7 @@ class Executables(pxml.BaseXmlModel, tag="executables"):
     latex: str = pxml.attr(default="latex")
     pdflatex: str = pxml.attr(default="pdflatex")
     xelatex: str = pxml.attr(default="xelatex")
+    lualatex: str = pxml.attr(default="lualatex")
     # If not specified, use a local executable if it exists; if it doesn't exist, choose `None`, which allows the generation logic to use the server instead.
     asy: t.Optional[str] = pxml.attr(default=shutil.which("asy"))
     # No sage server, so we don't do the same for sage.
@@ -89,8 +90,25 @@ class LatexEngine(str, Enum):
     XELATEX = "xelatex"
     LATEX = "latex"
     PDFLATEX = "pdflatex"
+    LUALATEX = "lualatex"
 
 
+class Method(str, Enum):
+    """The route a `pdf` target takes to its PDF.
+
+    `latex` compiles an assembled LaTeX document with the engine named by
+    `latex-engine`.  `fo` converts to XSL-FO and renders it with Apache FOP,
+    a LaTeX-free route that needs no TeX installation for the document
+    itself (`latex-image` assets still do).
+    """
+
+    LATEX = "latex"
+    FO = "fo"
+
+
+# Deprecated in favor of `Method` plus `LatexEngine`, which separate the route
+# to the PDF from the engine that compiles it.  Still parsed so that existing
+# manifests keep working; `Target.method_validator` folds it into the two.
 class PdfMethod(str, Enum):
     XELATEX = "xelatex"
     LATEX = "latex"
