@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.53.0] - 2026-09-17
+
+Includes updates to core through commit: [7b18258](https://github.com/PreTeXtBook/pretext/commit/7b1825851e008cb7fc56f2099da354728f7e9edd)
+
 ### Added
 
 - `pdf` targets accept a `method` attribute selecting the route to the PDF: `latex` (the default) or `fo`, the LaTeX-free route through XSL-FO and Apache FOP.
