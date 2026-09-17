@@ -24,6 +24,7 @@ import shutil
 import pydantic
 import pytest
 
+from pretext import core
 from pretext import project as pr
 from pretext import utils
 from pretext.resources import resource_base_path
@@ -979,3 +980,160 @@ def test_stage(tmp_path: Path) -> None:
             assert "foobar" in f.read()
         assert (project.stage_abspath() / "web2" / "article-id.html").exists()
         shutil.rmtree(project.stage_abspath())
+
+
+# The journal bibliography feature needs a core that can resolve a journal
+# name into a Citation Style Language style.  Until that core is the one
+# vendored here, these skip rather than fail.
+requires_core_csl = pytest.mark.skipif(
+    not hasattr(core, "get_csl_style"),
+    reason="vendored core does not resolve journal bibliography styles yet",
+)
+
+
+def test_publication_csl_settings(tmp_path: Path) -> None:
+    """A publication file's journal name and CSL style are read back, and
+    either one on its own counts as opting into CSL styles."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    publication = prj_path / "publication.xml"
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == ("bull-amer-math-soc", None)
+        assert target.publication_uses_csl()
+
+        # a style of the publisher's own, and no journal
+        publication.write_text(
+            publication.read_text().replace(
+                '<journal name="bull-amer-math-soc"/>',
+                '<citation-stylesheet-language style="harvard1"/>',
+            )
+        )
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == (None, "harvard1")
+        assert target.publication_uses_csl()
+
+        # neither: the feature stays out of the way
+        publication.write_text(
+            publication.read_text().replace(
+                '<citation-stylesheet-language style="harvard1"/>', ""
+            )
+        )
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == (None, None)
+        assert not target.publication_uses_csl()
+
+
+def test_references_asset_hash(tmp_path: Path) -> None:
+    """The references hash covers the bibliography, the citations, and the
+    style that formats them: each changes it, and nothing else does."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    source = prj_path / "source" / "main.ptx"
+    publication = prj_path / "publication.xml"
+    source_text, publication_text = source.read_text(), publication.read_text()
+
+    def references_hash() -> Any:
+        with utils.working_directory(prj_path):
+            return pr.Project.parse().get_target("web").generate_asset_table()[
+                "references"
+            ]
+
+    original = references_hash()
+    assert references_hash() == original
+
+    # an edited bibliography entry
+    source.write_text(source_text.replace("<family>Judson</family>", "<family>Judsen</family>"))
+    assert references_hash() != original
+    source.write_text(source_text)
+
+    # an added citation, with every "biblio" untouched
+    source.write_text(
+        source_text.replace(
+            "<title>References</title>",
+            '<title>References</title><p><xref ref="biblio-lay"/></p>',
+        )
+    )
+    assert references_hash() != original
+    source.write_text(source_text)
+
+    # a different journal, with the source untouched
+    publication.write_text(publication_text.replace("bull-amer-math-soc", "ann-pure-appl-logic"))
+    assert references_hash() != original
+    publication.write_text(publication_text)
+
+    assert references_hash() == original
+
+
+def test_references_need_opting_in(tmp_path: Path) -> None:
+    """Without a journal or a style in the publication file, references are
+    left alone: nothing is generated and the build is undisturbed."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    publication = prj_path / "publication.xml"
+    publication.write_text(
+        publication.read_text().replace('<journal name="bull-amer-math-soc"/>', "")
+    )
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.generate_assets(requested_asset_types=["references"])
+        assert not (target.generated_dir_abspath() / "references").exists()
+
+
+@requires_core_csl
+def test_journal_selects_bibliography_style(tmp_path: Path) -> None:
+    """Naming a journal formats the bibliography in that journal's style,
+    with no other setting: the generated file records the style, and the
+    built HTML carries the formatted entries and citations."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.build()
+
+        # "bull-amer-math-soc" has no style of its own; it inherits the one
+        # belonging to the AMS texstyle file it extends.
+        generated = (
+            target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
+        )
+        assert 'csl-style-file="american-mathematical-society-numeric"' in (
+            generated.read_text()
+        )
+
+        # the style file itself is fetched once and kept
+        assert (
+            target.generated_dir_abspath()
+            / "csl"
+            / "american-mathematical-society-numeric.csl"
+        ).exists()
+
+        # numeric citations, in a style that orders entries by citation
+        references = (
+            target.output_dir_abspath() / "references-backmatter.html"
+        ).read_text()
+        assert "Lay, David C." in references
+        section = (target.output_dir_abspath() / "sec-one.html").read_text()
+        assert "[1]" in section
+
+
+@requires_core_csl
+def test_publisher_style_outranks_journal(tmp_path: Path) -> None:
+    """A style named in the publication file is used in place of the one the
+    journal would supply."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    publication = prj_path / "publication.xml"
+    publication.write_text(
+        publication.read_text().replace(
+            '<journal name="bull-amer-math-soc"/>',
+            '<journal name="bull-amer-math-soc"/>'
+            '<citation-stylesheet-language style="harvard1"/>',
+        )
+    )
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.build()
+        generated = (
+            target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
+        )
+        assert 'csl-style-file="harvard1"' in generated.read_text()

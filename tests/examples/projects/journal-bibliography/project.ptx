@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <targets>
+    <target name="web">
+      <format>html</format>
+      <source>source/main.ptx</source>
+      <publication>publication.xml</publication>
+      <output-dir>output/web</output-dir>
+    </target>
+  </targets>
+  <executables>
+    <latex>latex</latex>
+    <pdflatex>pdflatex</pdflatex>
+    <xelatex>xelatex</xelatex>
+    <asy>asy</asy>
+    <sage>sage</sage>
+    <pdfeps>pdftops</pdfeps>
+    <pdfcrop>pdf-crop-margins</pdfcrop>
+    <pageres>pageres</pageres>
+    <node>node</node>
+  </executables>
+</project>

@@ -465,7 +465,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         source_doc = ET.parse(self.source_abspath())
         for _ in range(25):
             source_doc.xinclude()
-        print("Type of source_doc: ", type(source_doc))
         return source_doc.getroot()
 
     def source_element(self) -> ET._Element:
@@ -519,6 +518,63 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
+
+    def publication_csl_settings(self) -> t.Tuple[t.Optional[str], t.Optional[str]]:
+        """
+        The journal name and the CSL style named in the publication file,
+        either of which may be absent.  Between them they decide whether
+        references and citations are rendered by CSL at all, and which
+        style does it.
+
+        Read from the publication file directly: answering from there
+        saves a publisher variable report -- a full XSL pass over the
+        source -- on every build that could not possibly need one.
+        """
+        try:
+            publication = ET.parse(self.publication_abspath())
+        except Exception:
+            # a malformed publication file is reported, loudly, elsewhere
+            return (None, None)
+
+        def first(xpath: str) -> t.Optional[str]:
+            values = publication.xpath(xpath)
+            assert isinstance(values, t.List)
+            return str(values[0]) if values else None
+
+        return (
+            first("/publication/common/journal/@name"),
+            first("/publication/common/citation-stylesheet-language/@style"),
+        )
+
+    def note_csl_file_state(self) -> None:
+        """
+        Record whether the generated file of formatted references and
+        citations is on disk, for the stylesheets to consult.
+
+        XSLT cannot ask, and libxslt evaluates every global variable at
+        the start of a transformation -- including the one that opens
+        this file.  So any pass at all, a syntax check as much as a
+        conversion, aborts outright on a project that has opted into CSL
+        styles but has yet to generate its references.  Saying plainly
+        that the file is absent turns that into a warning and a fall back
+        to default bibliography handling.
+
+        Cheap enough (one stat) to repeat whenever the answer may have
+        changed, which it does the moment references are generated.
+        """
+        csl_file = (
+            self.generated_dir_abspath() / "references" / "csl-bibliography.xml"
+        )
+        self.stringparams["csl.file.missing"] = "" if csl_file.exists() else "yes"
+
+    def publication_uses_csl(self) -> bool:
+        """
+        Whether the publication file opts into CSL styles for references
+        and citations, by naming a style outright or a journal that
+        implies one.
+        """
+        (journal, csl_style) = self.publication_csl_settings()
+        return (journal is not None) or (csl_style is not None)
 
     def output_dir_abspath(self) -> Path:
         if self.is_standalone() and self.output_dir is None:
@@ -708,6 +764,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 for node in setups:
                     assert isinstance(node, ET._Element)
                     hash.update(ET.tostring(node))
+            # For references, the style is as much an input as the
+            # bibliography itself: changing journals must regenerate.  Both
+            # publication file entries are hashed, since either can pick the
+            # style.  (A style that changes inside core, for a journal whose
+            # name stays put, is caught instead by the assembly-time check
+            # against the style stamped on the generated file.)
+            if asset == "references":
+                for setting in self.publication_csl_settings():
+                    if setting is not None:
+                        hash.update(setting.encode("utf-8"))
             # Finally, we store the hash as a string in the dictionary.
             asset_hash_dict[asset] = hash.hexdigest()
         return asset_hash_dict
@@ -974,6 +1040,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 
+        # Before the source is assembled for the first time below.
+        self.note_csl_file_state()
+
         # Check for xml syntax errors and quit if xml invalid:
         try:
             # Access the source_element to trigger assembly if it hasn't been done yet.
@@ -999,6 +1068,29 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Generate needed assets unless requested not to.
         if generate:
             self.generate_assets(xmlid=xmlid, clean_tmp_dirs=clean_tmp_dirs)
+
+        # A journal named in the publication file supplies the CSL style for
+        # bibliographies and citations.  Core resolves that into a stringparam
+        # here, once, so every format's conversion agrees with the generated
+        # references about which style is in force.  A style named in the
+        # publication file outranks the journal's, and core says so.
+        #
+        # This must follow generation, not precede it.  Resolving the style
+        # also records whether the generated references file is on disk, and
+        # generation is what puts it there: asked any earlier, the answer
+        # would be "absent" and every conversion below would fall back to
+        # default bibliography handling despite the file now existing.
+        self.note_csl_file_state()
+        if self.publication_uses_csl():
+            try:
+                core.get_csl_style(
+                    xml=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=self.stringparams,
+                )
+            except Exception as e:
+                log.error(f"Unable to determine the journal's bibliography style:\n {e}")
+                log.debug(e, exc_info=True)
 
         # Ensure the output directories exist.
         self.ensure_output_directory()
@@ -1235,25 +1327,22 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         """
         log.info("Generating any needed assets.")
 
+        # Generation runs on its own as well as from a build, and the schema
+        # check just below assembles the source.
+        self.note_csl_file_state()
+
         # Warn about schema errors here too, since assets are often generated
         # without a build.  A no-op when a build already ran the check.
         self.check_schema()
 
-        # To help with debugging, we are temporarily adding a reference generation step here.  The only way this will be called is if `pretext generate references` is called explicitly.
-        if requested_asset_types == ("references",):
-            try:
-                core.references(
-                    xml_source=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams.copy(),
-                    xmlid_root=xmlid,
-                    dest_dir=self.generated_dir_abspath() / "references",
-                )
-            except Exception as e:
-                log.error(f"Unable to generate some references:\n {e}")
-                log.debug(e, exc_info=True)
-            finally:
-                return
+        # Whether references were asked for by name, which changes how a
+        # project that has not opted into CSL styles is answered below.
+        references_requested = (
+            requested_asset_types is not None
+            and "references" in requested_asset_types
+            and "ALL" not in requested_asset_types
+        )
+
         # To help with debugging, we are temporarily adding a stack generation step here.  The only way this will be called is if `pretext generate stack` is called explicitly.
         if requested_asset_types == ("stack",):
             try:
@@ -1303,6 +1392,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         log.debug(
             f"Based on format {self.format}, assets to be generated are: {requested_asset_types}."
         )
+        # Rendering references and citations with CSL is opt-in: without a
+        # journal or a style named in the publication file there is nothing
+        # to render them with, and core would rightly object.
+        if "references" in requested_asset_types and not self.publication_uses_csl():
+            if references_requested:
+                log.warning(
+                    "References are rendered with a Citation Style Language (CSL) style, "
+                    "which this project has not asked for.  Name a style as "
+                    "`citation-stylesheet-language/@style`, or a journal as `journal/@name`, "
+                    "in the publication file's `common` element.  No references will be generated."
+                )
+            requested_asset_types.remove("references")
         # We always build the asset hash table, even if only_changed=True: this tells us which assets need to be built, and how to update the saved asset hash table at the end of the method.
         # utils.clean_asset_table purges any asset types from the loaded table that are no longer in the target.
         source_asset_table = self.generate_asset_table()
@@ -1594,19 +1695,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.error(f"Unable to generate some datafiles:\n {e}")
                 log.debug(e, exc_info=True)
         # The following code will eventually be needed, but for now, we leave as a placeholder.
-        # if "references" in assets_to_generate and debug_references:
-        #    try:
-        #        core.references(
-        #            xml_source=self.source_abspath(),
-        #            pub_file=self.publication_abspath().as_posix(),
-        #            stringparams=stringparams_copy,
-        #            xmlid_root=xmlid,
-        #            dest_dir=self.generated_dir_abspath() / "references",
-        #        )
-        #        successful_assets.append("references")
-        #    except Exception as e:
-        #        log.error(f"Unable to generate some references:\n {e}")
-        #        log.debug(e, exc_info=True)
+        if "references" in assets_to_generate:
+            try:
+                core.references(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "references",
+                )
+                successful_assets.append("references")
+            except Exception as e:
+                log.error(f"Unable to generate some references:\n {e}")
+                log.debug(e, exc_info=True)
         # Delete temporary directories left behind by core:
         try:
             core.release_temporary_directories(any_log_level=clean_tmp_dirs)

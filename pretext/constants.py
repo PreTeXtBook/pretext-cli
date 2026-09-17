@@ -29,6 +29,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "myopenmath",
         "dynamic-subs",
+        "references",
         "qrcode",
         "gdscript",
     ],
@@ -45,6 +46,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "latex": [
         "webwork",
@@ -59,6 +61,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "epub": [
         "webwork",
@@ -73,6 +76,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "epub_nozip": [
         "webwork",
@@ -87,6 +91,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "kindle": [
         "webwork",
@@ -101,6 +106,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "braille": [
         "webwork",
@@ -114,9 +120,11 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "revealjs": [
         "webwork",
+        "references",
         "latex-image",
         "sageplot",
         "asymptote",
@@ -139,6 +147,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "webwork": [
         "webwork",
@@ -157,6 +166,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
         "gdscript",
     ],
 }
