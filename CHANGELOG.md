@@ -14,6 +14,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 - `pdf` targets accept a `method` attribute selecting the route to the PDF: `latex` (the default) or `fo`, the LaTeX-free route through XSL-FO and Apache FOP.
 - `lualatex` is now a usable `latex-engine`, with a matching entry in `executables.ptx`.
 - `latex-engine` is now permitted by the schema on every target, not just `pdf` ones; it has always been the engine that compiles `latex-image` assets for all formats.
+- A `stack` of subfigures can now live inside a `figure`.
+- `origins` element for xrefs for mathematical blocks.
 
 ### Fixed
 
@@ -21,6 +23,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 - XSL-FO PDF builds now install the MathJax node packages they need to render mathematics and its speech alternate text.
 - A target's `xsl` setting is reported as unsupported on the XSL-FO route rather than being silently ignored.
 - `--all-formats` no longer mutates the shared asset-format table, which leaked into later targets of the same format in the same run.
+- Images below a sidebyside panel (such as in an exercise in a sidebyside) now get their specified width.
+- Improvements for support/thanks for articles.
 
 ### Changed
 
