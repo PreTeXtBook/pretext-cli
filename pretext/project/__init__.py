@@ -562,9 +562,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Cheap enough (one stat) to repeat whenever the answer may have
         changed, which it does the moment references are generated.
         """
-        csl_file = (
-            self.generated_dir_abspath() / "references" / "csl-bibliography.xml"
-        )
+        csl_file = self.generated_dir_abspath() / "references" / "csl-bibliography.xml"
         self.stringparams["csl.file.missing"] = "" if csl_file.exists() else "yes"
 
     def publication_uses_csl(self) -> bool:
@@ -573,7 +571,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         and citations, by naming a style outright or a journal that
         implies one.
         """
-        (journal, csl_style) = self.publication_csl_settings()
+        journal, csl_style = self.publication_csl_settings()
         return (journal is not None) or (csl_style is not None)
 
     def output_dir_abspath(self) -> Path:
@@ -1089,7 +1087,9 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     stringparams=self.stringparams,
                 )
             except Exception as e:
-                log.error(f"Unable to determine the journal's bibliography style:\n {e}")
+                log.error(
+                    f"Unable to determine the journal's bibliography style:\n {e}"
+                )
                 log.debug(e, exc_info=True)
 
         # Ensure the output directories exist.

@@ -1035,15 +1035,19 @@ def test_references_asset_hash(tmp_path: Path) -> None:
 
     def references_hash() -> Any:
         with utils.working_directory(prj_path):
-            return pr.Project.parse().get_target("web").generate_asset_table()[
-                "references"
-            ]
+            return (
+                pr.Project.parse()
+                .get_target("web")
+                .generate_asset_table()["references"]
+            )
 
     original = references_hash()
     assert references_hash() == original
 
     # an edited bibliography entry
-    source.write_text(source_text.replace("<family>Judson</family>", "<family>Judsen</family>"))
+    source.write_text(
+        source_text.replace("<family>Judson</family>", "<family>Judsen</family>")
+    )
     assert references_hash() != original
     source.write_text(source_text)
 
@@ -1058,7 +1062,9 @@ def test_references_asset_hash(tmp_path: Path) -> None:
     source.write_text(source_text)
 
     # a different journal, with the source untouched
-    publication.write_text(publication_text.replace("bull-amer-math-soc", "ann-pure-appl-logic"))
+    publication.write_text(
+        publication_text.replace("bull-amer-math-soc", "ann-pure-appl-logic")
+    )
     assert references_hash() != original
     publication.write_text(publication_text)
 
