@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.54.0] - 2026-09-26
+
+Includes updates to core through commit: [20d1054](https://github.com/PreTeXtBook/pretext/commit/20d10545401ca7b4fa820d59b78de6e88f8dce6b)
+
 ### Added
 
 - `pretext prune-cache` command to remove stale cached assets from the cache directory.
