@@ -12,6 +12,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Added
 
 - `pretext prune-cache` command to remove stale cached assets from the cache directory.
+- Old timestamped run logs in a project's `logs` folder are now removed automatically, keeping only recent ones.
 
 ## [2.53.0] - 2026-09-17
 
