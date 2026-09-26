@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- `pretext prune-cache` command to remove stale cached assets from the cache directory.
+
 ## [2.53.0] - 2026-09-17
 
 Includes updates to core through commit: [7b18258](https://github.com/PreTeXtBook/pretext/commit/7b1825851e008cb7fc56f2099da354728f7e9edd)

@@ -2,7 +2,9 @@ import typing as t
 import logging
 import hashlib
 from pathlib import Path
+import re
 import shutil
+import tempfile
 from .. import core
 
 log = logging.getLogger("ptxlogger")
@@ -209,11 +211,80 @@ def individual_latex_image(
     log.debug("Finished individual_latex function")
 
 
-def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> Path:
-    asset_content = asset_file.read_bytes()
+def hash_asset_file(asset_file: Path) -> str:
     hash = hashlib.md5()
     # hash the asset file
-    hash.update(asset_content)
-    asset_hash = hash.hexdigest()
+    hash.update(asset_file.read_bytes())
+    return hash.hexdigest()
+
+
+def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> Path:
     # create the cache file name
-    return cache_dir / f"{asset_hash}.{extension}"
+    return cache_dir / f"{hash_asset_file(asset_file)}.{extension}"
+
+
+# Cached asset types, with the core extraction stylesheet that produces the source files whose hashes name the cached files.  Each entry is a list of extra stringparams to run the extraction with; sageplot extraction differs by output format, so it runs once per format.
+CACHED_ASSET_EXTRACTIONS: t.Dict[str, t.Tuple[str, t.List[t.Dict[str, str]]]] = {
+    "latex-image": ("extract-latex-image.xsl", [{}]),
+    "asymptote": ("extract-asymptote.xsl", [{}]),
+    "sageplot": (
+        "extract-sageplot.xsl",
+        [{"sageplot.fileformat": f} for f in ["pdf", "svg", "png", "html"]],
+    ),
+    "prefigure": ("extract-prefigure.xsl", [{}]),
+}
+
+
+# Names of cache files, as created by cache_asset_filename (plus prefigure's -annotations.xml companions): an md5 hex digest, an optional -annotations suffix, and an extension.
+CACHE_FILENAME_PATTERN = re.compile(r"^([0-9a-f]{32})(?:-annotations)?\.[A-Za-z0-9]+$")
+
+
+def extracted_asset_hashes(
+    xml_source: Path, pub_file: Path, stringparams: t.Dict[str, str]
+) -> t.Dict[str, t.Set[str]]:
+    """
+    Runs each extraction stylesheet (as core does before converting) and returns, for each cached asset type, the set of hashes of the extracted source files.  These are exactly the hashes the individual_* functions above would use to name cache files.
+    """
+    xsl_dir = Path(core.common.get_ptx_xsl_path())
+    hashes: t.Dict[str, t.Set[str]] = {}
+    for asset_type, (xsl, param_variants) in CACHED_ASSET_EXTRACTIONS.items():
+        hashes[asset_type] = set()
+        for extra_params in param_variants:
+            params = {**stringparams, **extra_params, "publisher": pub_file.as_posix()}
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                core.common.xsltproc(
+                    (xsl_dir / xsl).as_posix(), xml_source, None, tmp_dir, params
+                )
+                for extracted in Path(tmp_dir).iterdir():
+                    # prefigure writes a publication file alongside its diagrams
+                    if extracted.is_file() and extracted.name != "pf_publication.xml":
+                        hashes[asset_type].add(hash_asset_file(extracted))
+    return hashes
+
+
+def is_stale(cache_file: Path, live_hashes: t.Set[str]) -> bool:
+    """
+    Decides whether a file in one of the cached asset directories should be removed, given the hashes of the asset sources currently in the project.  Only files named by a hash (e.g. <hash>.svg or <hash>-annotations.xml) are candidates; anything else is left alone.  A live hash keeps all of its formats.
+    """
+    match = CACHE_FILENAME_PATTERN.match(cache_file.name)
+    return match is not None and match.group(1) not in live_hashes
+
+
+def prune_cache(
+    cache_dir: Path, live_hashes: t.Dict[str, t.Set[str]], dry_run: bool = False
+) -> t.List[Path]:
+    """
+    Removes cached asset files whose source no longer appears in the project.  Returns the list of removed (or, with dry_run, removable) files.
+    """
+    stale: t.List[Path] = []
+    for asset_type, hashes in live_hashes.items():
+        asset_cache_dir = cache_dir / asset_type
+        if not asset_cache_dir.is_dir():
+            continue
+        # rglob to include subdirectories such as prefigure/tactile
+        for cache_file in sorted(asset_cache_dir.rglob("*")):
+            if cache_file.is_file() and is_stale(cache_file, hashes):
+                stale.append(cache_file)
+                if not dry_run:
+                    cache_file.unlink()
+    return stale
