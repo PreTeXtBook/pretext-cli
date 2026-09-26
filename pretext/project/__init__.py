@@ -1911,6 +1911,34 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
     def generated_cache_abspath(self) -> Path:
         return self.abspath() / self.generated_cache
 
+    def prune_cache(self, dry_run: bool = False) -> t.List[Path]:
+        """
+        Removes cached generated assets whose source no longer appears in any target of the project.  Returns the removed (or, with dry_run, removable) files.
+        """
+        # Targets can differ in source, publication file, and stringparams, each of which can change the extracted asset source (and so its hash).  Keep anything live for any target, extracting once per distinct combination.
+        live_hashes: t.Dict[str, t.Set[str]] = {}
+        seen = set()
+        for target in self.targets:
+            key = (
+                target.source_abspath(),
+                target.publication_abspath(),
+                tuple(sorted(target.stringparams.items())),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            log.info(f"Extracting asset sources for target {target.name}.")
+            target_hashes = generate.extracted_asset_hashes(
+                target.source_abspath(),
+                target.publication_abspath(),
+                target.stringparams,
+            )
+            for asset_type, hashes in target_hashes.items():
+                live_hashes.setdefault(asset_type, set()).update(hashes)
+        return generate.prune_cache(
+            self.generated_cache_abspath(), live_hashes, dry_run=dry_run
+        )
+
     def output_dir_abspath(self) -> Path:
         return self.abspath() / self.output_dir
 

@@ -223,3 +223,74 @@ def test_individual_prefigure_succeeds_when_output_exists(tmp_path: Path) -> Non
             cache_dir=tmp_path / "cache",
             skip_cache=True,
         )
+
+
+LIVE = "a" * 32
+STALE = "b" * 32
+
+
+@pytest.mark.parametrize(
+    "name, expected",
+    [
+        (f"{LIVE}.svg", False),
+        (f"{LIVE}.pdf", False),
+        (f"{LIVE}-annotations.xml", False),
+        (f"{STALE}.svg", True),
+        (f"{STALE}-annotations.xml", True),
+        (".DS_Store", False),
+        ("my-image.svg", False),
+        (f"{STALE}", False),
+        (f"{STALE[:-1]}.svg", False),
+        (f"{STALE}-other.svg", False),
+    ],
+)
+def test_is_stale(name: str, expected: bool) -> None:
+    """Only hash-named cache files whose hash is not live are stale."""
+    assert generate.is_stale(Path(name), {LIVE}) is expected
+
+
+def _populate_cache(cache_dir: Path) -> None:
+    for name in [
+        f"latex-image/{LIVE}.svg",
+        f"latex-image/{LIVE}.eps",
+        f"latex-image/{STALE}.svg",
+        f"prefigure/{STALE}.svg",
+        f"prefigure/{STALE}-annotations.xml",
+        f"prefigure/tactile/{STALE}.pdf",
+        "prefigure/notes.txt",
+        f"journal/{STALE}.sty",
+    ]:
+        path = cache_dir / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x")
+
+
+def test_prune_cache_removes_only_stale_files(tmp_path: Path) -> None:
+    """prune_cache removes stale hash-named files (including in subdirectories), keeps every format of live hashes, and ignores directories of non-asset caches."""
+    _populate_cache(tmp_path)
+    live = {"latex-image": {LIVE}, "prefigure": set()}
+    removed = generate.prune_cache(tmp_path, live)
+    assert {p.relative_to(tmp_path).as_posix() for p in removed} == {
+        f"latex-image/{STALE}.svg",
+        f"prefigure/{STALE}.svg",
+        f"prefigure/{STALE}-annotations.xml",
+        f"prefigure/tactile/{STALE}.pdf",
+    }
+    assert all(not p.exists() for p in removed)
+    for kept in [
+        f"latex-image/{LIVE}.svg",
+        f"latex-image/{LIVE}.eps",
+        "prefigure/notes.txt",
+        f"journal/{STALE}.sty",
+    ]:
+        assert (tmp_path / kept).exists()
+
+
+def test_prune_cache_dry_run_removes_nothing(tmp_path: Path) -> None:
+    """With dry_run, prune_cache reports stale files but leaves them in place."""
+    _populate_cache(tmp_path)
+    removed = generate.prune_cache(
+        tmp_path, {"latex-image": {LIVE}, "prefigure": set()}, dry_run=True
+    )
+    assert len(removed) == 4
+    assert all(p.exists() for p in removed)
