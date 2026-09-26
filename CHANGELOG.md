@@ -13,6 +13,22 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 - `pretext prune-cache` command to remove stale cached assets from the cache directory.
 - Old timestamped run logs in a project's `logs` folder are now removed automatically, keeping only recent ones.
+- Slides in reveal.js and Beamer slideshows can show PreTeXt numbers, controlled by the new `@slide-numbering` publisher attribute. Blocks in a `slideshow` are now numbered without restarting in each `section`.
+- Runestone `cardsort` cards can include `feedback` (experimental).
+- The HTML output detects when MathJax fails to load and reports it (including to Runestone).
+
+### Fixed
+
+- LaTeX counters for distinct figure, project, exercise, and open problem numbering now have hyphen-free names, and a subfigure's full number comes from its figure's counter.
+- PreFigure tactile builds no longer delete the SVG output or leave a stray SVG 1.1 copy behind.
+- In slideshows, punctuation after inline mathematics is kept when the mathematics is embedded.
+- XSL-FO output turns a keyboard apostrophe into a typographic apostrophe.
+- EPUB: plain title and subtitle in the package metadata and default cover image, correct math declarations in the manifest, and a warning when LaTeX fails to make the default cover image.
+
+### Changed
+
+- Each type of `exercise` now has a single name, used consistently in `rename`, `list-of`, and the publication file (for example, `html/knowl/@exercise-reading` replaces `@exercise-readingquestion`). Old names are deprecated and upgraded automatically.
+- German localization updated.
 
 ## [2.53.0] - 2026-09-17
 
