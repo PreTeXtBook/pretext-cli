@@ -157,6 +157,7 @@ jobs:
   #   release's CORE_COMMIT and publishes (which in turn updates PreTeXt-Plus).
   # - pretext-plus-build-full rebuilds its warm build image once the
   #   pretext-full docker image for this release is published.
+  # - pretext-plus-build (the lite build server) pins this release.
   # legacy-support releases are not propagated.
   dispatch-release:
     needs: deploy
@@ -186,3 +187,12 @@ jobs:
           repository: PreTeXtPlus/pretext-plus-build-full
           event-type: pretext-cli-release
           client-payload: '{"version": "${{ needs.deploy.outputs.version }}", "released_at": "${{ steps.released.outputs.at }}"}'
+
+      - name: Dispatch to pretext-plus-build
+        if: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN != '' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN }}
+          repository: PreTeXtPlus/pretext-plus-build
+          event-type: pretext-cli-release
+          client-payload: '{"version": "${{ needs.deploy.outputs.version }}"}'
