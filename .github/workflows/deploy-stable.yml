@@ -45,7 +45,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.branch }}
 
@@ -145,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
           repository: ${{ matrix.repo }}
@@ -171,7 +171,7 @@ jobs:
         run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch to pretext-tools
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
           repository: PreTeXtBook/pretext-tools
@@ -181,7 +181,7 @@ jobs:
       # PreTeXtPlus is a different organization, so this needs its own token.
       - name: Dispatch to pretext-plus-build-full
         if: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN != '' }}
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN }}
           repository: PreTeXtPlus/pretext-plus-build-full
@@ -190,7 +190,7 @@ jobs:
 
       - name: Dispatch to pretext-plus-build
         if: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN != '' }}
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN }}
           repository: PreTeXtPlus/pretext-plus-build
