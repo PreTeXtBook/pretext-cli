@@ -41,9 +41,11 @@ jobs:
     needs: tests
     name: Deploy to pypi
     runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.branch }}
 
@@ -70,9 +72,11 @@ jobs:
         run: uv run python scripts/build_package.py ${{ inputs.core-repo }}
 
       - name: Discover current version
+        id: version
         run: |
           uv run pretext --version
           echo "VERSION=$(uv run pretext --version)" >> $GITHUB_ENV
+          echo "version=$(uv run pretext --version)" >> $GITHUB_OUTPUT
 
       - name: Publish
         env:
@@ -141,9 +145,54 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v2
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.PUSH_CODESPACES }}
           repository: ${{ matrix.repo }}
           event-type: pretext-publish
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
+  # Downstream projects that should track each stable release:
+  # - pretext-tools re-pins its schemas and Instant Preview XSL to this
+  #   release's CORE_COMMIT and publishes (which in turn updates PreTeXt-Plus).
+  # - pretext-plus-build-full rebuilds its warm build image once the
+  #   pretext-full docker image for this release is published.
+  # - pretext-plus-build (the lite build server) pins this release.
+  # legacy-support releases are not propagated.
+  dispatch-release:
+    needs: deploy
+    if: ${{ inputs.branch == 'main' }}
+    runs-on: ubuntu-latest
+    env:
+      PRETEXT_PLUS_DISPATCH_TOKEN: ${{ secrets.PRETEXT_PLUS_DISPATCH_TOKEN }}
+    steps:
+      - name: Record release time
+        id: released
+        run: echo "at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch to pretext-tools
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ secrets.PUSH_CODESPACES }}
+          repository: PreTeXtBook/pretext-tools
+          event-type: pretext-cli-release
+          client-payload: '{"version": "${{ needs.deploy.outputs.version }}"}'
+
+      # PreTeXtPlus is a different organization, so this needs its own token.
+      - name: Dispatch to pretext-plus-build-full
+        if: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN != '' }}
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN }}
+          repository: PreTeXtPlus/pretext-plus-build-full
+          event-type: pretext-cli-release
+          client-payload: '{"version": "${{ needs.deploy.outputs.version }}", "released_at": "${{ steps.released.outputs.at }}"}'
+
+      - name: Dispatch to pretext-plus-build
+        if: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN != '' }}
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ env.PRETEXT_PLUS_DISPATCH_TOKEN }}
+          repository: PreTeXtPlus/pretext-plus-build
+          event-type: pretext-cli-release
+          client-payload: '{"version": "${{ needs.deploy.outputs.version }}"}'
