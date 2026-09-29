@@ -82,15 +82,13 @@
   </common>
 
 
-  <!-- Set where external assets and generated assets will be   -->
-  <!-- stored or created.  Directories are relative to the main -->
-  <!-- source PreTeXt file.  Note that declaring the external   -->
-  <!-- directory here is deprecated: it is a fact of your       -->
-  <!-- source, and belongs on directories/@external inside      -->
-  <!-- docinfo.  It is still honored while docinfo is silent.   -->
+  <!-- Set where generated assets will be created.  The directory is -->
+  <!-- relative to the main source PreTeXt file.  The companion      -->
+  <!-- external directory is a fact of your source and is declared   -->
+  <!-- with directories/@external inside docinfo, not here.          -->
   <source>
-    <!-- Paths to folders containing external assets and generated assets -->
-    <!-- relative to your main source file.                               -->
+    <!-- Path to the folder holding generated assets, relative to -->
+    <!-- your main source file.                                   -->
     <directories generated="../generated-assets" />
 
     <!-- Set which marked elements are included in this version.  The value -->
@@ -211,13 +209,16 @@
 
   <!-- Options for the experimental conversion that produces PDF directly -->
   <!-- from XSL-FO, with no LaTeX stage.  @font selects the text and      -->
-  <!-- monospace fonts; "latin-modern" is the only value at present.      -->
+  <!-- monospace fonts: "latin-modern" (the default, matching the LaTeX   -->
+  <!-- conversion) or "alegreya" (a book face for text-heavy documents).  -->
     <!--<pdf font="latin-modern" />-->
 
-  <!-- Options for html output.                                        -->
+  <!-- Options for html output.                                         -->
   <!-- @short-answer-responses is "graded" (the default, show a         -->
   <!--   response area only when it can be scored) or "always".         -->
-  <!-- @favicon is "none" (the default) or "simple".                    -->
+  <!-- @favicon is "none" (the default), "simple", or "svg".            -->
+  <!-- @read-aloud is "yes" (the default) or "no"; it gives readers     -->
+  <!--   controls to have the browser read a page aloud.                -->
   <!-- @embed-button is "no" (the default) or "yes" to offer a button   -->
   <!--   that copies an iframe snippet for your website or LMS.         -->
   <!-- @design-width is an integer, default 600, used as the base when  -->
@@ -228,6 +229,7 @@
     <html
           short-answer-responses="graded"
           favicon="none"
+          read-aloud="yes"
           embed-button="no"
           design-width="600"
       >
@@ -264,7 +266,7 @@
         exercise-inline="yes"
         exercise-divisional="no"
         exercise-worksheet="no"
-        exercise-readingquestion="no"
+        exercise-reading="no"
       />-->
 
     <!-- The theme controls the look of the html.  Which extra attributes -->
@@ -316,9 +318,9 @@
     <!-- "none" (the default), geogebra-classic, geogebra-graphing,     -->
     <!-- geogebra-geometry, or geogebra-3d.  @activecode opens an       -->
     <!-- ActiveCode window for a language: python, javascript, html,    -->
-    <!-- sql, or (on a Runestone server only) c, cpp, java, kotlin,     -->
-    <!-- python3, octave.  The default is "none", except that "python"  -->
-    <!-- is the default when hosting on a Runestone server.             -->
+    <!-- sql, gdscript, or (on a Runestone server only) c, cpp, java,   -->
+    <!-- kotlin, python3, octave.  The default is "none", except that   -->
+    <!-- "python" is the default when hosting on a Runestone server.    -->
       <!--<calculator model="none" activecode="none" />-->
 
     <!-- A third-party annotation service on every page.  @platform is -->
@@ -328,7 +330,7 @@
     <!-- Set the base URL of where the online version is hosted to have -->
     <!-- links in other formats.  The value is a directory, so it       -->
     <!-- should end with a slash.                                       -->
-      <baseurl href="https://changetomywebsite.org"/>
+      <baseurl href="https://changetomywebsite.org/"/>
 
     <!-- An image in the upper-left corner of every page's banner.       -->
     <!-- @source (required) locates the image in your external assets    -->
@@ -358,11 +360,14 @@
     <!-- is "fixed-height" (the default; a horizontal scrollbar appears -->
     <!-- when content is too wide) or "responsive" (resizes to keep its -->
     <!-- aspect ratio).  Child elements named for an interactive type   -->
-    <!-- override the global setting; the known types are calcplot3d,   -->
-    <!-- circuitjs, d3, desmos, doenetml, geogebra, iframe, javascript, -->
-    <!-- jsxgraph, and sage.                                            -->
+    <!-- override the global setting, as the geogebra entry below does; -->
+    <!-- the known types are calcplot3d, circuitjs, d3, desmos,         -->
+    <!-- doenetml, geogebra, iframe, javascript, jsxgraph, and sage.    -->
+    <!-- The geogebra entry also takes @play-button, "no" (the default) -->
+    <!-- or "yes" to show a preview image in place of each applet, and  -->
+    <!-- start the applet only when a reader presses play.              -->
       <!--<interactives resize-behavior="fixed-height">
-        <geogebra resize-behavior="responsive"/>
+        <geogebra resize-behavior="responsive" play-button="no"/>
       </interactives>-->
 
     <!-- Control behavior of online WeBWorK, per type.  Each attribute -->
@@ -405,11 +410,12 @@
             /> -->
   </html>
 
-  <epub>
-    <!-- The cover element takes a @front attribute naming a cover image, -->
-    <!-- as a path relative to your external assets directory.            -->
-      <!-- <cover front="cover.jpg"/> -->
-  </epub>
+  <!-- EPUB options.  The cover element takes a @front attribute naming -->
+  <!-- a cover image, as a path relative to your external assets        -->
+  <!-- directory.                                                       -->
+    <!--<epub>
+      <cover front="cover.jpg"/>
+    </epub>-->
 
   <!-- Conversion to Jupyter notebooks.  @kernel names the kernel that -->
   <!-- runs the code cells: "sagemath" (the default) or "python3".     -->

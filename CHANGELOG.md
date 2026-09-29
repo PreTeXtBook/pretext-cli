@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Changed
+
+- Template publication files use the new `html/knowl/@exercise-reading` name (formerly `@exercise-readingquestion`), and their comments now list current defaults and values, including `read-aloud`, GeoGebra `play-button`, `slide-numbering`, and Beamer options.
+
+### Fixed
+
+- The course template's `denver` theme now sets its main color with `color-main`; the `primary-color` it used before is ignored by that theme.
+
 ## [2.54.0] - 2026-09-26
 
 Includes updates to core through commit: [20d1054](https://github.com/PreTeXtBook/pretext/commit/20d10545401ca7b4fa820d59b78de6e88f8dce6b)
