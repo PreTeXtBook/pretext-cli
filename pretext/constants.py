@@ -174,7 +174,7 @@ ASSET_TO_XPATH = {
     "qrcode": ".//audio[@source|@href]|.//video[@source|@href|@youtube|@youtubeplaylist|@vimeo]|.//interactive|.//program[@interactive]",
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
-    "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
+    "dynamic-subs": ".//fillin[@ansobj] | .//eval[@obj]",
     "references": ".//biblio",
     "stack": ".//stack",
     "gdscript": ".//program[@pck]",
