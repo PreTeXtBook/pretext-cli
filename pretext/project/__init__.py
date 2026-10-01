@@ -699,6 +699,15 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 base_url = self._read_publication_file_subset().baseurl
                 if base_url is not None:
                     hash.update(base_url.encode("utf-8"))
+            # For dynamic substitutions, the values come from the setup code, so
+            # we hash it too. (It can't go in the xpath, since a setup alone
+            # doesn't require the substitutions file.)
+            if asset == "dynamic-subs":
+                setups = self.source_element().xpath(".//setup")
+                assert isinstance(setups, t.List)
+                for node in setups:
+                    assert isinstance(node, ET._Element)
+                    hash.update(ET.tostring(node))
             # Finally, we store the hash as a string in the dictionary.
             asset_hash_dict[asset] = hash.hexdigest()
         return asset_hash_dict
