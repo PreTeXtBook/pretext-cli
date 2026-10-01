@@ -9,9 +9,15 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- Formatted references are now a generated asset like any other, built when needed and regenerated when the bibliography, the citations, or the chosen style changes. `pretext generate references` is no longer a debugging-only step.
+- A `citations` optional dependency (also part of `all`) installs `citeproc-py-styles`, which supplies the Citation Style Language (CSL) styles that journals use: `pip install pretext[citations]`.
+
 ### Changed
 
 - Template publication files use the new `html/knowl/@exercise-reading` name (formerly `@exercise-readingquestion`), and their comments now list current defaults and values, including `read-aloud`, GeoGebra `play-button`, `slide-numbering`, and Beamer options.
+- Naming a supported `journal` in the publication file now selects that journal's CSL style, so PreTeXt formats references and citations in every output format instead of BibTeX. These styles need `citeproc-py-styles` (see above); without it, references fall back to default formatting. Choose a different style with `common/citation-stylesheet-language/@style`.
 
 ### Fixed
 

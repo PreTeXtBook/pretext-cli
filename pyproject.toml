@@ -53,7 +53,12 @@ pretext = "pretext.cli:main"
 [project.optional-dependencies]
 homepage = ["pelican[markdown]>=4.10,<5"]
 prefigure = ["prefig[text]>=0.7.4,<0.8"]
-all = ["pelican[markdown]>=4.10,<5", "prefig[text]>=0.7.4,<0.8"]
+citations = ["citeproc-py-styles>=0.1,<0.2"]
+all = [
+    "pelican[markdown]>=4.10,<5",
+    "prefig[text]>=0.7.4,<0.8",
+    "citeproc-py-styles>=0.1,<0.2",
+]
 
 # Development dependencies
 # ------------------------

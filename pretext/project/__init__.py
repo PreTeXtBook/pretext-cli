@@ -539,40 +539,45 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         def first(xpath: str) -> t.Optional[str]:
             values = publication.xpath(xpath)
             assert isinstance(values, t.List)
-            return str(values[0]) if values else None
+            value = str(values[0]).strip() if values else ""
+            return value or None
 
         return (
             first("/publication/common/journal/@name"),
             first("/publication/common/citation-stylesheet-language/@style"),
         )
 
-    def note_csl_file_state(self) -> None:
+    def journal_csl_style(self, journal: str) -> t.Optional[str]:
         """
-        Record whether the generated file of formatted references and
-        citations is on disk, for the stylesheets to consult.
-
-        XSLT cannot ask, and libxslt evaluates every global variable at
-        the start of a transformation -- including the one that opens
-        this file.  So any pass at all, a syntax check as much as a
-        conversion, aborts outright on a project that has opted into CSL
-        styles but has yet to generate its references.  Saying plainly
-        that the file is absent turns that into a warning and a fall back
-        to default bibliography handling.
-
-        Cheap enough (one stat) to repeat whenever the answer may have
-        changed, which it does the moment references are generated.
+        The CSL style a journal supplies, from core's list of supported
+        journals, or None for a journal without one (or an unknown one).
+        Journal codes are matched regardless of case, as core does.
         """
-        csl_file = self.generated_dir_abspath() / "references" / "csl-bibliography.xml"
-        self.stringparams["csl.file.missing"] = "" if csl_file.exists() else "yes"
+        journals_xml = (
+            resources.resource_base_path() / "core" / "journals" / "journals.xml"
+        )
+        try:
+            journals = ET.parse(journals_xml)
+        except Exception as e:
+            log.debug(f"Unable to read the list of journals: {e}", exc_info=True)
+            return None
+        styles = journals.xpath(
+            "/ptx-journals/journal[code = $code]/citation-stylesheet-language/@style",
+            code=journal.lower(),
+        )
+        assert isinstance(styles, t.List)
+        return str(styles[0]) if styles else None
 
     def publication_uses_csl(self) -> bool:
         """
         Whether the publication file opts into CSL styles for references
         and citations, by naming a style outright or a journal that
-        implies one.
+        supplies one.
         """
         journal, csl_style = self.publication_csl_settings()
-        return (journal is not None) or (csl_style is not None)
+        if csl_style is not None:
+            return True
+        return journal is not None and self.journal_csl_style(journal) is not None
 
     def output_dir_abspath(self) -> Path:
         if self.is_standalone() and self.output_dir is None:
@@ -1038,9 +1043,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 
-        # Before the source is assembled for the first time below.
-        self.note_csl_file_state()
-
         # Check for xml syntax errors and quit if xml invalid:
         try:
             # Access the source_element to trigger assembly if it hasn't been done yet.
@@ -1066,31 +1068,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Generate needed assets unless requested not to.
         if generate:
             self.generate_assets(xmlid=xmlid, clean_tmp_dirs=clean_tmp_dirs)
-
-        # A journal named in the publication file supplies the CSL style for
-        # bibliographies and citations.  Core resolves that into a stringparam
-        # here, once, so every format's conversion agrees with the generated
-        # references about which style is in force.  A style named in the
-        # publication file outranks the journal's, and core says so.
-        #
-        # This must follow generation, not precede it.  Resolving the style
-        # also records whether the generated references file is on disk, and
-        # generation is what puts it there: asked any earlier, the answer
-        # would be "absent" and every conversion below would fall back to
-        # default bibliography handling despite the file now existing.
-        self.note_csl_file_state()
-        if self.publication_uses_csl():
-            try:
-                core.get_csl_style(
-                    xml=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams,
-                )
-            except Exception as e:
-                log.error(
-                    f"Unable to determine the journal's bibliography style:\n {e}"
-                )
-                log.debug(e, exc_info=True)
 
         # Ensure the output directories exist.
         self.ensure_output_directory()
@@ -1327,10 +1304,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         """
         log.info("Generating any needed assets.")
 
-        # Generation runs on its own as well as from a build, and the schema
-        # check just below assembles the source.
-        self.note_csl_file_state()
-
         # Warn about schema errors here too, since assets are often generated
         # without a build.  A no-op when a build already ran the check.
         self.check_schema()
@@ -1400,7 +1373,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 log.warning(
                     "References are rendered with a Citation Style Language (CSL) style, "
                     "which this project has not asked for.  Name a style as "
-                    "`citation-stylesheet-language/@style`, or a journal as `journal/@name`, "
+                    "`citation-stylesheet-language/@style`, or a journal that has one as `journal/@name`, "
                     "in the publication file's `common` element.  No references will be generated."
                 )
             requested_asset_types.remove("references")
@@ -1694,7 +1667,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             except Exception as e:
                 log.error(f"Unable to generate some datafiles:\n {e}")
                 log.debug(e, exc_info=True)
-        # The following code will eventually be needed, but for now, we leave as a placeholder.
         if "references" in assets_to_generate:
             try:
                 core.references(

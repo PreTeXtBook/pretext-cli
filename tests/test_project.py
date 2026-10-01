@@ -15,6 +15,7 @@ example projects in ``tests/examples/projects``:
 The CLI equivalents of these behaviors are tested in ``test_cli.py``.
 """
 
+import importlib.util
 import time
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,6 @@ import shutil
 import pydantic
 import pytest
 
-from pretext import core
 from pretext import project as pr
 from pretext import utils
 from pretext.resources import resource_base_path
@@ -982,12 +982,11 @@ def test_stage(tmp_path: Path) -> None:
         shutil.rmtree(project.stage_abspath())
 
 
-# The journal bibliography feature needs a core that can resolve a journal
-# name into a Citation Style Language style.  Until that core is the one
-# vendored here, these skip rather than fail.
-requires_core_csl = pytest.mark.skipif(
-    not hasattr(core, "get_csl_style"),
-    reason="vendored core does not resolve journal bibliography styles yet",
+# Formatting references needs the journals' Citation Style Language styles,
+# which come from the optional "citeproc-py-styles" package.
+requires_csl_styles = pytest.mark.skipif(
+    importlib.util.find_spec("citeproc_styles") is None,
+    reason="citeproc-py-styles is not installed",
 )
 
 
@@ -1013,11 +1012,20 @@ def test_publication_csl_settings(tmp_path: Path) -> None:
         assert target.publication_csl_settings() == (None, "harvard1")
         assert target.publication_uses_csl()
 
-        # neither: the feature stays out of the way
+        # a journal without a style of its own does not opt in
         publication.write_text(
             publication.read_text().replace(
-                '<citation-stylesheet-language style="harvard1"/>', ""
+                '<citation-stylesheet-language style="harvard1"/>',
+                '<journal name="electron-j-combin"/>',
             )
+        )
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == ("electron-j-combin", None)
+        assert not target.publication_uses_csl()
+
+        # neither: the feature stays out of the way
+        publication.write_text(
+            publication.read_text().replace('<journal name="electron-j-combin"/>', "")
         )
         target = pr.Project.parse().get_target("web")
         assert target.publication_csl_settings() == (None, None)
@@ -1086,7 +1094,7 @@ def test_references_need_opting_in(tmp_path: Path) -> None:
         assert not (target.generated_dir_abspath() / "references").exists()
 
 
-@requires_core_csl
+@requires_csl_styles
 def test_journal_selects_bibliography_style(tmp_path: Path) -> None:
     """Naming a journal formats the bibliography in that journal's style,
     with no other setting: the generated file records the style, and the
@@ -1097,21 +1105,12 @@ def test_journal_selects_bibliography_style(tmp_path: Path) -> None:
         target = pr.Project.parse().get_target("web")
         target.build()
 
-        # "bull-amer-math-soc" has no style of its own; it inherits the one
-        # belonging to the AMS texstyle file it extends.
         generated = (
             target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
         )
         assert 'csl-style-file="american-mathematical-society-numeric"' in (
             generated.read_text()
         )
-
-        # the style file itself is fetched once and kept
-        assert (
-            target.generated_dir_abspath()
-            / "csl"
-            / "american-mathematical-society-numeric.csl"
-        ).exists()
 
         # numeric citations, in a style that orders entries by citation
         references = (
@@ -1122,7 +1121,7 @@ def test_journal_selects_bibliography_style(tmp_path: Path) -> None:
         assert "[1]" in section
 
 
-@requires_core_csl
+@requires_csl_styles
 def test_publisher_style_outranks_journal(tmp_path: Path) -> None:
     """A style named in the publication file is used in place of the one the
     journal would supply."""
