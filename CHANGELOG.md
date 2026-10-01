@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.55.0] - 2026-10-01
+
+Includes updates to core through commit: [ee0a7e1](https://github.com/PreTeXtBook/pretext/commit/ee0a7e135e3346f0b0c6192822d6942424cb4af0)
+
 ### Added
 
 - HTML printouts have font choices and font resizing in the printing options dialog, for accessibility.
