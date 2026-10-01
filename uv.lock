@@ -194,6 +194,19 @@ wheels = [
 ]
 
 [[package]]
+name = "citeproc-py-styles"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8f/c9/88cdec9fccaea98f97a23b0c8826b3824f8c878ba84dfd4a17dd667d7541/citeproc_py_styles-0.1.6.tar.gz", hash = "sha256:6499914e1425f2d7275f15d8c8417982314b5b79c1b63a9669719fdaeb833169", size = 6348333, upload-time = "2026-07-07T22:20:37.855Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/d4/c58e3bf20e37fadaae939d9f98fe90ca37f219ec6a1765aacd4af19396dc/citeproc_py_styles-0.1.6-py2.py3-none-any.whl", hash = "sha256:f1720fe9004c88ea9117a7312e9f44e5753cf5436a995b56f77297aaee03590a", size = 15543542, upload-time = "2026-07-07T22:20:34.996Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1379,9 +1392,13 @@ dependencies = [
 
 [package.optional-dependencies]
 all = [
+    { name = "citeproc-py-styles" },
     { name = "pelican", version = "4.11.0.post0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version < '3.11'" },
     { name = "pelican", version = "4.12.0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version >= '3.11'" },
     { name = "prefig", extra = ["text"] },
+]
+citations = [
+    { name = "citeproc-py-styles" },
 ]
 homepage = [
     { name = "pelican", version = "4.11.0.post0", source = { registry = "https://pypi.org/simple" }, extra = ["markdown"], marker = "python_full_version < '3.11'" },
@@ -1410,6 +1427,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "citeproc-py", specifier = ">=0,<1" },
+    { name = "citeproc-py-styles", marker = "extra == 'all'", specifier = ">=0.1,<0.2" },
+    { name = "citeproc-py-styles", marker = "extra == 'citations'", specifier = ">=0.1,<0.2" },
     { name = "click", specifier = ">=8,<9" },
     { name = "click-log", specifier = ">=0.4,<0.5" },
     { name = "coloraide", specifier = ">=4,<5" },
@@ -1431,7 +1450,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2,<3" },
     { name = "single-version", specifier = ">=1,<2" },
 ]
-provides-extras = ["homepage", "prefigure", "all"]
+provides-extras = ["homepage", "prefigure", "citations", "all"]
 
 [package.metadata.requires-dev]
 dev = [
