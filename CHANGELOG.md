@@ -11,6 +11,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Added
 
+- HTML printouts have font choices and font resizing in the printing options dialog, for accessibility.
 - Formatted references are now a generated asset like any other, built when needed and regenerated when the bibliography, the citations, or the chosen style changes. `pretext generate references` is no longer a debugging-only step.
 - A `citations` optional dependency (also part of `all`) installs `citeproc-py-styles`, which supplies the Citation Style Language (CSL) styles that journals use: `pip install pretext[citations]`.
 
@@ -19,9 +20,20 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 - Template publication files use the new `html/knowl/@exercise-reading` name (formerly `@exercise-readingquestion`), and their comments now list current defaults and values, including `read-aloud`, GeoGebra `play-button`, `slide-numbering`, and Beamer options.
 - Naming a supported `journal` in the publication file now selects that journal's CSL style, so PreTeXt formats references and citations in every output format instead of BibTeX. These styles need `citeproc-py-styles` (see above); without it, references fall back to default formatting. Choose a different style with `common/citation-stylesheet-language/@style`.
 
+
 ### Fixed
 
 - The course template's `denver` theme now sets its main color with `color-main`; the `primary-color` it used before is ignored by that theme.
+- HTML printouts paginate better: no page opens with blank writing space or a lone footnote, page breaks look past hidden solutions, changing the paper size takes effect when solutions are shown or hidden, and Safari no longer prints blank pages.
+- Google Fonts whose family names contain spaces now load.
+- Fill-in-the-blank exercises read the dynamic substitutions file only when something will be substituted.
+- Missing or mismatched generated references now leave citations as authored, rather than breaking the build.
+- Journal LaTeX: the required files for the probability and statistics journal (a zip archive) are unpacked, and the Springer Nature link is updated.
+
+### Changed
+
+- Template publication files use the new `html/knowl/@exercise-reading` name (formerly `@exercise-readingquestion`), and their comments now list current defaults and values, including `read-aloud`, GeoGebra `play-button`, `slide-numbering`, and Beamer options.
+- Naming a supported `journal` in the publication file now selects that journal's Citation Style Language (CSL) style, so PreTeXt formats the references instead of BibTeX. Choose a different style with `common/citation-stylesheet-language/@style`, now in the publication schema.
 
 ## [2.54.0] - 2026-09-26
 
