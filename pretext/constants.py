@@ -185,7 +185,7 @@ ASSET_TO_XPATH = {
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
     "dynamic-subs": ".//fillin[@ansobj] | .//eval[@obj]",
-    "references": ".//biblio",
+    "references": ".//biblio|.//xref",
     "stack": ".//stack",
     "gdscript": ".//program[@pck]",
 }
