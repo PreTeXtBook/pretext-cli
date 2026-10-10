@@ -774,6 +774,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # name stays put, is caught instead by the assembly-time check
             # against the style stamped on the generated file.)
             if asset == "references":
+                citations = self.source_element().xpath(
+                    ".//xref[@ref = //biblio/@xml:id]"
+                )
+                assert isinstance(citations, t.List)
+                for node in citations:
+                    assert isinstance(node, ET._Element)
+                    hash.update(ET.tostring(node))
                 for setting in self.publication_csl_settings():
                     if setting is not None:
                         hash.update(setting.encode("utf-8"))
