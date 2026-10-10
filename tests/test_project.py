@@ -1005,17 +1005,17 @@ def test_publication_csl_settings(tmp_path: Path) -> None:
         publication.write_text(
             publication.read_text().replace(
                 '<journal name="bull-amer-math-soc"/>',
-                '<citation-stylesheet-language style="harvard1"/>',
+                '<citation-stylesheet-language style="harvard-cite-them-right"/>',
             )
         )
         target = pr.Project.parse().get_target("web")
-        assert target.publication_csl_settings() == (None, "harvard1")
+        assert target.publication_csl_settings() == (None, "harvard-cite-them-right")
         assert target.publication_uses_csl()
 
         # a journal without a style of its own does not opt in
         publication.write_text(
             publication.read_text().replace(
-                '<citation-stylesheet-language style="harvard1"/>',
+                '<citation-stylesheet-language style="harvard-cite-them-right"/>',
                 '<journal name="electron-j-combin"/>',
             )
         )
@@ -1132,7 +1132,7 @@ def test_publisher_style_outranks_journal(tmp_path: Path) -> None:
         publication.read_text().replace(
             '<journal name="bull-amer-math-soc"/>',
             '<journal name="bull-amer-math-soc"/>'
-            '<citation-stylesheet-language style="harvard1"/>',
+            '<citation-stylesheet-language style="harvard-cite-them-right"/>',
         )
     )
     with utils.working_directory(prj_path):
@@ -1141,4 +1141,4 @@ def test_publisher_style_outranks_journal(tmp_path: Path) -> None:
         generated = (
             target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
         )
-        assert 'csl-style-file="harvard1"' in generated.read_text()
+        assert 'csl-style-file="harvard-cite-them-right"' in generated.read_text()
