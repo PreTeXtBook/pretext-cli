@@ -61,6 +61,31 @@ python ./scripts/symlink_core.py /path/to/pretext
 
 Now any changes you make the python script, xsl, css, js, or schema in the pretext repository will be reflected in the CLI (just stay in the activated virtual environment).
 
+To check whether the CLI is currently linked, run
+
+```bash
+uv run python -c "from pathlib import Path; print(Path('pretext/core/pretext.py').is_symlink())"
+```
+
+which prints `True` when the CLI is using your local pretext repository.
+
+### On Windows
+
+Windows only lets ordinary users create symbolic links when Developer Mode is turned on (Settings → System → For developers → Developer Mode). Without it, `symlink_core.py` fails with `OSError: [WinError 1314] A required privilege is not held by the client`. Either turn on Developer Mode (recommended, and needed only once) or run the script from a terminal opened with "Run as administrator".
+
+The commands in this guide work in PowerShell, Command Prompt, or Git Bash, except for activating the virtual environment, which is `.venv\Scripts\activate` on Windows. If `python` opens the Microsoft Store or is not found, use `uv run python` (or `py`) instead.
+
+#### Using Claude Code (or another coding agent) on Windows
+
+The pretext repository has `AGENTS.md` files (read by Claude Code through its `CLAUDE.md`) that tell an agent how to validate and build, with commands like `python3 pretext/pretext -V full ... -d /tmp/sa-check ...`. On Windows, Claude Code runs these commands in Git Bash, which understands the `/tmp` paths and the `(cd ... && npm ...)` syntax. The one command that usually fails is `python3`: it is often missing or opens the Microsoft Store, and an agent that hits this tends to waste time looking for a working Python. Tell the agent which Python to use in a `CLAUDE.local.md` file at the root of your pretext checkout. The pretext repository gitignores that file and Claude Code reads it alongside the shared instructions. The virtual environment created for the CLI is a good choice, since it already has the packages core needs (all except `nbformat`, which is used only for Jupyter notebook output). For example:
+
+```markdown
+This is a Windows machine; shell commands run in Git Bash.
+Wherever the instructions say `python3`, use `../pretext-cli/.venv/Scripts/python.exe` instead.
+```
+
+You can also note where `jing`, `xsltproc`, and `trang` are installed, or say that they are not, so the agent skips those checks rather than trying to install them. To apply the same notes in every repository on that computer, put them in `~/.claude/CLAUDE.md` (your user folder's `.claude\CLAUDE.md`) instead.
+
 ## Unlinking the core resources
 
 To go back to using the version of core resources specified in the `CORE_COMMIT` file, you can run the following command:

@@ -14,7 +14,8 @@ def main(core_path: Path = Path("../pretext")) -> None:
     # Remove the current link or directory
     utils.remove_path(link_path)
     # Create a symlink to the core directory
-    link_path.symlink_to(core_path)
+    # target_is_directory is required on Windows; it is ignored elsewhere
+    link_path.symlink_to(core_path, target_is_directory=True)
 
     source_core_lib_path = core_path / "pretext" / "lib"
     local_core_path = Path("pretext").resolve() / "core"
