@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.56.0] - 2026-10-20
+
+Includes updates to core through commit: [da19341](https://github.com/PreTeXtBook/pretext/commit/da193419f0746242287b2358094a496029ca9671)
+
 ### Added
 
 - A CSL `biblio` accepts nine more fields: `container-title-short`, `collection-number`, `event`, `version`, `number-of-volumes`, `chapter-number`, `archive`, `archive_location`, and `status`. Citation styles use them, and default formatting shows them too.
