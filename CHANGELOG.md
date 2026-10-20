@@ -9,6 +9,26 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- A CSL `biblio` accepts nine more fields: `container-title-short`, `collection-number`, `event`, `version`, `number-of-volumes`, `chapter-number`, `archive`, `archive_location`, and `status`. Citation styles use them, and default formatting shows them too.
+- Runestone builds include a template where Runestone places `eBookConfig` overrides.
+
+### Fixed
+
+- Image descriptions in HTML and EPUB span 80% of the available width instead of being squeezed by a narrow image. In the enlarged-image dialog, the description stays with the image and the close button is always visible.
+- Appendages of an open problem, such as a discussion, are headed with their numbers in HTML, and XSL-FO prints the appendages of an open problem's `task`.
+- XSL-FO: wide `tabular` columns keep room for their longest word, formulas in cells are measured by their rendered width, and a `creator` or `origins` no longer stops a heading from running in. The first paragraph of a list item and the first line of a footnote are not indented, and a display inside an indented paragraph is centered.
+- LaTeX: the cross-reference font applies to every number in a cross-reference's text.
+- References formatted with a CSL style no longer break when a `biblio` field cannot be converted.
+
+### Changed
+
+- Hybrid cross-references to a `task` or list item shorten the number of its container, and include a part number only when the reference crosses parts. Within its `exercise`, a reference to a `task` reads like "(b.ii)", and a reference by serial number alone reads like "(a)".
+- A list item inside an `exercise` no longer takes a number from the `exercise`, and global-phrase text for an item of a named `list` always names the list.
+- The `salem` HTML theme defaults `html/@design-width` to 725. EPUB, reveal.js, and Jupyter output always use a design width of 600, whatever the HTML theme.
+- Runestone builds warn when a chapter or subchapter has no `@label`, since its ID would then be constructed.
+
 ## [2.55.0] - 2026-10-01
 
 Includes updates to core through commit: [ee0a7e1](https://github.com/PreTeXtBook/pretext/commit/ee0a7e135e3346f0b0c6192822d6942424cb4af0)
