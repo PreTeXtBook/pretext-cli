@@ -863,6 +863,39 @@ def test_latex_build(tmp_path: Path) -> None:
         assert (prj_path / "output" / "tex" / "main.tex").exists()
 
 
+def test_latex_build_output_filename(tmp_path: Path) -> None:
+    """A latex-format target with an output-filename writes its .tex under
+    that name, not the source's."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.new_target("tex", "latex", output_filename="book.tex")
+        target.build()
+        assert (prj_path / "output" / "tex" / "book.tex").exists()
+        assert not (prj_path / "output" / "tex" / "main.tex").exists()
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+def test_pdf_latex_source_output_filename(tmp_path: Path) -> None:
+    """A pdf target that keeps its LaTeX source still names its PDF by
+    output-filename."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "book", "pdf", output_filename="book.pdf", latex_source="yes"
+        )
+        target.build()
+        assert (prj_path / "output" / "book" / "book.pdf").exists()
+        assert not (prj_path / "output" / "book" / "main.pdf").exists()
+        assert (prj_path / "output" / "book" / "main.tex").exists()
+
+
 @pytest.mark.skipif(
     not HAS_XELATEX,
     reason="Skipped since xelatex isn't found (needed for the epub cover).",

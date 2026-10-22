@@ -12,6 +12,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Fixed
 
 - An interrupted build no longer leaves a partially copied file in the generated-asset cache, which later builds would have reused. Cached assets and the asset table are now written to a temporary file and renamed into place.
+- A target's `output-filename` is now honored for `latex` targets, and for `pdf` and `beamer` targets built with `--latex` or `latex-source="yes"`. These builds had named the file after the source instead.
+- A `beamer` target now honors `latex-source="yes"`, as a `pdf` target does.
 
 ## [2.56.0] - 2026-10-20
 

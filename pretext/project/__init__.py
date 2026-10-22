@@ -1168,6 +1168,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         outputs="all" if latex else "pdf-only",
                         latex_format="latex",
                     )
+                    if latex:
+                        self._rename_build_directory_output(".pdf")
             elif self.format == Format.LATEX:
                 core.pdf(
                     xml=self.source_abspath(),
@@ -1180,6 +1182,7 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     outputs="prebuild",
                     latex_format="latex",
                 )
+                self._rename_build_directory_output(".tex")
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
                 core.epub(
@@ -1225,6 +1228,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
             elif self.format == Format.BEAMER:
+                if self.latex_source:
+                    latex = True
                 core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -1236,6 +1241,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     outputs="all" if latex else "pdf-only",
                     latex_format="beamer",
                 )
+                if latex:
+                    self._rename_build_directory_output(".pdf")
             elif self.format == Format.BRAILLE:
                 log.warning(
                     "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
@@ -1283,6 +1290,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 "Unable to release temporary directories.  Please report this error to pretext-support"
             )
             log.debug(e, exc_info=True)
+
+    def _rename_build_directory_output(self, suffix: str) -> None:
+        """
+        Core's `pdf` honors `out_file` only when it copies the PDF alone.  When it copies its whole build directory instead (`outputs` of `all` or `prebuild`), the main file keeps the source's name, so rename that file (the `.tex` for a latex target, otherwise the `.pdf`) to `output_filename`.
+        """
+        if self.output_filename is None:
+            return
+        built = self.output_dir_abspath() / (self.source_abspath().stem + suffix)
+        renamed = self.output_dir_abspath() / self.output_filename
+        if built == renamed:
+            return
+        log.debug(f"Renaming {built} to {renamed}")
+        renamed.parent.mkdir(parents=True, exist_ok=True)
+        built.replace(renamed)
 
     def generate_assets(
         self,
