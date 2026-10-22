@@ -14,6 +14,7 @@ import socketserver
 import socket
 import subprocess
 import time as time
+import uuid
 import logging
 import logging.handlers
 import psutil
@@ -753,6 +754,28 @@ def remove_path(path: Path) -> None:
         path.unlink()  # remove the file
     elif path.is_dir():
         shutil.rmtree(path)  # remove dir and all it contains
+
+
+@contextmanager
+def atomic_write(dest: Path) -> t.Iterator[Path]:
+    """
+    Yields a temporary path in dest's directory for the caller to write to.  When the block finishes, the temporary file is flushed to disk and renamed to dest, so dest only ever holds its old contents or the complete new file, never a partial one.  If the block raises (or is interrupted), the temporary file is removed and dest is left untouched.
+
+    Usage:
+    with atomic_write(dest) as tmp_path:
+        shutil.copy2(src, tmp_path)
+    """
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    # The temporary file must be on the same filesystem as dest for os.replace to be atomic.  Its name starts with "." and does not match the cache's hash-named files, so a leftover one (after a hard kill) is never mistaken for a cached asset.
+    tmp_path = dest.with_name(f".{dest.name}.{uuid.uuid4().hex[:8]}.tmp")
+    try:
+        yield tmp_path
+        with open(tmp_path, "rb+") as f:
+            os.fsync(f.fileno())
+        os.replace(tmp_path, dest)
+    except BaseException:
+        tmp_path.unlink(missing_ok=True)
+        raise
 
 
 def has_errors(mh: logging.handlers.MemoryHandler) -> bool:

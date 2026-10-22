@@ -294,3 +294,97 @@ def test_prune_cache_dry_run_removes_nothing(tmp_path: Path) -> None:
     )
     assert len(removed) == 4
     assert all(p.exists() for p in removed)
+
+
+def _interrupted_copy(src: Path, dst: Path) -> None:
+    """Simulate a copy that is killed partway through: write half the file, then interrupt."""
+    data = Path(src).read_bytes()
+    Path(dst).write_bytes(data[: len(data) // 2])
+    raise KeyboardInterrupt
+
+
+def test_copy_to_cache_writes_complete_file(tmp_path: Path) -> None:
+    """copy_to_cache creates the cache file (and its directory) and leaves no temporary files."""
+    output_file = tmp_path / "diagram.svg"
+    output_file.write_text("<svg>complete</svg>")
+    cache_file = tmp_path / "cache" / "asymptote" / f"{LIVE}.svg"
+    generate.copy_to_cache(output_file, cache_file)
+    assert cache_file.read_text() == "<svg>complete</svg>"
+    assert list(cache_file.parent.iterdir()) == [cache_file]
+
+
+def test_interrupted_copy_to_cache_leaves_no_cache_file(tmp_path: Path) -> None:
+    """An interrupted copy never leaves a partial file under the cached name, nor a temporary file behind."""
+    output_file = tmp_path / "diagram.svg"
+    output_file.write_text("<svg>complete</svg>")
+    cache_file = tmp_path / "cache" / f"{LIVE}.svg"
+    with patch("pretext.project.generate.shutil.copy2", side_effect=_interrupted_copy):
+        with pytest.raises(KeyboardInterrupt):
+            generate.copy_to_cache(output_file, cache_file)
+    assert not cache_file.exists()
+    assert list(cache_file.parent.iterdir()) == []
+
+
+def test_interrupted_copy_to_cache_keeps_existing_cache_file(tmp_path: Path) -> None:
+    """An interrupted overwrite leaves the previous cache file intact."""
+    output_file = tmp_path / "diagram.svg"
+    output_file.write_text("<svg>new</svg>")
+    cache_file = tmp_path / "cache" / f"{LIVE}.svg"
+    cache_file.parent.mkdir()
+    cache_file.write_text("<svg>old</svg>")
+    with patch("pretext.project.generate.shutil.copy2", side_effect=_interrupted_copy):
+        with pytest.raises(KeyboardInterrupt):
+            generate.copy_to_cache(output_file, cache_file)
+    assert cache_file.read_text() == "<svg>old</svg>"
+    assert list(cache_file.parent.iterdir()) == [cache_file]
+
+
+def test_interrupted_cache_copy_regenerates_on_next_build(tmp_path: Path) -> None:
+    """If saving a generated asset to the cache is interrupted, the next build regenerates the asset instead of reusing a partial cache file."""
+    asset_file = _make_asset_file(tmp_path, "diagram.asy")
+    dest_dir = tmp_path / "dest"
+    dest_dir.mkdir()
+    (tmp_path / "cache" / "asymptote").mkdir(parents=True)
+    calls = []
+
+    def fake_conversion(
+        asydiagram: str,
+        outformat: str,
+        method: str,
+        asy_cli: list,
+        asyversion: str,
+        alberta: str,
+        dest_dir: Path,
+    ) -> None:
+        calls.append(asydiagram)
+        (dest_dir / Path(asydiagram).with_suffix(".svg").name).write_text(
+            "<svg>complete</svg>"
+        )
+
+    def build() -> None:
+        generate.individual_asymptote(
+            asydiagram=str(asset_file),
+            outformat="svg",
+            method="server",
+            asy_cli=[],
+            asyversion="",
+            alberta="",
+            dest_dir=dest_dir,
+            cache_dir=tmp_path / "cache",
+        )
+
+    with patch(
+        "pretext.project.generate.core.individual_asymptote_conversion",
+        side_effect=fake_conversion,
+    ):
+        with patch(
+            "pretext.project.generate.shutil.copy2", side_effect=_interrupted_copy
+        ):
+            with pytest.raises(KeyboardInterrupt):
+                build()
+        build()
+    assert len(calls) == 2
+    cache_file = generate.cache_asset_filename(
+        asset_file, "svg", tmp_path / "cache" / "asymptote"
+    )
+    assert cache_file.read_text() == "<svg>complete</svg>"

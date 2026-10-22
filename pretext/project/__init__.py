@@ -786,10 +786,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Saves the asset_table to a json file in the generated assets directory
         based on the target name.
         """
-        with open(
-            self.generated_cache_abspath() / f".{self.name}_assets.json", "w"
-        ) as f:
-            json.dump(asset_table, f)
+        asset_table_file = self.generated_cache_abspath() / f".{self.name}_assets.json"
+        with utils.atomic_write(asset_table_file) as tmp_path:
+            with open(tmp_path, "w") as f:
+                json.dump(asset_table, f)
 
     def ensure_myopenmath_xml(self, clean_tmp_dirs: bool = True) -> None:
         """
