@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.56.1] - 2026-10-24
+
+Includes updates to core through commit: [da19341](https://github.com/PreTeXtBook/pretext/commit/da193419f0746242287b2358094a496029ca9671)
+
 ### Fixed
 
 - An interrupted build no longer leaves a partially copied file in the generated-asset cache, which later builds would have reused. Cached assets and the asset table are now written to a temporary file and renamed into place.
