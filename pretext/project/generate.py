@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 import shutil
 import tempfile
-from .. import core
+from .. import core, utils
 
 log = logging.getLogger("ptxlogger")
 
@@ -69,12 +69,12 @@ def individual_prefigure(
                 log.debug(
                     f"Created prefigure diagram {output_file}; saving a copy to cache as {cache_file}"
                 )
-                shutil.copy2(output_file, cache_file)
+                copy_to_cache(output_file, cache_file)
                 if format == "svg" and annotations_output_file.exists():
                     log.debug(
                         f"Created prefigure diagram {annotations_output_file}; saving a copy to cache as {annotations_cache_file}"
                     )
-                    shutil.copy2(annotations_output_file, annotations_cache_file)
+                    copy_to_cache(annotations_output_file, annotations_cache_file)
             else:
                 msg = f"Failed to generate prefigure diagram {Path(pfdiagram).name} in {format} format."
                 log.error(msg)
@@ -113,7 +113,7 @@ def individual_asymptote(
             log.debug(
                 f"Created asymptote diagram {output_file}; saving a copy to cache as {cache_file}"
             )
-            shutil.copy2(output_file, cache_file)
+            copy_to_cache(output_file, cache_file)
         else:
             msg = f"Failed to generate asymptote diagram {Path(asydiagram).name} in {outformat} format."
             log.error(msg)
@@ -154,7 +154,7 @@ def individual_sage(
             log.debug(
                 f"Created sageplot diagram {output_file}; saving a copy to cache as {cache_file}"
             )
-            shutil.copy2(output_file, cache_file)
+            copy_to_cache(output_file, cache_file)
         else:
             msg = f"Failed to generate sageplot diagram {Path(sageplot).name} in {outformat} format."
             log.error(msg)
@@ -203,12 +203,20 @@ def individual_latex_image(
                 log.debug(
                     f"Created latex-image {output_files[ext]}; saving a copy to cache as {cache_files[ext]}"
                 )
-                shutil.copy2(output_files[ext], cache_files[ext])
+                copy_to_cache(output_files[ext], cache_files[ext])
             else:
                 msg = f"Failed to generate latex-image {Path(latex_image).name} in {ext} format."
                 log.error(msg)
                 raise Exception(msg)
     log.debug("Finished individual_latex function")
+
+
+def copy_to_cache(output_file: Path, cache_file: Path) -> None:
+    """
+    Saves a copy of a generated asset to the cache.  The copy is atomic, so an interrupted build never leaves a partial file under the cached name for later builds to reuse.
+    """
+    with utils.atomic_write(cache_file) as tmp_path:
+        shutil.copy2(output_file, tmp_path)
 
 
 def hash_asset_file(asset_file: Path) -> str:
