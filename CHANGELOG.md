@@ -9,6 +9,14 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Added
+
+- WeBWorK problems are now cached individually, like `latex-image`, `asymptote`, `sageplot`, and `prefigure` assets.  Each problem's representations file and images are kept in `.cache/webwork/<hash>/`, so when some problems change (or another target with the same source is built), only the changed problems are sent to the WeBWorK server.  `pretext prune-cache` removes stale problems too.
+
+### Fixed
+
+- `pretext generate webwork` (or `myopenmath`) on a project without those assets generated no longer generates them twice.
+
 ## [2.56.1] - 2026-10-24
 
 Includes updates to core through commit: [da19341](https://github.com/PreTeXtBook/pretext/commit/da193419f0746242287b2358094a496029ca9671)
