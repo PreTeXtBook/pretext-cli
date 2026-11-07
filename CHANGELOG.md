@@ -9,6 +9,10 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.56.2] - 2026-11-07
+
+Includes updates to core through commit: [d6a846c](https://github.com/PreTeXtBook/pretext/commit/d6a846cc46399b6e2484eda40c2930bb3c80c5ce)
+
 ### Fixed
 
 - Runestone HTML builds no longer fail while reading the Runestone Services file, which now begins with a declaration of its encoding.
