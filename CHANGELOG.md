@@ -9,6 +9,21 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- Runestone HTML builds no longer fail while reading the Runestone Services file, which now begins with a declaration of its encoding.
+- LaTeX: a boxed `fillin` has closed sides, a `fillin` in a table cell keeps its full height, and partial table rules keep their width when the `calc` package is loaded.
+- EPUB: code blocks and table borders take the color of the text, so they stay readable in dark mode, and images get a white background as in HTML.
+- HTML: an image `datafile` has alt text, taken from its `description` when there is one.
+- HTML: a GeoGebra interactive calls a `listeners` function only when an attached script defines one.
+- HTML: standalone pages without a table of contents no longer raise a JavaScript error.
+- WeBWorK: a server that refuses its credentials is reported with a message instead of a traceback, and a warning notes that a non-default `@password` becomes public once the book is published.
+- YouTube thumbnails are downloaded over HTTPS.
+
+### Changed
+
+- A `console` may give its `input` and `output` in any order, so a session can start with output.
+
 ## [2.56.1] - 2026-10-24
 
 Includes updates to core through commit: [da19341](https://github.com/PreTeXtBook/pretext/commit/da193419f0746242287b2358094a496029ca9671)
