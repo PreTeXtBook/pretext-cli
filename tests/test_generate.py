@@ -587,3 +587,96 @@ def test_interrupted_webwork_cache_copy_regenerates_on_next_build(
     cache_entry = cache_dir / "webwork" / generate.hash_asset_file(problem_file)
     assert (cache_entry / "ex-graph.xml").exists()
     assert (cache_entry / "images" / "ex-graph-image-1.png").exists()
+
+
+def _generate_webwork_twice(
+    tmp_path: Path,
+    first_renderer: t.Dict[str, t.Any],
+    second_renderer: t.Dict[str, t.Any],
+    between: t.Callable[[], t.Any] = lambda: None,
+) -> int:
+    """Generates one problem twice, with the given renderers; returns how many times core was called."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ) as conversion:
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, first_renderer, cache_dir
+        )
+        between()
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, second_renderer, cache_dir
+        )
+        return conversion.call_count
+
+
+def test_individual_webwork_rebuilds_when_a_macro_file_changes(
+    tmp_path: Path,
+) -> None:
+    """The problem file names macro files without holding them, so a change to one invalidates the cache entry."""
+    macro_dir = tmp_path / "macros"
+    macro_dir.mkdir()
+    macro_file = macro_dir / "BOOK.pl"
+    macro_file.write_text("sub latexImagePreamble { 'grid = both' }")
+    renderer = {"macro_dirs": [str(macro_dir)]}
+    calls = _generate_webwork_twice(
+        tmp_path,
+        renderer,
+        renderer,
+        between=lambda: macro_file.write_text(
+            "sub latexImagePreamble { 'grid = none' }"
+        ),
+    )
+    assert calls == 2
+
+
+def test_individual_webwork_uses_cache_with_unchanged_macro_files(
+    tmp_path: Path,
+) -> None:
+    """Macro files that have not changed leave the cache entry usable."""
+    macro_dir = tmp_path / "macros"
+    macro_dir.mkdir()
+    (macro_dir / "BOOK.pl").write_text("1;")
+    renderer = {"macro_dirs": [str(macro_dir)]}
+    assert _generate_webwork_twice(tmp_path, renderer, renderer) == 1
+
+
+def test_individual_webwork_rebuilds_when_the_server_version_changes(
+    tmp_path: Path,
+) -> None:
+    """The server's version is written into every representations file, so a new version invalidates the cache entry."""
+    calls = _generate_webwork_twice(
+        tmp_path,
+        {"webwork2_major_version": 2, "webwork2_minor_version": 19},
+        {"webwork2_major_version": 2, "webwork2_minor_version": 20},
+    )
+    assert calls == 2
+
+
+def test_individual_webwork_stamp_stays_in_cache(tmp_path: Path) -> None:
+    """The stamp recorded in a cache entry is not copied into the destination with the problem's files."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ):
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+    shutil.rmtree(dest_dir)
+    (dest_dir / "images").mkdir(parents=True)
+    generate.individual_webwork(str(problem_file), str(dest_dir), False, {}, cache_dir)
+    cache_entry = cache_dir / "webwork" / generate.hash_asset_file(problem_file)
+    assert (cache_entry / generate.WEBWORK_STAMP_FILENAME).exists()
+    assert not (dest_dir / generate.WEBWORK_STAMP_FILENAME).exists()
+    assert (dest_dir / "ex-graph.xml").exists()
+
+
+def test_prune_cache_keeps_the_stamp_of_a_live_webwork_entry(tmp_path: Path) -> None:
+    """The stamp is not named by a hash, so pruning leaves it in a live entry."""
+    stamp = tmp_path / "webwork" / LIVE / generate.WEBWORK_STAMP_FILENAME
+    stamp.parent.mkdir(parents=True)
+    stamp.write_text("x")
+    assert generate.prune_cache(tmp_path, {"webwork": {LIVE}}) == []
+    assert stamp.exists()

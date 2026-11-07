@@ -233,6 +233,7 @@ def individual_webwork(
     - problem_file is the file core extracts for one problem, named <id>.xml; its hash names the cache entry.
     - A cache entry is a directory, since a problem's output is a representations file plus any number of images.  It mirrors the layout of dest_dir: <id>.xml at the top, images in images/.
     - Representations that record a failure to render (static/@failure) are not cached, so that the next generation asks the server again.
+    - The problem file does not hold everything the representations depend on, so each entry also records a stamp (see webwork_renderer_stamp); an entry with a different stamp is rebuilt.
     """
     log.debug("Using the CLI's individual_webwork function")
     asset_file = Path(problem_file).resolve()
@@ -240,12 +241,24 @@ def individual_webwork(
     output_dir = Path(dest_dir).resolve()
     cache_entry = cache_dir / "webwork" / hash_asset_file(asset_file)
     cached_reps_file = cache_entry / f"{problem_id}.xml"
+    stamp_file = cache_entry / WEBWORK_STAMP_FILENAME
+    stamp = webwork_renderer_stamp(renderer)
     if cached_reps_file.exists() and not skip_cache:
+        if stamp_file.exists() and stamp_file.read_text() == stamp:
+            log.debug(
+                f"Copying cached WeBWorK representations {cache_entry} to {output_dir}"
+            )
+            # Files beginning with "." (the stamp, a leftover temporary file) stay in the cache.
+            shutil.copytree(
+                cache_entry,
+                output_dir,
+                dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns(".*"),
+            )
+            return
         log.debug(
-            f"Copying cached WeBWorK representations {cache_entry} to {output_dir}"
+            f"Cached WeBWorK representations {cache_entry} were built with different macro files or a different server version; rebuilding them."
         )
-        shutil.copytree(cache_entry, output_dir, dirs_exist_ok=True)
-        return
     written_files: t.List[str] = core.individual_webwork_conversion(
         problem_file, dest_dir, abort_early, renderer
     )
@@ -268,9 +281,34 @@ def individual_webwork(
     images = [
         Path(f).resolve() for f in written_files if Path(f).resolve() != reps_file
     ]
-    for source in images + [reps_file]:
+    for source in images:
         copy_to_cache(source, cache_entry / source.relative_to(output_dir))
+    with utils.atomic_write(stamp_file) as tmp_path:
+        tmp_path.write_text(stamp)
+    copy_to_cache(reps_file, cached_reps_file)
     log.debug("Finished individual_webwork function")
+
+
+# The file in each WeBWorK cache entry that records the entry's stamp.  It begins with "." so that it does not match the cache's hash-named files, and so that it is not copied out with the entry.
+WEBWORK_STAMP_FILENAME = ".renderer-stamp"
+
+
+def webwork_renderer_stamp(renderer: t.Dict[str, t.Any]) -> str:
+    """
+    A digest of what a WeBWorK problem's representations depend on beyond the problem file core extracts for it: the version of the server, and the macro files problems may load (the document's own, built from docinfo, and an author's, in the external directory's macros/).  Core lists the macro folders in renderer["macro_dirs"].
+    Not covered, since the CLI cannot see them: a problem hosted on the server (@source), and the course's macro files there.  After changing one of those, generate with --force.
+    """
+    hash = hashlib.md5()
+    for key in ["webwork2_major_version", "webwork2_minor_version"]:
+        hash.update(f"{key}={renderer.get(key)}\n".encode())
+    for macro_dir in renderer.get("macro_dirs", []):
+        for macro_file in sorted(Path(macro_dir).rglob("*")):
+            if macro_file.is_file():
+                hash.update(macro_file.relative_to(macro_dir).as_posix().encode())
+                hash.update(b"\n")
+                hash.update(macro_file.read_bytes())
+                hash.update(b"\n")
+    return hash.hexdigest()
 
 
 def webwork_representations_failed(reps_file: Path) -> bool:
