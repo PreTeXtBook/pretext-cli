@@ -1661,7 +1661,7 @@ text = [
 
 [[package]]
 name = "pretext"
-version = "2.56.2"
+version = "2.56.3"
 source = { editable = "." }
 dependencies = [
     { name = "citeproc-py" },
