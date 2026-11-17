@@ -980,9 +980,10 @@ def generate(
 def prune_cache(ctx: click.Context, dry_run: bool) -> None:
     """
     Remove old versions of generated assets (latex-image, asymptote, sageplot,
-    prefigure) from the cache.  Cached assets are named by a hash of their
-    source, so each edit of an image leaves an old version behind.  This keeps
-    only the cached files matching the current source of some target.
+    prefigure, webwork) from the cache.  Cached assets are named by a hash of
+    their source, so each edit of an image or problem leaves an old version
+    behind.  This keeps only the cached assets matching the current source of
+    some target.
     """
     if utils.cannot_find_project(task="prune the asset cache for"):
         return
@@ -1000,9 +1001,9 @@ def prune_cache(ctx: click.Context, dry_run: bool) -> None:
     for path in stale:
         log.info(f"  {path.relative_to(cache_dir)}")
     if dry_run:
-        log.info(f"{len(stale)} cached file(s) would be removed from {cache_dir}.")
+        log.info(f"{len(stale)} cached asset(s) would be removed from {cache_dir}.")
     else:
-        log.info(f"Removed {len(stale)} cached file(s) from {cache_dir}.")
+        log.info(f"Removed {len(stale)} cached asset(s) from {cache_dir}.")
 
 
 # pretext view

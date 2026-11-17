@@ -1353,12 +1353,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             finally:
                 return
 
+        # The command line hands over a tuple; the comparisons below are
+        # with lists.
+        if requested_asset_types is not None:
+            requested_asset_types = list(requested_asset_types)
+
         # clear out the generated assets and cache if requested
         if clean:
             self.clean_assets()
 
         # Ensure that the generated_cache directories exist:
-        for subdir in ["latex-image", "asymptote", "sageplot", "prefigure"]:
+        for subdir in ["latex-image", "asymptote", "sageplot", "prefigure", "webwork"]:
             if not (self.generated_cache_abspath() / subdir).exists():
                 (self.generated_cache_abspath() / subdir).mkdir(
                     parents=True, exist_ok=True
@@ -1457,11 +1462,16 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     abort_early=False,
                     dest_dir=(self.generated_dir_abspath() / "webwork").as_posix(),
                     server_params=None,
+                    ext_converter=partial(
+                        generate.individual_webwork,
+                        cache_dir=self.generated_cache_abspath(),
+                        skip_cache=skip_cache,
+                    ),
                 )
                 successful_assets.append("webwork")
             except Exception as e:
                 log.error(
-                    "Unable to generate webwork.  If you already have a webwork-representations.xml file, this might result in unpredictable behavior."
+                    "Unable to generate webwork.  If you already have WeBWorK representation files, this might result in unpredictable behavior."
                 )
                 log.warning(e)
                 log.debug(e, exc_info=True)
