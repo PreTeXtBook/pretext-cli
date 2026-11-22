@@ -9,6 +9,11 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+### Fixed
+
+- `pretext deploy` prints links using the repository's current name on GitHub, so they stay correct after the repository is renamed or transferred.
+- `pretext deploy` no longer prints the remote URL when it reports connecting to GitHub, so a personal access token saved in that URL is not shown.
+
 ## [2.56.2] - 2026-11-07
 
 Includes updates to core through commit: [d6a846c](https://github.com/PreTeXtBook/pretext/commit/d6a846cc46399b6e2484eda40c2930bb3c80c5ce)

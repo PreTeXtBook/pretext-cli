@@ -18,6 +18,7 @@ import uuid
 import logging
 import logging.handlers
 import psutil
+import requests
 import typing as t
 from . import types as pt  # PreTeXt types
 from lxml import etree as ET  # noqa: N812
@@ -931,17 +932,19 @@ def publish_to_ghpages(
         repo_user, repo_name = parse_git_remote(origin.url)
         # The locally saved remote URL can go stale after a GitHub repo is
         # renamed. Ask GitHub for the name so the links we print below are correct.
-        try:
-            import requests
-
-            response = requests.get(
-                f"https://api.github.com/repos/{repo_user}/{repo_name}", timeout=5
-            )
-            if response.ok:
-                repo_user, repo_name = response.json()["full_name"].split("/")
-        except Exception as e:
-            log.debug("Could not resolve canonical GitHub repo name.")
-            log.debug(e, exc_info=True)
+        # Skip the lookup when not pushing (those links aren't printed, and the
+        # user may be offline) and for non-GitHub remotes (the same owner/name
+        # on GitHub could belong to someone else).
+        if not no_push and "github.com" in origin.url:
+            try:
+                response = requests.get(
+                    f"https://api.github.com/repos/{repo_user}/{repo_name}", timeout=5
+                )
+                if response.ok:
+                    repo_user, repo_name = response.json()["full_name"].split("/")
+            except Exception as e:
+                log.debug("Could not resolve canonical GitHub repo name.")
+                log.debug(e, exc_info=True)
         repo_url = f"https://github.com/{repo_user}/{repo_name}/"
         # Set pages_url depending on whether project is base pages for the user or a separate repo
         if "github.io" in repo_name:
@@ -1103,8 +1106,6 @@ def latest_version() -> t.Optional[str]:
     """
     Get the latest version of the pretext package from PyPI.
     """
-    import requests
-
     url = "https://pypi.org/pypi/pretext/json"
     try:
         response = requests.get(url, timeout=1)  # 1 second timeout; not critical.
