@@ -122,6 +122,18 @@ These parameters are rarely used by content authors.</a:documentation>
       </attribute>
     </optional>
     <optional>
+      <attribute name="latex-engine">
+        <a:documentation>The engine that compiles `latex-image` assets, for every format, and that
+also compiles the document of a `pdf` target taking the `latex` method.</a:documentation>
+        <choice>
+          <value>xelatex</value>
+          <value>pdflatex</value>
+          <value>lualatex</value>
+          <value>latex</value>
+        </choice>
+      </attribute>
+    </optional>
+    <optional>
       <attribute name="standalone">
         <choice>
           <value>yes</value>
@@ -168,21 +180,27 @@ These parameters are rarely used by content authors.</a:documentation>
       <value>pdf</value>
     </attribute>
     <optional>
-      <attribute name="pdf-method">
+      <attribute name="method">
+        <a:documentation>The route to the PDF. `latex` (the default) compiles an assembled LaTeX
+document with the engine named by `latex-engine`; `fo` converts to XSL-FO
+and renders it with Apache FOP, a LaTeX-free route that needs no TeX
+installation for the document itself.</a:documentation>
         <choice>
-          <value>xelatex</value>
-          <value>pdflatex</value>
           <value>latex</value>
-          <value>pdf-fo</value>
+          <value>fo</value>
         </choice>
       </attribute>
     </optional>
     <optional>
-      <attribute name="latex-engine">
+      <attribute name="pdf-method">
+        <a:documentation>Deprecated: superseded by `method` together with `latex-engine`, which
+separate the route to the PDF from the engine that compiles it.</a:documentation>
         <choice>
           <value>xelatex</value>
           <value>pdflatex</value>
+          <value>lualatex</value>
           <value>latex</value>
+          <value>pdf-fo</value>
         </choice>
       </attribute>
     </optional>

@@ -3,7 +3,8 @@ from pathlib import Path
 import sys
 import logging
 import logging.handlers
-from typing import Any, cast
+import re
+from typing import Any, Optional, cast
 import click_log
 
 # EXIT is CLI-only: the wrap-up line a command logs right before handing off
@@ -72,11 +73,62 @@ def get_log_error_flush_handler() -> logging.handlers.MemoryHandler:
     return error_flush_handler
 
 
+# Run logs are named by the time they were started (see add_log_file_handler).
+# Other files in the logs folder (schema-errors.log, validation reports) don't
+# match this and are never pruned.
+TIMESTAMPED_LOG_PATTERN = re.compile(r"^\d{8}-\d{6}\.log$")
+LOG_TIMESTAMP_FORMAT = "%Y%m%d-%H%M%S"
+# A run log is removed only once it is older than this many days *and* not
+# among the most recent LOGS_ALWAYS_KEPT logs.
+LOG_RETENTION_DAYS = 7
+LOGS_ALWAYS_KEPT = 5
+
+
+def _log_timestamp(path: Path) -> Optional[datetime.datetime]:
+    try:
+        return datetime.datetime.strptime(path.stem, LOG_TIMESTAMP_FORMAT)
+    except ValueError:
+        # Matches the pattern but isn't a real date (e.g. month 13); leave it be.
+        return None
+
+
+def logs_to_remove(logs: list[Path]) -> list[Path]:
+    """
+    Given the timestamped run logs in the logs folder, sorted oldest first,
+    return the ones that should be deleted.
+    """
+    cutoff = datetime.datetime.now() - datetime.timedelta(days=LOG_RETENTION_DAYS)
+    candidates = logs[:-LOGS_ALWAYS_KEPT] if LOGS_ALWAYS_KEPT > 0 else logs
+    return [
+        path
+        for path in candidates
+        if (stamp := _log_timestamp(path)) is not None and stamp < cutoff
+    ]
+
+
+def prune_old_logs(log_folder_path: Path) -> None:
+    """Remove old timestamped run logs, keeping only recent ones."""
+    # The timestamp format sorts lexicographically in chronological order.
+    logs = sorted(
+        path
+        for path in log_folder_path.iterdir()
+        if path.is_file() and TIMESTAMPED_LOG_PATTERN.match(path.name)
+    )
+    for path in logs_to_remove(logs):
+        try:
+            path.unlink()
+        except OSError as e:
+            # Losing an old log is never worth failing a run over.
+            log.debug(f"Could not remove old log file {path}: {e}")
+
+
 def add_log_file_handler(log_folder_path: Path) -> None:
     # create file handler which logs even debug messages
     log_folder_path.mkdir(exist_ok=True)
+    prune_old_logs(log_folder_path)
     logfile = (
-        log_folder_path / f"{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
+        log_folder_path
+        / f"{datetime.datetime.now().strftime(LOG_TIMESTAMP_FORMAT)}.log"
     )
     fh = logging.FileHandler(logfile, mode="w")
     fh.setLevel(logging.DEBUG)

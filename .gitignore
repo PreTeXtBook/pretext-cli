@@ -173,3 +173,6 @@ new-pretext-project
 *.synctex.gz
 *.synctex.gz(busy)
 *.pdfsync
+
+# Personal agent instructions
+CLAUDE.local.md

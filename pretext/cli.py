@@ -962,6 +962,49 @@ def generate(
         return
 
 
+# pretext prune-cache
+@main.command(
+    name="prune-cache",
+    short_help="Remove cached assets whose source is no longer in the project",
+    context_settings=CONTEXT_SETTINGS,
+)
+@click.option(
+    "-n",
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="List the cached files that would be removed without removing them.",
+)
+@click.pass_context
+@nice_errors
+def prune_cache(ctx: click.Context, dry_run: bool) -> None:
+    """
+    Remove old versions of generated assets (latex-image, asymptote, sageplot,
+    prefigure) from the cache.  Cached assets are named by a hash of their
+    source, so each edit of an image leaves an old version behind.  This keeps
+    only the cached files matching the current source of some target.
+    """
+    if utils.cannot_find_project(task="prune the asset cache for"):
+        return
+    project = ctx.obj["project"]
+    try:
+        stale = project.prune_cache(dry_run=dry_run)
+    except Exception as e:
+        log.critical(e)
+        log.debug("Exception info:\n------------------------\n", exc_info=True)
+        log.exit(
+            "Unable to determine current assets; no cached files were removed.  If the error mentions a missing generated file, run `pretext generate` first."
+        )
+        return
+    cache_dir = project.generated_cache_abspath()
+    for path in stale:
+        log.info(f"  {path.relative_to(cache_dir)}")
+    if dry_run:
+        log.info(f"{len(stale)} cached file(s) would be removed from {cache_dir}.")
+    else:
+        log.info(f"Removed {len(stale)} cached file(s) from {cache_dir}.")
+
+
 # pretext view
 @main.command(
     short_help="Preview specified target based on its format.",

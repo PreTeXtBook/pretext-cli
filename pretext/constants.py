@@ -29,6 +29,7 @@ ASSETS_BY_FORMAT = {
         "datafile",
         "myopenmath",
         "dynamic-subs",
+        "references",
         "qrcode",
         "gdscript",
     ],
@@ -45,6 +46,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "latex": [
         "webwork",
@@ -59,6 +61,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "epub": [
         "webwork",
@@ -73,6 +76,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "epub_nozip": [
         "webwork",
@@ -87,6 +91,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "kindle": [
         "webwork",
@@ -101,6 +106,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "braille": [
         "webwork",
@@ -114,9 +120,11 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "revealjs": [
         "webwork",
+        "references",
         "latex-image",
         "sageplot",
         "asymptote",
@@ -139,6 +147,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
     ],
     "webwork": [
         "webwork",
@@ -157,6 +166,7 @@ ASSETS_BY_FORMAT = {
         "mermaid",
         "myopenmath",
         "dynamic-subs",
+        "references",
         "gdscript",
     ],
 }
@@ -174,8 +184,8 @@ ASSET_TO_XPATH = {
     "qrcode": ".//audio[@source|@href]|.//video[@source|@href|@youtube|@youtubeplaylist|@vimeo]|.//interactive|.//program[@interactive]",
     "mermaid": ".//mermaid",
     "myopenmath": ".//myopenmath",
-    "dynamic-subs": ".//statement[.//fillin and ancestor::exercise/evaluation]",
-    "references": ".//biblio",
+    "dynamic-subs": ".//fillin[@ansobj] | .//eval[@obj]",
+    "references": ".//biblio|.//xref",
     "stack": ".//stack",
     "gdscript": ".//program[@pck]",
 }
@@ -279,6 +289,25 @@ ASSET_FORMATS: t.Dict[str, t.Dict[str, t.List[str]]] = {
         "mermaid": ["png", "svg"],
     },
 }
+
+# The XSL-FO route to a PDF (a target's `method="fo"`) needs a different asset
+# set than the LaTeX route, so these two override the `pdf` entries above.
+#
+# `pretext-fo.xsl` names every generated image with an `.svg` extension, so
+# every asset must be built as SVG rather than the PDF/PNG the LaTeX route
+# embeds.  And `latex-image` is absent from the `pdf` lists because the LaTeX
+# route compiles those inline during its own pass; the FO route has no such
+# pass, so it must generate them here, exactly as the HTML route does.
+ASSETS_BY_FORMAT_FO: t.List[str] = ASSETS_BY_FORMAT["pdf"] + ["latex-image"]
+
+ASSET_FORMATS_FO: t.Dict[str, t.List[str]] = {
+    "asymptote": ["svg"],
+    "latex-image": ["svg"],
+    "sageplot": ["svg"],
+    "prefigure": ["svg"],
+    "mermaid": ["svg"],
+}
+
 
 PROJECT_RESOURCES = {
     "project.ptx": Path("project.ptx"),

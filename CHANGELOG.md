@@ -9,6 +9,159 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ## [Unreleased]
 
+## [2.56.2] - 2026-11-07
+
+Includes updates to core through commit: [d6a846c](https://github.com/PreTeXtBook/pretext/commit/d6a846cc46399b6e2484eda40c2930bb3c80c5ce)
+
+### Fixed
+
+- Runestone HTML builds no longer fail while reading the Runestone Services file, which now begins with a declaration of its encoding.
+- LaTeX: a boxed `fillin` has closed sides, a `fillin` in a table cell keeps its full height, and partial table rules keep their width when the `calc` package is loaded.
+- EPUB: code blocks and table borders take the color of the text, so they stay readable in dark mode, and images get a white background as in HTML.
+- HTML: an image `datafile` has alt text, taken from its `description` when there is one.
+- HTML: a GeoGebra interactive calls a `listeners` function only when an attached script defines one.
+- HTML: standalone pages without a table of contents no longer raise a JavaScript error.
+- WeBWorK: a server that refuses its credentials is reported with a message instead of a traceback, and a warning notes that a non-default `@password` becomes public once the book is published.
+- YouTube thumbnails are downloaded over HTTPS.
+
+### Changed
+
+- A `console` may give its `input` and `output` in any order, so a session can start with output.
+
+## [2.56.1] - 2026-10-24
+
+Includes updates to core through commit: [da19341](https://github.com/PreTeXtBook/pretext/commit/da193419f0746242287b2358094a496029ca9671)
+
+### Fixed
+
+- An interrupted build no longer leaves a partially copied file in the generated-asset cache, which later builds would have reused. Cached assets and the asset table are now written to a temporary file and renamed into place.
+- A target's `output-filename` is now honored for `latex` targets, and for `pdf` and `beamer` targets built with `--latex` or `latex-source="yes"`. These builds had named the file after the source instead.
+- A `beamer` target now honors `latex-source="yes"`, as a `pdf` target does.
+
+## [2.56.0] - 2026-10-20
+
+Includes updates to core through commit: [da19341](https://github.com/PreTeXtBook/pretext/commit/da193419f0746242287b2358094a496029ca9671)
+
+### Added
+
+- A CSL `biblio` accepts nine more fields: `container-title-short`, `collection-number`, `event`, `version`, `number-of-volumes`, `chapter-number`, `archive`, `archive_location`, and `status`. Citation styles use them, and default formatting shows them too.
+- Runestone builds include a template where Runestone places `eBookConfig` overrides.
+
+### Fixed
+
+- Image descriptions in HTML and EPUB span 80% of the available width instead of being squeezed by a narrow image. In the enlarged-image dialog, the description stays with the image and the close button is always visible.
+- Appendages of an open problem, such as a discussion, are headed with their numbers in HTML, and XSL-FO prints the appendages of an open problem's `task`.
+- XSL-FO: wide `tabular` columns keep room for their longest word, formulas in cells are measured by their rendered width, and a `creator` or `origins` no longer stops a heading from running in. The first paragraph of a list item and the first line of a footnote are not indented, and a display inside an indented paragraph is centered.
+- LaTeX: the cross-reference font applies to every number in a cross-reference's text.
+- References formatted with a CSL style no longer break when a `biblio` field cannot be converted.
+
+### Changed
+
+- Hybrid cross-references to a `task` or list item shorten the number of its container, and include a part number only when the reference crosses parts. Within its `exercise`, a reference to a `task` reads like "(b.ii)", and a reference by serial number alone reads like "(a)".
+- A list item inside an `exercise` no longer takes a number from the `exercise`, and global-phrase text for an item of a named `list` always names the list.
+- The `salem` HTML theme defaults `html/@design-width` to 725. EPUB, reveal.js, and Jupyter output always use a design width of 600, whatever the HTML theme.
+- Runestone builds warn when a chapter or subchapter has no `@label`, since its ID would then be constructed.
+
+## [2.55.0] - 2026-10-01
+
+Includes updates to core through commit: [ee0a7e1](https://github.com/PreTeXtBook/pretext/commit/ee0a7e135e3346f0b0c6192822d6942424cb4af0)
+
+### Added
+
+- HTML printouts have font choices and font resizing in the printing options dialog, for accessibility.
+- Formatted references are now a generated asset like any other, built when needed and regenerated when the bibliography, the citations, or the chosen style changes. `pretext generate references` is no longer a debugging-only step.
+- A `citations` optional dependency (also part of `all`) installs `citeproc-py-styles`, which supplies the Citation Style Language (CSL) styles that journals use: `pip install pretext[citations]`.
+
+### Changed
+
+- Template publication files use the new `html/knowl/@exercise-reading` name (formerly `@exercise-readingquestion`), and their comments now list current defaults and values, including `read-aloud`, GeoGebra `play-button`, `slide-numbering`, and Beamer options.
+- Naming a supported `journal` in the publication file now selects that journal's CSL style, so PreTeXt formats references and citations in every output format instead of BibTeX. These styles need `citeproc-py-styles` (see above); without it, references fall back to default formatting. Choose a different style with `common/citation-stylesheet-language/@style`.
+
+
+### Fixed
+
+- The course template's `denver` theme now sets its main color with `color-main`; the `primary-color` it used before is ignored by that theme.
+- HTML printouts paginate better: no page opens with blank writing space or a lone footnote, page breaks look past hidden solutions, changing the paper size takes effect when solutions are shown or hidden, and Safari no longer prints blank pages.
+- Google Fonts whose family names contain spaces now load.
+- Fill-in-the-blank exercises read the dynamic substitutions file only when something will be substituted.
+- Missing or mismatched generated references now leave citations as authored, rather than breaking the build.
+- Journal LaTeX: the required files for the probability and statistics journal (a zip archive) are unpacked, and the Springer Nature link is updated.
+
+### Changed
+
+- Template publication files use the new `html/knowl/@exercise-reading` name (formerly `@exercise-readingquestion`), and their comments now list current defaults and values, including `read-aloud`, GeoGebra `play-button`, `slide-numbering`, and Beamer options.
+- Naming a supported `journal` in the publication file now selects that journal's Citation Style Language (CSL) style, so PreTeXt formats the references instead of BibTeX. Choose a different style with `common/citation-stylesheet-language/@style`, now in the publication schema.
+
+## [2.54.0] - 2026-09-26
+
+Includes updates to core through commit: [20d1054](https://github.com/PreTeXtBook/pretext/commit/20d10545401ca7b4fa820d59b78de6e88f8dce6b)
+
+### Added
+
+- `pretext prune-cache` command to remove stale cached assets from the cache directory.
+- Old timestamped run logs in a project's `logs` folder are now removed automatically, keeping only recent ones.
+- Slides in reveal.js and Beamer slideshows can show PreTeXt numbers, controlled by the new `@slide-numbering` publisher attribute. Blocks in a `slideshow` are now numbered without restarting in each `section`.
+- Runestone `cardsort` cards can include `feedback` (experimental).
+- The HTML output detects when MathJax fails to load and reports it (including to Runestone).
+
+### Fixed
+
+- LaTeX counters for distinct figure, project, exercise, and open problem numbering now have hyphen-free names, and a subfigure's full number comes from its figure's counter.
+- PreFigure tactile builds no longer delete the SVG output or leave a stray SVG 1.1 copy behind.
+- In slideshows, punctuation after inline mathematics is kept when the mathematics is embedded.
+- XSL-FO output turns a keyboard apostrophe into a typographic apostrophe.
+- EPUB: plain title and subtitle in the package metadata and default cover image, correct math declarations in the manifest, and a warning when LaTeX fails to make the default cover image.
+
+### Changed
+
+- Each type of `exercise` now has a single name, used consistently in `rename`, `list-of`, and the publication file (for example, `html/knowl/@exercise-reading` replaces `@exercise-readingquestion`). Old names are deprecated and upgraded automatically.
+- German localization updated.
+
+## [2.53.0] - 2026-09-17
+
+Includes updates to core through commit: [7b18258](https://github.com/PreTeXtBook/pretext/commit/7b1825851e008cb7fc56f2099da354728f7e9edd)
+
+### Added
+
+- `pdf` targets accept a `method` attribute selecting the route to the PDF: `latex` (the default) or `fo`, the LaTeX-free route through XSL-FO and Apache FOP.
+- `lualatex` is now a usable `latex-engine`, with a matching entry in `executables.ptx`.
+- `latex-engine` is now permitted by the schema on every target, not just `pdf` ones; it has always been the engine that compiles `latex-image` assets for all formats.
+- A `stack` of subfigures can now live inside a `figure`.
+- `origins` element for xrefs for mathematical blocks.
+
+### Fixed
+
+- XSL-FO PDF builds now generate their images as SVG, and generate `latex-image` assets at all. Previously they inherited the LaTeX route's asset settings and produced a PDF with every generated image missing.
+- XSL-FO PDF builds now install the MathJax node packages they need to render mathematics and its speech alternate text.
+- A target's `xsl` setting is reported as unsupported on the XSL-FO route rather than being silently ignored.
+- `--all-formats` no longer mutates the shared asset-format table, which leaked into later targets of the same format in the same run.
+- Images below a sidebyside panel (such as in an exercise in a sidebyside) now get their specified width.
+- Improvements for support/thanks for articles.
+
+### Changed
+
+- `pdf-method` is deprecated in favor of `method` together with `latex-engine`, which separate the route to the PDF from the engine that compiles it. Existing manifests keep working and warn.
+
+## [2.52.3] - 2026-09-04
+
+Includes updates to core through commit: [2c8806b](https://github.com/PreTeXtBook/pretext/commit/2c8806b9988f855e94d185fb145226bf6c0a5b20)
+
+### Fixed
+
+- fix error with entities when building (with newest lxml).
+
+## [2.52.2] - 2026-09-01
+
+Includes updates to core through commit: [4578f97](https://github.com/PreTeXtBook/pretext/commit/4578f97859d2e08b76b32ca1c487af7716bd0d64)
+
+### Fixed
+
+- latex-images copy correctly for resources host="cdn" builds.
+
+## [2.52.1] - 2026-09-01
+
+Includes updates to core through commit: [f3edd6a](https://github.com/PreTeXtBook/pretext/commit/f3edd6ab606d81e0f93914ad3ec33ec40acc89a6)
+
 ## [2.52.0] - 2026-08-31
 
 Includes updates to core through commit: [a08c973](https://github.com/PreTeXtBook/pretext/commit/a08c973ef798252a395b7bad55de5429c62a6fb7)

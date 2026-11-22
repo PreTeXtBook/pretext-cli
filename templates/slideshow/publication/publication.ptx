@@ -27,16 +27,20 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <!--   css/theme/solarized.css the value is "solarized".  The    -->
         <!--   default is "simple".  See                                 -->
         <!--   https://revealjs.com/themes/ for what is available.       -->
-        <!-- @custom-css is a comma-separated list of extra css files to -->
-        <!--   load after the theme.  These may be local files or remote -->
-        <!--   URLs; local files are best kept in your external files    -->
-        <!--   directory so they are copied to the output.               -->
+        <!-- @custom-css is a comma- or space-separated list of extra    -->
+        <!--   css files to load after the theme.  These may be local    -->
+        <!--   files or remote URLs; local files are best kept in your   -->
+        <!--   external files directory so they are copied to the        -->
+        <!--   output.                                                   -->
+        <!-- @slide-numbering is "no" (the default) or "yes" to show a   -->
+        <!--   number on each slide, in a form that follows the          -->
+        <!--   numbering/divisions/@level setting.                       -->
         <appearance theme="solarized"/>
         <!-- @host says where reveal.js css and javascript come from:  -->
-        <!--   "local" (the default) beside the slideshow html, "cdn"  -->
-        <!--   from a content delivery network, or "embedded" to fold  -->
-        <!--   them (and a theme's fonts) into a single html file that -->
-        <!--   presents with no network connection.                    -->
+        <!--   "cdn" (the default) from a content delivery network,    -->
+        <!--   "local" beside the slideshow html, or "embedded" to     -->
+        <!--   fold them (and a theme's fonts) into a single html      -->
+        <!--   file that presents with no network connection.          -->
         <!-- @math is "online" (the default), which loads MathJax in    -->
         <!--   the browser, or "embedded", which replaces each piece of -->
         <!--   mathematics with an SVG built once, at build time, with  -->
@@ -56,6 +60,22 @@ along with PreTeXt.  If not, see <http://www.gnu.org/licenses/>.
         <!--   mode="linear" is more traditional left/right movement for all slides  -->
         <navigation mode="default"/>
     </revealjs>
+
+    <!-- Options for the Beamer (LaTeX) slideshow, the "beamer" target. -->
+    <!-- @font-size is 8, 9, 10, 11, 12, 14, 17, or 20 points; the      -->
+    <!--   default is 11.  Sizes other than 10, 11, and 12 need the     -->
+    <!--   LaTeX package "extsizes".                                    -->
+    <!-- appearance/@theme names a Beamer theme as in \usetheme, such   -->
+    <!--   as Singapore or Madrid; the default is "Boadilla".           -->
+    <!-- appearance/@slide-numbering is "no" (the default) or "yes".    -->
+    <!-- page/@aspect-ratio is "16:9" (the default), "4:3", "16:10",    -->
+    <!--   "14:9", "5:4", or "3:2".                                     -->
+    <!--
+      <beamer font-size="11">
+        <appearance theme="Boadilla" slide-numbering="no"/>
+        <page aspect-ratio="16:9"/>
+      </beamer>
+    -->
 
     <!-- Options in "common" also affect a slideshow.  For example, the -->
     <!-- style of fill-in-the-blanks:                                   -->

@@ -29,7 +29,7 @@ from pydantic import (
 )
 import pydantic_xml as pxml
 from pydantic_xml.element.element import SearchMode
-from .xml import Executables, LegacyProject, LatexEngine, PdfMethod
+from .xml import Executables, LegacyProject, LatexEngine, Method, PdfMethod
 from . import generate
 from .. import constants
 from .. import core
@@ -153,13 +153,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     _source_element_with_ids: t.Optional[ET._Element] = None
     # A path to the publication file for this target, relative to the project's `publication` path. This is mostly validated by `post_validate`.
     publication: Path = pxml.attr(default=None)
-    # `pdf_method` is the canonical PDF engine setting.
-    # `latex_engine` is always used as the engine for generating latex-image assets, and
-    # if `pdf_method` is not specified, it is also used as the PDF engine for generating PDF output.
-    pdf_method: PdfMethod = pxml.attr(name="pdf-method", default=None)
-    latex_engine: t.Optional[LatexEngine] = pxml.attr(
-        name="latex-engine", default=LatexEngine.XELATEX
-    )
+    # `method` is the route a `pdf` target takes to its PDF: `latex` (the
+    # default) compiles an assembled LaTeX document, `fo` renders XSL-FO with
+    # Apache FOP.  Meaningful only for `format="pdf"`.
+    method: t.Optional[Method] = pxml.attr(name="method", default=None)
+    # `latex_engine` compiles `latex-image` assets, for every format, and is
+    # also the engine for the `latex` route's document.  It defaults to `None`
+    # rather than to xelatex so that `method_validator` can tell an explicit
+    # choice from silence; it is never `None` once validation has run.
+    latex_engine: t.Optional[LatexEngine] = pxml.attr(name="latex-engine", default=None)
+    # Deprecated: `pdf_method` conflated the route to the PDF with the engine
+    # that compiles it.  Still parsed, and folded into `method` plus
+    # `latex_engine` by `method_validator` below.
+    pdf_method: t.Optional[PdfMethod] = pxml.attr(name="pdf-method", default=None)
+    # The engine that compiles the assembled document, as opposed to the one
+    # that compiles `latex-image` assets.  The two differ only when a
+    # deprecated `pdf-method` named an engine other than `latex-engine`, a
+    # split that predates `method` and is preserved rather than silently
+    # changed.  Resolved by `method_validator`.
+    _document_engine: LatexEngine = PrivateAttr(default=LatexEngine.XELATEX)
     # Flag to indicate whether to include LaTeX source files in the output directory when building a PDF target.
     latex_source: t.Optional[str] = pxml.attr(name="latex-source", default=None)
 
@@ -170,18 +182,47 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             return False
         return v.lower() != "no"
 
-    # If pdf_method is set, we use it for generating the PDF output.  If not set, we fall back to the latex_engine (which is also used for generating latex-image assets), which defaults to xelatex.
+    # Resolve `method` and `latex_engine`, folding in a deprecated `pdf-method`.
     @model_validator(mode="after")
-    def pdf_method_validator(self) -> "Target":
-        if self.pdf_method is None:
-            # latex_engine should always default to xelatex, so we should always fall into the "if" clause.
-            if self.latex_engine is not None:
-                self.pdf_method = PdfMethod(self.latex_engine.value)
+    def method_validator(self) -> "Target":
+        # A `pdf-method` carries a route and an engine at once.  Unpack it into
+        # whichever of the two the author has not stated directly, so that a
+        # manifest mixing old and new attributes takes the new ones.
+        legacy_engine: t.Optional[LatexEngine] = None
+        if self.pdf_method is not None:
+            if self.pdf_method == PdfMethod.PDF_FO:
+                legacy_method = Method.FO
+                replacement = 'method="fo"'
             else:
-                self.pdf_method = PdfMethod.XELATEX
-        if self.format == Format.LATEX and self.pdf_method == PdfMethod.PDF_FO:
+                legacy_method = Method.LATEX
+                legacy_engine = LatexEngine(self.pdf_method.value)
+                replacement = (
+                    f'method="latex" with latex-engine="{legacy_engine.value}"'
+                )
+            log.warning(
+                f'Target "{self.name}" uses pdf-method="{self.pdf_method.value}", which is deprecated. '
+                f"Use {replacement} instead."
+            )
+            if self.method is None:
+                self.method = legacy_method
+            elif self.method != legacy_method:
+                log.warning(
+                    f'Target "{self.name}" sets both method="{self.method.value}" and '
+                    f'pdf-method="{self.pdf_method.value}", which disagree.  Using method="{self.method.value}".'
+                )
+        if self.method is None:
+            self.method = Method.LATEX
+        if self.latex_engine is None:
+            self.latex_engine = LatexEngine.XELATEX
+        # A `pdf-method` named the document's engine only; `latex-engine` went
+        # on compiling the images.  Keep that split for manifests that set both.
+        self._document_engine = (
+            legacy_engine if legacy_engine is not None else self.latex_engine
+        )
+        if self.method == Method.FO and self.format != Format.PDF:
             raise ValueError(
-                "The LaTeX format does not support pdf-method='pdf-fo'. Please use a standard LaTeX PDF method instead."
+                f'Target "{self.name}" has format "{self.format.value}", which does not support '
+                'method="fo".  Only format="pdf" can be built through XSL-FO.'
             )
         return self
 
@@ -424,7 +465,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         source_doc = ET.parse(self.source_abspath())
         for _ in range(25):
             source_doc.xinclude()
-        print("Type of source_doc: ", type(source_doc))
         return source_doc.getroot()
 
     def source_element(self) -> ET._Element:
@@ -478,6 +518,66 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
     def publication_abspath(self) -> Path:
         return self._project.publication_abspath() / self.publication
+
+    def publication_csl_settings(self) -> t.Tuple[t.Optional[str], t.Optional[str]]:
+        """
+        The journal name and the CSL style named in the publication file,
+        either of which may be absent.  Between them they decide whether
+        references and citations are rendered by CSL at all, and which
+        style does it.
+
+        Read from the publication file directly: answering from there
+        saves a publisher variable report -- a full XSL pass over the
+        source -- on every build that could not possibly need one.
+        """
+        try:
+            publication = ET.parse(self.publication_abspath())
+        except Exception:
+            # a malformed publication file is reported, loudly, elsewhere
+            return (None, None)
+
+        def first(xpath: str) -> t.Optional[str]:
+            values = publication.xpath(xpath)
+            assert isinstance(values, t.List)
+            value = str(values[0]).strip() if values else ""
+            return value or None
+
+        return (
+            first("/publication/common/journal/@name"),
+            first("/publication/common/citation-stylesheet-language/@style"),
+        )
+
+    def journal_csl_style(self, journal: str) -> t.Optional[str]:
+        """
+        The CSL style a journal supplies, from core's list of supported
+        journals, or None for a journal without one (or an unknown one).
+        Journal codes are matched regardless of case, as core does.
+        """
+        journals_xml = (
+            resources.resource_base_path() / "core" / "journals" / "journals.xml"
+        )
+        try:
+            journals = ET.parse(journals_xml)
+        except Exception as e:
+            log.debug(f"Unable to read the list of journals: {e}", exc_info=True)
+            return None
+        styles = journals.xpath(
+            "/ptx-journals/journal[code = $code]/citation-stylesheet-language/@style",
+            code=journal.lower(),
+        )
+        assert isinstance(styles, t.List)
+        return str(styles[0]) if styles else None
+
+    def publication_uses_csl(self) -> bool:
+        """
+        Whether the publication file opts into CSL styles for references
+        and citations, by naming a style outright or a journal that
+        supplies one.
+        """
+        journal, csl_style = self.publication_csl_settings()
+        if csl_style is not None:
+            return True
+        return journal is not None and self.journal_csl_style(journal) is not None
 
     def output_dir_abspath(self) -> Path:
         if self.is_standalone() and self.output_dir is None:
@@ -575,6 +675,26 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     def generated_dir_abspath(self) -> Path:
         return self._managed_directories()[0]
 
+    def asset_tables(self) -> t.Tuple[t.List[str], t.Dict[str, t.List[str]]]:
+        """Which asset types this target needs, and the formats to build them in.
+
+        Both are usually keyed by output format alone, but the XSL-FO route to
+        a PDF is the one case where *how* a format is built changes *which*
+        assets it needs: it embeds SVG rather than PDF, and has no LaTeX pass
+        to compile `latex-image` inline.  Hence the pair is keyed by (format,
+        method), with `constants.*_FO` supplying the FO route's overrides.
+
+        The format table is returned as a copy: callers overwrite entries when
+        `--all-formats` is requested, which would otherwise mutate the
+        module-level constant and leak into every later target of that format.
+        """
+        if self.method == Method.FO:
+            return constants.ASSETS_BY_FORMAT_FO, dict(constants.ASSET_FORMATS_FO)
+        return (
+            constants.ASSETS_BY_FORMAT[self.format],
+            dict(constants.ASSET_FORMATS[self.format]),
+        )
+
     def ensure_asset_directories(self, asset: t.Optional[str] = None) -> None:
         # Only the generated directory is ours to create.  The external
         # directory holds files the author supplies, so core is left to object
@@ -638,6 +758,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 base_url = self._read_publication_file_subset().baseurl
                 if base_url is not None:
                     hash.update(base_url.encode("utf-8"))
+            # For dynamic substitutions, the values come from the setup code, so
+            # we hash it too. (It can't go in the xpath, since a setup alone
+            # doesn't require the substitutions file.)
+            if asset == "dynamic-subs":
+                setups = self.source_element().xpath(".//setup")
+                assert isinstance(setups, t.List)
+                for node in setups:
+                    assert isinstance(node, ET._Element)
+                    hash.update(ET.tostring(node))
+            # For references, the style is as much an input as the
+            # bibliography itself: changing journals must regenerate.  Both
+            # publication file entries are hashed, since either can pick the
+            # style.  (A style that changes inside core, for a journal whose
+            # name stays put, is caught instead by the assembly-time check
+            # against the style stamped on the generated file.)
+            if asset == "references":
+                for setting in self.publication_csl_settings():
+                    if setting is not None:
+                        hash.update(setting.encode("utf-8"))
             # Finally, we store the hash as a string in the dictionary.
             asset_hash_dict[asset] = hash.hexdigest()
         return asset_hash_dict
@@ -647,10 +786,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         Saves the asset_table to a json file in the generated assets directory
         based on the target name.
         """
-        with open(
-            self.generated_cache_abspath() / f".{self.name}_assets.json", "w"
-        ) as f:
-            json.dump(asset_table, f)
+        asset_table_file = self.generated_cache_abspath() / f".{self.name}_assets.json"
+        with utils.atomic_write(asset_table_file) as tmp_path:
+            with open(tmp_path, "w") as f:
+                json.dump(asset_table, f)
 
     def ensure_myopenmath_xml(self, clean_tmp_dirs: bool = True) -> None:
         """
@@ -994,8 +1133,18 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     ext_rs_methods=utils.rs_methods,
                 )
             elif self.format == Format.PDF:
-                if self.pdf_method == PdfMethod.PDF_FO:
-                    # Experimental support for the new PDF-FO method.
+                if self.method == Method.FO:
+                    # The LaTeX-free route: XSL-FO rendered by Apache FOP.
+                    # Still experimental in core.
+                    if custom_xsl is not None:
+                        log.warning(
+                            "Custom XSL is not supported by the XSL-FO route to a PDF, "
+                            f'so the "xsl" setting of target "{self.name}" will be ignored.'
+                        )
+                    # The FO conversion renders every math element to SVG, and
+                    # again to speech for the PDF/UA alternate text, both by
+                    # shelling out to the MathJax/SRE node program.
+                    utils.mjsre_npm_install()
                     core.pdf_fo(
                         xml=self.source_abspath(),
                         pub_file=self.publication_abspath().as_posix(),
@@ -1015,10 +1164,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                         extra_xsl=custom_xsl,
                         out_file=out_file,
                         dest_dir=self.output_dir_abspath().as_posix(),
-                        method=self.pdf_method,
+                        method=self._document_engine,
                         outputs="all" if latex else "pdf-only",
                         latex_format="latex",
                     )
+                    if latex:
+                        self._rename_build_directory_output(".pdf")
             elif self.format == Format.LATEX:
                 core.pdf(
                     xml=self.source_abspath(),
@@ -1027,10 +1178,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                    method=self.pdf_method,
+                    method=self._document_engine,
                     outputs="prebuild",
                     latex_format="latex",
                 )
+                self._rename_build_directory_output(".tex")
             elif self.format == Format.EPUB:
                 utils.mjsre_npm_install()
                 core.epub(
@@ -1076,6 +1228,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     dest_dir=self.output_dir_abspath().as_posix(),
                 )
             elif self.format == Format.BEAMER:
+                if self.latex_source:
+                    latex = True
                 core.pdf(
                     xml=self.source_abspath(),
                     pub_file=self.publication_abspath().as_posix(),
@@ -1083,10 +1237,12 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                     extra_xsl=custom_xsl,
                     out_file=out_file,
                     dest_dir=self.output_dir_abspath().as_posix(),
-                    method=self.pdf_method,
+                    method=self._document_engine,
                     outputs="all" if latex else "pdf-only",
                     latex_format="beamer",
                 )
+                if latex:
+                    self._rename_build_directory_output(".pdf")
             elif self.format == Format.BRAILLE:
                 log.warning(
                     "Braille output is still experimental, and requires additional libraries from liblouis (specifically the file2brl software)."
@@ -1135,6 +1291,20 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             )
             log.debug(e, exc_info=True)
 
+    def _rename_build_directory_output(self, suffix: str) -> None:
+        """
+        Core's `pdf` honors `out_file` only when it copies the PDF alone.  When it copies its whole build directory instead (`outputs` of `all` or `prebuild`), the main file keeps the source's name, so rename that file (the `.tex` for a latex target, otherwise the `.pdf`) to `output_filename`.
+        """
+        if self.output_filename is None:
+            return
+        built = self.output_dir_abspath() / (self.source_abspath().stem + suffix)
+        renamed = self.output_dir_abspath() / self.output_filename
+        if built == renamed:
+            return
+        log.debug(f"Renaming {built} to {renamed}")
+        renamed.parent.mkdir(parents=True, exist_ok=True)
+        built.replace(renamed)
+
     def generate_assets(
         self,
         requested_asset_types: t.Optional[t.List[str]] = None,
@@ -1159,21 +1329,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # without a build.  A no-op when a build already ran the check.
         self.check_schema()
 
-        # To help with debugging, we are temporarily adding a reference generation step here.  The only way this will be called is if `pretext generate references` is called explicitly.
-        if requested_asset_types == ("references",):
-            try:
-                core.references(
-                    xml_source=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=self.stringparams.copy(),
-                    xmlid_root=xmlid,
-                    dest_dir=self.generated_dir_abspath() / "references",
-                )
-            except Exception as e:
-                log.error(f"Unable to generate some references:\n {e}")
-                log.debug(e, exc_info=True)
-            finally:
-                return
+        # Whether references were asked for by name, which changes how a
+        # project that has not opted into CSL styles is answered below.
+        references_requested = (
+            requested_asset_types is not None
+            and "references" in requested_asset_types
+            and "ALL" not in requested_asset_types
+        )
+
         # To help with debugging, we are temporarily adding a stack generation step here.  The only way this will be called is if `pretext generate stack` is called explicitly.
         if requested_asset_types == ("stack",):
             try:
@@ -1216,14 +1379,25 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if requested_asset_types is None or "ALL" in requested_asset_types:
             requested_asset_types = list(constants.ASSET_TO_XPATH.keys())
         log.debug(f"Assets generation requested for: {requested_asset_types}.")
+        assets_by_format, asset_formats = self.asset_tables()
         requested_asset_types = [
-            asset
-            for asset in requested_asset_types
-            if asset in constants.ASSETS_BY_FORMAT[self.format]
+            asset for asset in requested_asset_types if asset in assets_by_format
         ]
         log.debug(
             f"Based on format {self.format}, assets to be generated are: {requested_asset_types}."
         )
+        # Rendering references and citations with CSL is opt-in: without a
+        # journal or a style named in the publication file there is nothing
+        # to render them with, and core would rightly object.
+        if "references" in requested_asset_types and not self.publication_uses_csl():
+            if references_requested:
+                log.warning(
+                    "References are rendered with a Citation Style Language (CSL) style, "
+                    "which this project has not asked for.  Name a style as "
+                    "`citation-stylesheet-language/@style`, or a journal that has one as `journal/@name`, "
+                    "in the publication file's `common` element.  No references will be generated."
+                )
+            requested_asset_types.remove("references")
         # We always build the asset hash table, even if only_changed=True: this tells us which assets need to be built, and how to update the saved asset hash table at the end of the method.
         # utils.clean_asset_table purges any asset types from the loaded table that are no longer in the target.
         source_asset_table = self.generate_asset_table()
@@ -1263,7 +1437,6 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             self.ensure_asset_directories(asset)
 
         # Check if all formats are requested and modify accordingly.
-        asset_formats = constants.ASSET_FORMATS[self.format]
         if all_formats:
             for asset in assets_to_generate:
                 asset_formats[asset] = ["all"]
@@ -1515,20 +1688,19 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             except Exception as e:
                 log.error(f"Unable to generate some datafiles:\n {e}")
                 log.debug(e, exc_info=True)
-        # The following code will eventually be needed, but for now, we leave as a placeholder.
-        # if "references" in assets_to_generate and debug_references:
-        #    try:
-        #        core.references(
-        #            xml_source=self.source_abspath(),
-        #            pub_file=self.publication_abspath().as_posix(),
-        #            stringparams=stringparams_copy,
-        #            xmlid_root=xmlid,
-        #            dest_dir=self.generated_dir_abspath() / "references",
-        #        )
-        #        successful_assets.append("references")
-        #    except Exception as e:
-        #        log.error(f"Unable to generate some references:\n {e}")
-        #        log.debug(e, exc_info=True)
+        if "references" in assets_to_generate:
+            try:
+                core.references(
+                    xml_source=self.source_abspath(),
+                    pub_file=self.publication_abspath().as_posix(),
+                    stringparams=stringparams_copy,
+                    xmlid_root=xmlid,
+                    dest_dir=self.generated_dir_abspath() / "references",
+                )
+                successful_assets.append("references")
+            except Exception as e:
+                log.error(f"Unable to generate some references:\n {e}")
+                log.debug(e, exc_info=True)
         # Delete temporary directories left behind by core:
         try:
             core.release_temporary_directories(any_log_level=clean_tmp_dirs)
@@ -1841,6 +2013,34 @@ class Project(pxml.BaseXmlModel, tag="project", search_mode=SearchMode.UNORDERED
 
     def generated_cache_abspath(self) -> Path:
         return self.abspath() / self.generated_cache
+
+    def prune_cache(self, dry_run: bool = False) -> t.List[Path]:
+        """
+        Removes cached generated assets whose source no longer appears in any target of the project.  Returns the removed (or, with dry_run, removable) files.
+        """
+        # Targets can differ in source, publication file, and stringparams, each of which can change the extracted asset source (and so its hash).  Keep anything live for any target, extracting once per distinct combination.
+        live_hashes: t.Dict[str, t.Set[str]] = {}
+        seen = set()
+        for target in self.targets:
+            key = (
+                target.source_abspath(),
+                target.publication_abspath(),
+                tuple(sorted(target.stringparams.items())),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            log.info(f"Extracting asset sources for target {target.name}.")
+            target_hashes = generate.extracted_asset_hashes(
+                target.source_abspath(),
+                target.publication_abspath(),
+                target.stringparams,
+            )
+            for asset_type, hashes in target_hashes.items():
+                live_hashes.setdefault(asset_type, set()).update(hashes)
+        return generate.prune_cache(
+            self.generated_cache_abspath(), live_hashes, dry_run=dry_run
+        )
 
     def output_dir_abspath(self) -> Path:
         return self.abspath() / self.output_dir

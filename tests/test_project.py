@@ -15,6 +15,7 @@ example projects in ``tests/examples/projects``:
 The CLI equivalents of these behaviors are tested in ``test_cli.py``.
 """
 
+import importlib.util
 import time
 from pathlib import Path
 from typing import Any
@@ -75,7 +76,10 @@ def test_defaults(tmp_path: Path) -> None:
             assert target.output_dir == Path(name)
             assert target.deploy_dir is None
             assert target.xsl is None
-            assert target.pdf_method == pr.PdfMethod.XELATEX
+            assert target.method == pr.Method.LATEX
+            assert target.latex_engine == pr.LatexEngine.XELATEX
+            # Deprecated, and unset unless the manifest names it.
+            assert target.pdf_method is None
             assert target.stringparams == {}
     # Default asy_method should be "local"
     assert project.asy_method == pr.AsyMethod.LOCAL
@@ -268,7 +272,7 @@ def test_manifest_legacy() -> None:
             "publication", "publication.ptx"
         )
         assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
-        assert t_html.pdf_method == "xelatex"
+        assert t_html.latex_engine == "xelatex"
         assert t_html.stringparams == {"one": "uno", "two": "dos"}
 
         t_latex = project.get_target("latex")
@@ -276,14 +280,15 @@ def test_manifest_legacy() -> None:
         assert t_latex.source == Path("source", "main.ptx")
         assert t_latex.publication == Path("publication", "publication.ptx")
         assert t_latex.output_dir == Path("output", "latex")
-        assert t_latex.pdf_method == "xelatex"
+        assert t_latex.latex_engine == "xelatex"
 
         t_pdf = project.get_target("pdf")
         assert t_pdf.format == "pdf"
         assert t_pdf.source == Path("source", "main.ptx")
         assert t_pdf.publication == Path("publication", "publication.ptx")
         assert t_pdf.output_dir == Path("output", "pdf")
-        assert t_pdf.pdf_method == "pdflatex"
+        assert t_pdf.latex_engine == "pdflatex"
+        assert t_pdf.method == pr.Method.LATEX
 
         assert not project.has_target("foo")
 
@@ -316,7 +321,7 @@ def test_manifest_legacy_wrong() -> None:
             "publication", "publication.ptx"
         )
         assert t_html.output_dir_abspath() == project.abspath() / Path("output", "html")
-        assert t_html.pdf_method == "xelatex"
+        assert t_html.latex_engine == "xelatex"
         assert t_html.stringparams == {"one": "uno", "two": "dos"}
 
         t_latex = project.get_target("latex")
@@ -324,14 +329,15 @@ def test_manifest_legacy_wrong() -> None:
         assert t_latex.source == Path("source", "main.ptx")
         assert t_latex.publication == Path("publication", "publication.ptx")
         assert t_latex.output_dir == Path("output", "latex")
-        assert t_latex.pdf_method == "xelatex"
+        assert t_latex.latex_engine == "xelatex"
 
         t_pdf = project.get_target("pdf")
         assert t_pdf.format == "pdf"
         assert t_pdf.source == Path("source", "main.ptx")
         assert t_pdf.publication == Path("publication", "publication.ptx")
         assert t_pdf.output_dir == Path("output", "pdf")
-        assert t_pdf.pdf_method == "pdflatex"
+        assert t_pdf.latex_engine == "pdflatex"
+        assert t_pdf.method == pr.Method.LATEX
 
         assert not project.has_target("foo")
 
@@ -339,13 +345,19 @@ def test_manifest_legacy_wrong() -> None:
 
 
 def test_executables_match_core() -> None:
-    """The executables handed to core are exactly the keys the core script's
+    """The executables handed to core are the keys the core script's
     `pretext.cfg` declares -- no missing key (core looks these up in a plain
-    dict) and no vestigial extras."""
+    dict) and no vestigial extras.
+
+    `lualatex` is the one intentional addition: `set_executables()` replaces
+    core's dict outright, so an engine absent here is unreachable from the CLI
+    no matter what `pretext.cfg` says.  Core's own cfg should grow the same
+    line, at which point this exception disappears."""
     assert set(pr.Executables().model_dump()) == {
         "latex",
         "pdflatex",
         "xelatex",
+        "lualatex",
         "asy",
         "mermaid",
         "sage",
@@ -694,6 +706,94 @@ def test_deploy_path(tmp_path: Path) -> None:
         assert t_epub.deploy_path() == Path("epub-dir") / "book.epub"
 
 
+def test_pdf_method_resolution() -> None:
+    """`method` and `latex-engine` resolve independently, and a deprecated
+    `pdf-method` folds into whichever of the two the manifest leaves unsaid."""
+    project = pr.Project(ptx_version="2")
+
+    # The default route is LaTeX via xelatex, as it has always been.
+    t = project.new_target(name="a", format="pdf")
+    assert t.method == pr.Method.LATEX
+    assert t.latex_engine == pr.LatexEngine.XELATEX
+
+    # `method` selects the route; `latex-engine` still names the engine that
+    # compiles `latex-image` assets, which the FO route needs as much as any.
+    t = project.new_target(name="b", format="pdf", method="fo")
+    assert t.method == pr.Method.FO
+    assert t.latex_engine == pr.LatexEngine.XELATEX
+
+    # A deprecated `pdf-method` naming the FO route becomes `method="fo"`.
+    t = project.new_target(name="c", format="pdf", pdf_method="pdf-fo")
+    assert t.method == pr.Method.FO
+
+    # One naming an engine becomes the LaTeX route with that engine.
+    t = project.new_target(name="d", format="pdf", pdf_method="lualatex")
+    assert t.method == pr.Method.LATEX
+    assert t._document_engine == pr.LatexEngine.LUALATEX
+
+    # `pdf-method` used to set the document's engine while `latex-engine` went
+    # on compiling the images.  Manifests that set both keep that split.
+    t = project.new_target(
+        name="e", format="pdf", pdf_method="pdflatex", latex_engine="xelatex"
+    )
+    assert t.latex_engine == pr.LatexEngine.XELATEX
+    assert t._document_engine == pr.LatexEngine.PDFLATEX
+
+    # When the two disagree, the current attribute wins.
+    t = project.new_target(name="f", format="pdf", method="latex", pdf_method="pdf-fo")
+    assert t.method == pr.Method.LATEX
+
+
+def test_fo_method_requires_pdf_format() -> None:
+    """Only `format="pdf"` can be built through XSL-FO; core has no FO route to
+    a `.tex` file or to slides."""
+    project = pr.Project(ptx_version="2")
+    for fmt in ("latex", "html", "beamer"):
+        with pytest.raises(pydantic.ValidationError):
+            project.new_target(name=f"t-{fmt}", format=fmt, method="fo")
+    # The deprecated spelling is rejected on the same grounds.
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target(name="t-legacy", format="latex", pdf_method="pdf-fo")
+
+
+def test_fo_asset_tables() -> None:
+    """The FO route needs every generated image as SVG, and must generate
+    `latex-image` itself -- the LaTeX route compiles those inline instead."""
+    project = pr.Project(ptx_version="2")
+    latex_target = project.new_target(name="print", format="pdf")
+    fo_target = project.new_target(name="print-fo", format="pdf", method="fo")
+
+    latex_types, latex_formats = latex_target.asset_tables()
+    fo_types, fo_formats = fo_target.asset_tables()
+
+    # The LaTeX route builds no `latex-image` files of its own.
+    assert "latex-image" not in latex_types
+    assert latex_formats["latex-image"] == []
+    # The FO route must, since nothing else will.
+    assert "latex-image" in fo_types
+    assert fo_formats["latex-image"] == ["svg"]
+    # `pretext-fo.xsl` names every generated image `.svg`, so nothing else fits.
+    assert all(fmts == ["svg"] for fmts in fo_formats.values()), fo_formats
+    # The LaTeX route embeds PDF and PNG instead.
+    assert latex_formats["asymptote"] == ["pdf"]
+    assert latex_formats["mermaid"] == ["png"]
+
+
+def test_asset_tables_do_not_mutate_constants() -> None:
+    """`--all-formats` overwrites entries in the returned table, so it must be
+    a copy: mutating the module constant would leak into every later target."""
+    from pretext import constants
+
+    project = pr.Project(ptx_version="2")
+    target = project.new_target(name="print", format="pdf")
+    _, asset_formats = target.asset_tables()
+    asset_formats["asymptote"] = ["all"]
+    assert constants.ASSET_FORMATS["pdf"]["asymptote"] == ["pdf"]
+    # A second target of the same format is unaffected.
+    _, fresh = project.new_target(name="print2", format="pdf").asset_tables()
+    assert fresh["asymptote"] == ["pdf"]
+
+
 def test_validation(tmp_path: Path) -> None:
     """Invalid target configurations (duplicate server names, output options
     that conflict with the format/platform, unknown attributes or elements)
@@ -761,6 +861,39 @@ def test_latex_build(tmp_path: Path) -> None:
         target = project.new_target("tex", "latex")
         target.build()
         assert (prj_path / "output" / "tex" / "main.tex").exists()
+
+
+def test_latex_build_output_filename(tmp_path: Path) -> None:
+    """A latex-format target with an output-filename writes its .tex under
+    that name, not the source's."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.new_target("tex", "latex", output_filename="book.tex")
+        target.build()
+        assert (prj_path / "output" / "tex" / "book.tex").exists()
+        assert not (prj_path / "output" / "tex" / "main.tex").exists()
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+def test_pdf_latex_source_output_filename(tmp_path: Path) -> None:
+    """A pdf target that keeps its LaTeX source still names its PDF by
+    output-filename."""
+    prj_path = tmp_path / "simple"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "project_refactor" / "simple", prj_path)
+    with utils.working_directory(prj_path):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "book", "pdf", output_filename="book.pdf", latex_source="yes"
+        )
+        target.build()
+        assert (prj_path / "output" / "book" / "book.pdf").exists()
+        assert not (prj_path / "output" / "book" / "main.pdf").exists()
+        assert (prj_path / "output" / "book" / "main.tex").exists()
 
 
 @pytest.mark.skipif(
@@ -880,3 +1013,165 @@ def test_stage(tmp_path: Path) -> None:
             assert "foobar" in f.read()
         assert (project.stage_abspath() / "web2" / "article-id.html").exists()
         shutil.rmtree(project.stage_abspath())
+
+
+# Formatting references needs the journals' Citation Style Language styles,
+# which come from the optional "citeproc-py-styles" package.
+requires_csl_styles = pytest.mark.skipif(
+    importlib.util.find_spec("citeproc_styles") is None,
+    reason="citeproc-py-styles is not installed",
+)
+
+
+def test_publication_csl_settings(tmp_path: Path) -> None:
+    """A publication file's journal name and CSL style are read back, and
+    either one on its own counts as opting into CSL styles."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    publication = prj_path / "publication.xml"
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == ("bull-amer-math-soc", None)
+        assert target.publication_uses_csl()
+
+        # a style of the publisher's own, and no journal
+        publication.write_text(
+            publication.read_text().replace(
+                '<journal name="bull-amer-math-soc"/>',
+                '<citation-stylesheet-language style="harvard-cite-them-right"/>',
+            )
+        )
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == (None, "harvard-cite-them-right")
+        assert target.publication_uses_csl()
+
+        # a journal without a style of its own does not opt in
+        publication.write_text(
+            publication.read_text().replace(
+                '<citation-stylesheet-language style="harvard-cite-them-right"/>',
+                '<journal name="electron-j-combin"/>',
+            )
+        )
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == ("electron-j-combin", None)
+        assert not target.publication_uses_csl()
+
+        # neither: the feature stays out of the way
+        publication.write_text(
+            publication.read_text().replace('<journal name="electron-j-combin"/>', "")
+        )
+        target = pr.Project.parse().get_target("web")
+        assert target.publication_csl_settings() == (None, None)
+        assert not target.publication_uses_csl()
+
+
+def test_references_asset_hash(tmp_path: Path) -> None:
+    """The references hash covers the bibliography, the citations, and the
+    style that formats them: each changes it, and nothing else does."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    source = prj_path / "source" / "main.ptx"
+    publication = prj_path / "publication.xml"
+    source_text, publication_text = source.read_text(), publication.read_text()
+
+    def references_hash() -> Any:
+        with utils.working_directory(prj_path):
+            return (
+                pr.Project.parse()
+                .get_target("web")
+                .generate_asset_table()["references"]
+            )
+
+    original = references_hash()
+    assert references_hash() == original
+
+    # an edited bibliography entry
+    source.write_text(
+        source_text.replace("<family>Judson</family>", "<family>Judsen</family>")
+    )
+    assert references_hash() != original
+    source.write_text(source_text)
+
+    # an added citation, with every "biblio" untouched
+    source.write_text(
+        source_text.replace(
+            "<title>References</title>",
+            '<title>References</title><p><xref ref="biblio-lay"/></p>',
+        )
+    )
+    assert references_hash() != original
+    source.write_text(source_text)
+
+    # a different journal, with the source untouched
+    publication.write_text(
+        publication_text.replace("bull-amer-math-soc", "ann-pure-appl-logic")
+    )
+    assert references_hash() != original
+    publication.write_text(publication_text)
+
+    assert references_hash() == original
+
+
+def test_references_need_opting_in(tmp_path: Path) -> None:
+    """Without a journal or a style in the publication file, references are
+    left alone: nothing is generated and the build is undisturbed."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    publication = prj_path / "publication.xml"
+    publication.write_text(
+        publication.read_text().replace('<journal name="bull-amer-math-soc"/>', "")
+    )
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.generate_assets(requested_asset_types=["references"])
+        assert not (target.generated_dir_abspath() / "references").exists()
+
+
+@requires_csl_styles
+def test_journal_selects_bibliography_style(tmp_path: Path) -> None:
+    """Naming a journal formats the bibliography in that journal's style,
+    with no other setting: the generated file records the style, and the
+    built HTML carries the formatted entries and citations."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.build()
+
+        generated = (
+            target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
+        )
+        assert 'csl-style-file="american-mathematical-society-numeric"' in (
+            generated.read_text()
+        )
+
+        # numeric citations, in a style that orders entries by citation
+        references = (
+            target.output_dir_abspath() / "references-backmatter.html"
+        ).read_text()
+        assert "Lay, David C." in references
+        section = (target.output_dir_abspath() / "sec-one.html").read_text()
+        assert "[1]" in section
+
+
+@requires_csl_styles
+def test_publisher_style_outranks_journal(tmp_path: Path) -> None:
+    """A style named in the publication file is used in place of the one the
+    journal would supply."""
+    prj_path = tmp_path / "journal-bibliography"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "journal-bibliography", prj_path)
+    publication = prj_path / "publication.xml"
+    publication.write_text(
+        publication.read_text().replace(
+            '<journal name="bull-amer-math-soc"/>',
+            '<journal name="bull-amer-math-soc"/>'
+            '<citation-stylesheet-language style="harvard-cite-them-right"/>',
+        )
+    )
+    with utils.working_directory(prj_path):
+        target = pr.Project.parse().get_target("web")
+        target.build()
+        generated = (
+            target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
+        )
+        assert 'csl-style-file="harvard-cite-them-right"' in generated.read_text()

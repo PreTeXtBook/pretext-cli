@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pretext>
+  <article xml:id="article-journal-bibliography">
+    <title>An Article For A Journal</title>
+    <section xml:id="sec-one">
+      <title>One</title>
+      <p>A result appears in <xref ref="biblio-lay"/> and also in <xref ref="biblio-judson"/>.</p>
+    </section>
+    <backmatter>
+      <references xml:id="references-backmatter">
+        <title>References</title>
+        <biblio xml:id="biblio-judson" type="book">
+          <author><name><given>Thomas</given><family>Judson</family></name></author>
+          <title>Abstract Algebra: Theory and Applications</title>
+        </biblio>
+        <biblio xml:id="biblio-lay" type="article">
+          <author><name><given>David C.</given><family>Lay</family></name></author>
+          <title>Subspaces and Echelon Forms</title>
+        </biblio>
+      </references>
+    </backmatter>
+  </article>
+</pretext>
