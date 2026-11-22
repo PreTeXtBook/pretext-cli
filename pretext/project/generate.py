@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import shutil
 import tempfile
+from lxml import etree as ET  # noqa: N812
 from .. import core, utils
 
 log = logging.getLogger("ptxlogger")
@@ -219,6 +220,105 @@ def copy_to_cache(output_file: Path, cache_file: Path) -> None:
         shutil.copy2(output_file, tmp_path)
 
 
+def individual_webwork(
+    problem_file: str,
+    dest_dir: str,
+    abort_early: bool,
+    renderer: t.Dict[str, t.Any],
+    cache_dir: Path,
+    skip_cache: bool = False,
+) -> None:
+    """
+    Checks whether cached representations of the WeBWorK problem exist.  If they do, copies them (the representations file and any images) into the dest_dir and returns.  If they do not, calls the core.individual_webwork_conversion function to build them and then copies the files it wrote to the cache_dir.
+    - problem_file is the file core extracts for one problem, named <id>.xml; its hash names the cache entry.
+    - A cache entry is a directory, since a problem's output is a representations file plus any number of images.  It mirrors the layout of dest_dir: <id>.xml at the top, images in images/.
+    - Representations that record a failure to render (static/@failure) are not cached, so that the next generation asks the server again.
+    - The problem file does not hold everything the representations depend on, so each entry also records a stamp (see webwork_renderer_stamp); an entry with a different stamp is rebuilt.
+    """
+    log.debug("Using the CLI's individual_webwork function")
+    asset_file = Path(problem_file).resolve()
+    problem_id = asset_file.stem
+    output_dir = Path(dest_dir).resolve()
+    cache_entry = cache_dir / "webwork" / hash_asset_file(asset_file)
+    cached_reps_file = cache_entry / f"{problem_id}.xml"
+    stamp_file = cache_entry / WEBWORK_STAMP_FILENAME
+    stamp = webwork_renderer_stamp(renderer)
+    if cached_reps_file.exists() and not skip_cache:
+        if stamp_file.exists() and stamp_file.read_text() == stamp:
+            log.debug(
+                f"Copying cached WeBWorK representations {cache_entry} to {output_dir}"
+            )
+            # Files beginning with "." (the stamp, a leftover temporary file) stay in the cache.
+            shutil.copytree(
+                cache_entry,
+                output_dir,
+                dirs_exist_ok=True,
+                ignore=shutil.ignore_patterns(".*"),
+            )
+            return
+        log.debug(
+            f"Cached WeBWorK representations {cache_entry} were built with different macro files or a different server version; rebuilding them."
+        )
+    written_files: t.List[str] = core.individual_webwork_conversion(
+        problem_file, dest_dir, abort_early, renderer
+    )
+    reps_file = output_dir / f"{problem_id}.xml"
+    if not reps_file.exists():
+        msg = f"Failed to generate representations of WeBWorK problem {problem_id}."
+        log.error(msg)
+        raise Exception(msg)
+    if webwork_representations_failed(reps_file):
+        log.debug(
+            f"Not caching the representations of WeBWorK problem {problem_id}, which record a failure to render it."
+        )
+        return
+    log.debug(
+        f"Created WeBWorK representations {reps_file}; saving a copy of the problem's files to cache in {cache_entry}"
+    )
+    if cache_entry.exists():
+        shutil.rmtree(cache_entry)
+    # The representations file is what marks an entry as cached, so it is copied last: an interrupted copy leaves an entry without it, which the next generation replaces.
+    images = [
+        Path(f).resolve() for f in written_files if Path(f).resolve() != reps_file
+    ]
+    for source in images:
+        copy_to_cache(source, cache_entry / source.relative_to(output_dir))
+    with utils.atomic_write(stamp_file) as tmp_path:
+        tmp_path.write_text(stamp)
+    copy_to_cache(reps_file, cached_reps_file)
+    log.debug("Finished individual_webwork function")
+
+
+# The file in each WeBWorK cache entry that records the entry's stamp.  It begins with "." so that it does not match the cache's hash-named files, and so that it is not copied out with the entry.
+WEBWORK_STAMP_FILENAME = ".renderer-stamp"
+
+
+def webwork_renderer_stamp(renderer: t.Dict[str, t.Any]) -> str:
+    """
+    A digest of what a WeBWorK problem's representations depend on beyond the problem file core extracts for it: the version of the server, and the macro files problems may load (the document's own, built from docinfo, and an author's, in the external directory's macros/).  Core lists the macro folders in renderer["macro_dirs"].
+    Not covered, since the CLI cannot see them: a problem hosted on the server (@source), and the course's macro files there.  After changing one of those, generate with --force.
+    """
+    hash = hashlib.md5()
+    for key in ["webwork2_major_version", "webwork2_minor_version"]:
+        hash.update(f"{key}={renderer.get(key)}\n".encode())
+    for macro_dir in renderer.get("macro_dirs", []):
+        for macro_file in sorted(Path(macro_dir).rglob("*")):
+            if macro_file.is_file():
+                hash.update(macro_file.relative_to(macro_dir).as_posix().encode())
+                hash.update(b"\n")
+                hash.update(macro_file.read_bytes())
+                hash.update(b"\n")
+    return hash.hexdigest()
+
+
+def webwork_representations_failed(reps_file: Path) -> bool:
+    """
+    Whether a WeBWorK representations file records that its problem failed to render.  Core writes such a file, marked with static/@failure, in place of the representations so that a build can proceed.
+    """
+    static = ET.parse(reps_file).getroot().find("static")
+    return static is not None and static.get("failure") is not None
+
+
 def hash_asset_file(asset_file: Path) -> str:
     hash = hashlib.md5()
     # hash the asset file
@@ -231,7 +331,7 @@ def cache_asset_filename(asset_file: Path, extension: str, cache_dir: Path) -> P
     return cache_dir / f"{hash_asset_file(asset_file)}.{extension}"
 
 
-# Cached asset types, with the core extraction stylesheet that produces the source files whose hashes name the cached files.  Each entry is a list of extra stringparams to run the extraction with; sageplot extraction differs by output format, so it runs once per format.
+# Cached asset types, with the core extraction stylesheet that produces the source files whose hashes name the cache entries.  Each entry is a list of extra stringparams to run the extraction with; sageplot extraction differs by output format, so it runs once per format.
 CACHED_ASSET_EXTRACTIONS: t.Dict[str, t.Tuple[str, t.List[t.Dict[str, str]]]] = {
     "latex-image": ("extract-latex-image.xsl", [{}]),
     "asymptote": ("extract-asymptote.xsl", [{}]),
@@ -240,11 +340,14 @@ CACHED_ASSET_EXTRACTIONS: t.Dict[str, t.Tuple[str, t.List[t.Dict[str, str]]]] = 
         [{"sageplot.fileformat": f} for f in ["pdf", "svg", "png", "html"]],
     ),
     "prefigure": ("extract-prefigure.xsl", [{}]),
+    "webwork": ("extract-pg.xsl", [{}]),
 }
 
 
 # Names of cache files, as created by cache_asset_filename (plus prefigure's -annotations.xml companions): an md5 hex digest, an optional -annotations suffix, and an extension.
 CACHE_FILENAME_PATTERN = re.compile(r"^([0-9a-f]{32})(?:-annotations)?\.[A-Za-z0-9]+$")
+# Names of cache directories, as created by individual_webwork: a bare md5 hex digest, holding every file of one asset.
+CACHE_DIRNAME_PATTERN = re.compile(r"^[0-9a-f]{32}$")
 
 
 def extracted_asset_hashes(
@@ -270,29 +373,54 @@ def extracted_asset_hashes(
     return hashes
 
 
-def is_stale(cache_file: Path, live_hashes: t.Set[str]) -> bool:
+def cache_entry_hash(cache_entry: Path) -> t.Optional[str]:
     """
-    Decides whether a file in one of the cached asset directories should be removed, given the hashes of the asset sources currently in the project.  Only files named by a hash (e.g. <hash>.svg or <hash>-annotations.xml) are candidates; anything else is left alone.  A live hash keeps all of its formats.
+    The hash naming a cache entry: a file such as <hash>.svg or <hash>-annotations.xml, or a directory <hash> holding every file of one asset.  None for anything else.
     """
-    match = CACHE_FILENAME_PATTERN.match(cache_file.name)
-    return match is not None and match.group(1) not in live_hashes
+    if cache_entry.is_dir():
+        match = CACHE_DIRNAME_PATTERN.match(cache_entry.name)
+        return cache_entry.name if match else None
+    match = CACHE_FILENAME_PATTERN.match(cache_entry.name)
+    return match.group(1) if match else None
+
+
+def is_stale(cache_entry: Path, live_hashes: t.Set[str]) -> bool:
+    """
+    Decides whether an entry in one of the cached asset directories should be removed, given the hashes of the asset sources currently in the project.  Only entries named by a hash are candidates; anything else is left alone.  A live hash keeps all of its formats.
+    """
+    hash = cache_entry_hash(cache_entry)
+    return hash is not None and hash not in live_hashes
+
+
+def stale_cache_entries(directory: Path, live_hashes: t.Set[str]) -> t.List[Path]:
+    """
+    The stale entries under a cached asset directory, descending into subdirectories such as prefigure/tactile but not into a stale entry, which is removed whole.
+    """
+    stale: t.List[Path] = []
+    for cache_entry in sorted(directory.iterdir()):
+        if is_stale(cache_entry, live_hashes):
+            stale.append(cache_entry)
+        elif cache_entry.is_dir():
+            stale.extend(stale_cache_entries(cache_entry, live_hashes))
+    return stale
 
 
 def prune_cache(
     cache_dir: Path, live_hashes: t.Dict[str, t.Set[str]], dry_run: bool = False
 ) -> t.List[Path]:
     """
-    Removes cached asset files whose source no longer appears in the project.  Returns the list of removed (or, with dry_run, removable) files.
+    Removes cached assets whose source no longer appears in the project.  Returns the list of removed (or, with dry_run, removable) files and directories.
     """
     stale: t.List[Path] = []
     for asset_type, hashes in live_hashes.items():
         asset_cache_dir = cache_dir / asset_type
         if not asset_cache_dir.is_dir():
             continue
-        # rglob to include subdirectories such as prefigure/tactile
-        for cache_file in sorted(asset_cache_dir.rglob("*")):
-            if cache_file.is_file() and is_stale(cache_file, hashes):
-                stale.append(cache_file)
-                if not dry_run:
-                    cache_file.unlink()
+        for cache_entry in stale_cache_entries(asset_cache_dir, hashes):
+            stale.append(cache_entry)
+            if not dry_run:
+                if cache_entry.is_dir():
+                    shutil.rmtree(cache_entry)
+                else:
+                    cache_entry.unlink()
     return stale

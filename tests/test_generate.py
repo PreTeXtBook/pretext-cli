@@ -6,6 +6,8 @@ individual_* functions in pretext/project/generate.py should raise an
 exception so that the asset type is not added to the generated asset cache.
 """
 
+import shutil
+import typing as t
 from pathlib import Path
 from unittest.mock import patch
 
@@ -388,3 +390,293 @@ def test_interrupted_cache_copy_regenerates_on_next_build(tmp_path: Path) -> Non
         asset_file, "svg", tmp_path / "cache" / "asymptote"
     )
     assert cache_file.read_text() == "<svg>complete</svg>"
+
+
+# ---------------------------------------------------------------------------
+# WeBWorK: a cache entry is a directory holding the representations file and
+# the problem's images.
+
+
+def _write_representations(reps_file: Path, failure: t.Optional[str] = None) -> None:
+    attribute = f' failure="{failure}"' if failure else ""
+    reps_file.write_text(
+        f'<webwork-reps assembly-id="{reps_file.stem}"><static seed="1"{attribute}/></webwork-reps>'
+    )
+
+
+def _fake_webwork_conversion(
+    problem_file: str, dest_dir: str, abort_early: bool, renderer: t.Dict[str, t.Any]
+) -> t.List[str]:
+    """Simulates core: writes the representations file and one image, returning both."""
+    problem_id = Path(problem_file).stem
+    reps_file = Path(dest_dir) / f"{problem_id}.xml"
+    image_file = Path(dest_dir) / "images" / f"{problem_id}-image-1.png"
+    image_file.parent.mkdir(exist_ok=True)
+    _write_representations(reps_file)
+    image_file.write_bytes(b"png")
+    return [str(reps_file), str(image_file)]
+
+
+def _webwork_dirs(tmp_path: Path) -> t.Tuple[Path, Path, Path]:
+    """The extracted problem file, the destination directory, and the cache directory."""
+    problem_file = tmp_path / "extracted" / "ex-graph.xml"
+    problem_file.parent.mkdir()
+    problem_file.write_text("<ww-extraction><problem id='ex-graph'/></ww-extraction>")
+    dest_dir = tmp_path / "generated" / "webwork"
+    (dest_dir / "images").mkdir(parents=True)
+    cache_dir = tmp_path / "cache"
+    (cache_dir / "webwork").mkdir(parents=True)
+    return problem_file, dest_dir, cache_dir
+
+
+def test_individual_webwork_raises_on_missing_output(tmp_path: Path) -> None:
+    """individual_webwork should raise when core does not write the representations file."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        return_value=[],
+    ):
+        with pytest.raises(Exception, match="Failed to generate representations"):
+            generate.individual_webwork(
+                str(problem_file), str(dest_dir), False, {}, cache_dir, skip_cache=True
+            )
+
+
+def test_individual_webwork_caches_every_written_file(tmp_path: Path) -> None:
+    """The files core reports writing are copied into a hash-named cache directory, mirroring the destination layout."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ):
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+    cache_entry = cache_dir / "webwork" / generate.hash_asset_file(problem_file)
+    assert (cache_entry / "ex-graph.xml").exists()
+    assert (cache_entry / "images" / "ex-graph-image-1.png").exists()
+
+
+def test_individual_webwork_uses_cache_without_calling_core(tmp_path: Path) -> None:
+    """A second generation of an unchanged problem restores its files from the cache and never calls core."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ):
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+    shutil.rmtree(dest_dir)
+    (dest_dir / "images").mkdir(parents=True)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion"
+    ) as conversion:
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+        conversion.assert_not_called()
+    assert (dest_dir / "ex-graph.xml").exists()
+    assert (dest_dir / "images" / "ex-graph-image-1.png").read_bytes() == b"png"
+
+
+def test_individual_webwork_skip_cache_regenerates(tmp_path: Path) -> None:
+    """With skip_cache, core is called even though a cache entry exists, and the entry is replaced."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    cache_entry = cache_dir / "webwork" / generate.hash_asset_file(problem_file)
+    cache_entry.mkdir()
+    (cache_entry / "ex-graph.xml").write_text("stale")
+    (cache_entry / "images").mkdir()
+    (cache_entry / "images" / "ex-graph-image-2.png").write_bytes(b"old")
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ) as conversion:
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir, skip_cache=True
+        )
+        conversion.assert_called_once()
+    assert (cache_entry / "ex-graph.xml").read_text() != "stale"
+    assert not (cache_entry / "images" / "ex-graph-image-2.png").exists()
+    assert (cache_entry / "images" / "ex-graph-image-1.png").exists()
+
+
+def test_individual_webwork_does_not_cache_failures(tmp_path: Path) -> None:
+    """Representations recording a failure to render are written for the build but not cached."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+
+    def failed_conversion(
+        problem_file: str,
+        dest_dir: str,
+        abort_early: bool,
+        renderer: t.Dict[str, t.Any],
+    ) -> t.List[str]:
+        reps_file = Path(dest_dir) / f"{Path(problem_file).stem}.xml"
+        _write_representations(reps_file, failure="compile")
+        return [str(reps_file)]
+
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=failed_conversion,
+    ):
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+    assert (dest_dir / "ex-graph.xml").exists()
+    assert not list((cache_dir / "webwork").iterdir())
+
+
+def test_is_stale_directories(tmp_path: Path) -> None:
+    """A hash-named directory is a cache entry; other directories are not."""
+    for name in [LIVE, STALE, "images", "tactile"]:
+        (tmp_path / name).mkdir()
+    assert generate.is_stale(tmp_path / LIVE, {LIVE}) is False
+    assert generate.is_stale(tmp_path / STALE, {LIVE}) is True
+    assert generate.is_stale(tmp_path / "images", {LIVE}) is False
+    assert generate.is_stale(tmp_path / "tactile", {LIVE}) is False
+
+
+def test_prune_cache_removes_stale_webwork_directories(tmp_path: Path) -> None:
+    """A stale webwork entry is removed whole, as one entry; a live one keeps all its files."""
+    for name in [
+        f"webwork/{LIVE}/ex-live.xml",
+        f"webwork/{LIVE}/images/ex-live-image-1.png",
+        f"webwork/{STALE}/ex-stale.xml",
+        f"webwork/{STALE}/images/ex-stale-image-1.png",
+    ]:
+        path = tmp_path / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("x")
+    removed = generate.prune_cache(tmp_path, {"webwork": {LIVE}})
+    assert removed == [tmp_path / "webwork" / STALE]
+    assert not (tmp_path / "webwork" / STALE).exists()
+    assert (tmp_path / "webwork" / LIVE / "images" / "ex-live-image-1.png").exists()
+
+
+def test_interrupted_webwork_cache_copy_regenerates_on_next_build(
+    tmp_path: Path,
+) -> None:
+    """If saving a problem's files to the cache is interrupted, the entry lacks its representations file, so the next generation calls core again instead of restoring a partial entry."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ) as conversion:
+        # interrupt the second copy: the image is cached, the representations file is not
+        real_copy2 = shutil.copy2
+        copies: t.List[Path] = []
+
+        def copy_then_interrupt(src: Path, dst: Path) -> None:
+            copies.append(Path(src))
+            if len(copies) == 2:
+                _interrupted_copy(src, dst)
+            real_copy2(src, dst)
+
+        with patch(
+            "pretext.project.generate.shutil.copy2", side_effect=copy_then_interrupt
+        ):
+            with pytest.raises(KeyboardInterrupt):
+                generate.individual_webwork(
+                    str(problem_file), str(dest_dir), False, {}, cache_dir
+                )
+        assert copies[1].name == "ex-graph.xml"
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+        assert conversion.call_count == 2
+    cache_entry = cache_dir / "webwork" / generate.hash_asset_file(problem_file)
+    assert (cache_entry / "ex-graph.xml").exists()
+    assert (cache_entry / "images" / "ex-graph-image-1.png").exists()
+
+
+def _generate_webwork_twice(
+    tmp_path: Path,
+    first_renderer: t.Dict[str, t.Any],
+    second_renderer: t.Dict[str, t.Any],
+    between: t.Callable[[], t.Any] = lambda: None,
+) -> int:
+    """Generates one problem twice, with the given renderers; returns how many times core was called."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ) as conversion:
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, first_renderer, cache_dir
+        )
+        between()
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, second_renderer, cache_dir
+        )
+        return conversion.call_count
+
+
+def test_individual_webwork_rebuilds_when_a_macro_file_changes(
+    tmp_path: Path,
+) -> None:
+    """The problem file names macro files without holding them, so a change to one invalidates the cache entry."""
+    macro_dir = tmp_path / "macros"
+    macro_dir.mkdir()
+    macro_file = macro_dir / "BOOK.pl"
+    macro_file.write_text("sub latexImagePreamble { 'grid = both' }")
+    renderer = {"macro_dirs": [str(macro_dir)]}
+    calls = _generate_webwork_twice(
+        tmp_path,
+        renderer,
+        renderer,
+        between=lambda: macro_file.write_text(
+            "sub latexImagePreamble { 'grid = none' }"
+        ),
+    )
+    assert calls == 2
+
+
+def test_individual_webwork_uses_cache_with_unchanged_macro_files(
+    tmp_path: Path,
+) -> None:
+    """Macro files that have not changed leave the cache entry usable."""
+    macro_dir = tmp_path / "macros"
+    macro_dir.mkdir()
+    (macro_dir / "BOOK.pl").write_text("1;")
+    renderer = {"macro_dirs": [str(macro_dir)]}
+    assert _generate_webwork_twice(tmp_path, renderer, renderer) == 1
+
+
+def test_individual_webwork_rebuilds_when_the_server_version_changes(
+    tmp_path: Path,
+) -> None:
+    """The server's version is written into every representations file, so a new version invalidates the cache entry."""
+    calls = _generate_webwork_twice(
+        tmp_path,
+        {"webwork2_major_version": 2, "webwork2_minor_version": 19},
+        {"webwork2_major_version": 2, "webwork2_minor_version": 20},
+    )
+    assert calls == 2
+
+
+def test_individual_webwork_stamp_stays_in_cache(tmp_path: Path) -> None:
+    """The stamp recorded in a cache entry is not copied into the destination with the problem's files."""
+    problem_file, dest_dir, cache_dir = _webwork_dirs(tmp_path)
+    with patch(
+        "pretext.project.generate.core.individual_webwork_conversion",
+        side_effect=_fake_webwork_conversion,
+    ):
+        generate.individual_webwork(
+            str(problem_file), str(dest_dir), False, {}, cache_dir
+        )
+    shutil.rmtree(dest_dir)
+    (dest_dir / "images").mkdir(parents=True)
+    generate.individual_webwork(str(problem_file), str(dest_dir), False, {}, cache_dir)
+    cache_entry = cache_dir / "webwork" / generate.hash_asset_file(problem_file)
+    assert (cache_entry / generate.WEBWORK_STAMP_FILENAME).exists()
+    assert not (dest_dir / generate.WEBWORK_STAMP_FILENAME).exists()
+    assert (dest_dir / "ex-graph.xml").exists()
+
+
+def test_prune_cache_keeps_the_stamp_of_a_live_webwork_entry(tmp_path: Path) -> None:
+    """The stamp is not named by a hash, so pruning leaves it in a live entry."""
+    stamp = tmp_path / "webwork" / LIVE / generate.WEBWORK_STAMP_FILENAME
+    stamp.parent.mkdir(parents=True)
+    stamp.write_text("x")
+    assert generate.prune_cache(tmp_path, {"webwork": {LIVE}}) == []
+    assert stamp.exists()
