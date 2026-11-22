@@ -16,6 +16,8 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Fixed
 
 - `pretext generate webwork` (or `myopenmath`) on a project without those assets generated no longer generates them twice.
+- `pretext deploy` prints links using the repository's current name on GitHub, so they stay correct after the repository is renamed or transferred.
+- `pretext deploy` no longer prints the remote URL when it reports connecting to GitHub, so a personal access token saved in that URL is not shown.
 
 ## [2.56.2] - 2026-11-07
 
