@@ -1,0 +1,4 @@
+output/
+generated-assets/
+logs/
+.cache/

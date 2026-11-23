@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pretext xml:lang="en-US">
+  <docinfo>
+    <macros>\newcommand{\R}{\mathbb{R}}</macros>
+    <latex-image-preamble>\usepackage{tikz}</latex-image-preamble>
+  </docinfo>
+  <book xml:id="course">
+    <title>Course Materials</title>
+    <chapter xml:id="ch-background">
+      <title>Background</title>
+      <section xml:id="sec-facts">
+        <title>Facts</title>
+        <theorem xml:id="thm-key">
+          <title>Key Fact</title>
+          <statement><p>Every <m>x \in \R</m> satisfies <m>x^2 \geq 0</m>.</p></statement>
+        </theorem>
+      </section>
+    </chapter>
+    <chapter xml:id="ch-weekly">
+      <title>Weekly Assignments</title>
+      <section xml:id="sec-intro">
+        <title>How these work</title>
+        <p>Do one each week.</p>
+      </section>
+      <worksheet xml:id="ws-week1">
+        <title>Week 1 Exercises</title>
+        <introduction><p>Use <xref ref="thm-key"/> and <xref ref="ex-w1-second"/>.</p></introduction>
+        <exercise xml:id="ex-w1-first">
+          <statement><p>True or false: <m>x^2 \geq 0</m> for all <m>x \in \R</m>.</p></statement>
+          <choices>
+            <choice correct="yes"><statement><p>True</p></statement></choice>
+            <choice><statement><p>False</p></statement></choice>
+          </choices>
+        </exercise>
+        <exercise xml:id="ex-w1-second" workspace="1in">
+          <statement><p>Explain why.</p></statement>
+        </exercise>
+        <figure>
+          <caption>A square</caption>
+          <image width="30%">
+            <latex-image>\begin{tikzpicture}\draw (0,0) rectangle (1,1);\end{tikzpicture}</latex-image>
+          </image>
+        </figure>
+      </worksheet>
+      <worksheet xml:id="ws-week2">
+        <title>Week 2 Exercises</title>
+        <exercise>
+          <statement><p>Compute <m>2+2</m>.</p></statement>
+        </exercise>
+        <figure>
+          <caption>A circle</caption>
+          <image width="30%">
+            <latex-image>\begin{tikzpicture}\draw (0,0) circle (0.5);\end{tikzpicture}</latex-image>
+          </image>
+        </figure>
+      </worksheet>
+    </chapter>
+    <chapter xml:id="ch-exams">
+      <title>Exams</title>
+      <section xml:id="exam1">
+        <title>Exam 1</title>
+        <example><statement><p>A sample.</p></statement></example>
+        <theorem><statement><p>Another fact.</p></statement></theorem>
+        <exercises>
+          <exercise><statement><p>State <xref ref="thm-key"/>.</p></statement></exercise>
+          <exercise><statement><p>Prove it.</p></statement></exercise>
+        </exercises>
+      </section>
+      <section xml:id="exam2">
+        <title>Exam 2</title>
+        <p>Second exam.</p>
+      </section>
+    </chapter>
+  </book>
+</pretext>

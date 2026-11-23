@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spike project for docs/subset-build-roadmap.md.  Each "piece" target  -->
+<!-- builds one division of source/main.ptx through a pruning stylesheet,  -->
+<!-- chosen by the subset.id string parameter.                             -->
+<project ptx-version="2">
+  <targets>
+    <!-- the whole book, for comparison -->
+    <target name="full-pdf" format="pdf"/>
+    <target name="full-scorm" format="html" compression="scorm"/>
+
+    <!-- one worksheet -->
+    <target name="ws1-pdf" format="pdf" xsl="subset-latex.xsl" output-filename="ws-week1.pdf">
+      <stringparams subset.id="ws-week1"/>
+    </target>
+    <target name="ws1-scorm" format="html" compression="scorm" xsl="subset-html.xsl" output-filename="ws-week1.zip">
+      <stringparams subset.id="ws-week1"/>
+    </target>
+    <target name="ws2-pdf" format="pdf" xsl="subset-latex.xsl" output-filename="ws-week2.pdf">
+      <stringparams subset.id="ws-week2"/>
+    </target>
+
+    <!-- one section -->
+    <target name="exam1-pdf" format="pdf" xsl="subset-latex.xsl" output-filename="exam1.pdf">
+      <stringparams subset.id="exam1"/>
+    </target>
+    <target name="exam1-scorm" format="html" compression="scorm" xsl="subset-html.xsl" output-filename="exam1.zip">
+      <stringparams subset.id="exam1"/>
+    </target>
+  </targets>
+</project>
