@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Any
 import requests
 import shutil
+import zipfile
 
 import pydantic
 import pytest
@@ -1198,15 +1199,19 @@ def division_project(tmp_path: Path) -> Path:
 
 
 def test_division_format_restrictions() -> None:
-    """A target can build a single division only as LaTeX, or as a PDF made
-    through LaTeX; any other combination is rejected when the target is made."""
+    """A target can build a single division as HTML (off the Runestone
+    platform), as LaTeX, or as a PDF made through LaTeX; any other
+    combination is rejected when the target is made."""
     project = pr.Project(ptx_version="2")
     assert project.new_target("a", "latex", division="x").division == "x"
     assert project.new_target("b", "pdf", division="x").division == "x"
-    with pytest.raises(pydantic.ValidationError):
-        project.new_target("c", "html", division="x")
+    assert project.new_target("c", "html", division="x").division == "x"
     with pytest.raises(pydantic.ValidationError):
         project.new_target("d", "pdf", method="fo", division="x")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("e", "html", platform="runestone", division="x")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("f", "epub", division="x")
 
 
 def test_division_must_be_able_to_stand_alone(division_project: Path) -> None:
@@ -1316,6 +1321,69 @@ def test_division_with_custom_xsl(division_project: Path) -> None:
         tex = (target.output_dir_abspath() / "exam1.tex").read_text()
     assert "CUSTOM-XSL-MARKER" in tex
     assert "Exam 2" not in tex
+
+
+def test_division_html_build(division_project: Path) -> None:
+    """An HTML division target makes one page, whatever chunking the
+    document would get, holding the division under its number from the
+    whole book, with nothing to navigate to and no search."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target("web", "html", division="ws-week2")
+        target.build(generate=False)
+        out_dir = target.output_dir_abspath()
+        pages = sorted(p.name for p in out_dir.glob("*.html"))
+        page = (out_dir / "course.html").read_text()
+        assert not (out_dir / "lunr-pretext-search-index.js").exists()
+    # the page is the document root's, and "index.html" leads to it
+    assert pages == ["course.html", "index.html"]
+    assert "<title>Week 2 Exercises</title>" in page
+    assert re.search(r'<span class="codenumber">2\.3</span>', page)
+    assert "Week 1 Exercises" not in page
+    assert "Weekly Assignments" not in page
+    for absent in ("previous-button", "next-button", "up-button", "ptx-search"):
+        assert absent not in page
+
+
+def test_division_html_outward_xref(division_project: Path) -> None:
+    """In HTML, a cross-reference leaving the division is its usual text
+    with no link, while one that stays inside is still a link."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        exam1 = project.new_target("exam1-web", "html", division="exam1")
+        exam1.build(generate=False)
+        outward = (exam1.output_dir_abspath() / "course.html").read_text()
+        exam2 = project.new_target("exam2-web", "html", division="exam2")
+        exam2.build(generate=False)
+        inward = (exam2.output_dir_abspath() / "course.html").read_text()
+    assert "State Theorem\u00a01.1.1." in outward
+    assert "thm-key" not in outward
+    assert re.search(r'<a [^>]*href="#thm-late"[^>]*>Theorem.3\.2\.1</a>', inward)
+
+
+def test_division_scorm_package(division_project: Path) -> None:
+    """A division target with SCORM compression makes a zip named for the
+    division, whose manifest has the division's title and an identifier
+    of its own, and which leaves out source maps and compressed twins."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "scorm", "html", compression="scorm", division="ws-week2"
+        )
+        target.build(generate=False)
+        out_dir = target.output_dir_abspath()
+        assert sorted(p.name for p in out_dir.iterdir()) == ["ws-week2.zip"]
+        with zipfile.ZipFile(out_dir / "ws-week2.zip") as zf:
+            names = zf.namelist()
+            manifest = zf.read("imsmanifest.xml").decode()
+            page = zf.read("course.html").decode()
+    assert "index.html" in names
+    assert 'identifier="ptx-course-ws-week2"' in manifest
+    assert "<title>Week 2 Exercises</title>" in manifest
+    # the script that reports to the LMS is loaded, and shipped
+    assert "ptx_scorm_events.js" in page
+    assert any(name.endswith("ptx_scorm_events.js") for name in names)
+    assert not [name for name in names if name.endswith((".map", ".gz"))]
 
 
 @pytest.mark.skipif(

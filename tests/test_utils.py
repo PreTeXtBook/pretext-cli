@@ -8,6 +8,7 @@ detection, and small string/path utilities.  Anything requiring a real
 """
 
 import fnmatch
+import zipfile
 import os
 import sys
 import typing as t
@@ -470,3 +471,40 @@ def test_cannot_find_project(tmp_path: Path) -> None:
         assert utils.cannot_find_project(task="build")
         (tmp_path / "project.ptx").write_text("")
         assert not utils.cannot_find_project(task="build")
+
+
+def test_scorm_identifier() -> None:
+    """The identifier of a division's SCORM package names the document and
+    the division, is the same on every call, and is a legal XML name."""
+    assert utils.scorm_identifier("course", "ws-week2") == "ptx-course-ws-week2"
+    assert utils.scorm_identifier("My Course", "exam #1") == "ptx-My-Course-exam-1"
+
+
+def test_package_division_html(tmp_path: Path) -> None:
+    """Packaging a division's HTML zips everything but the dead weight in
+    `_static` (source maps, and compressed twins of files present), and
+    stamps the SCORM manifest with the identifier given."""
+    build = tmp_path / "build"
+    (build / "_static").mkdir(parents=True)
+    (build / "generated").mkdir()
+    (build / "course.html").write_text("<html/>")
+    (build / "imsmanifest.xml").write_text(
+        '<manifest identifier="ptx-scorm-test" version="1"><resources/></manifest>'
+    )
+    for name in ("a.js", "a.js.gz", "a.js.map", "a.js.map.gz", "only.gz"):
+        (build / "_static" / name).write_text("x")
+    # outside `_static` nothing is second-guessed
+    (build / "generated" / "data.csv.gz").write_text("x")
+    (build / "generated" / "data.csv").write_text("x")
+    package = tmp_path / "out" / "piece.zip"
+    utils.package_division_html(build, package, identifier="ptx-doc-piece")
+    with zipfile.ZipFile(package) as zf:
+        assert sorted(zf.namelist()) == [
+            "_static/a.js",
+            "_static/only.gz",
+            "course.html",
+            "generated/data.csv",
+            "generated/data.csv.gz",
+            "imsmanifest.xml",
+        ]
+        assert b'identifier="ptx-doc-piece"' in zf.read("imsmanifest.xml")

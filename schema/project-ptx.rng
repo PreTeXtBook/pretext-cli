@@ -170,6 +170,14 @@ also compiles the document of a `pdf` target taking the `latex` method.</a:docum
           </attribute>
         </optional>
         <optional>
+          <attribute name="division">
+            <a:documentation>Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
+...) to build as a single page of its own, in place of the whole source.
+With `compression`, the output is a package named for the division
+unless `output-filename` is given.</a:documentation>
+          </attribute>
+        </optional>
+        <optional>
           <attribute name="output-filename"/>
         </optional>
       </group>

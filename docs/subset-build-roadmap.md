@@ -1,9 +1,10 @@
 # Roadmap: collections (many divisions of one document, each built as its own output)
 
-**Status: Phase 1 is implemented on the `collections` branch (2026-11-23): a `pdf`
-or `latex` target with `division="<xml:id>"` builds that one division as its own
-document.** SCORM, collections of many divisions, and PreTeXt.Plus are still to do.
-The earlier spike is a runnable project in [subset-spike/](subset-spike/).
+**Status: Phases 1 and 2 are implemented on the `collections` branch
+(2026-11-23). A target with `division="<xml:id>"` builds that one division as its
+own PDF, LaTeX file, HTML page, or SCORM package.** Collections of many divisions
+and PreTeXt.Plus are still to do. The earlier spike is a runnable project in
+[subset-spike/](subset-spike/).
 
 This replaces the plan of 2026-07-12 (wrap one division in an empty `article` and
 build that). The section "What changed from the July plan" records what was dropped
@@ -32,9 +33,11 @@ flags alone.
 
 State on 2026-11-23, on the `collections` branch:
 
-- Phase 1 is done, with tests that pass against both the pinned core and a core
-  checkout at `f560a2b52`. See "Phase 1 as built" below.
-- Next is Phase 2, one division as a SCORM package.
+- Phases 1 and 2 are done, with tests that pass against both the pinned core and a
+  core checkout at `f560a2b52`. See "Phase 1 as built" and "Phase 2 as built".
+- Next is Phase 3: a target that builds many divisions at once.
+- No package has been loaded into a real LMS yet. That is the check most worth
+  doing before Phase 3.
 - One decision is waiting on Oscar: which elements may be built alone. The answer
   lives in `division_can_stand_alone` in `pretext/utils.py`, marked `TODO(human)`,
   and is a conservative guess for now.
@@ -55,8 +58,8 @@ A target in the manifest, or `Project.new_target(...)` in Python:
   `utils.copy_division_xsl` places them beside a copy of core's XSL at build time.
   `Target.build` applies them when `division` is set, and `Target.check_division`
   rejects an `xml:id` that is missing or is not a division.
-- **Formats.** `latex`, and `pdf` by the `latex` method. Anything else is rejected
-  when the target is created.
+- **Formats.** `latex`, and `pdf` by the `latex` method. (Phase 2 added `html`.)
+  Anything else is rejected when the target is created.
 - **Output name.** `<xml:id>.pdf` or `.tex`, unless `output-filename` is given.
 - **Assets.** Only the division's assets are generated, and they are the same files
   the whole document uses.
@@ -68,6 +71,39 @@ A target in the manifest, or `Project.new_target(...)` in Python:
 
 Tests are in `tests/test_project.py` (search for "division"), using the example
 project `tests/examples/projects/division`.
+
+## Phase 2 as built
+
+```xml
+<target name="week1" format="html" compression="scorm" division="ws-week-one"/>
+```
+
+- **Formats.** `html`, with or without `compression`, but not on the Runestone
+  platform. Without `compression` the output is a directory, as for any HTML
+  target, which is the easy way to look at a division in a browser.
+- **One page.** The division is a single page whatever chunking the publication
+  file sets, with no table of contents, no search, and no previous, next or up
+  buttons. The stylesheet is `cli-division-html.xsl`.
+- **Package name.** `<xml:id>.zip`, unless `output-filename` is given.
+- **The CLI makes the zip itself**, where core would otherwise
+  (`Target._build_division_package`, `utils.package_division_html`). That is where
+  the next two points happen.
+- **Manifest identifier.** `ptx-<document>-<division>`, where the document is
+  named by `docinfo/document-id`, else the root's `xml:id`, else the source file
+  name. It is the same on every build.
+- **Size.** About 2 MB for the test worksheet, down from 10 MB. Files in `_static`
+  that do nothing in a package are left out: JavaScript source maps, and the
+  compressed twin (`x.js.gz`) of any file that is also there uncompressed. Those
+  were 18 of the 25 MB.
+- **Checked in a browser:** the trimmed package opens from `index.html`, its
+  multiple-choice exercise grades, the SCORM script starts and counts the gradable
+  questions, and there are no script errors.
+
+Not done, on purpose: **generated assets are not pruned.** A package carries the
+whole generated folder. Finding the files a page uses by scanning it is unsafe,
+because core's WeBWorK script builds those paths in JavaScript. A project whose
+other divisions have never been built only has the division's own assets, so the
+problem shows up in projects that also build the whole document.
 
 ## LaTeX numbering: what core offers, and what Phase 1 does
 
@@ -182,15 +218,12 @@ only against the checkout).
   "Figure 2.2" in HTML but "Figure 2.1" in its PDF.
 - **An article prints its title twice in PDF.** *Fixed in Phase 1*: the title block
   is switched off.
-- **Every SCORM package is about 10 MB**, for a tiny worksheet, and the size does
-  not depend on content. Nearly all of it is `_static` (25 MB unzipped), including
-  about 9 MB of JavaScript source maps. Fifteen pieces would be about 150 MB.
+- **Every SCORM package is about 10 MB.** *Fixed in Phase 2*: about 2 MB, by
+  leaving out source maps and compressed duplicates.
 - **Every package carries every generated asset** of the whole document, because the
-  build copies the generated folder whole.
-- **Every package has the same manifest identifier**, `ptx-scorm-test`, hard-coded
-  in core.
-- **Navigation is still on the page**: previous/next buttons and a table of contents
-  with two or three entries.
+  build copies the generated folder whole. *Still open*; see "Phase 2 as built".
+- **Every package has the same manifest identifier.** *Fixed in Phase 2.*
+- **Navigation is still on the page.** *Fixed in Phase 2.*
 - **Footnote numbers** in a PDF restart, where they would otherwise continue from
   earlier in the document.
 - **Only single-target references are handled.** A reference with a list or a range
@@ -228,8 +261,7 @@ all.
 ## Phases
 
 1. **One piece, PDF.** *Done 2026-11-23.* See "Phase 1 as built".
-2. **One piece, SCORM.** Per-piece manifest identifier. Decide what to do about
-   navigation and package size (see open questions).
+2. **One piece, SCORM.** *Done 2026-11-23.* See "Phase 2 as built".
 3. **Collections.** The `collection` attribute and its schema entry, the loop over
    pieces with one shared asset pass, file naming, the bundle zip.
 4. **PDF number fidelity.** *Done in Phase 1*, except footnotes.
@@ -241,9 +273,12 @@ all.
 
 ## Open questions
 
-- Package size: strip source maps, drop unused scripts, or rely on a portable build
-  that loads scripts from a CDN? Does an LMS allow the CDN route?
-- Should a piece carry only the generated assets it uses?
+- Should a piece carry only the generated assets it uses? It needs a way to know
+  them that does not depend on scanning the page.
+- Should ordinary SCORM and zip targets get the same size trimming? It is safe for
+  them too, but changes what an existing target produces.
+- Should a long division, a chapter say, keep a table of contents for its own
+  sections?
 - File names: `xml:id`, or a name made from the title?
 - Should outward references link to a deployed copy of the full book when the
   publication file gives a base URL?

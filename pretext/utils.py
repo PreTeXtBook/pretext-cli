@@ -15,6 +15,7 @@ import socket
 import subprocess
 import time as time
 import uuid
+import zipfile
 import logging
 import logging.handlers
 import psutil
@@ -513,10 +514,14 @@ def division_can_stand_alone(element: ET._Element) -> bool:
     return element.tag in STANDALONE_DIVISIONS
 
 
-def copy_division_xsl(output_dir: Path, custom_xsl: Optional[Path] = None) -> Path:
+def copy_division_xsl(
+    output_dir: Path, converter: str, custom_xsl: Optional[Path] = None
+) -> Path:
     """
     Put the stylesheets that build a single division into `output_dir`, beside
     a copy of core's XSL, and return the path of the one to apply.
+
+    `converter` is the core conversion to build on, `latex` or `html`.
 
     `custom_xsl`, if given, is a target's own stylesheet that
     `copy_custom_xsl` has already placed in `output_dir`.  The division
@@ -528,12 +533,12 @@ def copy_division_xsl(output_dir: Path, custom_xsl: Optional[Path] = None) -> Pa
         shutil.copytree(
             resources.resource_base_path() / "core" / "xsl", output_dir / "core"
         )
-    for name in ("cli-division-common.xsl", "cli-division-latex.xsl"):
+    division_xsl = output_dir / f"cli-division-{converter}.xsl"
+    for name in ("cli-division-common.xsl", division_xsl.name):
         with importlib.resources.path("pretext.resources.division", name) as src:
             shutil.copy2(src, output_dir / name)
-    division_xsl = output_dir / "cli-division-latex.xsl"
     if custom_xsl is not None:
-        core_import = '<xsl:import href="./core/pretext-latex.xsl"/>'
+        core_import = f'<xsl:import href="./core/pretext-{converter}.xsl"/>'
         text = division_xsl.read_text(encoding="utf-8")
         assert core_import in text
         division_xsl.write_text(
@@ -541,6 +546,60 @@ def copy_division_xsl(output_dir: Path, custom_xsl: Optional[Path] = None) -> Pa
             encoding="utf-8",
         )
     return division_xsl
+
+
+def scorm_identifier(document: str, division: str) -> str:
+    """
+    A manifest identifier for the SCORM package of one division of a document.
+
+    Core gives every package the same identifier.  Packages made from the
+    divisions of one document are meant to sit side by side in one course, so
+    each needs its own, and it should not change from one build to the next:
+    an LMS may use it to recognize a new upload of a package it already has.
+    The result is a legal XML name, as the manifest's schema requires.
+    """
+    return "ptx-" + re.sub(r"[^A-Za-z0-9_.-]+", "-", f"{document}-{division}")
+
+
+def _is_package_dead_weight(file: Path) -> bool:
+    """
+    True for a file that does nothing inside a zipped package: a JavaScript
+    source map, which only a developer's debugger reads, or a compressed twin
+    of a file beside it, which only a suitably configured web server would
+    serve.  Together these are most of the Runestone files in `_static`.
+    """
+    if file.name.endswith((".map", ".map.gz")):
+        return True
+    return file.suffix == ".gz" and file.with_suffix("").exists()
+
+
+def package_division_html(
+    build_dir: Path, zip_path: Path, identifier: Optional[str] = None
+) -> None:
+    """
+    Zip the HTML built in `build_dir` for one division into `zip_path`,
+    leaving out files in `_static` that are dead weight in a package.
+
+    `identifier`, when given, replaces the identifier of the SCORM manifest
+    that the build is then expected to have made.
+    """
+    if identifier is not None:
+        manifest_path = build_dir / "imsmanifest.xml"
+        manifest = ET.parse(manifest_path)
+        manifest.getroot().set("identifier", identifier)
+        manifest.write(manifest_path, xml_declaration=True, encoding="UTF-8")
+    static_dir = build_dir / "_static"
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    dropped = 0
+    with zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for file in sorted(build_dir.rglob("*")):
+            if not file.is_file():
+                continue
+            if static_dir in file.parents and _is_package_dead_weight(file):
+                dropped += 1
+                continue
+            zf.write(file, file.relative_to(build_dir).as_posix())
+    log.debug(f"Left {dropped} unneeded files out of {zip_path}")
 
 
 def check_executable(exec_name: str) -> Optional[str]:

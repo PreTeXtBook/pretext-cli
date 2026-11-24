@@ -225,11 +225,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 'method="fo".  Only format="pdf" can be built through XSL-FO.'
             )
         if self.division is not None and (
-            self.format not in (Format.PDF, Format.LATEX) or self.method == Method.FO
+            self.format not in (Format.PDF, Format.LATEX, Format.HTML)
+            or self.method == Method.FO
+            or self.platform == Platform.RUNESTONE
         ):
             raise ValueError(
                 f'Target "{self.name}" builds the single division "{self.division}", which is '
-                'only supported for format="latex" and for format="pdf" with method="latex".'
+                'only supported for format="html" (but not on the Runestone platform), '
+                'format="latex", and format="pdf" with method="latex".'
             )
         return self
 
@@ -257,8 +260,8 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     # this target builds as a document of its own, in place of the whole
     # source.  The division keeps the numbers it has in the whole document,
     # and the output is named for it unless `output_filename` says otherwise.
-    # Experimental; only for the `pdf` (by the `latex` method) and `latex`
-    # formats.  See `docs/subset-build-roadmap.md`.
+    # Experimental; only for the `html` (not on Runestone), `pdf` (by the
+    # `latex` method) and `latex` formats.  See `docs/subset-build-roadmap.md`.
     division: t.Optional[str] = pxml.attr(name="division", default=None)
 
     # Specify whether this target is intended for standalone building
@@ -1113,7 +1116,11 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             # A single division is cut out of the assembled source by a
             # stylesheet of ours, which wraps any custom one.
             if self.division is not None:
-                custom_xsl = utils.copy_division_xsl(tmp_xsl_path, custom_xsl)
+                custom_xsl = utils.copy_division_xsl(
+                    tmp_xsl_path,
+                    "html" if self.format == Format.HTML else "latex",
+                    custom_xsl,
+                )
 
             # warn if "publisher" is one of the string-param keys:
             if "publisher" in self.stringparams:
@@ -1151,17 +1158,24 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                             "The platform host in the publication file is not set to runestone. Since the requested target has @platform='runestone', we will override the publication file's platform host."
                         )
                 utils.ensure_css_node_modules()
-                core.html(
-                    xml=self.source_abspath(),
-                    pub_file=self.publication_abspath().as_posix(),
-                    stringparams=stringparams_copy,
-                    xmlid_root=xmlid,
-                    file_format=self.compression or "html",
-                    extra_xsl=custom_xsl,
-                    out_file=out_file,
-                    dest_dir=self.output_dir_abspath().as_posix(),
-                    ext_rs_methods=utils.rs_methods,
-                )
+                if self.division is not None and self.compression is not None:
+                    # out_file is never None here: see `_output_filename`
+                    assert out_file is not None and custom_xsl is not None
+                    self._build_division_package(
+                        stringparams_copy, custom_xsl, Path(out_file)
+                    )
+                else:
+                    core.html(
+                        xml=self.source_abspath(),
+                        pub_file=self.publication_abspath().as_posix(),
+                        stringparams=stringparams_copy,
+                        xmlid_root=xmlid,
+                        file_format=self.compression or "html",
+                        extra_xsl=custom_xsl,
+                        out_file=out_file,
+                        dest_dir=self.output_dir_abspath().as_posix(),
+                        ext_rs_methods=utils.rs_methods,
+                    )
             elif self.format == Format.PDF:
                 if self.method == Method.FO:
                     # The LaTeX-free route: XSL-FO rendered by Apache FOP.
@@ -1328,9 +1342,62 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         if self.output_filename is not None:
             return self.output_filename
         if self.division is not None:
+            if self.format == Format.HTML:
+                # uncompressed HTML is a directory of files, not one file
+                return None if self.compression is None else self.division + ".zip"
             suffix = ".tex" if self.format == Format.LATEX else ".pdf"
             return self.division + suffix
         return None
+
+    def _build_division_package(
+        self, stringparams: t.Dict[str, str], division_xsl: Path, zip_path: Path
+    ) -> None:
+        """
+        Build the HTML for this target's single division and zip it as `zip_path`.
+
+        Core can zip an HTML build itself, but here the CLI does it, to give a SCORM package an identifier of its own and to leave out files that only add size (see `utils.package_division_html`).  Core's only other step for a SCORM package is a string parameter, set here instead.
+        """
+        assert self.division is not None
+        scorm = self.compression == Compression.SCORM
+        if scorm:
+            stringparams["html.scorm"] = "yes"
+        with tempfile.TemporaryDirectory(prefix="ptxcli_division_") as build_dir:
+            core.html(
+                xml=self.source_abspath(),
+                pub_file=self.publication_abspath().as_posix(),
+                stringparams=stringparams,
+                xmlid_root=None,
+                file_format="html",
+                extra_xsl=division_xsl,
+                out_file=None,
+                dest_dir=build_dir,
+                ext_rs_methods=utils.rs_methods,
+            )
+            utils.package_division_html(
+                Path(build_dir),
+                zip_path,
+                identifier=(
+                    utils.scorm_identifier(self._document_name(), self.division)
+                    if scorm
+                    else None
+                ),
+            )
+        log.info(f"Package for division {self.division} deposited as {zip_path}")
+
+    def _document_name(self) -> str:
+        """
+        A name for this target's source document that stays the same from build to build: its `docinfo/document-id`, else the `xml:id` of its root division, else the name of its source file.
+        """
+        root = self.source_element()
+        document_id = root.findtext("docinfo/document-id")
+        if document_id is not None and document_id.strip() != "":
+            return document_id.strip()
+        for child in root:
+            if child.tag != "docinfo":
+                root_id = child.get("{http://www.w3.org/XML/1998/namespace}id")
+                if root_id is not None:
+                    return root_id
+        return self.source_abspath().stem
 
     def check_division(self) -> None:
         """
