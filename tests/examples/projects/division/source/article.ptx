@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A small article for testing targets that build a single division.     -->
+<!-- Each numbered kind of thing (division, block, table, equation)     -->
+<!-- appears both in a division to be built and before it, so that a    -->
+<!-- number restarting from one is a visible failure.                   -->
+<pretext xml:lang="en-US">
+  <docinfo>
+    <macros>\newcommand{\R}{\mathbb{R}}</macros>
+  </docinfo>
+  <article xml:id="course">
+    <title>Course Materials</title>
+    <section xml:id="ch-background">
+      <title>Background</title>
+      <subsection xml:id="sec-facts">
+        <title>Facts</title>
+        <theorem xml:id="thm-key">
+          <title>Key Fact</title>
+          <statement>
+            <p>Every <m>x \in \R</m> satisfies <md number="yes"><mrow xml:id="eq-square">x^2 \geq 0</mrow></md>.</p>
+          </statement>
+        </theorem>
+      </subsection>
+    </section>
+    <section xml:id="ch-weekly">
+      <title>Weekly Assignments</title>
+      <subsection xml:id="sec-intro">
+        <title>How these work</title>
+        <p>Do one each week.</p>
+      </subsection>
+      <worksheet xml:id="ws-week1">
+        <title>Week 1 Exercises</title>
+        <introduction>
+          <p>Use <xref ref="thm-key"/> and <xref ref="ex-w1-second"/>.</p>
+        </introduction>
+        <exercise xml:id="ex-w1-first">
+          <statement><p>True or false: <md number="yes"><mrow xml:id="eq-week1">x^2 \geq 0</mrow></md> for all <m>x \in \R</m>.</p></statement>
+        </exercise>
+        <exercise xml:id="ex-w1-second" workspace="1in">
+          <statement><p>Explain why.</p></statement>
+        </exercise>
+        <table xml:id="tab-week1">
+          <title>Squares</title>
+          <tabular><row><cell>1</cell><cell>1</cell></row><row><cell>2</cell><cell>4</cell></row></tabular>
+        </table>
+      </worksheet>
+      <worksheet xml:id="ws-week2">
+        <title>Week 2 Exercises</title>
+        <exercise>
+          <statement><p>Compute <md number="yes"><mrow xml:id="eq-sum">2+2</mrow></md>.</p></statement>
+        </exercise>
+        <table xml:id="tab-week2">
+          <title>Cubes</title>
+          <tabular><row><cell>1</cell><cell>1</cell></row><row><cell>2</cell><cell>8</cell></row></tabular>
+        </table>
+      </worksheet>
+    </section>
+    <section xml:id="ch-exams">
+      <title>Exams</title>
+      <subsection xml:id="exam1">
+        <title>Exam 1</title>
+        <example xml:id="example-sample"><statement><p>A sample.</p></statement></example>
+        <theorem xml:id="thm-another"><statement><p>Another fact.</p></statement></theorem>
+        <exercises>
+          <exercise><statement><p>State <xref ref="thm-key"/>.</p></statement></exercise>
+          <exercise><statement><p>Prove it.</p></statement></exercise>
+        </exercises>
+      </subsection>
+      <subsection xml:id="exam2">
+        <title>Exam 2</title>
+        <p>Recall <xref ref="thm-late"/>.</p>
+        <theorem xml:id="thm-late">
+          <statement><p>A late fact: <md number="yes"><mrow xml:id="eq-late">1 &lt; 2</mrow></md>.</p></statement>
+        </theorem>
+      </subsection>
+    </section>
+  </article>
+</pretext>

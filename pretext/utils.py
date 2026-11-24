@@ -479,6 +479,70 @@ def copy_custom_xsl(xsl_path: Path, output_dir: Path) -> None:
         shutil.copytree(resources.resource_base_path() / "core" / "xsl", symlink)
 
 
+# Names of the divisions that `Target.division` may build as a document of
+# their own.  See `division_can_stand_alone`.
+STANDALONE_DIVISIONS = frozenset(
+    {
+        "chapter",
+        "section",
+        "subsection",
+        "subsubsection",
+        "worksheet",
+        "handout",
+        "exercises",
+        "reading-questions",
+    }
+)
+
+
+def division_can_stand_alone(element: ET._Element) -> bool:
+    """
+    Decide whether `element`, found in the assembled source by its `xml:id`,
+    may be built as a document of its own by a target's `division` attribute.
+
+    TODO(human): this is a policy choice, and the current answer is a
+    conservative guess.  Things to weigh:
+      - Front and back matter (`preface`, `appendix`, `solutions`, `index`,
+        back-matter `references`) depend on their container: an appendix is
+        lettered because `backmatter` says so, and `solutions` gathers
+        content from the rest of the book.
+      - A `part` works in principle but is untested.
+      - Blocks (`exercise`, `project`, `example`) are not divisions, so
+        there is no heading to stand in for a title.
+    """
+    return element.tag in STANDALONE_DIVISIONS
+
+
+def copy_division_xsl(output_dir: Path, custom_xsl: Optional[Path] = None) -> Path:
+    """
+    Put the stylesheets that build a single division into `output_dir`, beside
+    a copy of core's XSL, and return the path of the one to apply.
+
+    `custom_xsl`, if given, is a target's own stylesheet that
+    `copy_custom_xsl` has already placed in `output_dir`.  The division
+    stylesheet then imports it in place of core's, so that both apply.
+    """
+    output_dir = output_dir.resolve()
+    if not (output_dir / "core").exists():
+        log.debug(f"Copying core XSL to {output_dir}/core")
+        shutil.copytree(
+            resources.resource_base_path() / "core" / "xsl", output_dir / "core"
+        )
+    for name in ("cli-division-common.xsl", "cli-division-latex.xsl"):
+        with importlib.resources.path("pretext.resources.division", name) as src:
+            shutil.copy2(src, output_dir / name)
+    division_xsl = output_dir / "cli-division-latex.xsl"
+    if custom_xsl is not None:
+        core_import = '<xsl:import href="./core/pretext-latex.xsl"/>'
+        text = division_xsl.read_text(encoding="utf-8")
+        assert core_import in text
+        division_xsl.write_text(
+            text.replace(core_import, f'<xsl:import href="./{custom_xsl.name}"/>'),
+            encoding="utf-8",
+        )
+    return division_xsl
+
+
 def check_executable(exec_name: str) -> Optional[str]:
     try:
         exec_cmd = core.get_executable_cmd(exec_name)[0]

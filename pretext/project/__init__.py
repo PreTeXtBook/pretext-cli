@@ -224,6 +224,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 f'Target "{self.name}" has format "{self.format.value}", which does not support '
                 'method="fo".  Only format="pdf" can be built through XSL-FO.'
             )
+        if self.division is not None and (
+            self.format not in (Format.PDF, Format.LATEX) or self.method == Method.FO
+        ):
+            raise ValueError(
+                f'Target "{self.name}" builds the single division "{self.division}", which is '
+                'only supported for format="latex" and for format="pdf" with method="latex".'
+            )
         return self
 
     braille_mode: BrailleMode = pxml.attr(
@@ -245,6 +252,14 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         else:
             # specified `deploy` attr, so deploy iff choice isn't "no"
             return deploy.lower() != "no"
+
+    # The `xml:id` of a single division (a `section`, a `worksheet`, ...) that
+    # this target builds as a document of its own, in place of the whole
+    # source.  The division keeps the numbers it has in the whole document,
+    # and the output is named for it unless `output_filename` says otherwise.
+    # Experimental; only for the `pdf` (by the `latex` method) and `latex`
+    # formats.  See `docs/subset-build-roadmap.md`.
+    division: t.Optional[str] = pxml.attr(name="division", default=None)
 
     # Specify whether this target is intended for standalone building
     standalone: t.Optional[str] = pxml.attr(name="standalone", default=None)
@@ -1055,6 +1070,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # Validate xml against schema; continue with warning if invalid:
         self.check_schema()
 
+        # A target for a single division must name one that can stand alone.
+        if self.division is not None:
+            self.check_division()
+
         # Clean output upon request
         if clean:
             self.clean_output()
@@ -1065,9 +1084,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         # verify that a webwork_representations.xml file exists if it is needed; generated if needed.
         self.ensure_webwork_reps(clean_tmp_dirs=clean_tmp_dirs)
 
-        # Generate needed assets unless requested not to.
+        # Generate needed assets unless requested not to.  A single division
+        # needs only its own, and they are the ones the whole document uses.
         if generate:
-            self.generate_assets(xmlid=xmlid, clean_tmp_dirs=clean_tmp_dirs)
+            self.generate_assets(
+                xmlid=xmlid if xmlid is not None else self.division,
+                clean_tmp_dirs=clean_tmp_dirs,
+            )
 
         # Ensure the output directories exist.
         self.ensure_output_directory()
@@ -1087,6 +1110,10 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 custom_xsl = tmp_xsl_path / txp.name
             else:
                 custom_xsl = None
+            # A single division is cut out of the assembled source by a
+            # stylesheet of ours, which wraps any custom one.
+            if self.division is not None:
+                custom_xsl = utils.copy_division_xsl(tmp_xsl_path, custom_xsl)
 
             # warn if "publisher" is one of the string-param keys:
             if "publisher" in self.stringparams:
@@ -1098,14 +1125,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
 
             log.info(f"Preparing to build into {self.output_dir_abspath()}.")
             # The core expects `out_file` to be the full path, not just a file name, if it's not None.
+            output_filename = self._output_filename()
             out_file = (
-                (self.output_dir_abspath() / self.output_filename).as_posix()
-                if self.output_filename is not None
+                (self.output_dir_abspath() / output_filename).as_posix()
+                if output_filename is not None
                 else None
             )
             # The copy allows us to modify string params without affecting the original,
             # and avoids issues with core modifying string params
             stringparams_copy = self.stringparams.copy()
+            if self.division is not None:
+                stringparams_copy["cli.division"] = self.division
             if self.format == Format.HTML:
                 if self.platform == Platform.RUNESTONE:
                     # The validator guarantees this.
@@ -1291,14 +1321,50 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             )
             log.debug(e, exc_info=True)
 
+    def _output_filename(self) -> t.Optional[str]:
+        """
+        The name for this target's single output file: `output_filename` when the manifest gives one, else a name made from `division` when the target builds a single division (so that several such targets sharing a source do not all write `main.pdf`), else `None`, which leaves the naming to core.
+        """
+        if self.output_filename is not None:
+            return self.output_filename
+        if self.division is not None:
+            suffix = ".tex" if self.format == Format.LATEX else ".pdf"
+            return self.division + suffix
+        return None
+
+    def check_division(self) -> None:
+        """
+        Raise a `ValueError` unless `division` names exactly one element of the assembled source, and one that can be built as a document of its own.
+        """
+        assert self.division is not None
+        found = t.cast(
+            t.List[ET._Element],
+            self.source_element().xpath(
+                "//*[@xml:id = $division]", division=self.division
+            ),
+        )
+        if len(found) == 0:
+            raise ValueError(
+                f'Target "{self.name}" is to build the division "{self.division}", but no element of the source has that xml:id.'
+            )
+        if len(found) > 1:
+            raise ValueError(
+                f'Target "{self.name}" is to build the division "{self.division}", but {len(found)} elements of the source have that xml:id.'
+            )
+        if not utils.division_can_stand_alone(found[0]):
+            raise ValueError(
+                f'Target "{self.name}" is to build "{self.division}", but that is a "{found[0].tag}", which cannot be built as a document of its own.'
+            )
+
     def _rename_build_directory_output(self, suffix: str) -> None:
         """
         Core's `pdf` honors `out_file` only when it copies the PDF alone.  When it copies its whole build directory instead (`outputs` of `all` or `prebuild`), the main file keeps the source's name, so rename that file (the `.tex` for a latex target, otherwise the `.pdf`) to `output_filename`.
         """
-        if self.output_filename is None:
+        output_filename = self._output_filename()
+        if output_filename is None:
             return
         built = self.output_dir_abspath() / (self.source_abspath().stem + suffix)
-        renamed = self.output_dir_abspath() / self.output_filename
+        renamed = self.output_dir_abspath() / output_filename
         if built == renamed:
             return
         log.debug(f"Renaming {built} to {renamed}")

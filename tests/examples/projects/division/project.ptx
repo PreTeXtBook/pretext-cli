@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project ptx-version="2">
+  <targets>
+    <target name="book" format="latex"/>
+    <target name="week2" format="latex" division="ws-week2"/>
+    <target name="exam1" format="latex" division="exam1"/>
+    <target name="exam2-article" format="latex" source="article.ptx" division="exam2"/>
+  </targets>
+</project>

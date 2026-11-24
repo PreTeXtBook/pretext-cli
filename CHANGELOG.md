@@ -11,6 +11,7 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 
 ### Added
 
+- Experimental: a `pdf` or `latex` target can build a single division of its source as a document of its own.  Add `division="..."` to the target, giving the `xml:id` of a `chapter`, `section`, `subsection`, `worksheet`, `handout`, `exercises`, or `reading-questions`.  The output holds only that division, named `<xml:id>.pdf` (or `.tex`) unless `output-filename` is set.  The division keeps the numbers it has in the whole document, and a cross-reference to something outside it shows its usual text without a link.  For example, `<target name="exam1" format="pdf" division="exam-one"/>`.
 - WeBWorK problems are now cached individually, like `latex-image`, `asymptote`, `sageplot`, and `prefigure` assets.  Each problem's representations file and images are kept in `.cache/webwork/<hash>/`, so when some problems change (or another target with the same source is built), only the changed problems are sent to the WeBWorK server.  A change to the project's PG macro files (including `docinfo/latex-image-preamble`) or to the server's version regenerates every problem.  A problem hosted on the server, or the course's macros there, can change without the CLI noticing; run `pretext generate webwork -f` after such a change.  `pretext prune-cache` removes stale problems too.
 
 ### Fixed

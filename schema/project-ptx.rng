@@ -205,6 +205,14 @@ separate the route to the PDF from the engine that compiles it.</a:documentation
       </attribute>
     </optional>
     <optional>
+      <attribute name="division">
+        <a:documentation>Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
+...) to build as a document of its own, in place of the whole source.
+The division keeps the numbers it has in the whole document, and the
+output is named for it unless `output-filename` is given.</a:documentation>
+      </attribute>
+    </optional>
+    <optional>
       <attribute name="output-filename"/>
     </optional>
     <optional>
@@ -220,6 +228,14 @@ separate the route to the PDF from the engine that compiles it.</a:documentation
     <attribute name="format">
       <value>latex</value>
     </attribute>
+    <optional>
+      <attribute name="division">
+        <a:documentation>Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
+...) to build as a document of its own, in place of the whole source.
+The division keeps the numbers it has in the whole document, and the
+output is named for it unless `output-filename` is given.</a:documentation>
+      </attribute>
+    </optional>
     <optional>
       <attribute name="output-filename"/>
     </optional>

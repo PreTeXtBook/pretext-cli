@@ -10,12 +10,15 @@ example projects in ``tests/examples/projects``:
 - ``project_refactor/elaborate``  -- v2 manifest exercising every attribute
 - ``project_refactor/legacy``     -- v1 (legacy) manifest
 - ``project_refactor/assets``     -- targets for asset-table comparison
+- ``division``                    -- a book and an article whose divisions are
+  built one at a time
 - others (``xref``, ``xi_pub``, ...) for specific behaviors
 
 The CLI equivalents of these behaviors are tested in ``test_cli.py``.
 """
 
 import importlib.util
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -1175,3 +1178,180 @@ def test_publisher_style_outranks_journal(tmp_path: Path) -> None:
             target.generated_dir_abspath() / "references" / "csl-bibliography.xml"
         )
         assert 'csl-style-file="harvard-cite-them-right"' in generated.read_text()
+
+
+# Targets that build a single division
+# ====================================
+#
+# The `division` example is a book (`main.ptx`) and the same document as an
+# article (`article.ptx`).  Divisions, blocks, tables and numbered equations
+# each appear both inside a division that gets built and ahead of it, so a
+# number that restarts from one shows up as a wrong number.
+
+
+@pytest.fixture
+def division_project(tmp_path: Path) -> Path:
+    """Copy the `division` example project into tmp_path and return its root."""
+    prj_path = tmp_path / "division"
+    shutil.copytree(EXAMPLES_DIR / "projects" / "division", prj_path)
+    return prj_path
+
+
+def test_division_format_restrictions() -> None:
+    """A target can build a single division only as LaTeX, or as a PDF made
+    through LaTeX; any other combination is rejected when the target is made."""
+    project = pr.Project(ptx_version="2")
+    assert project.new_target("a", "latex", division="x").division == "x"
+    assert project.new_target("b", "pdf", division="x").division == "x"
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("c", "html", division="x")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("d", "pdf", method="fo", division="x")
+
+
+def test_division_must_be_able_to_stand_alone(division_project: Path) -> None:
+    """Building stops with an explanation when `division` names nothing in
+    the source, or names something that is not a division."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        missing = project.new_target("missing", "latex", division="no-such-id")
+        with pytest.raises(ValueError, match="no element of the source"):
+            missing.build(generate=False)
+        block = project.new_target("block", "latex", division="thm-key")
+        with pytest.raises(ValueError, match='is a "theorem"'):
+            block.build(generate=False)
+
+
+def test_division_latex_build(division_project: Path) -> None:
+    """A division target writes a file named for the division, holding the
+    division and nothing from the rest of the document, with LaTeX's
+    counters set so the division keeps its number from the whole book."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.get_target("week2")
+        target.build(generate=False)
+        out_dir = target.output_dir_abspath()
+        assert not (out_dir / "main.tex").exists()
+        tex = (out_dir / "ws-week2.tex").read_text()
+    assert "Week 2 Exercises" in tex
+    # other divisions, earlier and later, are gone
+    assert "Week 1 Exercises" not in tex
+    assert "Key Fact" not in tex
+    assert "Exam 1" not in tex
+    # an ancestor is not printed: no heading for the enclosing chapter
+    assert "{Weekly Assignments}" not in tex
+    # Worksheet 2.3: chapter 2, and the section counter one short of 3
+    assert "\\setcounter{chapter}{2}" in tex
+    assert "\\setcounter{section}{2}" in tex
+
+
+def test_division_output_filename(division_project: Path) -> None:
+    """An `output-filename` on a division target wins over the name made
+    from the division."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "named", "latex", division="exam1", output_filename="first-exam.tex"
+        )
+        target.build(generate=False)
+        assert (target.output_dir_abspath() / "first-exam.tex").exists()
+        assert not (target.output_dir_abspath() / "exam1.tex").exists()
+
+
+def test_division_outward_xref(division_project: Path) -> None:
+    """A cross-reference to something outside the division keeps its text
+    and number, written out literally, and makes no link or lookup that
+    the division's own document could not satisfy."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.get_target("exam1")
+        target.build(generate=False)
+        tex = (target.output_dir_abspath() / "exam1.tex").read_text()
+    # the theorem is 1.1.1 in the whole book, and is not in this document
+    assert re.search(r"Theorem~\{\\xreffont 1\.1\.1\}", tex)
+    assert "thm-key" not in tex
+
+
+def test_division_article_title(division_project: Path) -> None:
+    """An article would print a title block and then the division's own
+    heading, with the same words; the title block is switched off."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.get_target("exam2-article")
+        target.build(generate=False)
+        tex = (target.output_dir_abspath() / "exam2.tex").read_text()
+    assert "\\renewcommand{\\maketitle}{}" in tex
+
+
+def test_division_counters_continue(division_project: Path) -> None:
+    """Counters that run across sibling divisions pick up where the earlier
+    siblings left them.  In the article, blocks and equations are numbered
+    through the enclosing section, which the divisions share."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        exam = project.get_target("exam2-article")
+        exam.build(generate=False)
+        exam_tex = (exam.output_dir_abspath() / "exam2.tex").read_text()
+        week = project.new_target(
+            "week2-article", "latex", source="article.ptx", division="ws-week2"
+        )
+        week.build(generate=False)
+        week_tex = (week.output_dir_abspath() / "ws-week2.tex").read_text()
+    # the first exam has an example and a theorem, so this theorem is third
+    assert "\\setcounter{tcb@cnt@block}{2}" in exam_tex
+    # week 1 has one table and one numbered equation
+    assert "\\setcounter{tcb@cnt@block}{1}" in week_tex
+    assert "\\setcounter{equation}{1}" in week_tex
+
+
+def test_division_with_custom_xsl(division_project: Path) -> None:
+    """A target's own stylesheet still applies when the target builds a
+    single division."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "custom", "latex", division="exam1", xsl="custom-latex.xsl"
+        )
+        target.build(generate=False)
+        tex = (target.output_dir_abspath() / "exam1.tex").read_text()
+    assert "CUSTOM-XSL-MARKER" in tex
+    assert "Exam 2" not in tex
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+@pytest.mark.parametrize(
+    "source,division",
+    [
+        ("main.ptx", "ws-week2"),
+        ("main.ptx", "exam2"),
+        ("article.ptx", "ws-week2"),
+        ("article.ptx", "exam2"),
+    ],
+)
+def test_division_pdf_numbers_match(
+    division_project: Path, source: str, division: str
+) -> None:
+    """In the PDF of a division, every number LaTeX produces is the number
+    the item has in the whole document.  Core's numbering check compares
+    the two for each division and block, and warns in the LaTeX log."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "piece",
+            "pdf",
+            source=source,
+            division=division,
+            latex_source="yes",
+            stringparams={"debug.numbering.check": "yes"},
+        )
+        target.build(generate=False)
+        out_dir = target.output_dir_abspath()
+        assert (out_dir / f"{division}.pdf").exists()
+        latex_log = (out_dir / (Path(source).stem + ".log")).read_text(errors="replace")
+    # the check ran...
+    assert "ptxnumbercheck" in (out_dir / (Path(source).stem + ".tex")).read_text()
+    # ...and found nothing
+    assert "umber mismatch" not in latex_log

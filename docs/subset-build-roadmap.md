@@ -1,8 +1,9 @@
 # Roadmap: collections (many divisions of one document, each built as its own output)
 
-**Status: design chosen and proven by a spike on 2026-11-22. Nothing is implemented
-in the CLI yet.** The spike is a runnable project in
-[subset-spike/](subset-spike/); its README says how to build it.
+**Status: Phase 1 is implemented on the `collections` branch (2026-11-23): a `pdf`
+or `latex` target with `division="<xml:id>"` builds that one division as its own
+document.** SCORM, collections of many divisions, and PreTeXt.Plus are still to do.
+The earlier spike is a runnable project in [subset-spike/](subset-spike/).
 
 This replaces the plan of 2026-07-12 (wrap one division in an empty `article` and
 build that). The section "What changed from the July plan" records what was dropped
@@ -29,17 +30,73 @@ flags alone.
 
 ## Picking this up
 
-State on 2026-11-23: this roadmap and the spike are the only work. They are on the
-`collections` branch. No CLI code has changed.
+State on 2026-11-23, on the `collections` branch:
 
-1. Rebuild the spike to confirm the environment
-   ([subset-spike/README.md](subset-spike/README.md)). If the CLI reports a missing
-   file under `~/.ptx/<version>/core`, the bundled core is older than `CORE_COMMIT`:
-   run `uv run python scripts/fetch_core.py`, and `scripts/symlink_core.py` again if
-   core is linked.
-2. Answer the one question left open: should exact PDF numbers be fixed in Phase 1
-   (seed block counters), or accepted as a known gap until the cut moves into core?
-3. Start Phase 1 below.
+- Phase 1 is done, with tests that pass against both the pinned core and a core
+  checkout at `f560a2b52`. See "Phase 1 as built" below.
+- Next is Phase 2, one division as a SCORM package.
+- One decision is waiting on Oscar: which elements may be built alone. The answer
+  lives in `division_can_stand_alone` in `pretext/utils.py`, marked `TODO(human)`,
+  and is a conservative guess for now.
+
+If the CLI reports a missing file under `~/.ptx/<version>/core`, the bundled core is
+older than `CORE_COMMIT`: run `uv run python scripts/fetch_core.py`, and
+`scripts/symlink_core.py` again if core is linked.
+
+## Phase 1 as built
+
+A target in the manifest, or `Project.new_target(...)` in Python:
+
+```xml
+<target name="exam1" format="pdf" division="exam-one"/>
+```
+
+- **Where the code is.** The stylesheets ship in `pretext/resources/division/`.
+  `utils.copy_division_xsl` places them beside a copy of core's XSL at build time.
+  `Target.build` applies them when `division` is set, and `Target.check_division`
+  rejects an `xml:id` that is missing or is not a division.
+- **Formats.** `latex`, and `pdf` by the `latex` method. Anything else is rejected
+  when the target is created.
+- **Output name.** `<xml:id>.pdf` or `.tex`, unless `output-filename` is given.
+- **Assets.** Only the division's assets are generated, and they are the same files
+  the whole document uses.
+- **A target's own `xsl`** still applies: the division stylesheet imports it in
+  place of core's.
+- **Numbers are exact in the PDF**, not only for divisions. See the next section.
+- **An article prints no title block**, since the division's heading already shows
+  the title.
+
+Tests are in `tests/test_project.py` (search for "division"), using the example
+project `tests/examples/projects/division`.
+
+## LaTeX numbering: what core offers, and what Phase 1 does
+
+Oscar recalled talk of core doing the numbering for LaTeX itself. As of core
+`f560a2b52` there are two related features, and neither is that switch:
+
+- **`debug.numbering.check`**, a string parameter. Set to `yes`, the LaTeX output
+  compares PreTeXt's number with LaTeX's own for every division and block, and
+  writes a warning to the LaTeX log on a mismatch. It checks; it does not change
+  what is printed.
+- **`$b-latex-hardcode-numbers`**, a stylesheet variable that only the solutions
+  manual turns on. It prints PreTeXt's number for figures, tables, lists and
+  listings. It does not cover headings or theorem-like blocks, so on its own it
+  cannot make a single division's PDF right.
+
+The groundwork is there (every number is stamped on the tree during assembly), but
+LaTeX still counts for itself. So Phase 1 sets LaTeX's counters from the stamps,
+once, where the division begins:
+
+- each ancestor's division counter, to the ancestor's number;
+- the division's own counter, to one less than its number;
+- the equation counter and each block counter (core has at most five), to one less
+  than the number of the first item in the division that uses it.
+
+The numbering check is the test for this. `test_division_pdf_numbers_match` builds
+PDFs with the check on and fails on any warning. With the counter setting disabled
+the same test fails, so it does detect drift.
+
+Footnote numbers are not handled.
 
 ## Decisions (2026-11-22)
 
@@ -120,16 +177,11 @@ only against the checkout).
 
 ## Gaps the spike found
 
-- **PDF block numbers can drift.** When a counter runs across sibling divisions, the
-  PDF restarts it. In the article, the second worksheet's figure is "Figure 2.2" in
-  HTML (correct) but "Figure 2.1" in its PDF. Seeding division counters is not
-  enough; block counters need seeding too, or core needs to write those numbers
-  literally. Its existing switch for that (`$b-latex-hardcode-numbers`) does not
-  cover headings or theorem-like blocks.
-- **An article prints its title twice in PDF.** The `article` template calls
-  `\maketitle` whenever there is a title and no title page, so the piece shows the
-  title block and then the division heading. A book does not. The PDF route should
-  leave the root title out, or suppress `\maketitle`.
+- **PDF block numbers can drift.** *Fixed in Phase 1* by setting LaTeX's counters;
+  see "LaTeX numbering" above. When the spike ran, a second worksheet's figure was
+  "Figure 2.2" in HTML but "Figure 2.1" in its PDF.
+- **An article prints its title twice in PDF.** *Fixed in Phase 1*: the title block
+  is switched off.
 - **Every SCORM package is about 10 MB**, for a tiny worksheet, and the size does
   not depend on content. Nearly all of it is `_static` (25 MB unzipped), including
   about 9 MB of JavaScript source maps. Fifteen pieces would be about 150 MB.
@@ -139,16 +191,26 @@ only against the checkout).
   in core.
 - **Navigation is still on the page**: previous/next buttons and a table of contents
   with two or three entries.
+- **Footnote numbers** in a PDF restart, where they would otherwise continue from
+  earlier in the document.
 - **Only single-target references are handled.** A reference with a list or a range
   of targets that leaves the piece is not marked.
-- **A target's own custom stylesheet** is not combined with the pruning stylesheet
-  yet. The pruning stylesheet would need to import the author's file, not core's.
+- **A target's own custom stylesheet.** *Fixed in Phase 1*: the division stylesheet
+  imports it.
 - **The approach leans on core internals**: the `$serial-stamp` variable, the
   `pi:` stamps, and the override of `$root`. Core documents the override, but a
-  rename upstream would break this silently. A test that builds one piece and
-  checks a number guards against that.
+  rename upstream would break this silently. The Phase 1 tests guard against
+  that, and should be run whenever `CORE_COMMIT` moves.
 
-## Configuration (sketch; names are open)
+## Configuration
+
+One division, as built in Phase 1:
+
+```xml
+<target name="exam1" format="pdf" division="exam-one"/>
+```
+
+Many divisions, a sketch for Phase 3 with names still open:
 
 ```xml
 <target name="assignments" format="html" compression="scorm"
@@ -165,14 +227,12 @@ all.
 
 ## Phases
 
-1. **One piece, PDF.** Ship the pruning stylesheets with the CLI. Add a way for a
-   target to build a single division through them. Fix the article title. Test that
-   pins a heading number and an outward reference.
+1. **One piece, PDF.** *Done 2026-11-23.* See "Phase 1 as built".
 2. **One piece, SCORM.** Per-piece manifest identifier. Decide what to do about
    navigation and package size (see open questions).
 3. **Collections.** The `collection` attribute and its schema entry, the loop over
    pieces with one shared asset pass, file naming, the bundle zip.
-4. **PDF number fidelity.** Seed block counters, or agree a core change.
+4. **PDF number fidelity.** *Done in Phase 1*, except footnotes.
 5. **PreTeXt.Plus.** Expose the collection target in the build service.
 6. **Documentation.** Guide section and CHANGELOG entry.
 7. **Later, upstream.** Move the pruning into core's assembly as a real pass, with
@@ -187,8 +247,11 @@ all.
 - File names: `xml:id`, or a name made from the title?
 - Should outward references link to a deployed copy of the full book when the
   publication file gives a base URL?
-- What may be a piece? The spike used worksheets and a section. Chapters should
-  work the same way. Anything that is not a division needs thought.
+- What may be a piece? Phase 1 allows `chapter`, `section`, `subsection`,
+  `subsubsection`, `worksheet`, `handout`, `exercises` and `reading-questions`.
+  Parts, appendices and other back matter, and blocks such as a single `exercise`
+  or `project`, are refused for now. This is Oscar's call
+  (`division_can_stand_alone`).
 - Does the existing `-x` option keep its present meaning?
 
 ## What changed from the July plan

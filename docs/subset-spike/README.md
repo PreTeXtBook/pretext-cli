@@ -4,6 +4,11 @@ A runnable PreTeXt project that proves the approach in
 [../subset-build-roadmap.md](../subset-build-roadmap.md): build one division of a
 book as its own PDF or SCORM package, keeping the numbers it has in the full book.
 
+This is the first proof of the idea, kept for reference. The CLI now does this
+itself for PDF and LaTeX, through a target's `division` attribute, with improved
+versions of these stylesheets in `pretext/resources/division/`. The HTML and SCORM
+stylesheet here is still the only one of its kind.
+
 Nothing here is wired into the CLI. Each "piece" target in `project.ptx` uses the
 existing custom-stylesheet hook (`xsl=`) and a `subset.id` string parameter.
 

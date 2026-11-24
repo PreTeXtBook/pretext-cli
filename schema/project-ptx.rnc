@@ -94,12 +94,22 @@ PdfAttributes = (
 	## Deprecated: superseded by `method` together with `latex-engine`, which
 	## separate the route to the PDF from the engine that compiles it.
 	attribute pdf-method { "xelatex" | "pdflatex" | "lualatex" | "latex" | "pdf-fo"}?,
+	## Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
+	## ...) to build as a document of its own, in place of the whole source.
+	## The division keeps the numbers it has in the whole document, and the
+	## output is named for it unless `output-filename` is given.
+	attribute division { text }?,
 	attribute output-filename { text }?,
 	attribute latex-source { "yes" | "no" }?
 )
 
 LatexAttributes = (
 	attribute format { "latex" },
+	## Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
+	## ...) to build as a document of its own, in place of the whole source.
+	## The division keeps the numbers it has in the whole document, and the
+	## output is named for it unless `output-filename` is given.
+	attribute division { text }?,
 	attribute output-filename { text }?
 )
 
