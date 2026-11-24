@@ -508,3 +508,20 @@ def test_package_division_html(tmp_path: Path) -> None:
             "imsmanifest.xml",
         ]
         assert b'identifier="ptx-doc-piece"' in zf.read("imsmanifest.xml")
+
+
+def test_bundle_collection(tmp_path: Path) -> None:
+    """Bundling a collection puts each file at the top of the zip, and each
+    directory there with everything in it."""
+    (tmp_path / "a.pdf").write_text("a")
+    (tmp_path / "week1" / "_static").mkdir(parents=True)
+    (tmp_path / "week1" / "index.html").write_text("w")
+    (tmp_path / "week1" / "_static" / "x.js").write_text("x")
+    bundle = tmp_path / "all.zip"
+    utils.bundle_collection([tmp_path / "a.pdf", tmp_path / "week1"], bundle)
+    with zipfile.ZipFile(bundle) as zf:
+        assert sorted(zf.namelist()) == [
+            "a.pdf",
+            "week1/_static/x.js",
+            "week1/index.html",
+        ]

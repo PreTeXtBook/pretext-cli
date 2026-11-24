@@ -694,7 +694,7 @@ def build(
                 latex=latex,
                 clean_tmp_dirs=not save_tmp_dirs,
             )
-            if t.format == "html" and t.compression is None:
+            if t.format == "html" and t.compression is None and t.collection is None:
                 log.info(
                     f"\nFinished build for target {t.name}. Run `pretext view {t.name}` to see the results.\n"
                 )

@@ -45,6 +45,9 @@ from .. import VERSION
 # Otherwise, we just set up the logger here to be used by the CLI.
 log = logging.getLogger("ptxlogger")
 
+# The name of the `xml:id` attribute, as lxml knows it.
+XML_ID = "{http://www.w3.org/XML/1998/namespace}id"
+
 
 class Format(str, Enum):
     HTML = "html"
@@ -224,15 +227,24 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
                 f'Target "{self.name}" has format "{self.format.value}", which does not support '
                 'method="fo".  Only format="pdf" can be built through XSL-FO.'
             )
-        if self.division is not None and (
+        if self.division is not None and self.collection is not None:
+            raise ValueError(
+                f'Target "{self.name}" has both a "division" and a "collection".  '
+                "Use one: a collection can name a single division."
+            )
+        if (self.division is not None or self.collection is not None) and (
             self.format not in (Format.PDF, Format.LATEX, Format.HTML)
             or self.method == Method.FO
             or self.platform == Platform.RUNESTONE
         ):
             raise ValueError(
-                f'Target "{self.name}" builds the single division "{self.division}", which is '
+                f'Target "{self.name}" builds divisions of its source one at a time, which is '
                 'only supported for format="html" (but not on the Runestone platform), '
                 'format="latex", and format="pdf" with method="latex".'
+            )
+        if self.collection is not None and self.is_standalone():
+            raise ValueError(
+                f'Target "{self.name}" is standalone, so it cannot build a "collection".'
             )
         return self
 
@@ -263,6 +275,13 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
     # Experimental; only for the `html` (not on Runestone), `pdf` (by the
     # `latex` method) and `latex` formats.  See `docs/subset-build-roadmap.md`.
     division: t.Optional[str] = pxml.attr(name="division", default=None)
+    # Several divisions, each built as `division` would build it, by one
+    # target.  A list, separated by spaces, of kinds of division (`worksheet`
+    # means every worksheet that has an `xml:id`) and of single divisions (an
+    # `xml:id` after a `#`).  Each output is named for its division.  With an
+    # `output_filename`, the outputs are also gathered into one zip file of
+    # that name.  Experimental; same formats as `division`.
+    collection: t.Optional[str] = pxml.attr(name="collection", default=None)
 
     # Specify whether this target is intended for standalone building
     standalone: t.Optional[str] = pxml.attr(name="standalone", default=None)
@@ -1058,6 +1077,17 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
         latex: bool = False,
         clean_tmp_dirs: bool = True,
     ) -> None:
+        # A collection is built one division at a time, by targets made for the purpose.
+        if self.collection is not None:
+            self._build_collection(
+                clean=clean,
+                generate=generate,
+                no_knowls=no_knowls,
+                latex=latex,
+                clean_tmp_dirs=clean_tmp_dirs,
+            )
+            return
+
         # Add cli.version to stringparams.  Use only the major and minor version numbers.
         self.stringparams["cli.version"] = VERSION[: VERSION.rfind(".")]
 
@@ -1394,34 +1424,151 @@ class Target(pxml.BaseXmlModel, tag="target", search_mode=SearchMode.UNORDERED):
             return document_id.strip()
         for child in root:
             if child.tag != "docinfo":
-                root_id = child.get("{http://www.w3.org/XML/1998/namespace}id")
+                root_id = child.get(XML_ID)
                 if root_id is not None:
                     return root_id
         return self.source_abspath().stem
+
+    def _find_division(self, xmlid: str) -> ET._Element:
+        """
+        The one element of the assembled source with `xmlid` as its `xml:id`.  Raises a `ValueError` if there is not exactly one, or if it cannot be built as a document of its own.
+        """
+        found = t.cast(
+            t.List[ET._Element],
+            self.source_element().xpath("//*[@xml:id = $xmlid]", xmlid=xmlid),
+        )
+        if len(found) == 0:
+            raise ValueError(
+                f'Target "{self.name}" is to build the division "{xmlid}", but no element of the source has that xml:id.'
+            )
+        if len(found) > 1:
+            raise ValueError(
+                f'Target "{self.name}" is to build the division "{xmlid}", but {len(found)} elements of the source have that xml:id.'
+            )
+        if not utils.division_can_stand_alone(found[0]):
+            raise ValueError(
+                f'Target "{self.name}" is to build "{xmlid}", but that is a "{found[0].tag}", which cannot be built as a document of its own.'
+            )
+        return found[0]
 
     def check_division(self) -> None:
         """
         Raise a `ValueError` unless `division` names exactly one element of the assembled source, and one that can be built as a document of its own.
         """
         assert self.division is not None
-        found = t.cast(
-            t.List[ET._Element],
-            self.source_element().xpath(
-                "//*[@xml:id = $division]", division=self.division
-            ),
-        )
-        if len(found) == 0:
+        self._find_division(self.division)
+
+    def collection_divisions(self) -> t.List[str]:
+        """
+        The `xml:id` of each division that `collection` selects, in document order and without repeats.
+
+        Raises a `ValueError` if any part of `collection` selects nothing.  A division of a named kind that has no `xml:id` cannot be selected, since there would be nothing to build it by or to name its output; each one is reported in a warning and left out.
+        """
+        assert self.collection is not None
+        tokens = self.collection.split()
+        ids = {token[1:] for token in tokens if token.startswith("#")}
+        kinds = {token for token in tokens if not token.startswith("#")}
+        # each single division must exist and be suitable
+        for xmlid in ids:
+            self._find_division(xmlid)
+        selected: t.List[str] = []
+        kinds_found: t.Set[str] = set()
+        for element in self.source_element().iter():
+            # comments and processing instructions have no string tag
+            if not isinstance(element.tag, str):
+                continue
+            element_id = element.get(XML_ID)
+            if element_id in ids:
+                selected.append(element_id)
+            elif element.tag in kinds and utils.division_can_stand_alone(element):
+                if element_id is None:
+                    log.warning(
+                        f'Target "{self.name}" skips a "{element.tag}" titled "{element.findtext("title")}", since it has no xml:id to build it by.'
+                    )
+                else:
+                    kinds_found.add(element.tag)
+                    selected.append(element_id)
+        if kinds - kinds_found:
+            missing = ", ".join(f'"{kind}"' for kind in sorted(kinds - kinds_found))
             raise ValueError(
-                f'Target "{self.name}" is to build the division "{self.division}", but no element of the source has that xml:id.'
+                f'Target "{self.name}" has a collection naming {missing}, but the source has no such division that has an xml:id and can be built as a document of its own.'
             )
-        if len(found) > 1:
+        if len(selected) == 0:
+            raise ValueError(f'Target "{self.name}" has an empty collection.')
+        # drop repeats, keeping first appearances
+        return list(dict.fromkeys(selected))
+
+    def _piece_target(self, xmlid: str) -> "Target":
+        """
+        A copy of this collection target that builds the single division `xmlid`.  It shares this target's project, and its parsed source, so nothing is assembled or validated again.  HTML that is not compressed is a directory of files, so each division then gets a directory of its own.
+        """
+        update: t.Dict[str, t.Any] = {
+            "collection": None,
+            "division": xmlid,
+            "output_filename": None,
+        }
+        if self.format == Format.HTML and self.compression is None:
+            assert self.output_dir is not None
+            update["output_dir"] = self.output_dir / xmlid
+        return self.model_copy(update=update)
+
+    def _build_collection(
+        self,
+        clean: bool,
+        generate: bool,
+        no_knowls: bool,
+        latex: bool,
+        clean_tmp_dirs: bool,
+    ) -> None:
+        """
+        Build each division of this target's `collection`, and gather the results into one zip file if the target has an `output_filename`.
+
+        The work common to every division is done once, here: the source is parsed and checked, the output is cleaned, and assets are generated, for the whole document since that is one pass in place of one per division.
+        """
+        try:
+            self.source_element()
+        except Exception as e:
+            log.error(f"Error assembling source file: {e}")
+            raise RuntimeError("XML syntax for source file is invalid")
+        self.check_schema()
+        divisions = self.collection_divisions()
+        if self.output_filename is not None and any(
+            self.output_filename == piece._output_filename()
+            for piece in map(self._piece_target, divisions)
+        ):
             raise ValueError(
-                f'Target "{self.name}" is to build the division "{self.division}", but {len(found)} elements of the source have that xml:id.'
+                f'Target "{self.name}" would write both a division and its collection to "{self.output_filename}".  Change "output-filename".'
             )
-        if not utils.division_can_stand_alone(found[0]):
-            raise ValueError(
-                f'Target "{self.name}" is to build "{self.division}", but that is a "{found[0].tag}", which cannot be built as a document of its own.'
+        if clean:
+            self.clean_output()
+        self.ensure_asset_directories()
+        self.ensure_webwork_reps(clean_tmp_dirs=clean_tmp_dirs)
+        if generate:
+            self.generate_assets(clean_tmp_dirs=clean_tmp_dirs)
+        self.ensure_output_directory()
+
+        built: t.List[Path] = []
+        for count, xmlid in enumerate(divisions, start=1):
+            log.info(
+                f'Building division "{xmlid}" ({count} of {len(divisions)}) for target {self.name}'
             )
+            piece = self._piece_target(xmlid)
+            piece.build(
+                generate=False,
+                no_knowls=no_knowls,
+                latex=latex,
+                clean_tmp_dirs=clean_tmp_dirs,
+            )
+            piece_filename = piece._output_filename()
+            built.append(
+                piece.output_dir_abspath()
+                if piece_filename is None
+                else piece.output_dir_abspath() / piece_filename
+            )
+        if self.output_filename is not None:
+            bundle = self.output_dir_abspath() / self.output_filename
+            utils.bundle_collection(built, bundle)
+            log.info(f"Collection of {len(built)} divisions deposited as {bundle}")
 
     def _rename_build_directory_output(self, suffix: str) -> None:
         """

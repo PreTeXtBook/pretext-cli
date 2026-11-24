@@ -53,6 +53,12 @@
           <tabular><row><cell>1</cell><cell>1</cell></row><row><cell>2</cell><cell>8</cell></row></tabular>
         </table>
       </worksheet>
+      <worksheet>
+        <title>Unlabeled Extras</title>
+        <exercise>
+          <statement><p>A worksheet with no identifier.</p></statement>
+        </exercise>
+      </worksheet>
     </chapter>
     <chapter xml:id="ch-exams">
       <title>Exams</title>

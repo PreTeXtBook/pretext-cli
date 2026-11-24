@@ -21,7 +21,7 @@ import importlib.util
 import re
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 import requests
 import shutil
 import zipfile
@@ -1423,3 +1423,150 @@ def test_division_pdf_numbers_match(
     assert "ptxnumbercheck" in (out_dir / (Path(source).stem + ".tex")).read_text()
     # ...and found nothing
     assert "umber mismatch" not in latex_log
+
+
+# Targets that build a collection of divisions
+# ============================================
+
+
+def test_collection_restrictions() -> None:
+    """A collection has the format restrictions of a single division, and a
+    target cannot have both, or be standalone."""
+    project = pr.Project(ptx_version="2")
+    assert project.new_target("a", "pdf", collection="worksheet").collection
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("b", "epub", collection="worksheet")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("c", "pdf", collection="worksheet", division="x")
+    with pytest.raises(pydantic.ValidationError):
+        project.new_target("d", "pdf", collection="worksheet", standalone="yes")
+
+
+def test_collection_divisions(
+    division_project: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """A collection selects every division of a named kind and each division
+    named by `#` and its xml:id, in document order and once each.  A division
+    of a named kind with no xml:id is left out, with a warning."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+
+        def select(collection: str) -> List[str]:
+            target = project.new_target(
+                f"t{len(project.targets)}", "pdf", collection=collection
+            )
+            return target.collection_divisions()
+
+        assert select("worksheet") == ["ws-week1", "ws-week2"]
+        assert "Unlabeled Extras" in caplog.text
+        assert select("#exam2 #exam1") == ["exam1", "exam2"]
+        assert select("#exam1 worksheet #ws-week1") == ["ws-week1", "ws-week2", "exam1"]
+        assert select("chapter") == ["ch-background", "ch-weekly", "ch-exams"]
+        with pytest.raises(ValueError, match="no element of the source"):
+            select("worksheet #no-such-id")
+        # a kind the source does not have, and a kind that cannot stand alone
+        with pytest.raises(ValueError, match='naming "handout"'):
+            select("worksheet handout")
+        with pytest.raises(ValueError, match='naming "theorem"'):
+            select("theorem")
+        with pytest.raises(ValueError, match="empty collection"):
+            select("  ")
+
+
+def test_collection_latex_build(division_project: Path, mocker: Any) -> None:
+    """A collection target writes one file per division, named for it, and
+    no zip of them all unless asked.  Assets are generated in one pass, not
+    once per division."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target("sheets", "latex", collection="worksheet")
+        generate_assets = mocker.patch.object(pr.Target, "generate_assets")
+        target.build()
+        out_dir = target.output_dir_abspath()
+        assert sorted(p.name for p in out_dir.glob("*.tex")) == [
+            "ws-week1.tex",
+            "ws-week2.tex",
+        ]
+        assert not list(out_dir.glob("*.zip"))
+        week1 = (out_dir / "ws-week1.tex").read_text()
+    assert generate_assets.call_count == 1
+    assert "Week 1 Exercises" in week1
+    assert "Week 2 Exercises" not in week1
+
+
+def test_collection_scorm_bundle(division_project: Path) -> None:
+    """With an output-filename, a collection of SCORM packages is also
+    gathered into one zip of that name.  Each package inside is complete,
+    and has an identifier of its own."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "assignments",
+            "html",
+            compression="scorm",
+            collection="worksheet #exam1",
+            output_filename="assignments.zip",
+        )
+        target.build(generate=False)
+        out_dir = target.output_dir_abspath()
+        pieces = ["exam1.zip", "ws-week1.zip", "ws-week2.zip"]
+        assert sorted(p.name for p in out_dir.iterdir()) == sorted(
+            pieces + ["assignments.zip"]
+        )
+        with zipfile.ZipFile(out_dir / "assignments.zip") as bundle:
+            assert sorted(bundle.namelist()) == pieces
+            identifiers = set()
+            for piece in pieces:
+                with zipfile.ZipFile(bundle.open(piece)) as package:
+                    assert "course.html" in package.namelist()
+                    manifest = package.read("imsmanifest.xml").decode()
+                    found = re.search(r'identifier="(ptx-course-[^"]+)"', manifest)
+                    assert found is not None
+                    identifiers.add(found.group(1))
+    assert len(identifiers) == 3
+
+
+def test_collection_bundle_name_clash(division_project: Path) -> None:
+    """A collection whose zip would have the name of one of its divisions'
+    outputs is refused, before anything is built."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target(
+            "clash",
+            "html",
+            compression="zip",
+            collection="worksheet",
+            output_filename="ws-week1.zip",
+        )
+        with pytest.raises(ValueError, match="both a division and its collection"):
+            target.build(generate=False)
+        assert not target.output_dir_abspath().exists()
+
+
+def test_collection_html_directories(division_project: Path) -> None:
+    """Uncompressed HTML is a directory of files, so each division of a
+    collection gets a directory of its own, named for it."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target("pages", "html", collection="#exam1 #exam2")
+        target.build(generate=False)
+        out_dir = target.output_dir_abspath()
+        assert sorted(p.name for p in out_dir.iterdir()) == ["exam1", "exam2"]
+        exam2 = (out_dir / "exam2" / "course.html").read_text()
+    assert "<title>Exam 2</title>" in exam2
+
+
+@pytest.mark.skipif(
+    not HAS_XELATEX,
+    reason="Skipped since xelatex isn't found.",
+)
+def test_collection_pdf_build(division_project: Path) -> None:
+    """A PDF collection makes one PDF per division."""
+    with utils.working_directory(division_project):
+        project = pr.Project.parse()
+        target = project.new_target("exams", "pdf", collection="#exam1 #exam2")
+        target.build(generate=False)
+        assert sorted(p.name for p in target.output_dir_abspath().iterdir()) == [
+            "exam1.pdf",
+            "exam2.pdf",
+        ]

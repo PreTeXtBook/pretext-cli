@@ -1,10 +1,10 @@
 # Roadmap: collections (many divisions of one document, each built as its own output)
 
-**Status: Phases 1 and 2 are implemented on the `collections` branch
-(2026-11-23). A target with `division="<xml:id>"` builds that one division as its
-own PDF, LaTeX file, HTML page, or SCORM package.** Collections of many divisions
-and PreTeXt.Plus are still to do. The earlier spike is a runnable project in
-[subset-spike/](subset-spike/).
+**Status: Phases 1 to 3 are implemented on the `collections` branch (2026-11-23).
+A target with `division="<xml:id>"` builds one division as its own PDF, LaTeX file,
+HTML page, or SCORM package, and a target with `collection="..."` builds many of
+them at once.** PreTeXt.Plus and documentation are still to do. The earlier spike
+is a runnable project in [subset-spike/](subset-spike/).
 
 This replaces the plan of 2026-07-12 (wrap one division in an empty `article` and
 build that). The section "What changed from the July plan" records what was dropped
@@ -33,11 +33,12 @@ flags alone.
 
 State on 2026-11-23, on the `collections` branch:
 
-- Phases 1 and 2 are done, with tests that pass against both the pinned core and a
-  core checkout at `f560a2b52`. See "Phase 1 as built" and "Phase 2 as built".
-- Next is Phase 3: a target that builds many divisions at once.
+- Phases 1 to 3 are done, with tests that pass against both the pinned core and a
+  core checkout at `f560a2b52`. See the three "as built" sections.
+- Next is Phase 5, exposing a collection target in the PreTeXt.Plus build service,
+  and Phase 6, the Guide.
 - No package has been loaded into a real LMS yet. That is the check most worth
-  doing before Phase 3.
+  doing before anyone relies on this.
 - One decision is waiting on Oscar: which elements may be built alone. The answer
   lives in `division_can_stand_alone` in `pretext/utils.py`, marked `TODO(human)`,
   and is a conservative guess for now.
@@ -104,6 +105,44 @@ whole generated folder. Finding the files a page uses by scanning it is unsafe,
 because core's WeBWorK script builds those paths in JavaScript. A project whose
 other divisions have never been built only has the division's own assets, so the
 problem shows up in projects that also build the whole document.
+
+## Phase 3 as built
+
+The two user stories, as targets:
+
+```xml
+<target name="assignments" format="html" compression="scorm"
+        collection="worksheet" output-filename="assignments.zip"/>
+<target name="exams" format="pdf" collection="#exam1 #exam2 #final"/>
+```
+
+- **What `collection` holds.** Words separated by spaces. A plain word is a kind
+  of division, and selects every one that has an `xml:id`. A word starting with
+  `#` is the `xml:id` of one division. They can be mixed; a division selected
+  twice is built once. Divisions are built in document order.
+- **Each division is built as `division` would build it**, and named
+  `<xml:id>.pdf`, `.tex` or `.zip`. Uncompressed HTML is a directory, so each
+  division gets a directory named for it.
+- **One zip of everything** is made when the target has an `output-filename`,
+  which names that zip. The individual outputs stay beside it. Without an
+  `output-filename` there is no zip, only the individual outputs.
+- **Refused, before anything is built:** a `#` id that does not exist or is not a
+  division; a kind that selects nothing; a zip name equal to one of the outputs;
+  `collection` together with `division`; a standalone target.
+- **A division with no `xml:id`** cannot be selected by kind, since there is
+  nothing to build it by or name it with. It is skipped with a warning that gives
+  its title.
+- **Work done once, not per division:** parsing and checking the source, cleaning
+  the output, and generating assets (for the whole document).
+- **Where the code is.** `Target.collection_divisions` picks the divisions,
+  `Target._build_collection` loops, `Target._piece_target` makes the copy of the
+  target that builds one division, and `utils.bundle_collection` makes the zip.
+
+Known cost: **each division is a full conversion of the whole document.** The cut
+happens inside the conversion, so forty worksheets means forty passes of core's
+assembly over the book. On the small test book a SCORM package takes about three
+seconds. On a large book this will be slow, and is the main reason to move the
+cut into core eventually, where one pass could write every division.
 
 ## LaTeX numbering: what core offers, and what Phase 1 does
 
@@ -237,33 +276,32 @@ only against the checkout).
 
 ## Configuration
 
-One division, as built in Phase 1:
+All of this is built; see the "as built" sections for details.
 
 ```xml
+<!-- one division -->
 <target name="exam1" format="pdf" division="exam-one"/>
-```
 
-Many divisions, a sketch for Phase 3 with names still open:
-
-```xml
+<!-- many divisions, and a zip of them all -->
 <target name="assignments" format="html" compression="scorm"
-        publication="publication-scorm.ptx" collection="worksheet"/>
-<target name="exams" format="pdf" collection="#exam1 #exam2 #quiz1"/>
+        collection="worksheet" output-filename="assignments.zip"/>
 ```
 
-`collection` names either kinds of division (every `worksheet`) or individual
-divisions by `xml:id`. In PreTeXt.Plus the same value is passed to
-`new_target(...)`.
+In Python, as PreTeXt.Plus would use it:
 
-Output: `output/<target>/<name>.<ext>` for each piece, plus one bundle zip of them
-all.
+```python
+target = project.new_target(
+    "assignments", "html", compression="scorm",
+    collection="worksheet", output_filename="assignments.zip",
+)
+target.build()
+```
 
 ## Phases
 
 1. **One piece, PDF.** *Done 2026-11-23.* See "Phase 1 as built".
 2. **One piece, SCORM.** *Done 2026-11-23.* See "Phase 2 as built".
-3. **Collections.** The `collection` attribute and its schema entry, the loop over
-   pieces with one shared asset pass, file naming, the bundle zip.
+3. **Collections.** *Done 2026-11-23.* See "Phase 3 as built".
 4. **PDF number fidelity.** *Done in Phase 1*, except footnotes.
 5. **PreTeXt.Plus.** Expose the collection target in the build service.
 6. **Documentation.** Guide section and CHANGELOG entry.
@@ -279,7 +317,13 @@ all.
   them too, but changes what an existing target produces.
 - Should a long division, a chapter say, keep a table of contents for its own
   sections?
-- File names: `xml:id`, or a name made from the title?
+- File names: `xml:id` for now. Would a name made from the title be better for
+  an LMS upload dialog?
+- Should a collection write an index (CSV or JSON) listing each division's
+  `xml:id`, title and file, for bulk upload or for PreTeXtHub?
+- Should a division with no `xml:id` be buildable, under a name the CLI makes up?
+- Should a collection generate assets only for its divisions? One pass over the
+  whole document is simple, but wasteful for three exams out of a large book.
 - Should outward references link to a deployed copy of the full book when the
   publication file gives a base URL?
 - What may be a piece? Phase 1 allows `chapter`, `section`, `subsection`,

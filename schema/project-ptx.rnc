@@ -81,11 +81,7 @@ HtmlAttributes = (
 	attribute format { "html" },
 	(attribute platform { "runestone" }?
 	| (attribute compression { "zip" | "scorm" }?,
-	## Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
-	## ...) to build as a single page of its own, in place of the whole source.
-	## With `compression`, the output is a package named for the division
-	## unless `output-filename` is given.
-	attribute division { text }?,
+	DivisionOrCollection,
 	attribute output-filename { text }?))
 )
 
@@ -99,22 +95,14 @@ PdfAttributes = (
 	## Deprecated: superseded by `method` together with `latex-engine`, which
 	## separate the route to the PDF from the engine that compiles it.
 	attribute pdf-method { "xelatex" | "pdflatex" | "lualatex" | "latex" | "pdf-fo"}?,
-	## Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
-	## ...) to build as a document of its own, in place of the whole source.
-	## The division keeps the numbers it has in the whole document, and the
-	## output is named for it unless `output-filename` is given.
-	attribute division { text }?,
+	DivisionOrCollection,
 	attribute output-filename { text }?,
 	attribute latex-source { "yes" | "no" }?
 )
 
 LatexAttributes = (
 	attribute format { "latex" },
-	## Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
-	## ...) to build as a document of its own, in place of the whole source.
-	## The division keeps the numbers it has in the whole document, and the
-	## output is named for it unless `output-filename` is given.
-	attribute division { text }?,
+	DivisionOrCollection,
 	attribute output-filename { text }?
 )
 
@@ -159,5 +147,21 @@ Stringparams = element stringparams {
 	attribute author.tools { "yes" | "no" }?,
 	attribute html.css.extra { text }?
 }
+
+## Experimental. Build divisions of the source as documents of their own, in
+## place of the whole source: one division, or a collection of them.
+DivisionOrCollection = (DivisionAttribute | CollectionAttribute)?
+
+## The `xml:id` of one division (a `section`, a `worksheet`, ...). The division
+## keeps the numbers it has in the whole document, and the output is named for
+## it unless `output-filename` is given. As HTML it is a single page.
+DivisionAttribute = attribute division { text }
+
+## Several divisions, each built as `division` would build it. A list,
+## separated by spaces, of kinds of division (`worksheet` means every worksheet
+## that has an `xml:id`) and of single divisions (an `xml:id` after a `#`).
+## Each output is named for its division; with `output-filename`, they are also
+## gathered into one zip file of that name.
+CollectionAttribute = attribute collection { text }
 
 }

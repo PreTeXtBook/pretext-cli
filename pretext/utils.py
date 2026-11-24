@@ -501,15 +501,9 @@ def division_can_stand_alone(element: ET._Element) -> bool:
     Decide whether `element`, found in the assembled source by its `xml:id`,
     may be built as a document of its own by a target's `division` attribute.
 
-    TODO(human): this is a policy choice, and the current answer is a
-    conservative guess.  Things to weigh:
-      - Front and back matter (`preface`, `appendix`, `solutions`, `index`,
-        back-matter `references`) depend on their container: an appendix is
-        lettered because `backmatter` says so, and `solutions` gathers
-        content from the rest of the book.
-      - A `part` works in principle but is untested.
-      - Blocks (`exercise`, `project`, `example`) are not divisions, so
-        there is no heading to stand in for a title.
+    In the future, we may want to allow more flexible division structures.
+    For example, blocks (`exercise`, `project`, `example`) are not divisions, so
+    there is no heading to stand in for a title, but we might want to allow a single block to be a standalone "division".
     """
     return element.tag in STANDALONE_DIVISIONS
 
@@ -600,6 +594,23 @@ def package_division_html(
                 continue
             zf.write(file, file.relative_to(build_dir).as_posix())
     log.debug(f"Left {dropped} unneeded files out of {zip_path}")
+
+
+def bundle_collection(pieces: List[Path], zip_path: Path) -> None:
+    """
+    Gather the outputs of a collection target into the one zip file
+    `zip_path`.  Each of `pieces` is a file, placed at the top of the zip, or
+    a directory, placed there with all it holds.
+    """
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for piece in pieces:
+            if piece.is_dir():
+                for file in sorted(piece.rglob("*")):
+                    if file.is_file():
+                        zf.write(file, file.relative_to(piece.parent).as_posix())
+            else:
+                zf.write(piece, piece.name)
 
 
 def check_executable(exec_name: str) -> Optional[str]:

@@ -169,14 +169,7 @@ also compiles the document of a `pdf` target taking the `latex` method.</a:docum
             </choice>
           </attribute>
         </optional>
-        <optional>
-          <attribute name="division">
-            <a:documentation>Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
-...) to build as a single page of its own, in place of the whole source.
-With `compression`, the output is a package named for the division
-unless `output-filename` is given.</a:documentation>
-          </attribute>
-        </optional>
+        <ref name="DivisionOrCollection"/>
         <optional>
           <attribute name="output-filename"/>
         </optional>
@@ -212,14 +205,7 @@ separate the route to the PDF from the engine that compiles it.</a:documentation
         </choice>
       </attribute>
     </optional>
-    <optional>
-      <attribute name="division">
-        <a:documentation>Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
-...) to build as a document of its own, in place of the whole source.
-The division keeps the numbers it has in the whole document, and the
-output is named for it unless `output-filename` is given.</a:documentation>
-      </attribute>
-    </optional>
+    <ref name="DivisionOrCollection"/>
     <optional>
       <attribute name="output-filename"/>
     </optional>
@@ -236,14 +222,7 @@ output is named for it unless `output-filename` is given.</a:documentation>
     <attribute name="format">
       <value>latex</value>
     </attribute>
-    <optional>
-      <attribute name="division">
-        <a:documentation>Experimental. The `xml:id` of one division (a `section`, a `worksheet`,
-...) to build as a document of its own, in place of the whole source.
-The division keeps the numbers it has in the whole document, and the
-output is named for it unless `output-filename` is given.</a:documentation>
-      </attribute>
-    </optional>
+    <ref name="DivisionOrCollection"/>
     <optional>
       <attribute name="output-filename"/>
     </optional>
@@ -366,5 +345,29 @@ output is named for it unless `output-filename` is given.</a:documentation>
         <attribute name="html.css.extra"/>
       </optional>
     </element>
+  </define>
+  <define name="DivisionOrCollection">
+    <a:documentation>Experimental. Build divisions of the source as documents of their own, in
+place of the whole source: one division, or a collection of them.</a:documentation>
+    <optional>
+      <choice>
+        <ref name="DivisionAttribute"/>
+        <ref name="CollectionAttribute"/>
+      </choice>
+    </optional>
+  </define>
+  <define name="DivisionAttribute">
+    <a:documentation>The `xml:id` of one division (a `section`, a `worksheet`, ...). The division
+keeps the numbers it has in the whole document, and the output is named for
+it unless `output-filename` is given. As HTML it is a single page.</a:documentation>
+    <attribute name="division"/>
+  </define>
+  <define name="CollectionAttribute">
+    <a:documentation>Several divisions, each built as `division` would build it. A list,
+separated by spaces, of kinds of division (`worksheet` means every worksheet
+that has an `xml:id`) and of single divisions (an `xml:id` after a `#`).
+Each output is named for its division; with `output-filename`, they are also
+gathered into one zip file of that name.</a:documentation>
+    <attribute name="collection"/>
   </define>
 </grammar>
