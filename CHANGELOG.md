@@ -12,12 +12,16 @@ Instructions: Add a subsection under `[Unreleased]` for additions, fixes, change
 ### Added
 
 - WeBWorK problems are now cached individually, like `latex-image`, `asymptote`, `sageplot`, and `prefigure` assets.  Each problem's representations file and images are kept in `.cache/webwork/<hash>/`, so when some problems change (or another target with the same source is built), only the changed problems are sent to the WeBWorK server.  A change to the project's PG macro files (including `docinfo/latex-image-preamble`) or to the server's version regenerates every problem.  A problem hosted on the server, or the course's macros there, can change without the CLI noticing; run `pretext generate webwork -f` after such a change.  `pretext prune-cache` removes stale problems too.
+- A worksheet or handout `page` accepts a `pages` attribute.  A whole number, such as `pages="2"`, lays the page out on that many sheets in the print preview, breaking between tasks and stretching workspace to fill each sheet; `pages="multiple"` uses as many sheets as the content needs.  LaTeX output is unchanged.
 
 ### Fixed
 
 - `pretext generate webwork` (or `myopenmath`) on a project without those assets generated no longer generates them twice.
 - `pretext deploy` prints links using the repository's current name on GitHub, so they stay correct after the repository is renamed or transferred.
 - `pretext deploy` no longer prints the remote URL when it reports connecting to GitHub, so a personal access token saved in that URL is not shown.
+- HTML printouts: a block taller than a printed page is split between pages, and its continuation is styled as such, instead of running off the page.
+- Runestone: a Parsons problem's `depends` may separate names with any whitespace, including line breaks, and a `block` without a `name` can no longer satisfy a dependency.
+
 
 ## [2.56.2] - 2026-11-07
 
