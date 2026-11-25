@@ -150,7 +150,7 @@ jobs:
           token: ${{ secrets.PUSH_CODESPACES }}
           repository: ${{ matrix.repo }}
           event-type: pretext-publish
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}", "version": "${{ needs.deploy.outputs.version }}"}'
 
   # Downstream projects that should track each stable release:
   # - pretext-tools re-pins its schemas and Instant Preview XSL to this
